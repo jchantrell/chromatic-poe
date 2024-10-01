@@ -1,0 +1,51 @@
+{
+  "name": "Chromatic",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "build:all": "tauri build; tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc",
+    "build:windows": "tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc",
+    "build:linux": "tauri build",
+    "tauri": "tauri",
+    "gamefiles": "pushd packages/assets; pathofexile-dat; popd",
+    "db": "npx tsx packages/assets/db.ts"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@corvu/resizable": "^0.2.3",
+    "@kobalte/core": "^0.13.6",
+    "@solidjs/router": "^0.14.7",
+    "@tauri-apps/api": ">=2.0.0-rc.0",
+    "@tauri-apps/plugin-dialog": "^2.0.0-rc",
+    "@tauri-apps/plugin-fs": "2.0.0-rc.2",
+    "@tauri-apps/plugin-os": "^2.0.0-rc",
+    "@tauri-apps/plugin-shell": ">=2.0.0-rc.0",
+    "@tauri-apps/plugin-sql": "^2.0.0-rc",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "cmdk-solid": "^1.1.0",
+    "d3": "^7.9.0",
+    "pathofexile-dat": "^9.1.0",
+    "solid-js": "^1.7.8",
+    "solid-sonner": "^0.2.8",
+    "tailwind-merge": "^2.5.2",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.8.3",
+    "@tauri-apps/cli": ">=2.0.0-rc.0",
+    "@types/d3": "^7.4.3",
+    "@types/node": "20",
+    "@types/wicg-file-system-access": "^2023.10.5",
+    "@typescript/lib-dom": "npm:@types/web@^0.0.163",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.45",
+    "sqlite3": "^5.1.7",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1",
+    "vite-plugin-solid": "^2.8.0"
+  }
+}
