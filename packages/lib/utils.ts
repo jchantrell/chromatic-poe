@@ -7,6 +7,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function clone(object: object) {
+  return JSON.parse(JSON.stringify(object));
+}
+
 export function recursivelySetKeys(
   object: Record<string, unknown>,
   path: (string | null)[],
@@ -58,7 +62,7 @@ export function timeSince(date: Date | number): string {
 
   const divisor = unitIndex ? cutoffs[unitIndex - 1] : 1;
 
-  const rtf = new Intl.RelativeTimeFormat(store.locale || "en-US", {
+  const rtf = new Intl.RelativeTimeFormat("en-US", {
     numeric: "auto",
   });
   return rtf.format(Math.floor(deltaSeconds / divisor), units[unitIndex]);

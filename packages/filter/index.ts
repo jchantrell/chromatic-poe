@@ -1,4 +1,4 @@
-import type { ItemHierarchy, Filter } from "@app/constants";
+import { type ItemHierarchy, Filter } from "@app/types";
 import { recursivelySetKeys } from "@pkgs/lib/utils";
 import data from "@pkgs/assets/data.json";
 
@@ -175,7 +175,7 @@ function generateItems(
 
   return rollup(hierarchy, {
     name: "Items",
-    parent: null,
+    parent: undefined,
     type: "root",
     children: [],
   });
@@ -189,11 +189,6 @@ export async function generate(
     throw new Error("Only PoE 1 is currently supported");
   }
   const rules = generateItems(data);
-
-  return {
-    name,
-    version: 1,
-    lastUpdated: new Date().toISOString(),
-    rules,
-  };
+  const now = new Date().toISOString();
+  return new Filter({ name, version: 1, lastUpdated: now, rules });
 }

@@ -11,7 +11,7 @@ import type { ItemHierarchy } from "@app/types";
 
 export type Crumb = { title: string; view: ItemHierarchy };
 
-function Crumbs(props: { class: string }) {
+function Crumbs() {
   function setCrumbs(crumb: Crumb, index: number) {
     if (crumb.view) {
       store.view = crumb.view;
@@ -21,8 +21,8 @@ function Crumbs(props: { class: string }) {
 
   return (
     <>
-      <Breadcrumb class={props.class}>
-        {store.crumbs.length > 0 ? (
+      <Breadcrumb class='mt-1 ml-3'>
+        {store.crumbs.length > 1 ? (
           <BreadcrumbList>
             <For each={store.crumbs}>
               {(crumb, i) => {

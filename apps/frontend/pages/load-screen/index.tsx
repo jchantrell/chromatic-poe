@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For } from "solid-js";
+import { createEffect, createSignal, For, on } from "solid-js";
 import { store } from "@app/store";
 import { generate } from "@pkgs/filter";
 import { Button } from "@pkgs/ui/button";
@@ -33,11 +33,12 @@ export function CreateFilter() {
 
   async function createFilter() {
     if (store.filters.some((e) => e.name === name())) {
-      console.log("Pick new name");
+      // TODO: already existing name notification
       return;
     }
     const filter = await generate(name(), version());
     await fileSystem.writeFilter(filter);
+    console.log(filter);
     loadFilter(filter);
   }
 
@@ -108,7 +109,10 @@ export function CreateFilter() {
 
 function ExistingFilter(props: { filter: Filter }) {
   const [name, setName] = createSignal(props.filter.name);
+  const [copyName, setCopyName] = createSignal(props.filter.name);
+  const [lastUpdated, setLastUpdated] = createSignal(props.filter.lastUpdated);
   const [nameDialogOpen, setNameDialogOpen] = createSignal(false);
+  const [copyDialogOpen, setCopyDialogOpen] = createSignal(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = createSignal(false);
 
   async function deleteFilter() {
@@ -118,17 +122,55 @@ function ExistingFilter(props: { filter: Filter }) {
     await fileSystem.deleteFilter(props.filter);
   }
 
-  createEffect(async () => {
-    if (!nameDialogOpen() && name() !== props.filter.name) {
-      await fileSystem.updateFilterName(props.filter, name());
+  async function copyFilter() {
+    const filter = props.filter.copy();
+    filter.updateName(copyName());
+    await filter.writeFile();
+    store.filters.push(filter);
+  }
+
+  async function updateFilterName() {
+    // TODO: better ui and keybinds
+    if (!nameDialogOpen() && !store.filters.find((e) => e.name === name())) {
+      await fileSystem.updateFilterName(props.filter, name() as string);
+      setLastUpdated(props.filter.lastUpdated);
     }
-  });
+  }
 
   return (
     <li class='bg-muted rounded-lg border flex'>
+      <Dialog open={copyDialogOpen()} onOpenChange={setCopyDialogOpen}>
+        <DialogContent class='max-w-[400px] p-1 bg-primary-foreground rounded-lg select-none'>
+          <TextField
+            class='flex items-center gap-4'
+            onChange={setCopyName}
+            onKeyPress={async (e: KeyboardEvent) => {
+              if (e.key === "Enter") {
+                setCopyDialogOpen(false);
+                await copyFilter();
+              }
+            }}
+          >
+            <TextFieldInput
+              value={copyName()}
+              class='col-span-3 bg-primary-foreground'
+              type='text'
+            />
+          </TextField>
+        </DialogContent>
+      </Dialog>
       <Dialog open={nameDialogOpen()} onOpenChange={setNameDialogOpen}>
         <DialogContent class='max-w-[400px] p-1 bg-primary-foreground rounded-lg select-none'>
-          <TextField class='flex items-center gap-4' onChange={setName}>
+          <TextField
+            class='flex items-center gap-4'
+            onChange={setName}
+            onKeyPress={async (e: KeyboardEvent) => {
+              if (e.key === "Enter") {
+                setNameDialogOpen(false);
+                await updateFilterName();
+              }
+            }}
+          >
             <TextFieldInput
               value={name()}
               class='col-span-3 bg-primary-foreground'
@@ -155,9 +197,7 @@ function ExistingFilter(props: { filter: Filter }) {
           >
             <div class='ml-2'>
               <div>{name()}</div>
-              <div class='text-xs text-accent'>
-                {timeSince(new Date(props.filter.lastUpdated))}
-              </div>
+              <div class='text-xs text-accent'>{timeSince(lastUpdated())}</div>
             </div>
           </Button>
         </ContextMenuTrigger>
@@ -166,6 +206,12 @@ function ExistingFilter(props: { filter: Filter }) {
             <div class='flex items-center text-xs'>
               <EditIcon />
               <div class='ml-1'>Change Name</div>
+            </div>
+          </ContextMenuItem>
+          <ContextMenuItem onSelect={() => setCopyDialogOpen(true)}>
+            <div class='flex items-center text-xs'>
+              <EditIcon />
+              <div class='ml-1'>Copy</div>
             </div>
           </ContextMenuItem>
           <ContextMenuItem
@@ -182,16 +228,18 @@ function ExistingFilter(props: { filter: Filter }) {
     </li>
   );
 }
-
 export function LoadScreenMenu() {
+  console.log(store.filters);
   return (
-    <div class='bg-primary-foreground text-foreground w-full max-w-sm rounded-lg border p-4 grid gap-2 items-center'>
-      <CreateFilter />
-      <ul class='max-w-sm rounded-lg grid gap-2 items-center'>
-        <For each={store.filters}>
-          {(filter) => <ExistingFilter filter={filter} />}
-        </For>
-      </ul>
+    <div class='h-full flex items-center justify-center'>
+      <div class='bg-primary-foreground text-foreground w-full max-w-sm rounded-lg border p-4 grid gap-2 items-center'>
+        <CreateFilter />
+        <ul class='max-w-sm rounded-lg grid gap-2 items-center'>
+          <For each={store.filters}>
+            {(filter) => <ExistingFilter filter={filter} />}
+          </For>
+        </ul>
+      </div>
     </div>
   );
 }

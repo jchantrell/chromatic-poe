@@ -6,7 +6,6 @@ import {
 } from "@kobalte/core";
 import Editor from "@app/pages/editor";
 import Setup from "@app/pages/setup";
-import { Router, Route } from "@solidjs/router";
 import { Button } from "@pkgs/ui/button";
 import { ExitIcon, MinimiseIcon, SettingsIcon } from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
@@ -16,6 +15,7 @@ import { onMount } from "solid-js";
 import { locale } from "@tauri-apps/plugin-os";
 import { store } from "./store";
 import Theme from "@app/components/theme";
+import { LoadScreenMenu } from "@app/pages/load-screen";
 
 function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
   try {
@@ -34,6 +34,7 @@ function App() {
   onMount(async () => {
     if (appWindow) {
       await fileSystem.init();
+      console.log("?");
       if (fileSystem.config.poeDirectory) {
         store.initialised = true;
       }
@@ -105,13 +106,9 @@ function App() {
               class='h-[calc(100%-3.5rem)] w-full rounded-tl-2xl bg-primary-foreground overflow-auto overflow-x-hidden'
               onContextMenu={(e) => e.preventDefault()}
             >
-              {store.initialised ? (
-                <Router>
-                  <Route path='/' component={() => <Editor />} />
-                </Router>
-              ) : (
-                <Setup />
-              )}
+              {!store.initialised ? <Setup /> : <></>}
+              {store.initialised && !store.filter ? <LoadScreenMenu /> : <></>}
+              {store.initialised && store.filter ? <Editor /> : <></>}
             </main>
           </div>
         </div>

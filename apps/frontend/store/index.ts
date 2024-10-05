@@ -1,7 +1,8 @@
 import { createMutable } from "solid-js/store";
-import type { Filter, ItemHierarchy } from "@app/constants";
+import type { Filter, ItemHierarchy } from "@app/types";
 
 export const store = createMutable<{
+  appBar?: HTMLDivElement;
   initialised: boolean;
   locale: string | null;
   filters: Filter[];
@@ -9,22 +10,10 @@ export const store = createMutable<{
   view: ItemHierarchy | null;
   crumbs: { title: string; view: ItemHierarchy }[];
 }>({
+  appBar: undefined,
   initialised: false,
   locale: null,
-  filters: [
-    {
-      name: "Mock Filter",
-      version: 3,
-      lastUpdated: new Date().toISOString(),
-      rules: { name: "Items", type: "root", parent: null, children: [] },
-    },
-    {
-      name: "Another Mock Filter",
-      version: 1,
-      lastUpdated: new Date().toISOString(),
-      rules: { name: "Items", type: "root", parent: null, children: [] },
-    },
-  ],
+  filters: [],
   filter: null,
   view: null,
   crumbs: [],

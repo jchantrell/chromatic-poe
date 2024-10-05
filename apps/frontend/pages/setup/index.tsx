@@ -4,27 +4,24 @@ import { fileSystem } from "@app/services/storage";
 import { to } from "@pkgs/lib/utils";
 import { sep } from "@tauri-apps/api/path";
 import { platform } from "@tauri-apps/plugin-os";
-import { createSignal, onMount } from "solid-js";
+import { createEffect, createSignal, onMount } from "solid-js";
 import { store } from "@app/store";
 
 function Setup() {
-  const [os, setOs] = createSignal<string | null>(null);
-  const [location, setLocation] = createSignal<string | null>(null);
-  const [assumedLocation, setAssumedLocation] = createSignal<string | null>(
-    null,
-  );
+  const [directory, setDirectory] = createSignal<string>("");
+  const [dirValid, setDirValid] = createSignal(false);
 
   async function chooseLocation() {
-    const defaultPath = assumedLocation();
-    const [, path] = await to(
-      fileSystem.pickDirectoryPrompt(defaultPath ? defaultPath : ""),
-    );
-    if (path) setLocation(path);
+    const [, path] = await to(fileSystem.pickDirectoryPrompt(directory()));
+    if (path) setDirectory(path);
   }
 
   async function handleSubmit() {
-    if (!location()) return;
-    await fileSystem.updateFilterPath(location() as string);
+    if (!dirValid()) {
+      return;
+    }
+
+    await fileSystem.updatePoeDirectory(directory());
     store.initialised = true;
   }
 
@@ -33,13 +30,36 @@ function Setup() {
     return split.slice(Math.max(split.length - 3, 0)).join(sep());
   }
 
+  createEffect(async () => {
+    if (directory() !== "") {
+      // TODO: can probably do additional checks
+      const [err, val] = await to(fileSystem.checkPoeDirectory(directory()));
+      console.log(err, val, directory());
+      if (err || !val) {
+        setDirValid(false);
+      }
+      if (val) {
+        setDirValid(true);
+      }
+    }
+  });
+
   onMount(async () => {
     const currentPlatform = platform();
-    const [, assumedLocation] = await to(
-      fileSystem.getFilterPath(currentPlatform),
+
+    const [, assumedPoeDirLocation] = await to(
+      fileSystem.getAssumedPoeDirectory(currentPlatform),
     );
-    setOs(currentPlatform);
-    if (assumedLocation) setAssumedLocation(assumedLocation);
+    if (assumedPoeDirLocation) {
+      const [, dirExists] = await to(
+        fileSystem.checkPoeDirectory(assumedPoeDirLocation),
+      );
+
+      if (dirExists) {
+        setDirectory(assumedPoeDirLocation);
+        setDirValid(true);
+      }
+    }
   });
 
   return (
@@ -48,18 +68,6 @@ function Setup() {
         <div class='text-xl mb-2'>Welcome, exile!</div>
         <div>
           Please select the Path of Exile filter directory on your system.
-        </div>
-        <div class='text-xs'>
-          {assumedLocation() ? (
-            <>
-              We've detected you're on {os()}, so it's likely at:
-              <div class='text-xs text-muted-foreground'>
-                {assumedLocation()}
-              </div>
-            </>
-          ) : (
-            ""
-          )}
         </div>
         <div class='flex items-center'>
           <div class='my-4 border min-h-[30px] w-full flex items-center rounded-lg'>
@@ -71,12 +79,10 @@ function Setup() {
             >
               <FolderIcon />
             </Button>
-            <div class='overflow-hidden ml-2'>
-              {location() ? truncatePath(location() as string) : ""}
-            </div>
+            <div class='overflow-hidden ml-2'>{truncatePath(directory())}</div>
           </div>
           <Button
-            class='ml-1 rounded-lg'
+            class={`ml-1 rounded-lg ${dirValid() ? "hover:bg-green-700" : "hover:bg-destructive"}`}
             variant='outline'
             onClick={handleSubmit}
           >

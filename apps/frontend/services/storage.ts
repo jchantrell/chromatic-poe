@@ -7,13 +7,12 @@ import {
   readFile,
   readTextFile,
   remove,
+  rename,
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
 import { getVersion } from "@tauri-apps/api/app";
 import { documentDir } from "@tauri-apps/api/path";
-import type { Filter, ItemHierarchy } from "@app/types";
-
-const DIR_NAME = "chromatic";
+import { Filter, type StoredFilter } from "@app/services/filter";
 
 interface ChromaticConfiguration {
   version: string;
@@ -25,19 +24,9 @@ class FileSystem {
   isNativeRuntime = false;
   decoder = new TextDecoder("utf-8");
 
-  imagePath = `${DIR_NAME}/images`;
-  filterPath = `${DIR_NAME}/filters`;
-  configPath = `${DIR_NAME}/config.json`;
-
-  async bootstrap() {
-    await mkdir(DIR_NAME, { baseDir: BaseDirectory.Config });
-    await mkdir(this.imagePath, { baseDir: BaseDirectory.Config });
-    await mkdir(this.filterPath, { baseDir: BaseDirectory.Config });
-  }
-
-  async pickDirectoryPrompt(defaultPath?: string): Promise<string | null> {
-    return await open({ directory: true, defaultPath });
-  }
+  imagePath = "images";
+  filterPath = "filters";
+  configPath = "config.json";
 
   async init() {
     if (this.config) {
@@ -46,26 +35,16 @@ class FileSystem {
 
     this.isNativeRuntime = true;
 
-    console.log("Checking for Chromatic directory...");
-    const dirExists = await exists(DIR_NAME, {
-      baseDir: BaseDirectory.Config,
-    });
-
-    if (!dirExists) {
-      console.log(
-        "Directory doesn't exist. Bootstrapping Chromatic directory...",
-      );
-      await this.bootstrap();
-    }
+    await this.bootstrap();
 
     const configExists = await exists(`${this.configPath}`, {
-      baseDir: BaseDirectory.Config,
+      baseDir: BaseDirectory.AppConfig,
     });
 
     if (configExists) {
       console.log("Config exists. Reading file...");
       const raw = await readTextFile(`${this.configPath}`, {
-        baseDir: BaseDirectory.Config,
+        baseDir: BaseDirectory.AppConfig,
       });
 
       this.config = await this.parseConfig(raw);
@@ -75,6 +54,27 @@ class FileSystem {
       console.log("Config does not exist. Creating with defaults...");
       const defaultConfig = await this.defaultConfig();
       await this.writeConfig(defaultConfig);
+    }
+  }
+
+  async bootstrap() {
+    await this.upsertDirectory("chromatic", BaseDirectory.Config);
+    await this.upsertDirectory(this.imagePath, BaseDirectory.AppConfig);
+    await this.upsertDirectory(this.filterPath, BaseDirectory.AppConfig);
+  }
+
+  async pickDirectoryPrompt(defaultPath?: string): Promise<string | null> {
+    return await open({ directory: true, defaultPath });
+  }
+
+  async upsertDirectory(path: string, baseDir: BaseDirectory) {
+    console.log("Checking for directory...", path);
+    const dirExists = await exists(path, {
+      baseDir,
+    });
+    if (!dirExists) {
+      console.log("Creating directory...", path);
+      await mkdir(path, { baseDir });
     }
   }
 
@@ -158,7 +158,7 @@ class FileSystem {
   async writeConfig(config: ChromaticConfiguration) {
     const path = `${this.configPath}`;
     await writeTextFile(path, JSON.stringify(config), {
-      baseDir: BaseDirectory.Config,
+      baseDir: BaseDirectory.AppConfig,
     });
     console.log(`Successfully wrote config to ${path}`, config);
     this.config = config;
@@ -179,10 +179,10 @@ class FileSystem {
     };
   }
 
-  async getFilterPath(os: string): Promise<string | null> {
+  async getAssumedPoeDirectory(os: string): Promise<string | null> {
     if (os === "windows") {
       const docPath = await documentDir();
-      return `${docPath}/My Games/Path of Exile`;
+      return `${docPath}\\My Games\\Path of Exile`;
     }
 
     if (os === "linux") {
@@ -193,78 +193,74 @@ class FileSystem {
     return null;
   }
 
-  async updateFilterName(filter: Filter, newName: string) {
-    console.log(`Updating ${filter.name} to ${newName}`);
-    await this.writeFilter({ ...filter, name: newName });
-    await this.deleteFilter(filter);
-  }
-
-  async updateFilterPath(path: string) {
+  async updatePoeDirectory(path: string) {
     const updated = { ...this.config, poeDirectory: path };
     await this.writeConfig(updated);
     return { poeDirectory: path, config: this.config };
   }
 
+  async checkPoeDirectory(path: string) {
+    return await exists(path, {});
+  }
+
+  getFiltersPath(filter: Filter, newName?: string) {
+    return `${this.filterPath}/${newName ? newName : filter.name}.json`;
+  }
+
+  async updateFilterName(filter: Filter, newName: string) {
+    await rename(
+      this.getFiltersPath(filter),
+      this.getFiltersPath(filter, newName),
+      {
+        oldPathBaseDir: BaseDirectory.AppConfig,
+        newPathBaseDir: BaseDirectory.AppConfig,
+      },
+    );
+    filter.updateName(newName);
+    return this.writeFilter(filter);
+  }
+
   async deleteFilter(filter: Filter) {
-    const path = `${this.filterPath}/${filter.name}.json`;
-    await remove(path, { baseDir: BaseDirectory.Config });
+    await remove(this.getFiltersPath(filter), {
+      baseDir: BaseDirectory.AppConfig,
+    });
   }
 
   async writeFilter(filter: Filter) {
     if (!this.isNativeRuntime) {
-      return;
+      return filter;
     }
 
-    const path = `${this.filterPath}/${filter.name}.json`;
-    await writeTextFile(path, this.marshallFilter(filter), {
-      baseDir: BaseDirectory.Config,
+    filter.marshall();
+
+    await writeTextFile(this.getFiltersPath(filter), JSON.stringify(filter), {
+      baseDir: BaseDirectory.AppConfig,
     });
+
+    filter.unmarshall();
+    return filter;
   }
 
   async listFilters() {
     const entries = await readDir(this.filterPath, {
-      baseDir: BaseDirectory.Config,
+      baseDir: BaseDirectory.AppConfig,
     });
     const filters: Filter[] = [];
     for (const entry of entries) {
       if (entry.isFile) {
         const bytes = await readFile(`${this.filterPath}/${entry.name}`, {
-          baseDir: BaseDirectory.Config,
+          baseDir: BaseDirectory.AppConfig,
         });
-        const filter: Filter = JSON.parse(this.decoder.decode(bytes));
-        filter.name = entry.name.substring(0, entry.name.length - 5);
-        filters.push(this.unmarshallFilter(filter));
+        const filter: StoredFilter = JSON.parse(this.decoder.decode(bytes));
+        console.log(filter);
+        const entity = new Filter(filter);
+        filters.push(entity);
       }
     }
     return filters.sort(
       (a, b) =>
         new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
     );
-  }
-
-  marshallFilter(filter: Filter): ReturnType<typeof JSON.stringify> {
-    this.removeParentRefs(filter.rules);
-    return JSON.stringify(filter);
-  }
-
-  unmarshallFilter(filter: Filter) {
-    this.addParentRefs(filter.rules);
-    return filter;
-  }
-
-  removeParentRefs(hierarchy: ItemHierarchy) {
-    hierarchy.parent = undefined;
-    for (const child of hierarchy.children) {
-      this.removeParentRefs(child);
-    }
-    return hierarchy;
-  }
-
-  addParentRefs(hierarchy: ItemHierarchy) {
-    for (const child of hierarchy.children) {
-      child.parent = hierarchy;
-      this.addParentRefs(child);
-    }
   }
 }
 

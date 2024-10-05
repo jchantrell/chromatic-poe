@@ -13,39 +13,45 @@
     "os:default",
     "shell:allow-open",
     "dialog:default",
-    "fs:allow-appconfig-read-recursive",
-    "fs:allow-appconfig-write-recursive",
-    "fs:allow-appconfig-read",
-    "fs:allow-appconfig-write",
-    "fs:scope-appconfig-index",
-    "fs:scope-appconfig-recursive",
-    "fs:scope-appconfig",
-    "fs:allow-home-read-recursive",
-    "fs:allow-home-write-recursive",
-    "fs:allow-home-read",
-    "fs:allow-home-write",
-    "fs:scope-home-index",
-    "fs:scope-home-recursive",
-    "fs:scope-home",
-    "sql:allow-close",
-    "sql:allow-execute",
-    "sql:allow-load",
-    "sql:allow-select",
     {
-      "identifier": "fs:scope",
+      "identifier": "fs:read-all",
       "allow": [
         {
-          "path": "$APPCONFIG/chromatic"
+          "path": "$APPCONFIG"
         },
         {
-          "path": "$APPCONFIG/chromatic/**"
+          "path": "$APPCONFIG/*"
         },
         {
-          "path": "$HOME/My Games/Path of Exile/**"
+          "path": "$APPCONFIG/config.json"
+        },
+        {
+          "path": "$APPCONFIG/images/*"
+        },
+        {
+          "path": "$APPCONFIG/filters/**"
         }
       ]
     },
-    "sql:default",
-    "os:default"
+    {
+      "identifier": "fs:write-all",
+      "allow": [
+        {
+          "path": "$APPCONFIG"
+        },
+        {
+          "path": "$APPCONFIG/*"
+        },
+        {
+          "path": "$APPCONFIG/config.json"
+        },
+        {
+          "path": "$APPCONFIG/images/*"
+        },
+        {
+          "path": "$APPCONFIG/filters/**"
+        }
+      ]
+    }
   ]
 }

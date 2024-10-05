@@ -101,7 +101,7 @@ function Entry(props: {
 export function Categories() {
   return (
     <>
-      <Crumbs class='ml-3 mt-1' />
+      <Crumbs />
       <div
         class='m-2 p-1 flex flex-col h-full gap-2'
         onMouseDown={() => console.log("click")}

@@ -1,3 +1,6 @@
+import { clone } from "@pkgs/lib/utils";
+import { fileSystem } from "@app/services/storage";
+
 type Enumerate<
   N extends number,
   Acc extends number[] = [],
@@ -10,6 +13,16 @@ type IntRange<F extends number, T extends number> =
   | T;
 
 type RgbRange = IntRange<0, 255>;
+
+export type ItemHierarchy = {
+  name: string;
+  icon?: string;
+  value?: number | null;
+  type: "root" | "category" | "rule" | "item";
+  enabled?: boolean;
+  parent: ItemHierarchy | undefined;
+  children: ItemHierarchy[];
+};
 
 export interface Rule {
   visible: boolean;
@@ -24,23 +37,12 @@ export interface Section {
   subsections: Section[];
 }
 
-export interface Filter {
+export interface StoredFilter {
   name: string;
   version: number;
   lastUpdated: string;
   rules: ItemHierarchy;
 }
-
-export type ItemHierarchy = {
-  name: string;
-  icon?: string;
-  value?: number | null;
-  type: "root" | "category" | "rule" | "item";
-  enabled?: boolean;
-  parent: ItemHierarchy | undefined;
-  children: ItemHierarchy[];
-};
-
 export enum Block {
   show = "Show",
   hide = "Hide",
@@ -110,6 +112,59 @@ export enum Influence {
   hunter = "Hunter",
   warlord = "Warlord",
   none = "None",
+}
+
+export class Filter {
+  name: string;
+  version: number;
+  lastUpdated: Date;
+  rules: ItemHierarchy;
+
+  constructor(params: StoredFilter) {
+    this.name = params.name;
+    this.version = params.version;
+    this.lastUpdated = new Date(params.lastUpdated);
+    this.rules = params.rules;
+  }
+
+  copy() {
+    this.marshall();
+    const copy = new Filter(clone(this));
+    copy.unmarshall();
+    this.unmarshall();
+    return copy;
+  }
+
+  updateName(newName: string) {
+    this.name = newName;
+    this.lastUpdated = new Date();
+  }
+
+  async writeFile() {
+    await fileSystem.writeFilter(this);
+  }
+
+  marshall() {
+    this.removeParentRefs(this.rules);
+  }
+
+  unmarshall() {
+    this.addParentRefs(this.rules);
+  }
+
+  removeParentRefs(hierarchy: ItemHierarchy) {
+    hierarchy.parent = undefined;
+    for (const child of hierarchy.children) {
+      this.removeParentRefs(child);
+    }
+  }
+
+  addParentRefs(hierarchy: ItemHierarchy) {
+    for (const child of hierarchy.children) {
+      child.parent = hierarchy;
+      this.addParentRefs(child);
+    }
+  }
 }
 
 export class Condition {
