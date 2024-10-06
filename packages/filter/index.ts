@@ -1,4 +1,4 @@
-import { type ItemHierarchy, Filter } from "@app/types";
+import { type ItemHierarchy, Filter } from "@app/services/filter";
 import { recursivelySetKeys } from "@pkgs/lib/utils";
 import data from "@pkgs/assets/data.json";
 

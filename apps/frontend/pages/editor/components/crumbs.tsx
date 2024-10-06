@@ -7,7 +7,7 @@ import {
 } from "@pkgs/ui/breadcrumb";
 import { store } from "@app/store";
 import { For } from "solid-js";
-import type { ItemHierarchy } from "@app/types";
+import type { ItemHierarchy } from "@app/services/filter";
 
 export type Crumb = { title: string; view: ItemHierarchy };
 

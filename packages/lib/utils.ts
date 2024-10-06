@@ -1,4 +1,3 @@
-import { store } from "@app/store";
 import type { ClassValue } from "clsx";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -10,6 +9,26 @@ export function cn(...inputs: ClassValue[]) {
 export function clone(object: object) {
   return JSON.parse(JSON.stringify(object));
 }
+
+export const chronologicalSort =
+  <T>(value: (object: T) => Date) =>
+  (a: T, b: T) => {
+    return value(b) > value(a);
+  };
+
+export const alphabeticalSort =
+  <T>(value: (object: T) => string) =>
+  (a: T, b: T) => {
+    const A = value(a).toUpperCase();
+    const B = value(b).toUpperCase();
+    if (A < B) {
+      return -1;
+    }
+    if (A > B) {
+      return 1;
+    }
+    return 0;
+  };
 
 export function recursivelySetKeys(
   object: Record<string, unknown>,

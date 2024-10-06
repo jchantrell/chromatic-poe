@@ -9,7 +9,7 @@ import {
   ContextMenuTrigger,
 } from "@pkgs/ui/context-menu";
 import { store } from "@app/store";
-import type { ItemHierarchy } from "@app/types";
+import type { ItemHierarchy } from "@app/services/filter";
 import Crumbs from "./crumbs";
 
 const MAGIC_NUMBER = 1;
@@ -59,12 +59,15 @@ function Entry(props: {
         <ContextMenuTrigger>
           <div
             onMouseDown={(e) => {
-              if (isCategory && e.button === 0) {
+              if (isCategory && e.button === 0 && !e.shiftKey) {
                 store.view = props.item;
                 store.crumbs = [
                   ...store.crumbs,
                   { title: props.item.name, view: props.item },
                 ];
+              }
+              if (e.button === 0 && e.shiftKey) {
+                setActive(props.item, !props.item.enabled);
               }
             }}
             class={`p-1 border ${props.item.enabled ? "text-primary" : "text-secondary"} ${isCategory ? "border-secondary" : "border-secondary"} hover:border-primary h-full items-center flex select-none ${isCategory ? "cursor-pointer" : "cursor-default"}`}

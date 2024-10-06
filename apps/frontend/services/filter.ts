@@ -167,7 +167,7 @@ export class Filter {
   }
 }
 
-export class Condition {
+export class ConditionBuilder {
   areaLevel(op: Operator, lvl: IntRange<0, 100>): string {
     return `AreaLevel ${op} ${lvl}`;
   }
@@ -283,7 +283,7 @@ export class Condition {
   }
 }
 
-export class Action {
+export class ActionBuilder {
   setBorderColor(r: RgbRange, g: RgbRange, b: RgbRange, a: RgbRange = 255) {
     return `SetBorderColor ${r} ${g} ${b} ${a}`;
   }

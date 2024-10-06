@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, on } from "solid-js";
+import { createSignal, For } from "solid-js";
 import { store } from "@app/store";
 import { generate } from "@pkgs/filter";
 import { Button } from "@pkgs/ui/button";
@@ -10,16 +10,17 @@ import {
   DialogTrigger,
 } from "@pkgs/ui/dialog";
 import { TextField, TextFieldInput, TextFieldLabel } from "@pkgs/ui/text-field";
-import { EditIcon, TrashIcon } from "@pkgs/icons";
-import { timeSince } from "@pkgs/lib/utils";
+import { EditIcon, TrashIcon, CopyIcon, TickIcon } from "@pkgs/icons";
+import { alphabeticalSort, timeSince } from "@pkgs/lib/utils";
 import { fileSystem } from "@app/services/storage";
-import type { Filter } from "@app/types";
+import type { Filter } from "@app/services/filter";
 import {
   ContextMenu,
   ContextMenuItem,
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@pkgs/ui/context-menu";
+import { notify } from "@pkgs/ui/sonner";
 
 function loadFilter(filter: Filter) {
   store.filter = filter;
@@ -38,7 +39,6 @@ export function CreateFilter() {
     }
     const filter = await generate(name(), version());
     await fileSystem.writeFilter(filter);
-    console.log(filter);
     loadFilter(filter);
   }
 
@@ -108,12 +108,20 @@ export function CreateFilter() {
 }
 
 function ExistingFilter(props: { filter: Filter }) {
-  const [name, setName] = createSignal(props.filter.name);
-  const [copyName, setCopyName] = createSignal(props.filter.name);
-  const [lastUpdated, setLastUpdated] = createSignal(props.filter.lastUpdated);
+  const [name, setName] = createSignal<string>(props.filter.name);
+  const [updateName, setUpdateName] = createSignal<string>(props.filter.name);
+  const [copyName, setCopyName] = createSignal<string>(props.filter.name);
+  const [lastUpdated, setLastUpdated] = createSignal<Date>(
+    props.filter.lastUpdated,
+  );
+  const [timeSinceUpdate, setTimeSinceUpdate] = createSignal<string>(
+    timeSince(lastUpdated()),
+  );
   const [nameDialogOpen, setNameDialogOpen] = createSignal(false);
   const [copyDialogOpen, setCopyDialogOpen] = createSignal(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = createSignal(false);
+
+  setInterval(() => setTimeSinceUpdate(timeSince(lastUpdated())), 1000);
 
   async function deleteFilter() {
     store.filters = store.filters.filter(
@@ -123,30 +131,55 @@ function ExistingFilter(props: { filter: Filter }) {
   }
 
   async function copyFilter() {
+    if (copyName() === name()) {
+      notify("Enter a new name.");
+      return;
+    }
+
+    const collision = store.filters.find((e) => e.name === copyName());
+
+    if (collision) {
+      notify(`Filter with name "${copyName()}" already exists.`);
+      return;
+    }
+
+    setCopyDialogOpen(false);
     const filter = props.filter.copy();
     filter.updateName(copyName());
     await filter.writeFile();
     store.filters.push(filter);
+    store.filters.sort(alphabeticalSort((filter) => filter.name));
   }
 
   async function updateFilterName() {
-    // TODO: better ui and keybinds
-    if (!nameDialogOpen() && !store.filters.find((e) => e.name === name())) {
-      await fileSystem.updateFilterName(props.filter, name() as string);
-      setLastUpdated(props.filter.lastUpdated);
+    if (updateName() === name()) {
+      notify("Enter a new name.");
+      return;
     }
+
+    const collision = store.filters.find((e) => e.name === updateName());
+
+    if (collision) {
+      notify(`Filter with name "${updateName()}" already exists.`);
+      return;
+    }
+
+    await fileSystem.updateFilterName(props.filter, updateName());
+    setNameDialogOpen(false);
+    setName(updateName());
+    setLastUpdated(props.filter.lastUpdated);
+    store.filters.sort(alphabeticalSort((filter) => filter.name));
   }
 
   return (
     <li class='bg-muted rounded-lg border flex'>
       <Dialog open={copyDialogOpen()} onOpenChange={setCopyDialogOpen}>
-        <DialogContent class='max-w-[400px] p-1 bg-primary-foreground rounded-lg select-none'>
+        <DialogContent class='max-w-[400px]flex items-center gap-1 rounded-lg p-1'>
           <TextField
             class='flex items-center gap-4'
             onChange={setCopyName}
             onKeyPress={async (e: KeyboardEvent) => {
               if (e.key === "Enter") {
-                setCopyDialogOpen(false);
                 await copyFilter();
               }
             }}
@@ -163,16 +196,15 @@ function ExistingFilter(props: { filter: Filter }) {
         <DialogContent class='max-w-[400px] p-1 bg-primary-foreground rounded-lg select-none'>
           <TextField
             class='flex items-center gap-4'
-            onChange={setName}
+            onChange={setUpdateName}
             onKeyPress={async (e: KeyboardEvent) => {
               if (e.key === "Enter") {
-                setNameDialogOpen(false);
                 await updateFilterName();
               }
             }}
           >
             <TextFieldInput
-              value={name()}
+              value={updateName()}
               class='col-span-3 bg-primary-foreground'
               type='text'
             />
@@ -197,7 +229,7 @@ function ExistingFilter(props: { filter: Filter }) {
           >
             <div class='ml-2'>
               <div>{name()}</div>
-              <div class='text-xs text-accent'>{timeSince(lastUpdated())}</div>
+              <div class='text-xs text-accent'>{timeSinceUpdate()}</div>
             </div>
           </Button>
         </ContextMenuTrigger>
@@ -210,7 +242,7 @@ function ExistingFilter(props: { filter: Filter }) {
           </ContextMenuItem>
           <ContextMenuItem onSelect={() => setCopyDialogOpen(true)}>
             <div class='flex items-center text-xs'>
-              <EditIcon />
+              <CopyIcon />
               <div class='ml-1'>Copy</div>
             </div>
           </ContextMenuItem>
@@ -229,7 +261,6 @@ function ExistingFilter(props: { filter: Filter }) {
   );
 }
 export function LoadScreenMenu() {
-  console.log(store.filters);
   return (
     <div class='h-full flex items-center justify-center'>
       <div class='bg-primary-foreground text-foreground w-full max-w-sm rounded-lg border p-4 grid gap-2 items-center'>

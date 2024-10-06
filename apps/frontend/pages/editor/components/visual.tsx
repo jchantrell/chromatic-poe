@@ -1,6 +1,6 @@
 import { zoom, hierarchy, linkHorizontal, tree, create } from "d3";
 import { createSignal } from "solid-js";
-import type { ItemHierarchy } from "@app/types";
+import type { ItemHierarchy } from "@app/services/filter";
 
 function visualise(
   data: ItemHierarchy,

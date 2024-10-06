@@ -2,7 +2,6 @@ import { FolderIcon, TickIcon } from "@pkgs/icons";
 import { Button } from "@pkgs/ui/button";
 import { fileSystem } from "@app/services/storage";
 import { to } from "@pkgs/lib/utils";
-import { sep } from "@tauri-apps/api/path";
 import { platform } from "@tauri-apps/plugin-os";
 import { createEffect, createSignal, onMount } from "solid-js";
 import { store } from "@app/store";
@@ -23,11 +22,6 @@ function Setup() {
 
     await fileSystem.updatePoeDirectory(directory());
     store.initialised = true;
-  }
-
-  function truncatePath(path: string) {
-    const split = path.split(sep());
-    return split.slice(Math.max(split.length - 3, 0)).join(sep());
   }
 
   createEffect(async () => {
@@ -79,7 +73,9 @@ function Setup() {
             >
               <FolderIcon />
             </Button>
-            <div class='overflow-hidden ml-2'>{truncatePath(directory())}</div>
+            <div class='overflow-hidden ml-2'>
+              {fileSystem.truncatePath(directory())}
+            </div>
           </div>
           <Button
             class={`ml-1 rounded-lg ${dirValid() ? "hover:bg-green-700" : "hover:bg-destructive"}`}

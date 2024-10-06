@@ -11,8 +11,9 @@ import {
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
 import { getVersion } from "@tauri-apps/api/app";
-import { documentDir } from "@tauri-apps/api/path";
+import { documentDir, sep } from "@tauri-apps/api/path";
 import { Filter, type StoredFilter } from "@app/services/filter";
+import { alphabeticalSort } from "@pkgs/lib/utils";
 
 interface ChromaticConfiguration {
   version: string;
@@ -61,6 +62,14 @@ class FileSystem {
     await this.upsertDirectory("chromatic", BaseDirectory.Config);
     await this.upsertDirectory(this.imagePath, BaseDirectory.AppConfig);
     await this.upsertDirectory(this.filterPath, BaseDirectory.AppConfig);
+  }
+
+  truncatePath(path: string) {
+    if (!this.isNativeRuntime) {
+      return path;
+    }
+    const split = path.split(sep());
+    return split.slice(Math.max(split.length - 3, 0)).join(sep());
   }
 
   async pickDirectoryPrompt(defaultPath?: string): Promise<string | null> {
@@ -252,15 +261,12 @@ class FileSystem {
           baseDir: BaseDirectory.AppConfig,
         });
         const filter: StoredFilter = JSON.parse(this.decoder.decode(bytes));
-        console.log(filter);
         const entity = new Filter(filter);
+        entity.unmarshall();
         filters.push(entity);
       }
     }
-    return filters.sort(
-      (a, b) =>
-        new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
-    );
+    return filters.sort(alphabeticalSort((filter) => filter.name));
   }
 }
 

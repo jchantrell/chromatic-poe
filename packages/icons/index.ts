@@ -8,3 +8,4 @@ export * from "./tick";
 export * from "./trash";
 export * from "./sun";
 export * from "./moon";
+export * from "./copy";

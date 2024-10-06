@@ -1,5 +1,5 @@
 import { createMutable } from "solid-js/store";
-import type { Filter, ItemHierarchy } from "@app/types";
+import type { Filter, ItemHierarchy } from "@app/services/filter";
 
 export const store = createMutable<{
   appBar?: HTMLDivElement;
