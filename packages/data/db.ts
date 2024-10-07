@@ -660,8 +660,7 @@ export class DbRepo {
         [],
         (err, rows) => {
           if (err) rej(err);
-          console.log(err, rows);
-          fs.writeFileSync("./assets/data.json", JSON.stringify(rows));
+          fs.writeFileSync("./packages/data/raw.json", JSON.stringify(rows));
         },
       ),
     );
@@ -683,7 +682,7 @@ export class DbRepo {
 
 async function main() {
   const db = new DbRepo();
-  // await db.populate();
+  await db.populate();
   await db.query();
 }
 

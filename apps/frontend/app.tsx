@@ -7,16 +7,17 @@ import {
 import Editor from "@app/pages/editor";
 import Setup from "@app/pages/setup";
 import { Button } from "@pkgs/ui/button";
-import { ExitIcon, MinimiseIcon, SettingsIcon } from "@pkgs/icons";
+import { ExitIcon, MinimiseIcon } from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { fileSystem } from "@app/services/storage";
 import { onMount } from "solid-js";
 import { locale } from "@tauri-apps/plugin-os";
 import { store } from "./store";
-import Theme from "@app/components/theme";
 import { LoadScreenMenu } from "@app/pages/load-screen";
 import { Toaster } from "@pkgs/ui/sonner";
+import { Settings } from "./components/settings";
+import { input } from "./services/input";
 
 function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
   try {
@@ -29,23 +30,10 @@ function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
 
 const appWindow = tryGetAppWindow();
 
-function handleKeybind(key: string) {
-  if (key === "Backspace") {
-    if (store.filter && store.crumbs.length > 1) {
-      store.view = store.crumbs[store.crumbs.length - 2].view;
-      store.crumbs.pop();
-    }
-  }
-}
+export const storageManager = createLocalStorageManager("theme");
 
 function App() {
-  const storageManager = createLocalStorageManager("vite-ui-theme");
-
   onMount(async () => {
-    document.addEventListener("keydown", (e: KeyboardEvent) =>
-      handleKeybind(e.key),
-    );
-
     if (appWindow) {
       await fileSystem.init();
       if (fileSystem.config.poeDirectory) {
@@ -63,14 +51,7 @@ function App() {
     <>
       <ColorModeScript storageType={storageManager.type} />
       <ColorModeProvider storageManager={storageManager}>
-        <div
-          class='h-screen flex flex-row overflow-hidden select-none'
-          onKeyPress={(e: KeyboardEvent) => {
-            console.log(e.key);
-            if (e.key === "Backspace") {
-            }
-          }}
-        >
+        <div class='h-screen flex flex-row overflow-hidden select-none'>
           <nav
             class='h-full flex flex-1 flex-col items-center justify-between py-2.5'
             data-tauri-drag-region
@@ -81,12 +62,7 @@ function App() {
               </Avatar>
             </div>
             <div class='flex flex-col'>
-              <Button variant='ghost'>
-                <Theme />
-              </Button>
-              <Button variant='ghost' onClick={() => null}>
-                <SettingsIcon />
-              </Button>
+              <Settings />
             </div>
           </nav>
           <div class='w-[calc(100%-4.5rem)]'>

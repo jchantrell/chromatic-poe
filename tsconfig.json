@@ -23,7 +23,7 @@
       "@pkgs/*": ["./packages/*"]
     }
   },
-  "include": ["apps/frontend", "packages/**"],
+  "include": ["apps/frontend", "packages"],
   "references": [
     {
       "path": "./tsconfig.node.json"

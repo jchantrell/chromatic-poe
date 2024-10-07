@@ -1,6 +1,6 @@
 import { createSignal, For } from "solid-js";
 import { store } from "@app/store";
-import { generate } from "@pkgs/filter";
+import { generate, type Filter } from "@app/services/filter";
 import { Button } from "@pkgs/ui/button";
 import {
   Dialog,
@@ -10,10 +10,9 @@ import {
   DialogTrigger,
 } from "@pkgs/ui/dialog";
 import { TextField, TextFieldInput, TextFieldLabel } from "@pkgs/ui/text-field";
-import { EditIcon, TrashIcon, CopyIcon, TickIcon } from "@pkgs/icons";
+import { EditIcon, TrashIcon, CopyIcon } from "@pkgs/icons";
 import { alphabeticalSort, timeSince } from "@pkgs/lib/utils";
 import { fileSystem } from "@app/services/storage";
-import type { Filter } from "@app/services/filter";
 import {
   ContextMenu,
   ContextMenuItem,

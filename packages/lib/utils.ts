@@ -10,6 +10,10 @@ export function clone(object: object) {
   return JSON.parse(JSON.stringify(object));
 }
 
+export function capitalizeFirstLetter(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 export const chronologicalSort =
   <T>(value: (object: T) => Date) =>
   (a: T, b: T) => {

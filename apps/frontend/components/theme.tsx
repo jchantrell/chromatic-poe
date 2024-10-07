@@ -1,49 +1,47 @@
-import { useColorMode } from "@kobalte/core";
-import { createEffect, createSignal, on, onMount } from "solid-js";
-import { SunIcon, MoonIcon } from "@pkgs/icons";
-
-export type ThemeNames = "light" | "dark" | "system";
+import { ConfigColorMode, useColorMode } from "@kobalte/core";
+import { capitalizeFirstLetter } from "@pkgs/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@pkgs/ui/select";
 
 export function Theme() {
-  const { setColorMode } = useColorMode();
+  const { colorMode, setColorMode } = useColorMode();
 
-  const [theme, setTheme] = createSignal<ThemeNames>("system");
-
-  const root =
-    typeof document !== "undefined" ? document.documentElement : null;
-
-  onMount(() => {
-    if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
-      setTheme((localStorage.getItem("theme") as ThemeNames) || "system");
-    } else if (
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-    ) {
-      setTheme("dark");
+  function handleChange(theme: ConfigColorMode) {
+    if (!theme) {
+      return setColorMode("dark");
     }
-  });
 
-  createEffect(
-    on(theme, () => {
-      if (root && theme() === "light") {
-        root.classList.remove("theme-dark");
-      } else if (root && theme() === "dark") {
-        root.classList.add("theme-dark");
-      }
-      localStorage.setItem("theme", theme());
-      setColorMode(theme());
-    }),
-  );
+    setColorMode(theme);
+  }
 
   return (
-    <>
-      {theme() === "dark" ? (
-        <SunIcon onMouseDown={() => setTheme("light")} />
-      ) : (
-        <MoonIcon onMouseDown={() => setTheme("dark")} />
+    <Select
+      value={colorMode()}
+      onChange={handleChange}
+      options={["light", "dark"]}
+      defaultValue={colorMode()}
+      itemComponent={(props) => (
+        <SelectItem item={props.item}>
+          {capitalizeFirstLetter(props.item.rawValue)}
+        </SelectItem>
       )}
-    </>
+    >
+      <SelectTrigger aria-label='theme' class='w-[180px]'>
+        <SelectValue<string>>
+          {(state) =>
+            state.selectedOption()
+              ? capitalizeFirstLetter(state.selectedOption())
+              : ""
+          }
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent />
+    </Select>
   );
 }
-
 export default Theme;

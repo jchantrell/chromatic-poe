@@ -1,7 +1,7 @@
 dist
 node_modules
-packages/assets/data.json
-packages/assets/chromatic.db
-packages/assets/images/*
-packages/assets/tables/*
-packages/assets/.cache
+packages/data/raw.json
+packages/data/chromatic.db
+packages/data/tables
+packages/data/.cache
+packages/assets/images

@@ -1,4 +1,4 @@
-import { For } from "solid-js";
+import { For, onMount } from "solid-js";
 import { Separator } from "@pkgs/ui/separator";
 import {
   ContextMenu,
@@ -11,8 +11,7 @@ import {
 import { store } from "@app/store";
 import type { ItemHierarchy } from "@app/services/filter";
 import Crumbs from "./crumbs";
-
-const MAGIC_NUMBER = 1;
+import { input } from "@app/services/input";
 
 function Entry(props: {
   item: ItemHierarchy;
@@ -47,7 +46,7 @@ function Entry(props: {
   function getIcon(item: ItemHierarchy) {
     if (item?.icon) return item.icon;
 
-    const middle = Math.floor((item.children.length - 1) / MAGIC_NUMBER);
+    const middle = Math.floor(item.children.length / 2);
     const child = item.children[middle];
 
     return getIcon(child);
@@ -102,6 +101,15 @@ function Entry(props: {
 }
 
 export function Categories() {
+  onMount(() => {
+    input.on("keypress", (key: string) => {
+      if (key === "Backspace" && store.filter && store.crumbs.length > 1) {
+        store.view = store.crumbs[store.crumbs.length - 2].view;
+        store.crumbs.pop();
+      }
+    });
+  });
+
   return (
     <>
       <Crumbs />

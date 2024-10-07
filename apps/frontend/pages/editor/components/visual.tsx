@@ -1,6 +1,7 @@
 import { zoom, hierarchy, linkHorizontal, tree, create } from "d3";
 import { createSignal } from "solid-js";
 import type { ItemHierarchy } from "@app/services/filter";
+import { store } from "@app/store";
 
 function visualise(
   data: ItemHierarchy,
@@ -119,12 +120,12 @@ function visualise(
   return svg.node();
 }
 
-function Visualiser(props: { data: ItemHierarchy }) {
+function Visualiser() {
   const [ref, setRef] = createSignal<HTMLDivElement>();
   return (
     <div ref={setRef} class='h-full w-full overflow-hidden'>
-      {props.data.children.length ? (
-        visualise(props.data, ref()?.clientWidth, ref()?.clientHeight)
+      {store.view?.children.length ? (
+        visualise(store.view, ref()?.clientWidth, ref()?.clientHeight)
       ) : (
         <></>
       )}

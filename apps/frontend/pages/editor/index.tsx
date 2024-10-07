@@ -2,17 +2,32 @@ import { createSignal, Suspense } from "solid-js";
 import { Resizable, ResizableHandle, ResizablePanel } from "@pkgs/ui/resizable";
 import { Categories } from "./components/categories";
 import Visualiser from "./components/visual";
-import { store } from "@app/store";
+import { useColorMode } from "@kobalte/core";
 
 function Preview() {
+  const { colorMode } = useColorMode();
   return (
     <div class='h-full'>
-      <img
-        class='object-cover overflow-hidden h-full w-full'
-        alt='mountains'
-        draggable='false'
-        src={"packages/assets/preview-bg.jpg"}
-      />
+      {colorMode() === "light" ? (
+        <img
+          class='object-cover overflow-hidden h-full w-full'
+          alt='city'
+          draggable='false'
+          src='images/editor-bg-light.jpg'
+        />
+      ) : (
+        <></>
+      )}
+      {colorMode() === "dark" ? (
+        <img
+          class='object-cover overflow-hidden h-full w-full'
+          alt='mountains'
+          draggable='false'
+          src='images/editor-bg-dark.jpg'
+        />
+      ) : (
+        <></>
+      )}
     </div>
   );
 }
@@ -31,11 +46,7 @@ export function Editor() {
           </ResizablePanel>
           <ResizableHandle class='bg-primary-foreground w-2' />
           <ResizablePanel>
-            {mode() === "hierarchy" && store.view ? (
-              <Visualiser data={store.view} />
-            ) : (
-              <></>
-            )}
+            {mode() === "hierarchy" ? <Visualiser /> : <></>}
             {mode() === "preview" ? <Preview /> : <></>}
           </ResizablePanel>
         </Resizable>
