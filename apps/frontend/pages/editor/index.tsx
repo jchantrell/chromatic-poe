@@ -3,32 +3,16 @@ import { Resizable, ResizableHandle, ResizablePanel } from "@pkgs/ui/resizable";
 import { Categories } from "./components/categories";
 import Visualiser from "./components/visual";
 import { useColorMode } from "@kobalte/core";
+import { store } from "@app/store";
+import Setup from "./components/initial-setup";
+import { LoadScreenMenu } from "./components/load-screen";
 
 function Preview() {
   const { colorMode } = useColorMode();
   return (
-    <div class='h-full'>
-      {colorMode() === "light" ? (
-        <img
-          class='object-cover overflow-hidden h-full w-full'
-          alt='city'
-          draggable='false'
-          src='images/editor-bg-light.jpg'
-        />
-      ) : (
-        <></>
-      )}
-      {colorMode() === "dark" ? (
-        <img
-          class='object-cover overflow-hidden h-full w-full'
-          alt='mountains'
-          draggable='false'
-          src='images/editor-bg-dark.jpg'
-        />
-      ) : (
-        <></>
-      )}
-    </div>
+    <div
+      class={`h-full bg-no-repeat bg-center bg-cover bg-[url('/images/editor-bg-${colorMode()}.jpg')] bg-fixed`}
+    ></div>
   );
 }
 
@@ -37,9 +21,11 @@ export function Editor() {
 
   return (
     <>
-      <div class='w-full h-full flex justify-center items-center flex-col'>
-        <Resizable orientation='horizontal'>
-          <ResizablePanel>
+      {!store.initialised ? <Setup /> : <></>}
+      {store.initialised && !store.filter ? <LoadScreenMenu /> : <></>}
+      {store.initialised && store.filter ? (
+        <Resizable orientation='horizontal' class='min-h-max'>
+          <ResizablePanel class='h-fit flex flex-col'>
             <Suspense fallback={<>Loading...</>}>
               <Categories />
             </Suspense>
@@ -50,7 +36,9 @@ export function Editor() {
             {mode() === "preview" ? <Preview /> : <></>}
           </ResizablePanel>
         </Resizable>
-      </div>
+      ) : (
+        <></>
+      )}
     </>
   );
 }

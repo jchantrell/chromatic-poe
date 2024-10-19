@@ -20,31 +20,38 @@ import {
   ContextMenuTrigger,
 } from "@pkgs/ui/context-menu";
 import { notify } from "@pkgs/ui/sonner";
+import { toast } from "solid-sonner";
+import { useColorMode } from "@kobalte/core";
 
 function loadFilter(filter: Filter) {
   store.filter = filter;
   store.view = store.filter?.rules;
   store.crumbs = [{ title: "Home", view: store.filter?.rules }];
+  filter.unmarshall();
 }
 
 export function CreateFilter() {
   const [name, setName] = createSignal("Chromatic");
+  const [dialogOpen, setDialogOpen] = createSignal(false);
   const [version, setVersion] = createSignal(1);
 
   async function createFilter() {
     if (store.filters.some((e) => e.name === name())) {
-      // TODO: already existing name notification
+      toast(`Filter with name ${name()} already exists.`);
       return;
     }
     const filter = await generate(name(), version());
     await fileSystem.writeFilter(filter);
+    store.filters.push(filter);
     loadFilter(filter);
+    setDialogOpen(false);
+    toast(`Created filter named ${name()}.`);
   }
 
   return (
-    <Dialog>
+    <Dialog open={dialogOpen()} onOpenChange={setDialogOpen}>
       <DialogTrigger
-        class='text-center cursor-pointer grid max-w-sm rounded-lg items-center border p-0'
+        class='text-center cursor-pointer grid max-w-sm rounded-lg items-cente p-0'
         as={Button<"button">}
       >
         Create New Filter
@@ -127,11 +134,12 @@ function ExistingFilter(props: { filter: Filter }) {
       (entry) => entry.name !== props.filter.name,
     );
     await fileSystem.deleteFilter(props.filter);
+    toast(`Deleted filter ${props.filter.name}`);
   }
 
   async function copyFilter() {
     if (copyName() === name()) {
-      notify("Enter a new name.");
+      notify(`Filter with name "${copyName()}" already exists.`);
       return;
     }
 
@@ -152,7 +160,7 @@ function ExistingFilter(props: { filter: Filter }) {
 
   async function updateFilterName() {
     if (updateName() === name()) {
-      notify("Enter a new name.");
+      notify(`Filter with name "${updateName()}" already exists.`);
       return;
     }
 
@@ -225,10 +233,13 @@ function ExistingFilter(props: { filter: Filter }) {
           <Button
             class='flex text-left justify-between w-full rounded-t-lg p-0'
             onClick={() => loadFilter(props.filter)}
+            variant='secondary'
           >
             <div class='ml-2'>
-              <div>{name()}</div>
-              <div class='text-xs text-accent'>{timeSinceUpdate()}</div>
+              <div class='text-primary'>{name()}</div>
+              <div class='text-xs text-muted-foreground'>
+                {timeSinceUpdate()}
+              </div>
             </div>
           </Button>
         </ContextMenuTrigger>
@@ -260,9 +271,13 @@ function ExistingFilter(props: { filter: Filter }) {
   );
 }
 export function LoadScreenMenu() {
+  const { colorMode } = useColorMode();
+
   return (
-    <div class='h-full flex items-center justify-center'>
-      <div class='bg-primary-foreground text-foreground w-full max-w-sm rounded-lg border p-4 grid gap-2 items-center'>
+    <div
+      class={`size-full flex items-center justify-center relative bg-cover bg-[url('/images/editor-bg-${colorMode()}.jpg')]`}
+    >
+      <div class='bg-neutral-900/70 border-neutral-900/70 text-foreground w-full max-w-sm rounded-lg border p-4 grid gap-2 items-center z-0'>
         <CreateFilter />
         <ul class='max-w-sm rounded-lg grid gap-2 items-center'>
           <For each={store.filters}>

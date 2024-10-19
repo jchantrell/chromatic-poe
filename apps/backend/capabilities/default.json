@@ -2,7 +2,9 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
     "core:window:default",
@@ -16,6 +18,9 @@
     {
       "identifier": "fs:read-all",
       "allow": [
+        {
+          "path": "/mnt/c/Users/Joel/Documents/My Games/Path of Exile/*"
+        },
         {
           "path": "$APPCONFIG"
         },
@@ -37,6 +42,9 @@
       "identifier": "fs:write-all",
       "allow": [
         {
+          "path": "/mnt/c/Users/Joel/Documents/My Games/Path of Exile/*"
+        },
+        {
           "path": "$APPCONFIG"
         },
         {
@@ -52,6 +60,7 @@
           "path": "$APPCONFIG/filters/**"
         }
       ]
-    }
+    },
+    "sql:default"
   ]
 }

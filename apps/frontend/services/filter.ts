@@ -2,6 +2,7 @@ import { clone } from "@pkgs/lib/utils";
 import { fileSystem } from "@app/services/storage";
 import { recursivelySetKeys } from "@pkgs/lib/utils";
 import data from "@pkgs/data/raw.json";
+import { eol } from "@tauri-apps/plugin-os";
 
 type Enumerate<
   N extends number,
@@ -116,11 +117,28 @@ export enum Influence {
   none = "None",
 }
 
+export class BlockBuilder {
+  create(
+    description: string,
+    block: Block,
+    actions: string[],
+    conditions: string[],
+  ) {
+    const eol = fileSystem.eol();
+    return `${description}${eol}${block}${eol}${actions.map((action) => `   ${action}${eol}`).join("")}${conditions.map((condition) => `   ${condition}${eol}`).join("")}
+`;
+  }
+}
+
 export class Filter {
   name: string;
   version: number;
   lastUpdated: Date;
   rules: ItemHierarchy;
+
+  action = new ActionBuilder();
+  condition = new ConditionBuilder();
+  block = new BlockBuilder();
 
   constructor(params: StoredFilter) {
     this.name = params.name;
@@ -139,10 +157,10 @@ export class Filter {
 
   updateName(newName: string) {
     this.name = newName;
-    this.lastUpdated = new Date();
   }
 
   async writeFile() {
+    this.lastUpdated = new Date();
     await fileSystem.writeFilter(this);
   }
 
@@ -167,6 +185,59 @@ export class Filter {
       this.addParentRefs(child);
     }
   }
+
+  convertToText() {
+    let text = "";
+    for (const child of this.rules.children) {
+      const rules = this.serialize([], child);
+      text += rules.join("");
+    }
+    return text;
+  }
+
+  serialize(ancestors: string[], entry: ItemHierarchy): string[] {
+    const rules: string[] = [];
+
+    if (entry.children[0]?.type === "item") {
+      const enabledBases = entry.children
+        .filter((e) => e.enabled)
+        .map((e) => e.name);
+      const disabledBases = entry.children
+        .filter((e) => !e.enabled)
+        .map((e) => e.name);
+      const description = `# ${ancestors.join(" => ")} => ${entry.name.trim()}`;
+
+      if (disabledBases.length) {
+        const block = this.block.create(
+          description,
+          Block.hide,
+          [this.condition.baseType(Operator.eq, disabledBases)],
+          [],
+        );
+        rules.push(block);
+      }
+
+      if (enabledBases.length) {
+        const block = this.block.create(
+          description,
+          Block.show,
+          [this.condition.baseType(Operator.eq, enabledBases)],
+          [
+            this.action.setBackgroundColor(100, 100, 50, 255),
+            this.action.setFontSize(30),
+          ],
+        );
+        rules.push(block);
+      }
+
+      return rules;
+    }
+    for (const child of entry.children) {
+      rules.push(...this.serialize([...ancestors, entry.name], child));
+    }
+
+    return rules;
+  }
 }
 
 export class ConditionBuilder {
@@ -188,8 +259,8 @@ export class ConditionBuilder {
   class(op: Operator, className: ClassName, ...rest: ClassName[]): string {
     return `Class ${op} "${className}"${rest ? rest.map((entry) => ` "${entry}"`) : ""}`;
   }
-  baseType(op: Operator, baseType: string, ...rest: string[]): string {
-    return `BaseType ${op} "${baseType}"${rest ? rest.map((entry) => ` "${entry}"`) : ""}`;
+  baseType(op: Operator, bases: string[]): string {
+    return `BaseType ${op} ${bases.map((e) => `"${e}"`).join(" ")}`;
   }
   linkedSockets(op: Operator, links: IntRange<0, 6>): string {
     return `LinkedSockets ${op} ${links}`;
@@ -509,3 +580,10 @@ export async function generate(
   const now = new Date().toISOString();
   return new Filter({ name, version: 1, lastUpdated: now, rules });
 }
+
+async function main() {
+  const filter = await generate("abc", 1);
+  filter.writeTextFile();
+}
+
+main();

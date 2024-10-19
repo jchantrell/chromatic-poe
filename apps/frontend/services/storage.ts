@@ -14,6 +14,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { documentDir, sep } from "@tauri-apps/api/path";
 import { Filter, type StoredFilter } from "@app/services/filter";
 import { alphabeticalSort } from "@pkgs/lib/utils";
+import { eol } from "@tauri-apps/plugin-os";
 
 interface ChromaticConfiguration {
   version: string;
@@ -62,6 +63,16 @@ class FileSystem {
     await this.upsertDirectory("chromatic", BaseDirectory.Config);
     await this.upsertDirectory(this.imagePath, BaseDirectory.AppConfig);
     await this.upsertDirectory(this.filterPath, BaseDirectory.AppConfig);
+  }
+
+  eol() {
+    if (this.isNativeRuntime) {
+      return eol();
+    }
+
+    if (navigator.userAgent.toLowerCase().indexOf("win") > -1) return "\r\n";
+
+    return "\n";
   }
 
   truncatePath(path: string) {
@@ -233,6 +244,9 @@ class FileSystem {
     await remove(this.getFiltersPath(filter), {
       baseDir: BaseDirectory.AppConfig,
     });
+    await remove(
+      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile/${filter.name}.filter`,
+    );
   }
 
   async writeFilter(filter: Filter) {
@@ -247,6 +261,12 @@ class FileSystem {
     });
 
     filter.unmarshall();
+
+    await writeTextFile(
+      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile/${filter.name}.filter`,
+      filter.convertToText(),
+    );
+
     return filter;
   }
 

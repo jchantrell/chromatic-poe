@@ -9,3 +9,8 @@ export * from "./trash";
 export * from "./sun";
 export * from "./moon";
 export * from "./copy";
+export * from "./house";
+export * from "./audio";
+export * from "./palette";
+export * from "./chevron-up";
+export * from "./chevron-down";

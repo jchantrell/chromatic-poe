@@ -8,7 +8,7 @@ import armourTypes from "./tables/English/ArmourTypes.json";
 import skillGems from "./tables/English/SkillGems.json";
 import currencyExchange from "./tables/English/CurrencyExchange.json";
 import currencyExchangeCategories from "./tables/English/CurrencyExchangeCategories.json";
-import sqlite3 from "sqlite3";
+import Database from "better-sqlite3";
 import fs from "node:fs";
 
 enum Tables {
@@ -25,142 +25,55 @@ enum Tables {
 }
 
 export class DbRepo {
-  client: sqlite3.Database;
+  db: Database;
 
   constructor() {
-    this.client = new sqlite3.Database("./chromatic.db");
-    this.client.on("trace", (trace) => console.log(trace));
+    this.db = new Database("chromatic.db", {});
+    this.db.pragma("journal_mode = WAL");
+  }
+
+  insert(table: Tables, data: Record<string, unknown>[]) {
+    const insert = this.db.prepare(this.insertStmt(table, data[0]));
+    this.db.transaction((entries: typeof data) => {
+      for (const entry of entries) {
+        insert.run(entry);
+      }
+    })(data);
   }
 
   async populate() {
-    console.log("populating db...");
-    const tradeGroups = tradeCategoryGroup.map((entry, id) => ({
-      id,
-      name: entry.Name,
-    }));
-
-    await this.createTable(Tables.TRADE_GROUPS, [
-      { value: "name", type: "TEXT" },
-    ]);
-    for (const entry of tradeGroups) {
-      await this.insert(Tables.TRADE_GROUPS, entry);
-    }
-
-    const tradeCategories = tradeCategory.map((entry, id) => ({
-      id,
-      name: entry.Name,
-      tradeGroupId: entry.Group,
-    }));
-    await this.createTable(Tables.TRADE_CATEGORIES, [
+    console.log("Populating DB with game data...");
+    this.createTable(Tables.TRADE_GROUPS, [{ value: "name", type: "TEXT" }]);
+    this.createTable(Tables.TRADE_CATEGORIES, [
       { value: "name", type: "TEXT" },
       { value: "tradeGroupId", type: "INTEGER" },
     ]);
-    for (const entry of tradeCategories) {
-      await this.insert(Tables.TRADE_CATEGORIES, entry);
-    }
-
-    const classCategories = itemClassCategories.map((entry, id) => ({
-      id,
-      name: entry.Text,
-    }));
-    await this.createTable(Tables.CLASS_CATEGORIES, [
+    this.createTable(Tables.CLASS_CATEGORIES, [
       { value: "name", type: "TEXT" },
     ]);
-    for (const entry of classCategories) {
-      await this.insert(Tables.CLASS_CATEGORIES, entry);
-    }
-
-    const classes = itemClasses.map((entry, id) => ({
-      id,
-      name: entry.Name,
-      tradeCategoryId: entry.TradeMarketCategory,
-      classCategoryId: entry.ItemClassCategory,
-    }));
-    await this.createTable(Tables.CLASSES, [
+    this.createTable(Tables.CLASSES, [
       { value: "name", type: "TEXT" },
       { value: "tradeCategoryId", type: "INTEGER" },
       { value: "classCategoryId", type: "INTEGER" },
     ]);
-    for (const entry of classes) {
-      await this.insert(Tables.CLASSES, entry);
-    }
-
-    const bases = baseTypes.map((entry, id) => ({
-      id,
-      name: entry.Name,
-      active: entry.SiteVisibility,
-      classId: entry.ItemClassesKey,
-      tradeCategoryId: entry.TradeMarketCategory,
-      visualId: entry.ItemVisualIdentity,
-    }));
-    await this.createTable(Tables.BASES, [
+    this.createTable(Tables.BASES, [
       { value: "name", type: "TEXT" },
       { value: "active", type: "INTEGER" },
       { value: "classId", type: "INTEGER" },
       { value: "tradeCategoryId", type: "INTEGER" },
       { value: "visualId", type: "INTEGER" },
     ]);
-    for (const entry of bases) {
-      await this.insert(Tables.BASES, entry);
-    }
-
-    const exchange = currencyExchange.map((entry, id) => ({
-      id,
-      base: entry.Item,
-      category: entry.Category,
-      subCategory: entry.SubCategory,
-      value: entry.GoldPurchaseFee,
-    }));
-    await this.createTable(Tables.EXCHANGE, [
+    this.createTable(Tables.EXCHANGE, [
       { value: "base", type: "INTEGER" },
       { value: "category", type: "INTEGER" },
       { value: "subCategory", type: "INTEGER" },
       { value: "value", type: "INTEGER" },
     ]);
-    for (const entry of exchange) {
-      await this.insert(Tables.EXCHANGE, entry);
-    }
-
-    const exchangeCategory = currencyExchangeCategories.map((entry, id) => ({
-      id,
-      name: entry.Name,
-    }));
-    await this.createTable(Tables.EXCHANGE_CATEGORY, [
+    this.createTable(Tables.EXCHANGE_CATEGORY, [
       { value: "name", type: "TEXT" },
     ]);
-    for (const entry of exchangeCategory) {
-      await this.insert(Tables.EXCHANGE_CATEGORY, entry);
-    }
-
-    const visuals = itemVisual.map((entry, id) => ({
-      id,
-      file: entry.DDSFile,
-    }));
-    await this.createTable(Tables.VISUALS, [{ value: "file", type: "TEXT" }]);
-    for (const entry of visuals) {
-      await this.insert(Tables.VISUALS, entry);
-    }
-
-    const armour = armourTypes.map((entry, id) => ({
-      id,
-      baseId: entry.BaseItemTypesKey,
-      value:
-        (entry.ArmourMin +
-          entry.ArmourMax +
-          (entry.EvasionMin + entry.EvasionMax) +
-          (entry.EnergyShieldMin + entry.EnergyShieldMax) +
-          (entry.WardMin + entry.WardMax)) /
-        4,
-      armMin: entry.ArmourMin,
-      armMax: entry.ArmourMax,
-      evaMin: entry.EvasionMin,
-      evaMax: entry.EvasionMax,
-      esMin: entry.EnergyShieldMin,
-      esMax: entry.EnergyShieldMax,
-      wardMin: entry.WardMin,
-      wardMax: entry.WardMax,
-    }));
-    await this.createTable(Tables.ARMOUR_TYPES, [
+    this.createTable(Tables.VISUALS, [{ value: "file", type: "TEXT" }]);
+    this.createTable(Tables.ARMOUR_TYPES, [
       { value: "baseId", type: "INTEGER" },
       { value: "value", type: "INTEGER" },
       { value: "armMin", type: "INTEGER" },
@@ -172,96 +85,126 @@ export class DbRepo {
       { value: "wardMin", type: "INTEGER" },
       { value: "wardMax", type: "INTEGER" },
     ]);
-    for (const entry of armour) {
-      await this.insert(Tables.ARMOUR_TYPES, entry);
-    }
-
-    const gems = skillGems.map((entry, id) => ({
-      id,
-      baseId: entry.BaseItemTypesKey,
-      str: entry.StrengthRequirementPercent,
-      dex: entry.DexterityRequirementPercent,
-      int: entry.IntelligenceRequirementPercent,
-      vaal: entry.IsVaalVariant,
-    }));
-    await this.createTable(Tables.SKILL_GEMS, [
+    this.createTable(Tables.SKILL_GEMS, [
       { value: "baseId", type: "INTEGER" },
       { value: "str", type: "INTEGER" },
       { value: "dex", type: "INTEGER" },
       { value: "int", type: "INTEGER" },
       { value: "vaal", type: "INTEGER" },
     ]);
-    for (const entry of gems) {
-      await this.insert(Tables.SKILL_GEMS, entry);
-    }
 
-    console.log("done!");
-  }
-  async schema() {
-    console.log("querying...");
-    return new Promise((res, rej) =>
-      this.client.all(
-        `
-        SELECT
-        coalesce(a.name, 'Other') as major_category,
-        coalesce(b.name, d.name) as sub_category,
-        h.name as exchange_category,
-        i.name as exchange_sub_category,
-        c.name as type,
-        e.name as base,
-        f.file as file,
-        k.str as str,
-        k.dex as dex,
-        k.int as int,
-        k.vaal as isVaalGem,
-        j.armMin as armMin,
-        j.armMax as armMax,
-        j.evaMin as evaMin,
-        j.evaMax as evaMax,
-        j.esMin as esMin,
-        j.esMax as esMax,
-        j.wardMin as wardMin,
-        j.wardMax as wardMax,
-        (CASE
-          WHEN g.value is not null
-          THEN g.value
-          WHEN j.value is not null
-          THEN j.value
-          ELSE null
-        END) as value
-        FROM ${Tables.TRADE_GROUPS} a
-        FULL OUTER JOIN ${Tables.TRADE_CATEGORIES} b
-        on a.id = b.tradeGroupId
-        FULL OUTER JOIN ${Tables.CLASSES} c
-        on b.id = c.tradeCategoryId
-        FULL OUTER JOIN ${Tables.CLASS_CATEGORIES} d
-        on d.id = c.classCategoryId
-        FULL OUTER JOIN ${Tables.BASES} e
-        on c.id = e.classId OR b.id = e.tradeCategoryId
-        LEFT JOIN ${Tables.EXCHANGE} g
-        on e.id = g.base
-        LEFT JOIN ${Tables.EXCHANGE_CATEGORY} h
-        on g.category = h.id
-        LEFT JOIN ${Tables.EXCHANGE_CATEGORY} i
-        on g.subCategory = i.id
-        LEFT JOIN ${Tables.VISUALS} f
-        on e.visualId = f.id
-        LEFT JOIN ${Tables.ARMOUR_TYPES} j
-        on e.id = j.baseId
-        LEFT JOIN ${Tables.SKILL_GEMS} k
-        on e.id = k.baseId
-        WHERE c.name != '' and e.active != 0 and c.name != 'Hidden Items'
-        `,
-        [],
-        (err, rows) => {
-          if (err) rej(err);
-          console.log(err, rows);
-        },
-      ),
+    this.insert(
+      Tables.TRADE_GROUPS,
+      tradeCategoryGroup.map((entry, id) => ({
+        id,
+        name: entry.Name,
+      })),
+    );
+
+    this.insert(
+      Tables.TRADE_CATEGORIES,
+      tradeCategory.map((entry, id) => ({
+        id,
+        name: entry.Name,
+        tradeGroupId: entry.Group,
+      })),
+    );
+
+    this.insert(
+      Tables.CLASS_CATEGORIES,
+      itemClassCategories.map((entry, id) => ({
+        id,
+        name: entry.Text,
+      })),
+    );
+
+    this.insert(
+      Tables.CLASSES,
+      itemClasses.map((entry, id) => ({
+        id,
+        name: entry.Name,
+        tradeCategoryId: entry.TradeMarketCategory,
+        classCategoryId: entry.ItemClassCategory,
+      })),
+    );
+
+    this.insert(
+      Tables.BASES,
+      baseTypes.map((entry, id: number) => ({
+        id,
+        name: entry.Name,
+        active: entry.SiteVisibility,
+        classId: entry.ItemClassesKey,
+        tradeCategoryId: entry.TradeMarketCategory,
+        visualId: entry.ItemVisualIdentity,
+      })),
+    );
+
+    this.insert(
+      Tables.EXCHANGE,
+      currencyExchange.map((entry, id) => ({
+        id,
+        base: entry.Item,
+        category: entry.Category,
+        subCategory: entry.SubCategory,
+        value: entry.GoldPurchaseFee,
+      })),
+    );
+
+    this.insert(
+      Tables.EXCHANGE_CATEGORY,
+      currencyExchangeCategories.map((entry, id) => ({
+        id,
+        name: entry.Name,
+      })),
+    );
+
+    this.insert(
+      Tables.VISUALS,
+      itemVisual.map((entry, id) => ({
+        id,
+        file: entry.DDSFile,
+      })),
+    );
+
+    this.insert(
+      Tables.ARMOUR_TYPES,
+      armourTypes.map((entry, id) => ({
+        id,
+        baseId: entry.BaseItemTypesKey,
+        value:
+          (entry.ArmourMin +
+            entry.ArmourMax +
+            (entry.EvasionMin + entry.EvasionMax) +
+            (entry.EnergyShieldMin + entry.EnergyShieldMax) +
+            (entry.WardMin + entry.WardMax)) /
+          4,
+        armMin: entry.ArmourMin,
+        armMax: entry.ArmourMax,
+        evaMin: entry.EvasionMin,
+        evaMax: entry.EvasionMax,
+        esMin: entry.EnergyShieldMin,
+        esMax: entry.EnergyShieldMax,
+        wardMin: entry.WardMin,
+        wardMax: entry.WardMax,
+      })),
+    );
+
+    this.insert(
+      Tables.SKILL_GEMS,
+      skillGems.map((entry, id) => ({
+        id,
+        baseId: entry.BaseItemTypesKey,
+        str: entry.StrengthRequirementPercent,
+        dex: entry.DexterityRequirementPercent,
+        int: entry.IntelligenceRequirementPercent,
+        vaal: entry.IsVaalVariant ? 1 : 0,
+      })),
     );
   }
+
   async query() {
-    console.log("querying...");
+    console.log("Querying DB for baseline filter data...");
     const extraFields = `
         str,
         dex,
@@ -276,8 +219,8 @@ export class DbRepo {
         wardMin,
         wardMax,
       `;
-    return new Promise((res, rej) =>
-      this.client.all(
+    const rows = this.db
+      .prepare(
         `
         WITH ENTRIES AS (
         SELECT
@@ -565,25 +508,33 @@ export class DbRepo {
         value,
         'Static' as pool,
         (CASE
-          WHEN exchange_sub_category = 'Delirium'
-          THEN 'Fragments'
           WHEN exchange_sub_category = 'Delirium Orbs'
-          THEN 'Delirium Orbs'
+          THEN 'Delirium'
           WHEN base like '%Tattoo%'
           THEN 'Tattoos'
+          WHEN base like '%Lifeforce%'
+          THEN 'Currency'
+          WHEN base like '%Calayst%'
+          THEN 'Currency'
+          WHEN base like '%Incubator%'
+          THEN 'Currency'
           WHEN base like 'Omen%'
           THEN 'Omens'
           WHEN base like 'Vial%'
-          THEN 'Vials'
+          THEN 'Miscellaneous'
           WHEN base like '%Scroll' and base != 'Portal Scroll'
-          THEN 'Scrolls'
+          THEN 'Miscellaneous'
           WHEN base like '%Recombinator'
-          THEN 'Recombinators'
+          THEN 'Miscellaneous'
           WHEN exchange_category is null
           THEN 'Currency'
           ELSE exchange_category
         END) as major_category,
         (CASE
+          WHEN exchange_sub_category = 'Delirium'
+          THEN 'Fragments'
+          WHEN exchange_sub_category = 'Delirium Orbs'
+          THEN 'Orbs'
           WHEN base like '%Tattoo%' AND exchange_sub_category is null
           THEN 'Misc'
           WHEN base like 'Omen%'
@@ -610,7 +561,7 @@ export class DbRepo {
         END) as sub_category
         FROM ENTRIES
         WHERE (major_category = 'Other')
-        AND (exchange_category is not null OR sub_category = "Currency")
+        AND (exchange_category is not null OR sub_category = 'Currency')
         AND exchange_sub_category IS NOT 'Expedition'
 
         UNION ALL
@@ -638,7 +589,7 @@ export class DbRepo {
         'Other' as sub_category
         FROM ENTRIES
         WHERE major_category = 'Other'
-        AND exchange_category is null AND sub_category = "Divination Cards"
+        AND exchange_category is null AND sub_category = 'Divination Cards'
 
         UNION ALL
 
@@ -652,31 +603,26 @@ export class DbRepo {
         'Expedition' as sub_category
         FROM ENTRIES
         WHERE major_category = 'Other'
-        AND sub_category = "Expedition Items"
+        AND sub_category = 'Expedition Items'
 )
 
         SELECT * FROM INITIAL
         `,
-        [],
-        (err, rows) => {
-          if (err) rej(err);
-          fs.writeFileSync("./packages/data/raw.json", JSON.stringify(rows));
-        },
-      ),
-    );
+      )
+      .all();
+    fs.writeFileSync("./packages/data/raw.json", JSON.stringify(rows));
   }
 
-  async insert(table: string, entry: { [key: string]: unknown }) {
-    const sql = `INSERT INTO ${table}(${Object.keys(entry)}) VALUES(${Object.keys(entry).map(() => "?")})`;
-    return this.client.run(sql, Object.values(entry));
+  insertStmt(table: string, entry: { [key: string]: unknown }) {
+    return `INSERT OR IGNORE INTO ${table}(${Object.keys(entry)}) VALUES(${Object.keys(entry).map((key) => `@${key}`)})`;
   }
+
   async createTable(
     name: string,
     fields: { value: string; type: "TEXT" | "INTEGER" | "BLOB" }[],
   ) {
-    console.log("creating", name, fields);
-    const query = `CREATE TABLE IF NOT EXISTS ${name} (id TEXT PRIMARY KEY, ${fields.map((entry) => `${entry.value} ${entry.type}`)})`;
-    return this.client.exec(query);
+    const query = `CREATE TABLE IF NOT EXISTS ${name} (id INTEGER PRIMARY KEY, ${fields.map((entry) => `${entry.value} ${entry.type}`)})`;
+    return this.db.exec(query);
   }
 }
 

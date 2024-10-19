@@ -106,3 +106,42 @@ export async function to<T, U = Error>(
       return [err, undefined];
     });
 }
+
+export const withRetries = async <
+  F extends (...arg: unknown[]) => ReturnType<F>,
+>(
+  fn: F,
+  description?: string,
+): Promise<ReturnType<F>> => {
+  const attempts = 3;
+  const baseDelay = 1000;
+
+  let attempt = 1;
+
+  const execute = async (): Promise<ReturnType<F>> => {
+    try {
+      return fn();
+    } catch (error) {
+      if (attempt >= attempts) {
+        throw error;
+      }
+
+      const delay = baseDelay * 2 ** attempt;
+      const sleep = delay / 2 + integerBetween(0, delay / 2);
+      console.debug(
+        `${description ? `${description} - ` : ""}Retry attempt ${attempt} after ${sleep}ms...`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, sleep));
+
+      attempt++;
+
+      return execute();
+    }
+  };
+
+  return execute();
+};
+
+export const integerBetween = (max: number, min: number): number => {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};

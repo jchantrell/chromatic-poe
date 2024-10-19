@@ -9,6 +9,8 @@ import {
 } from "@pkgs/ui/dialog";
 import { TextField, TextFieldLabel } from "@pkgs/ui/text-field";
 import Theme from "./theme";
+import { Separator } from "@pkgs/ui/separator";
+import { ChooseDirectory } from "./chooseDir";
 
 export function Settings() {
   return (
@@ -16,7 +18,17 @@ export function Settings() {
       <DialogTrigger variant='ghost' as={Button<"button">}>
         <SettingsIcon />
       </DialogTrigger>
-      <DialogContent class='sm:max-w-[425px]'>
+      <DialogContent class='sm:max-w-[600px]'>
+        <DialogHeader>
+          <DialogTitle>General</DialogTitle>
+        </DialogHeader>
+        <div class='grid gap-4 py-4'>
+          <TextField class='grid grid-cols-4 items-center gap-4'>
+            <TextFieldLabel class='text-right'>PoE Directory</TextFieldLabel>
+            <ChooseDirectory class='col-span-3' />
+          </TextField>
+        </div>
+        <Separator />
         <DialogHeader>
           <DialogTitle>Display</DialogTitle>
         </DialogHeader>

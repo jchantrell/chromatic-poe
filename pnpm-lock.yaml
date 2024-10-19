@@ -33,8 +33,14 @@ importers:
         specifier: '>=2.0.0-rc.0'
         version: 2.0.0-rc.1
       '@tauri-apps/plugin-sql':
-        specifier: ^2.0.0-rc
+        specifier: 2.0.0-rc.1
         version: 2.0.0-rc.1
+      '@thisbeyond/solid-dnd':
+        specifier: ^0.7.5
+        version: 0.7.5(solid-js@1.8.22)
+      better-sqlite3:
+        specifier: ^11.4.0
+        version: 11.4.0
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -724,6 +730,12 @@ packages:
   '@tauri-apps/plugin-sql@2.0.0-rc.1':
     resolution: {integrity: sha512-F8Wq+L8SdVt76WCU161WCeM5CLkh3gzKblXhXyFFJ8m+BY1P83zVyCxriems3mYULvPPtFwlg8NEgLJycS1HYQ==}
 
+  '@thisbeyond/solid-dnd@0.7.5':
+    resolution: {integrity: sha512-DfI5ff+yYGpK9M21LhYwIPlbP2msKxN2ARwuu6GF8tT1GgNVDTI8VCQvH4TJFoVApP9d44izmAcTh/iTCH2UUw==}
+    engines: {node: '>=18.0.0', pnpm: '>=8.6.0'}
+    peerDependencies:
+      solid-js: ^1.5
+
   '@tootallnate/once@1.1.2':
     resolution: {integrity: sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==}
     engines: {node: '>= 6'}
@@ -923,6 +935,9 @@ packages:
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
+
+  better-sqlite3@11.4.0:
+    resolution: {integrity: sha512-B7C9y2aSvtTwDJIz34iUxMjQWmbAYFmpq0Rwf9weYTtx6jUYsUKVt5ePPYlGyLVBoySppPa41PBrzl1ipMhG7A==}
 
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
@@ -2596,6 +2611,10 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.0.0-rc.4
 
+  '@thisbeyond/solid-dnd@0.7.5(solid-js@1.8.22)':
+    dependencies:
+      solid-js: 1.8.22
+
   '@tootallnate/once@1.1.2':
     optional: true
 
@@ -2829,6 +2848,11 @@ snapshots:
   balanced-match@1.0.2: {}
 
   base64-js@1.5.1: {}
+
+  better-sqlite3@11.4.0:
+    dependencies:
+      bindings: 1.5.0
+      prebuild-install: 7.1.2
 
   binary-extensions@2.3.0: {}
 

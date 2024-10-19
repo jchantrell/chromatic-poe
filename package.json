@@ -9,8 +9,8 @@
     "build:windows": "tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc",
     "build:linux": "tauri build",
     "tauri": "tauri",
-    "gamefiles": "pushd packages/assets; pathofexile-dat; popd",
-    "db": "npx tsx packages/assets/db.ts"
+    "gamefiles": "pushd packages/data; pathofexile-dat; popd",
+    "db": "npx tsx packages/data/db.ts"
   },
   "license": "MIT",
   "dependencies": {
@@ -22,7 +22,9 @@
     "@tauri-apps/plugin-fs": "2.0.0-rc.2",
     "@tauri-apps/plugin-os": "^2.0.0-rc",
     "@tauri-apps/plugin-shell": ">=2.0.0-rc.0",
-    "@tauri-apps/plugin-sql": "^2.0.0-rc",
+    "@tauri-apps/plugin-sql": "2.0.0-rc.1",
+    "@thisbeyond/solid-dnd": "^0.7.5",
+    "better-sqlite3": "^11.4.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk-solid": "^1.1.0",

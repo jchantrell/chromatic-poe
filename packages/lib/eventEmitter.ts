@@ -1,4 +1,4 @@
-type EventListener = <T extends unknown[]>(...args: T) => unknown;
+type EventListener = (...args: unknown[]) => unknown;
 
 export default class EventEmitter {
   private listeners: {
@@ -19,7 +19,7 @@ export default class EventEmitter {
     return () => this.off(event, listener);
   }
 
-  public off(event: string, listener: (...rest: unknown[]) => unknown) {
+  public off(event: string, listener: EventListener) {
     if (!this.listeners[event]) {
       return;
     }

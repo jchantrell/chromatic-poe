@@ -1,4 +1,4 @@
-import { ConfigColorMode, useColorMode } from "@kobalte/core";
+import { type ConfigColorMode, useColorMode } from "@kobalte/core";
 import { capitalizeFirstLetter } from "@pkgs/lib/utils";
 import {
   Select,

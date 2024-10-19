@@ -5,3 +5,4 @@ packages/data/chromatic.db
 packages/data/tables
 packages/data/.cache
 packages/assets/images
+chromatic.db
