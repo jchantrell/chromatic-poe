@@ -10,7 +10,7 @@ import {
 import { TextField, TextFieldLabel } from "@pkgs/ui/text-field";
 import Theme from "./theme";
 import { Separator } from "@pkgs/ui/separator";
-import { ChooseDirectory } from "./chooseDir";
+import { ChooseDirectory } from "./choose-dir";
 
 export function Settings() {
   return (

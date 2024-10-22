@@ -1,6 +1,6 @@
 import { createSignal, For } from "solid-js";
 import { store } from "@app/store";
-import { generate, type Filter } from "@app/services/filter";
+import { generate, type Filter } from "@app/lib/filter";
 import { Button } from "@pkgs/ui/button";
 import {
   Dialog,
@@ -12,7 +12,7 @@ import {
 import { TextField, TextFieldInput, TextFieldLabel } from "@pkgs/ui/text-field";
 import { EditIcon, TrashIcon, CopyIcon } from "@pkgs/icons";
 import { alphabeticalSort, timeSince } from "@pkgs/lib/utils";
-import { fileSystem } from "@app/services/storage";
+import { fileSystem } from "@app/lib/storage";
 import {
   ContextMenu,
   ContextMenuItem,
@@ -275,7 +275,7 @@ export function LoadScreenMenu() {
 
   return (
     <div
-      class={`size-full flex items-center justify-center relative bg-cover bg-[url('/images/editor-bg-${colorMode()}.jpg')]`}
+      class={`size-full flex items-center justify-center relative bg-cover ${colorMode() === "dark" ? "bg-[url('/backgrounds/bg-dark.jpg')]" : "bg-[url('/images/editor-bg-light.jpg')]"}`}
     >
       <div class='bg-neutral-900/70 border-neutral-900/70 text-foreground w-full max-w-sm rounded-lg border p-4 grid gap-2 items-center z-0'>
         <CreateFilter />

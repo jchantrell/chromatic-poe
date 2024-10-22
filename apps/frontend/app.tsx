@@ -15,13 +15,13 @@ import {
 } from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { fileSystem } from "@app/services/storage";
+import { fileSystem } from "@app/lib/storage";
 import { onMount } from "solid-js";
 import { locale } from "@tauri-apps/plugin-os";
 import { store } from "./store";
 import { Toaster } from "@pkgs/ui/sonner";
 import { Settings } from "./components/settings";
-import { A, Route, Router } from "@solidjs/router";
+import { Route, Router } from "@solidjs/router";
 
 function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
   try {

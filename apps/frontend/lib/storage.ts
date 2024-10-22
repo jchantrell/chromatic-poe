@@ -12,7 +12,7 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { getVersion } from "@tauri-apps/api/app";
 import { documentDir, sep } from "@tauri-apps/api/path";
-import { Filter, type StoredFilter } from "@app/services/filter";
+import { Filter, type StoredFilter } from "@app/lib/filter";
 import { alphabeticalSort } from "@pkgs/lib/utils";
 import { eol } from "@tauri-apps/plugin-os";
 

@@ -1,4 +1,4 @@
-import { ChooseDirectory } from "@app/components/chooseDir";
+import { ChooseDirectory } from "@app/components/choose-dir";
 
 function Setup() {
   return (

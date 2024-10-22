@@ -10,6 +10,7 @@
     "build:linux": "tauri build",
     "tauri": "tauri",
     "gamefiles": "pushd packages/data; pathofexile-dat; popd",
+    "images": "npx tsx packages/data/image.ts",
     "db": "npx tsx packages/data/db.ts"
   },
   "license": "MIT",
@@ -30,6 +31,7 @@
     "cmdk-solid": "^1.1.0",
     "d3": "^7.9.0",
     "pathofexile-dat": "^9.1.0",
+    "sharp": "^0.33.5",
     "solid-js": "^1.7.8",
     "solid-sonner": "^0.2.8",
     "tailwind-merge": "^2.5.2",

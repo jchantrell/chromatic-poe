@@ -4,10 +4,10 @@ class Input extends EventEmitter {
   constructor() {
     super();
     document.addEventListener("keyup", (event) => {
-      this.emit("keypress", event.key, false);
+      this.emit("keyup", event.key);
     });
     document.addEventListener("keydown", (event) => {
-      this.emit("keypress", event.key, true);
+      this.emit("keydown", event.key);
     });
   }
 }

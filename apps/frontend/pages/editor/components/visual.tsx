@@ -1,6 +1,6 @@
 import { zoom, hierarchy, linkHorizontal, tree, create } from "d3";
 import { createSignal } from "solid-js";
-import type { ItemHierarchy } from "@app/services/filter";
+import type { ItemHierarchy } from "@app/lib/filter";
 import { store } from "@app/store";
 
 function visualise(
@@ -8,7 +8,9 @@ function visualise(
   parentWidth: number,
   parentHeight: number,
 ) {
+  console.log(data);
   const root = hierarchy(data, (d) => {
+    if (d.type === "item") return d;
     return d.children.filter((entry) => entry.enabled);
   });
 

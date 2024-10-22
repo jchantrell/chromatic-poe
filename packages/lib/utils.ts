@@ -34,26 +34,6 @@ export const alphabeticalSort =
     return 0;
   };
 
-export function recursivelySetKeys(
-  object: Record<string, unknown>,
-  path: (string | null)[],
-  value: unknown,
-) {
-  let schema = object;
-  for (let i = 0; i < path.length - 1; i++) {
-    const entry = path[i];
-    if (!entry) {
-      continue;
-    }
-    const sameKey = path[i - 1] && entry === path[i - 1];
-    if (!schema[entry] && !sameKey) {
-      schema[entry] = {};
-    }
-    schema = sameKey ? schema : (schema[entry] as Record<string, unknown>);
-  }
-  schema[path[path.length - 1] as string] = value;
-}
-
 export function timeSince(date: Date | number): string {
   const timeMs = typeof date === "number" ? date : date.getTime();
 

@@ -1,5 +1,5 @@
 import { createMutable } from "solid-js/store";
-import type { Filter, ItemHierarchy } from "@app/services/filter";
+import type { FilterCategory, Filter, FilterRoot } from "@app/lib/filter";
 
 export const store = createMutable<{
   appBar?: HTMLDivElement;
@@ -7,8 +7,8 @@ export const store = createMutable<{
   locale: string | null;
   filters: Filter[];
   filter: Filter | null;
-  view: ItemHierarchy | null;
-  crumbs: { title: string; view: ItemHierarchy }[];
+  view: FilterRoot | FilterCategory | null;
+  crumbs: { title: string; view: FilterRoot | FilterCategory }[];
 }>({
   appBar: undefined,
   initialised: false,

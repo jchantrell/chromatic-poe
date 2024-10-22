@@ -10,7 +10,7 @@ import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import { Button } from "@pkgs/ui/button";
 import { FolderIcon } from "@pkgs/icons";
 import { cn, to } from "@pkgs/lib/utils";
-import { fileSystem } from "@app/services/storage";
+import { fileSystem } from "@app/lib/storage";
 import { store } from "@app/store";
 import { platform } from "@tauri-apps/plugin-os";
 import { toast } from "solid-sonner";

@@ -7,9 +7,9 @@ import {
 } from "@pkgs/ui/breadcrumb";
 import { store } from "@app/store";
 import { For } from "solid-js";
-import type { ItemHierarchy } from "@app/services/filter";
+import type { FilterCategory, FilterRoot } from "@app/lib/filter";
 
-export type Crumb = { title: string; view: ItemHierarchy };
+export type Crumb = { title: string; view: FilterRoot | FilterCategory };
 
 function Crumbs() {
   function setCrumbs(crumb: Crumb, index: number) {
@@ -17,6 +17,7 @@ function Crumbs() {
       store.view = crumb.view;
     }
     store.crumbs = [...store.crumbs.slice(0, index + 1)];
+    console.log(crumb, index);
   }
 
   return (

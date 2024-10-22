@@ -272,9 +272,7 @@ export class DbRepo {
         LEFT JOIN ${Tables.SKILL_GEMS} k
         on e.id = k.baseId
         WHERE c.name != '' and e.active != 0 and c.name != 'Hidden Items'
-        ),
-
-        INITIAL AS (
+        )
 
         SELECT DISTINCT
         base, 
@@ -288,18 +286,27 @@ export class DbRepo {
         END) as pool,
         (CASE
           WHEN sub_category = 'Tinctures'
-          THEN 'Tinctures'
+          THEN 'Flasks'
           WHEN sub_category = 'Trinkets'
           THEN 'Heist Items'
           ELSE major_category
         END) as major_category,
         (CASE
           WHEN base like 'Awakened%'
-          THEN 'Awakened Support Skill Gems'
+          THEN 'Awakened'
+          WHEN base like 'Vaal%' AND major_category = 'Gems'
+          THEN 'Vaal'
+          WHEN sub_category = 'Active Skill Gems'
+          THEN 'Active'
+          WHEN sub_category = 'Support Skill Gems'
+          THEN 'Support'
+          WHEN base like '%Talisman'
+          THEN 'Talismans'
           ELSE sub_category
         END) as sub_category
         FROM ENTRIES
         WHERE major_category != 'Other'
+        AND base != 'Quickstep'
 
         UNION ALL
 
@@ -388,7 +395,38 @@ export class DbRepo {
         FROM ENTRIES
         WHERE major_category = 'Other' 
         AND exchange_category is null
-        AND sub_category NOT IN ('Jewels', 'Abyss Jewels', 'Maps', 'Map Fragments', 'Misc Map Items', 'Currency', 'Divination Cards', 'Incubators', 'Expedition Items', 'Recombinators')
+        AND sub_category NOT IN ('Jewels', 'Abyss Jewels', 'Maps', 'Map Fragments', 'Misc Map Items', 'Currency', 'Divination Cards', 'Incubators', 'Expedition Items', 'Recombinators', 'Pieces', 'Relics')
+
+        UNION ALL
+
+        SELECT DISTINCT
+        base,
+        file,
+       ${extraFields}
+        value,
+        'Static' as pool,
+        'Sanctum' as major_category,
+        (CASE
+          WHEN sub_category = 'Misc Map Items'
+          THEN 'Tomes'
+          ELSE sub_category
+        END) as sub_category
+        FROM ENTRIES
+        WHERE sub_category IN ('Relics')
+        OR base = 'Forbidden Tome'
+
+        UNION ALL
+
+        SELECT DISTINCT
+        base,
+        file,
+       ${extraFields}
+        value,
+        'Static' as pool,
+        'Miscellaneous' as major_category,
+        sub_category
+        FROM ENTRIES
+        WHERE sub_category IN ('Pieces')
 
         UNION ALL
 
@@ -462,6 +500,8 @@ export class DbRepo {
         WHERE sub_category IN ('Misc Map Items')
         AND base not like '%Invitation'
         AND base not like '%Reliquary Key'
+        AND base not like '%Sanctum'
+        AND base != 'Forbidden Tome'
 
         UNION ALL
 
@@ -510,16 +550,20 @@ export class DbRepo {
         (CASE
           WHEN exchange_sub_category = 'Delirium Orbs'
           THEN 'Delirium'
+          WHEN exchange_sub_category = 'Runecrafting'
+          THEN 'Currency'
+          WHEN exchange_sub_category = 'Scouting Reports'
+          THEN 'Currency'
+          WHEN exchange_sub_category = 'Oils'
+          THEN 'Blight'
           WHEN base like '%Tattoo%'
           THEN 'Tattoos'
           WHEN base like '%Lifeforce%'
           THEN 'Currency'
-          WHEN base like '%Calayst%'
+          WHEN exchange_category = 'Catalysts'
           THEN 'Currency'
-          WHEN base like '%Incubator%'
-          THEN 'Currency'
-          WHEN base like 'Omen%'
-          THEN 'Omens'
+          WHEN base like 'Omen of%'
+          THEN 'Miscellaneous'
           WHEN base like 'Vial%'
           THEN 'Miscellaneous'
           WHEN base like '%Scroll' and base != 'Portal Scroll'
@@ -536,7 +580,7 @@ export class DbRepo {
           WHEN exchange_sub_category = 'Delirium Orbs'
           THEN 'Orbs'
           WHEN base like '%Tattoo%' AND exchange_sub_category is null
-          THEN 'Misc'
+          THEN 'Miscellaneous'
           WHEN base like 'Omen%'
           THEN 'Omens'
           WHEN base like 'Vial%'
@@ -572,7 +616,7 @@ export class DbRepo {
        ${extraFields}
         value,
         'Static' as pool,
-        'Incubators' as major_category,
+        'Legion' as major_category,
         'Incubators' as sub_category
         FROM ENTRIES
         WHERE base like '%Incubator'
@@ -600,21 +644,25 @@ export class DbRepo {
         value,
         'Static' as pool,
         'Expedition' as major_category,
-        'Expedition' as sub_category
+        (CASE
+          WHEN base = 'Expedition Logbook'
+          THEN 'Logbooks'
+          ELSE 'Currency'
+        END) as sub_category
         FROM ENTRIES
         WHERE major_category = 'Other'
         AND sub_category = 'Expedition Items'
-)
-
-        SELECT * FROM INITIAL
         `,
       )
       .all();
-    fs.writeFileSync("./packages/data/raw.json", JSON.stringify(rows));
+    fs.writeFileSync(
+      "./packages/data/raw.json",
+      JSON.stringify(rows, null, " "),
+    );
   }
 
   insertStmt(table: string, entry: { [key: string]: unknown }) {
-    return `INSERT OR IGNORE INTO ${table}(${Object.keys(entry)}) VALUES(${Object.keys(entry).map((key) => `@${key}`)})`;
+    return `INSERT OR REPLACE INTO ${table}(${Object.keys(entry)}) VALUES(${Object.keys(entry).map((key) => `@${key}`)})`;
   }
 
   async createTable(
