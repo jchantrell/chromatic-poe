@@ -14,41 +14,18 @@ import {
   PaletteIcon,
 } from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { fileSystem } from "@app/lib/storage";
 import { onMount } from "solid-js";
-import { locale } from "@tauri-apps/plugin-os";
 import { store } from "./store";
 import { Toaster } from "@pkgs/ui/sonner";
 import { Settings } from "./components/settings";
 import { Route, Router } from "@solidjs/router";
-
-function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
-  try {
-    const appWindow = getCurrentWindow();
-    return appWindow;
-  } catch (err) {
-    return null;
-  }
-}
-
-const appWindow = tryGetAppWindow();
+import chromatic from "./lib/config";
 
 export const storageManager = createLocalStorageManager("theme");
 
 function App() {
   onMount(async () => {
-    if (appWindow) {
-      await fileSystem.init();
-      if (fileSystem.config.poeDirectory) {
-        store.initialised = true;
-      }
-      store.filters = await fileSystem.listFilters();
-    }
-    if (!appWindow) {
-      store.initialised = true;
-    }
-    store.locale = await locale();
+    await chromatic.init();
   });
 
   return (
@@ -114,7 +91,7 @@ function App() {
                   variant='ghost'
                   size='icon'
                   class='h-14 rounded-none'
-                  onMouseUp={() => appWindow.minimize()}
+                  onMouseUp={() => chromatic.minimize()}
                 >
                   <MinimiseIcon />
                 </Button>
@@ -122,7 +99,7 @@ function App() {
                   variant='ghost'
                   size='icon'
                   class='h-14 rounded-none'
-                  onMouseUp={() => appWindow.close()}
+                  onMouseUp={() => chromatic.close()}
                 >
                   <ExitIcon />
                 </Button>

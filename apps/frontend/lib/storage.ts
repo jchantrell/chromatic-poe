@@ -1,6 +1,5 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import {
-  BaseDirectory,
   exists,
   mkdir,
   readDir,
@@ -10,280 +9,102 @@ import {
   rename,
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
-import { getVersion } from "@tauri-apps/api/app";
-import { documentDir, sep } from "@tauri-apps/api/path";
-import { Filter, type StoredFilter } from "@app/lib/filter";
-import { alphabeticalSort, stringifyJSON } from "@pkgs/lib/utils";
+import { sep } from "@tauri-apps/api/path";
 import { eol } from "@tauri-apps/plugin-os";
 
-interface ChromaticConfiguration {
-  version: string;
-  poeDirectory: string | null;
+export interface FileSystem {
+  runtime: "desktop" | "web";
+  eol(): void;
+  exists(path: string): Promise<boolean>;
+  readFile(path: string): Promise<string>;
+  renameFile(oldPath: string, newPath: string): Promise<void>;
+  writeFile(path: string, data: string): Promise<void>;
+  deleteFile(path: string): Promise<void>;
+  getAllFiles(path: string): Promise<string[]>;
+  truncatePath(path: string): string;
+  pickDirectoryPrompt(): Promise<string | null>;
 }
 
-class FileSystem {
-  config!: ChromaticConfiguration;
-  isNativeRuntime = false;
-  decoder = new TextDecoder("utf-8");
-
-  imagePath = "images";
-  filterPath = "filters";
-  configPath = "config.json";
-
-  async init() {
-    if (this.config) {
-      return;
-    }
-
-    this.isNativeRuntime = true;
-
-    await this.bootstrap();
-
-    const configExists = await exists(`${this.configPath}`, {
-      baseDir: BaseDirectory.AppConfig,
-    });
-
-    if (configExists) {
-      console.log("Config exists. Reading file...");
-      const raw = await readTextFile(`${this.configPath}`, {
-        baseDir: BaseDirectory.AppConfig,
-      });
-
-      this.config = await this.parseConfig(raw);
-    }
-
-    if (!configExists) {
-      console.log("Config does not exist. Creating with defaults...");
-      const defaultConfig = await this.defaultConfig();
-      await this.writeConfig(defaultConfig);
-    }
-  }
-
-  async bootstrap() {
-    await this.upsertDirectory("chromatic", BaseDirectory.Config);
-    await this.upsertDirectory(this.imagePath, BaseDirectory.AppConfig);
-    await this.upsertDirectory(this.filterPath, BaseDirectory.AppConfig);
-  }
-
+export class WebStorage implements FileSystem {
+  runtime = "web" as const;
   eol() {
-    if (this.isNativeRuntime) {
-      return eol();
-    }
-
     if (navigator.userAgent.toLowerCase().indexOf("win") > -1) return "\r\n";
 
     return "\n";
   }
-
   truncatePath(path: string) {
-    if (!this.isNativeRuntime) {
-      return path;
-    }
+    return path;
+  }
+  async pickDirectoryPrompt(): Promise<string | null> {
+    return "";
+  }
+  async renameFile(oldPath: string, newPath: string): Promise<void> {
+    return;
+  }
+  async exists(path: string) {
+    return false;
+  }
+  async writeFile(path: string, data: string) {
+    return;
+  }
+  async deleteFile(path: string) {
+    return;
+  }
+  async readFile(path: string) {
+    return "";
+  }
+  async getAllFiles(path: string): Promise<string[]> {
+    return [];
+  }
+}
+
+export class DesktopStorage implements FileSystem {
+  runtime = "desktop" as const;
+  decoder = new TextDecoder("utf-8");
+  eol() {
+    return eol();
+  }
+  truncatePath(path: string) {
     const split = path.split(sep());
     return split.slice(Math.max(split.length - 3, 0)).join(sep());
   }
-
   async pickDirectoryPrompt(defaultPath?: string): Promise<string | null> {
     return await open({ directory: true, defaultPath });
   }
 
-  async upsertDirectory(path: string, baseDir: BaseDirectory) {
+  async upsertDirectory(path: string) {
     console.log("Checking for directory...", path);
-    const dirExists = await exists(path, {
-      baseDir,
-    });
+    const dirExists = await exists(path);
     if (!dirExists) {
       console.log("Creating directory...", path);
-      await mkdir(path, { baseDir });
+      await mkdir(path);
     }
   }
-
-  async parseConfig(raw: string): Promise<ChromaticConfiguration> {
-    const config = JSON.parse(raw);
-
-    if (!config.version) {
-      console.log(
-        "Configuration file seems corrupted. Replacing with current default",
-        config,
-      );
-
-      const defaultConfig = await this.defaultConfig();
-      await this.writeConfig(defaultConfig);
-      return defaultConfig;
-    }
-
-    console.log(
-      `Loaded version ${config.version} file. Validating and checking for necessary updates...`,
-    );
-
-    const configSemVer = config.version.split(".");
-
-    const version = await getVersion();
-    const semVer = version.split(".");
-
-    if (
-      !configSemVer[0] ||
-      !configSemVer[1] ||
-      !configSemVer[2] ||
-      configSemVer.length > 3
-    ) {
-      console.log(
-        "Configuration file version seems corrupted. Replacing with current default",
-        config,
-      );
-
-      const defaultConfig = await this.defaultConfig();
-      await this.writeConfig(defaultConfig);
-      return defaultConfig;
-    }
-
-    if (configSemVer[0] < semVer[0]) {
-      console.log("Configuration is from prior major version. Updating...", {
-        current: version,
-        config: config.version,
-      });
-      const updated = await this.migrateConfig(config, semVer, configSemVer);
-      await this.writeConfig(updated);
-      return updated;
-    }
-
-    if (configSemVer[0] === semVer[0] && configSemVer[1] < semVer[1]) {
-      console.log("Configuration is from prior minor version. Updating...", {
-        current: version,
-        config: config.version,
-      });
-      const updated = await this.migrateConfig(config, semVer, configSemVer);
-      await this.writeConfig(updated);
-      return updated;
-    }
-
-    if (
-      configSemVer[0] === semVer[0] &&
-      configSemVer[1] === semVer[1] &&
-      configSemVer[2] < semVer[2]
-    ) {
-      console.log("Configuration is from prior patch version. Updating...", {
-        current: version,
-        config: config.version,
-      });
-      const updated = await this.migrateConfig(config, semVer, configSemVer);
-      await this.writeConfig(updated);
-      return updated;
-    }
-
-    console.log("Configuration is up to date", config);
-    return config as ChromaticConfiguration;
-  }
-
-  async writeConfig(config: ChromaticConfiguration) {
-    const path = `${this.configPath}`;
-    await writeTextFile(path, JSON.stringify(config), {
-      baseDir: BaseDirectory.AppConfig,
-    });
-    console.log(`Successfully wrote config to ${path}`, config);
-    this.config = config;
-  }
-
-  async migrateConfig(
-    config: ChromaticConfiguration,
-    currSemVer: string[],
-    prevSemVer: string[],
-  ) {
-    console.log("Not implemented", { config, currSemVer, prevSemVer });
-    return this.defaultConfig();
-  }
-
-  async defaultConfig() {
-    return {
-      version: await getVersion(),
-      poeDirectory: null,
-    };
-  }
-
-  async getAssumedPoeDirectory(os: string): Promise<string | null> {
-    if (os === "windows") {
-      const docPath = await documentDir();
-      return `${docPath}\\My Games\\Path of Exile`;
-    }
-
-    if (os === "linux") {
-      const docPath = await documentDir();
-      return `${docPath}/.steam/root/steamapps/compatdata/238960/pfx/drive_c/users/steamuser/My Documents/My Games/Path of Exile`;
-    }
-
-    return null;
-  }
-
-  async updatePoeDirectory(path: string) {
-    const updated = { ...this.config, poeDirectory: path };
-    await this.writeConfig(updated);
-    return { poeDirectory: path, config: this.config };
-  }
-
-  async checkPoeDirectory(path: string) {
+  async exists(path: string) {
     return await exists(path, {});
   }
-
-  getFiltersPath(filter: Filter, newName?: string) {
-    return `${this.filterPath}/${newName ? newName : filter.name}.json`;
+  async renameFile(oldPath: string, newPath: string): Promise<void> {
+    await rename(oldPath, newPath);
+  }
+  async readFile(path: string) {
+    return readTextFile(path);
+  }
+  async deleteFile(path: string) {
+    await remove(path);
+  }
+  async writeFile(path: string, data: string) {
+    await writeTextFile(path, data);
   }
 
-  async updateFilterName(filter: Filter, newName: string) {
-    await rename(
-      this.getFiltersPath(filter),
-      this.getFiltersPath(filter, newName),
-      {
-        oldPathBaseDir: BaseDirectory.AppConfig,
-        newPathBaseDir: BaseDirectory.AppConfig,
-      },
-    );
-    filter.updateName(newName);
-    return this.writeFilter(filter);
-  }
-
-  async deleteFilter(filter: Filter) {
-    await remove(this.getFiltersPath(filter), {
-      baseDir: BaseDirectory.AppConfig,
-    });
-    await remove(
-      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile/${filter.name}.filter`,
-    );
-  }
-
-  async writeFilter(filter: Filter) {
-    if (!this.isNativeRuntime) {
-      return filter;
-    }
-
-    await writeTextFile(this.getFiltersPath(filter), stringifyJSON(filter), {
-      baseDir: BaseDirectory.AppConfig,
-    });
-
-    await writeTextFile(
-      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile/${filter.name}.filter`,
-      filter.convertToText(),
-    );
-
-    return filter;
-  }
-
-  async listFilters() {
-    const entries = await readDir(this.filterPath, {
-      baseDir: BaseDirectory.AppConfig,
-    });
-    const filters: Filter[] = [];
-    for (const entry of entries) {
-      if (entry.isFile) {
-        const bytes = await readFile(`${this.filterPath}/${entry.name}`, {
-          baseDir: BaseDirectory.AppConfig,
-        });
-        const filter: StoredFilter = JSON.parse(this.decoder.decode(bytes));
-        const entity = new Filter(filter);
-        filters.push(entity);
+  async getAllFiles(path: string) {
+    const records = await readDir(path);
+    const files = [];
+    for (const record of records) {
+      if (record.isFile) {
+        const bytes = await readFile(`${path}/${record.name}`);
+        files.push(this.decoder.decode(bytes));
       }
     }
-    return filters.sort(alphabeticalSort((filter) => filter.name));
+    return files;
   }
 }
-
-export const fileSystem = new FileSystem();

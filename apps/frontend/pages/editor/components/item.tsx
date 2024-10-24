@@ -12,7 +12,6 @@ import type { Setter } from "solid-js";
 
 function Item(props: {
   item: FilterItem;
-  hovered: boolean;
   setHovered: Setter<boolean>;
 }) {
   const icon = getIcon(props.item);

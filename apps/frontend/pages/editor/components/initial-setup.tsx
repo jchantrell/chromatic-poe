@@ -2,7 +2,7 @@ import { ChooseDirectory } from "@app/components/choose-dir";
 
 function Setup() {
   return (
-    <div class='flex h-full flex-col justify-center items-center'>
+    <div class='flex size-full flex-col justify-center items-center'>
       <div class='sm:max-w-[600px] text-center'>
         <div class='text-xl mb-2'>Welcome, exile!</div>
         <div>

@@ -1,9 +1,9 @@
-import { clone } from "@pkgs/lib/utils";
-import { fileSystem } from "@app/lib/storage";
+import { clone, stringifyJSON } from "@pkgs/lib/utils";
 import diff, { type Difference } from "microdiff";
 import data from "@pkgs/data/raw.json";
 import { ActionBuilder } from "./action";
 import { ConditionBuilder, Operator } from "./condition";
+import chromatic from "./config";
 
 type PathElement = string | number;
 
@@ -120,7 +120,7 @@ export class BlockBuilder {
     actions: string[],
     conditions: string[],
   ) {
-    const eol = fileSystem.eol();
+    const eol = chromatic.fileSystem.eol();
     return `${description}${eol}${block}${eol}${actions.map((action) => `   ${action}${eol}`).join("")}${conditions.map((condition) => `   ${condition}${eol}`).join("")}
 `;
   }
@@ -165,7 +165,7 @@ export class Filter {
 
   undo() {
     if (!this.undoStack.length) {
-      return; // nothing to revert
+      return;
     }
     const copy = clone(this.rules);
     const changes = this.undoStack.pop();
@@ -177,7 +177,7 @@ export class Filter {
 
   redo() {
     if (!this.redoStack.length) {
-      return; // nothing to redo
+      return;
     }
     const copy = clone(this.rules);
     const changes = this.redoStack.shift();
@@ -224,13 +224,30 @@ export class Filter {
     ref.parent[ref.key] = value;
   }
 
-  updateName(newName: string) {
+  async updateName(newName: string) {
+    const oldPath = chromatic.getFiltersPath(this);
+    const newPath = chromatic.getFiltersPath(this, newName);
+    await chromatic.fileSystem.renameFile(oldPath, newPath);
+    await this.writeFile();
     this.name = newName;
   }
 
-  async writeFile(): Promise<void> {
+  async deleteFile() {
+    const path = chromatic.getFiltersPath(this);
+    await chromatic.fileSystem.deleteFile(path);
+    await chromatic.fileSystem.deleteFile(
+      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile/${filter.name}.filter`,
+    );
+  }
+
+  async writeFile() {
     this.lastUpdated = new Date();
-    await fileSystem.writeFilter(this);
+    const path = chromatic.getFiltersPath(this);
+    await chromatic.fileSystem.writeFile(path, stringifyJSON(this));
+    await chromatic.fileSystem.writeFile(
+      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile/${this.name}.filter`,
+      this.serialize(),
+    );
   }
 
   addParentRefs(entry?: ItemHierarchy): ItemHierarchy {
@@ -243,16 +260,16 @@ export class Filter {
     return entry;
   }
 
-  convertToText(): string {
+  serialize(): string {
     let text = "";
     for (const child of this.rules.children) {
-      const rules = this.serialize([], child);
+      const rules = this.convertToText([], child);
       text += rules.join("");
     }
     return text;
   }
 
-  serialize(ancestors: (string | null)[], entry: ItemHierarchy): string[] {
+  convertToText(ancestors: (string | null)[], entry: ItemHierarchy): string[] {
     const rules: string[] = [];
 
     if (entry.type === "rule") {
@@ -291,11 +308,22 @@ export class Filter {
     }
     if (entry.type !== "item") {
       for (const child of entry.children) {
-        rules.push(...this.serialize([...ancestors, entry.name], child));
+        rules.push(...this.convertToText([...ancestors, entry.name], child));
       }
     }
 
     return rules;
+  }
+
+  createTextBlock(
+    description: string,
+    block: Block,
+    actions: string[],
+    conditions: string[],
+  ) {
+    const eol = chromatic.fileSystem.eol();
+    return `${description}${eol}${block}${eol}${actions.map((action) => `   ${action}${eol}`).join("")}${conditions.map((condition) => `   ${condition}${eol}`).join("")}
+`;
   }
 }
 
@@ -314,7 +342,7 @@ export function setEntryActive(
   });
 }
 
-export function setChildrenActive(
+function setChildrenActive(
   children: (FilterCategory | FilterRule | FilterItem)[],
   state: boolean,
 ) {
@@ -324,7 +352,7 @@ export function setChildrenActive(
   }
 }
 
-export function setParentActive(parent: FilterCategory | FilterRule) {
+function setParentActive(parent: FilterCategory | FilterRule) {
   if (parent?.children.some((e) => e.enabled)) {
     parent.enabled = true;
   } else {
@@ -634,11 +662,10 @@ export async function generate(
     throw new Error("Only PoE 1 is currently supported");
   }
   const rules = generateItems(data);
-  const now = new Date().toISOString();
   const filter = new Filter({
     name,
     version: 1,
-    lastUpdated: now,
+    lastUpdated: new Date(),
     rules,
   });
   filter.addParentRefs();

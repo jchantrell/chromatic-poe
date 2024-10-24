@@ -12,7 +12,6 @@ import {
 import { TextField, TextFieldInput, TextFieldLabel } from "@pkgs/ui/text-field";
 import { EditIcon, TrashIcon, CopyIcon } from "@pkgs/icons";
 import { alphabeticalSort, timeSince } from "@pkgs/lib/utils";
-import { fileSystem } from "@app/lib/storage";
 import {
   ContextMenu,
   ContextMenuItem,
@@ -40,7 +39,7 @@ export function CreateFilter() {
       return;
     }
     const filter = await generate(name(), version());
-    await fileSystem.writeFilter(filter);
+    await filter.writeFile();
     store.filters.push(filter);
     loadFilter(filter);
     setDialogOpen(false);
@@ -132,7 +131,7 @@ function ExistingFilter(props: { filter: Filter }) {
     store.filters = store.filters.filter(
       (entry) => entry.name !== props.filter.name,
     );
-    await fileSystem.deleteFilter(props.filter);
+    await props.filter.deleteFile();
     toast(`Deleted filter ${props.filter.name}`);
   }
 
@@ -170,7 +169,7 @@ function ExistingFilter(props: { filter: Filter }) {
       return;
     }
 
-    await fileSystem.updateFilterName(props.filter, updateName());
+    await props.filter.updateName(updateName());
     setNameDialogOpen(false);
     setName(updateName());
     setLastUpdated(props.filter.lastUpdated);

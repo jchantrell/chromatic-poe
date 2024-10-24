@@ -10,10 +10,10 @@ import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import { Button } from "@pkgs/ui/button";
 import { FolderIcon } from "@pkgs/icons";
 import { cn, to } from "@pkgs/lib/utils";
-import { fileSystem } from "@app/lib/storage";
 import { store } from "@app/store";
 import { platform } from "@tauri-apps/plugin-os";
 import { toast } from "solid-sonner";
+import chromatic from "@app/lib/config";
 
 export function ChooseDirectory<T extends ValidComponent = "div">(
   props: PolymorphicProps<T>,
@@ -24,13 +24,15 @@ export function ChooseDirectory<T extends ValidComponent = "div">(
   const [, rest] = splitProps(props as ComponentProps<T>, ["class"]);
 
   async function chooseLocation() {
-    const [, path] = await to(fileSystem.pickDirectoryPrompt(directory()));
+    const [, path] = await to(
+      chromatic.fileSystem.pickDirectoryPrompt(directory()),
+    );
     if (path) setDirectory(path);
   }
 
   createEffect(async () => {
-    if (directory() !== "") {
-      const [err, val] = await to(fileSystem.checkPoeDirectory(directory()));
+    if (directory() !== "" && chromatic.fileSystem.runtime === "desktop") {
+      const [err, val] = await to(chromatic.fileSystem.exists(directory()));
       if (err || !val) {
         setDirValid(false);
       }
@@ -41,9 +43,9 @@ export function ChooseDirectory<T extends ValidComponent = "div">(
   });
 
   createEffect(async () => {
-    if (dirValid() && directory() !== fileSystem.config.poeDirectory) {
+    if (dirValid() && directory() !== chromatic.config.poeDirectory) {
       console.log("?");
-      await fileSystem.updatePoeDirectory(directory());
+      await chromatic.updatePoeDirectory(directory());
       toast(`Updated PoE directory to ${directory()}`);
       store.initialised = true;
     }
@@ -52,16 +54,16 @@ export function ChooseDirectory<T extends ValidComponent = "div">(
   onMount(async () => {
     const currentPlatform = platform();
 
-    if (fileSystem.config.poeDirectory) {
-      return setDirectory(fileSystem.config.poeDirectory);
+    if (chromatic.config.poeDirectory) {
+      return setDirectory(chromatic.config.poeDirectory);
     }
 
     const [, assumedPoeDirLocation] = await to(
-      fileSystem.getAssumedPoeDirectory(currentPlatform),
+      chromatic.getAssumedPoeDirectory(currentPlatform),
     );
     if (assumedPoeDirLocation) {
       const [, dirExists] = await to(
-        fileSystem.checkPoeDirectory(assumedPoeDirLocation),
+        chromatic.fileSystem.exists(assumedPoeDirLocation),
       );
 
       if (dirExists) {
@@ -82,7 +84,7 @@ export function ChooseDirectory<T extends ValidComponent = "div">(
           <FolderIcon />
         </Button>
         <div class='overflow-hidden ml-1 w-full'>
-          {fileSystem.truncatePath(directory())}
+          {chromatic.fileSystem.truncatePath(directory())}
         </div>
       </div>
     </div>
