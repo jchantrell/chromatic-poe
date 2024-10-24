@@ -7,13 +7,27 @@ import {
   ContextMenuTrigger,
 } from "@pkgs/ui/context-menu";
 import { getIcon, setEntryActive, type FilterItem } from "@app/lib/filter";
-import { createSortable } from "@thisbeyond/solid-dnd";
+import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
+import type { Setter } from "solid-js";
 
 function Item(props: {
   item: FilterItem;
+  hovered: boolean;
+  setHovered: Setter<boolean>;
 }) {
   const icon = getIcon(props.item);
   const sortable = createSortable(props.item.name, props.item);
+
+  const [_, { onDragMove }] = useDragDropContext();
+
+  onDragMove(({ draggable }) => {
+    const draggableIsChild = props.item.parent.children.some(
+      (e) => e.name === draggable.id,
+    );
+    if (sortable.isActiveDroppable && !draggableIsChild) {
+      props.setHovered(true);
+    }
+  });
 
   return (
     <li use:sortable classList={{ "opacity-25": sortable.isActiveDraggable }}>

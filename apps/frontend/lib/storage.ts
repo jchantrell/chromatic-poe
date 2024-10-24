@@ -13,7 +13,7 @@ import {
 import { getVersion } from "@tauri-apps/api/app";
 import { documentDir, sep } from "@tauri-apps/api/path";
 import { Filter, type StoredFilter } from "@app/lib/filter";
-import { alphabeticalSort } from "@pkgs/lib/utils";
+import { alphabeticalSort, stringifyJSON } from "@pkgs/lib/utils";
 import { eol } from "@tauri-apps/plugin-os";
 
 interface ChromaticConfiguration {
@@ -189,6 +189,7 @@ class FileSystem {
     currSemVer: string[],
     prevSemVer: string[],
   ) {
+    console.log("Not implemented", { config, currSemVer, prevSemVer });
     return this.defaultConfig();
   }
 
@@ -254,13 +255,9 @@ class FileSystem {
       return filter;
     }
 
-    filter.marshall();
-
-    await writeTextFile(this.getFiltersPath(filter), JSON.stringify(filter), {
+    await writeTextFile(this.getFiltersPath(filter), stringifyJSON(filter), {
       baseDir: BaseDirectory.AppConfig,
     });
-
-    filter.unmarshall();
 
     await writeTextFile(
       `/mnt/c/Users/Joel/Documents/My Games/Path of Exile/${filter.name}.filter`,
@@ -282,7 +279,6 @@ class FileSystem {
         });
         const filter: StoredFilter = JSON.parse(this.decoder.decode(bytes));
         const entity = new Filter(filter);
-        entity.unmarshall();
         filters.push(entity);
       }
     }

@@ -6,8 +6,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function clone(object: object) {
-  return JSON.parse(JSON.stringify(object));
+export function clone<T extends object>(object: T): T {
+  return JSON.parse(stringifyJSON(object));
+}
+
+export function stringifyJSON(obj: object) {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, (_, v: unknown) => {
+    if (v !== null && typeof v === "object") {
+      if (seen.has(v)) return;
+      seen.add(v);
+    }
+    return v;
+  });
 }
 
 export function capitalizeFirstLetter(str: string) {

@@ -27,7 +27,6 @@ function loadFilter(filter: Filter) {
   store.filter = filter;
   store.view = store.filter?.rules;
   store.crumbs = [{ title: "Home", view: store.filter?.rules }];
-  filter.unmarshall();
 }
 
 export function CreateFilter() {

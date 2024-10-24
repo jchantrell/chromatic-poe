@@ -12,40 +12,47 @@ import { getIcon, setEntryActive, type FilterRule } from "@app/lib/filter";
 import { ChevronDownIcon } from "@pkgs/icons";
 import Item from "./item";
 import {
+  Draggable,
+  Droppable,
   SortableProvider,
   createDroppable,
   useDragDropContext,
 } from "@thisbeyond/solid-dnd";
 
-function Items(props: { rule: FilterRule }) {
-  const droppable = createDroppable(`${props.rule.name}-list`, props.rule); // rule list is droppable
-
-  return (
-    <ul
-      class={`ms-6 borer-s-[1px] ps-1 ${props.rule.enabled ? "border-primary" : "border-accent"} flex flex-wrap gap-1 p-1`}
-      ref={droppable.ref}
-    >
-      <SortableProvider ids={props.rule.children.map((e) => e.name)}>
-        <For each={props.rule.children}>
-          {(child) => {
-            return <Item item={child} />;
-          }}
-        </For>
-      </SortableProvider>
-    </ul>
-  );
-}
-
 function Rule(props: {
   rule: FilterRule;
 }) {
   const [expanded, setExpanded] = createSignal(false);
+  const [hovered, setHovered] = createSignal(false);
   const [icon, setIcon] = createSignal(getIcon(props.rule));
-  const droppable = createDroppable(`${props.rule.name}-title`, props.rule); // rule title is also droppable
+  const droppableTitle = createDroppable(
+    `${props.rule.name}-title`,
+    props.rule,
+  );
+  const droppableBody = createDroppable(`${props.rule.name}-list`, props.rule);
 
-  const [_, { onDragEnd }] = useDragDropContext();
+  const [_, { onDragEnd, onDragOver, onDragMove }] = useDragDropContext();
+
+  onDragMove(({ draggable }: { draggable: Draggable }) => {
+    const draggableIsChild = props.rule.children.some(
+      (e) => e.name === draggable.id,
+    );
+    if (
+      (droppableTitle.isActiveDroppable || droppableBody.isActiveDroppable) &&
+      !draggableIsChild
+    ) {
+      setHovered(true);
+    }
+  });
+
+  onDragOver(({ droppable }: { droppable: Droppable }) => {
+    if (droppable && droppable.id !== props.rule.name) {
+      setHovered(false);
+    }
+  });
 
   onDragEnd(() => {
+    setHovered(false);
     setTimeout(() => {
       // FIX: this is a hack
       // onDragEnd event is non-deterministic and doesnt play nicely with solid state
@@ -56,15 +63,14 @@ function Rule(props: {
 
   return (
     <Collapsible
-      class='grid relative'
       onOpenChange={(open) => setExpanded(open)}
       open={expanded()}
+      ref={droppableTitle.ref}
     >
       <ContextMenu>
         <ContextMenuTrigger>
           <div
-            ref={droppable.ref}
-            class={`p-1 border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer hover:border-primary h-full items-center flex justify-between select-none ${expanded() && props.rule.enabled ? "border-muted" : ""} ${expanded() && !props.rule.enabled ? "border-accent" : ""} ${droppable.isActiveDroppable ? "bg-muted" : ""}`}
+            class={`p-1 border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer hover:border-primary h-full items-center flex justify-between select-none ${expanded() && props.rule.enabled ? "border-muted" : ""} ${expanded() && !props.rule.enabled ? "border-accent" : ""} ${hovered() ? "bg-muted" : ""}`}
             onMouseDown={(e: MouseEvent) => {
               if (e.button === 0 && !e.shiftKey) {
                 return setExpanded(!expanded());
@@ -113,7 +119,18 @@ function Rule(props: {
         </ContextMenuPortal>
       </ContextMenu>
       <CollapsibleContent>
-        <Items rule={props.rule} />
+        <ul
+          class={`ms-6 borer-s-[1px] ps-1 ${props.rule.enabled ? "border-primary" : "border-accent"} flex flex-wrap gap-1 p-1`}
+          ref={droppableBody.ref}
+        >
+          <SortableProvider ids={props.rule.children.map((e) => e.name)}>
+            <For each={props.rule.children}>
+              {(child) => {
+                return <Item item={child} setHovered={setHovered} />;
+              }}
+            </For>
+          </SortableProvider>
+        </ul>
       </CollapsibleContent>
     </Collapsible>
   );

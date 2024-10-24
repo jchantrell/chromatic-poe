@@ -1,8 +1,30 @@
 import { clone } from "@pkgs/lib/utils";
 import { fileSystem } from "@app/lib/storage";
+import diff, { type Difference } from "microdiff";
 import data from "@pkgs/data/raw.json";
 import { ActionBuilder } from "./action";
 import { ConditionBuilder, Operator } from "./condition";
+
+type PathElement = string | number;
+
+type NestedObject =
+  | null
+  | undefined
+  | string
+  | number
+  | Filter
+  | FilterRoot
+  | FilterCategory
+  | FilterRule
+  | FilterItem
+  | Array<NestedObject>
+  | { [key: string]: NestedObject };
+
+type PathReference = {
+  parent: Record<string, NestedObject> | Array<NestedObject>;
+  key: string | number;
+  exists: boolean;
+};
 
 type RawData = {
   pool: string;
@@ -24,12 +46,6 @@ type RawData = {
   wardMin: number | null;
   wardMax: number | null;
 };
-
-interface NestedObject<T> {
-  [key: string]:
-    | (NestedObject<T> & { type?: string })
-    | (T & { type?: string });
-}
 
 export type ItemHierarchy =
   | FilterRoot
@@ -91,13 +107,6 @@ export interface FilterItem extends FilterHierarchy {
   value: number | null;
 }
 
-export interface StoredFilter {
-  name: string;
-  version: number;
-  lastUpdated: string;
-  rules: FilterRoot;
-}
-
 export enum Block {
   show = "Show",
   hide = "Hide",
@@ -117,29 +126,102 @@ export class BlockBuilder {
   }
 }
 
+class Command {
+  execute: (...args: unknown[]) => unknown;
+  constructor(execute: (...args: unknown[]) => unknown) {
+    this.execute = execute;
+  }
+}
+
 export class Filter {
   name: string;
   version: number;
   lastUpdated: Date;
   rules: FilterRoot;
 
+  undoStack: Difference[][] = [];
+  redoStack: Difference[][] = [];
+
   action = new ActionBuilder();
   condition = new ConditionBuilder();
   block = new BlockBuilder();
 
-  constructor(params: StoredFilter) {
+  constructor(params: {
+    name: string;
+    version: number;
+    lastUpdated: Date;
+    rules: FilterRoot;
+  }) {
     this.name = params.name;
     this.version = params.version;
-    this.lastUpdated = new Date(params.lastUpdated);
+    this.lastUpdated = params.lastUpdated;
     this.rules = params.rules;
   }
 
   copy(): Filter {
-    this.marshall();
     const copy = new Filter(clone(this));
-    copy.unmarshall();
-    this.unmarshall();
     return copy;
+  }
+
+  undo() {
+    if (!this.undoStack.length) {
+      return; // nothing to revert
+    }
+    const copy = clone(this.rules);
+    const changes = this.undoStack.pop();
+    if (changes) {
+      this.applyChanges(changes);
+      this.redoStack.push(diff(copy, this.rules));
+    }
+  }
+
+  redo() {
+    if (!this.redoStack.length) {
+      return; // nothing to redo
+    }
+    const copy = clone(this.rules);
+    const changes = this.redoStack.shift();
+    if (changes) {
+      this.applyChanges(changes);
+      this.undoStack.push(diff(copy, this.rules));
+    }
+  }
+
+  execute(command: Command) {
+    const copy = clone(this.rules);
+    command.execute();
+    this.undoStack.push(diff(copy, this.rules));
+  }
+
+  private applyChanges(changes: Difference[]) {
+    for (const change of changes) {
+      switch (change.type) {
+        case "CREATE":
+          this.removeProperty(change.path);
+          break;
+        case "REMOVE":
+          this.createProperty(change.path, change.oldValue);
+          break;
+        case "CHANGE":
+          this.changeProperty(change.path, change.oldValue);
+          break;
+      }
+    }
+  }
+
+  private removeProperty(path: PathElement[]) {
+    const ref = getNestedReference(this.rules, path);
+    delete ref.parent[ref.key];
+  }
+
+  private createProperty(path: PathElement[], value: unknown) {
+    const ref = getNestedReference(this.rules, path);
+    ref.parent[ref.key] = value;
+  }
+
+  private changeProperty(path: PathElement[], value: unknown) {
+    const ref = getNestedReference(this.rules, path);
+    ref.parent[ref.key] = value;
   }
 
   updateName(newName: string) {
@@ -151,29 +233,14 @@ export class Filter {
     await fileSystem.writeFilter(this);
   }
 
-  marshall(): void {
-    this.removeParentRefs(this.rules);
-  }
-
-  unmarshall(): void {
-    this.addParentRefs(this.rules);
-  }
-
-  removeParentRefs(entry: ItemHierarchy): void {
-    if (entry.type !== "root") entry.parent = undefined;
-    if (entry.type !== "item") {
-      for (const child of entry.children) {
-        this.removeParentRefs(child);
-      }
-    }
-  }
-
-  addParentRefs(entry: ItemHierarchy): void {
-    if (entry.type === "item") return;
+  addParentRefs(entry?: ItemHierarchy): ItemHierarchy {
+    if (!entry) return this.addParentRefs(this.rules);
+    if (entry.type === "item") return entry;
     for (const child of entry.children) {
       child.parent = entry;
       if (child.type !== "item") this.addParentRefs(child);
     }
+    return entry;
   }
 
   convertToText(): string {
@@ -185,10 +252,7 @@ export class Filter {
     return text;
   }
 
-  serialize(
-    ancestors: (string | null)[],
-    entry: FilterRoot | FilterCategory | FilterRule,
-  ): string[] {
+  serialize(ancestors: (string | null)[], entry: ItemHierarchy): string[] {
     const rules: string[] = [];
 
     if (entry.type === "rule") {
@@ -225,8 +289,10 @@ export class Filter {
 
       return rules;
     }
-    for (const child of entry.children) {
-      rules.push(...this.serialize([...ancestors, entry.name], child));
+    if (entry.type !== "item") {
+      for (const child of entry.children) {
+        rules.push(...this.serialize([...ancestors, entry.name], child));
+      }
     }
 
     return rules;
@@ -237,13 +303,15 @@ export function setEntryActive(
   entry: FilterCategory | FilterRule | FilterItem,
   state: boolean,
 ) {
-  entry.enabled = state;
-  if (entry.type !== "item") {
-    setChildrenActive(entry.children, state);
-  }
-  if (entry.type !== "category" && entry.parent) {
-    setParentActive(entry.parent);
-  }
+  return new Command(() => {
+    entry.enabled = state;
+    if (entry.type !== "item") {
+      setChildrenActive(entry.children, state);
+    }
+    if (entry.type !== "category" && entry.parent) {
+      setParentActive(entry.parent);
+    }
+  });
 }
 
 export function setChildrenActive(
@@ -276,8 +344,78 @@ export function getIcon(entry: ItemHierarchy): string | null {
   return getIcon(child);
 }
 
+function getNestedReference(
+  obj: FilterRoot | Record<string, NestedObject>,
+  path: PathElement[],
+  createPath = false,
+): PathReference {
+  if (path.length === 0) {
+    throw new Error("Path must contain at least one element");
+  }
+
+  let current: NestedObject = obj;
+  let exists = true;
+
+  for (let i = 0; i < path.length - 1; i++) {
+    const key = path[i];
+    const nextKey = path[i + 1];
+
+    if (
+      typeof current === "object" &&
+      !Array.isArray(current) &&
+      current !== null
+    ) {
+      if (!(key in current)) {
+        if (!createPath) {
+          exists = false;
+          break;
+        }
+        current[key] = typeof nextKey === "number" ? [] : {};
+      }
+      current = current[key];
+    } else if (Array.isArray(current) && typeof key === "number") {
+      if (key < 0 || key >= current.length) {
+        exists = false;
+        break;
+      }
+      current = current[key];
+    } else {
+      throw new Error(`Invalid path at segment ${i}: ${key}`);
+    }
+  }
+
+  const lastKey = path[path.length - 1];
+
+  if (current === null || current === undefined) {
+    throw new Error("Parent reference is null or undefined");
+  }
+
+  if (typeof current === "object" && !Array.isArray(current)) {
+    exists = exists && lastKey in current;
+    return {
+      parent: current as Record<string, NestedObject>,
+      key: lastKey as string,
+      exists,
+    };
+  }
+
+  if (Array.isArray(current)) {
+    if (typeof lastKey !== "number") {
+      throw new Error("Cannot use string key with array parent");
+    }
+    exists = exists && lastKey >= 0 && lastKey < current.length;
+    return {
+      parent: current,
+      key: lastKey,
+      exists,
+    };
+  }
+
+  throw new Error("Invalid path structure");
+}
+
 function rollup<T extends ItemHierarchy>(
-  rawData: RawData | NestedObject<RawData>,
+  rawData: RawData | NestedObject,
   ancestor: T,
 ) {
   const entries = Object.entries(rawData);
@@ -497,5 +635,12 @@ export async function generate(
   }
   const rules = generateItems(data);
   const now = new Date().toISOString();
-  return new Filter({ name, version: 1, lastUpdated: now, rules });
+  const filter = new Filter({
+    name,
+    version: 1,
+    lastUpdated: now,
+    rules,
+  });
+  filter.addParentRefs();
+  return filter;
 }

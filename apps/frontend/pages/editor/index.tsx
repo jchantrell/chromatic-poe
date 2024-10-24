@@ -19,6 +19,7 @@ import {
   type Id,
   type Draggable,
   type Droppable,
+  DragDropDebugger,
 } from "@thisbeyond/solid-dnd";
 import type { FilterItem, FilterRule } from "@app/lib/filter";
 
@@ -147,6 +148,15 @@ function ItemHierarchy() {
     }
   };
 
+  const onDragMove = ({
+    draggable,
+    droppable,
+  }: { draggable: DraggableItem; droppable: DroppableContainer }) => {
+    if (draggable && droppable) {
+      move(draggable, droppable);
+    }
+  };
+
   const onDragEnd = ({
     draggable,
     droppable,
@@ -160,6 +170,7 @@ function ItemHierarchy() {
     <>
       <Crumbs />
       <DragDropProvider
+        onDragMove={onDragMove}
         onDragEnd={onDragEnd}
         collisionDetector={closestContainerOrItem}
       >
