@@ -1,6 +1,6 @@
-import { createSignal, For } from "solid-js";
+import { createSignal, For, onMount } from "solid-js";
 import { store } from "@app/store";
-import { generate, type Filter } from "@app/lib/filter";
+import { generate, type ItemHierarchy, type Filter } from "@app/lib/filter";
 import { Button } from "@pkgs/ui/button";
 import {
   Dialog,
@@ -21,11 +21,28 @@ import {
 import { notify } from "@pkgs/ui/sonner";
 import { toast } from "solid-sonner";
 import { useColorMode } from "@kobalte/core";
+import chromatic from "@app/lib/config";
 
 function loadFilter(filter: Filter) {
   store.filter = filter;
-  store.view = store.filter?.rules;
+  store.activeView = filter.rules;
   store.crumbs = [{ title: "Home", view: store.filter?.rules }];
+  getRefs(filter.rules.children, []);
+}
+
+function getRefs(items: ItemHierarchy[]) {
+  for (const item of items) {
+    if (item.type === "category") {
+      getRefs(item.children);
+    }
+    if (item.type === "rule") {
+      store.rules[item.id] = item;
+      getRefs(item.children);
+    }
+    if (item.type === "item") {
+      store.items[item.id] = item;
+    }
+  }
 }
 
 export function CreateFilter() {
@@ -270,6 +287,15 @@ function ExistingFilter(props: { filter: Filter }) {
 }
 export function LoadScreenMenu() {
   const { colorMode } = useColorMode();
+
+  onMount(async () => {
+    if (chromatic.runtime === "web") {
+      const filter = await generate("test", 1);
+      filter.setLastUpdated(new Date());
+      await filter.writeFile();
+      loadFilter(filter);
+    }
+  });
 
   return (
     <div

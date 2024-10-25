@@ -9,22 +9,29 @@ import {
 import { getIcon, setEntryActive, type FilterItem } from "@app/lib/filter";
 import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
 import type { Setter } from "solid-js";
+import { store } from "@app/store";
 
 function Item(props: {
   item: FilterItem;
   setHovered: Setter<boolean>;
 }) {
   const icon = getIcon(props.item);
-  const sortable = createSortable(props.item.name, props.item);
+  const sortable = createSortable(props.item.id, {
+    parent: props.item.parent?.id || "",
+    type: "item",
+  });
 
   const [_, { onDragMove }] = useDragDropContext();
 
   onDragMove(({ draggable }) => {
-    const draggableIsChild = props.item.parent.children.some(
-      (e) => e.name === draggable.id,
-    );
-    if (sortable.isActiveDroppable && !draggableIsChild) {
-      props.setHovered(true);
+    const parent = store.rules[props.item.parent?.id || ""];
+    if (parent) {
+      const draggableIsChild = parent.children.some(
+        (e) => e.id === draggable.id,
+      );
+      if (sortable.isActiveDroppable && !draggableIsChild) {
+        props.setHovered(true);
+      }
     }
   });
 
@@ -35,7 +42,9 @@ function Item(props: {
           <div
             onMouseDown={(e) => {
               if (e.button === 0 && e.shiftKey) {
-                setEntryActive(props.item, !props.item.enabled);
+                store.filter?.execute(
+                  setEntryActive(props.item, !props.item.enabled),
+                );
               }
             }}
             class={`p-1 px-2 ${props.item.enabled ? "text-primary" : "text-accent"} border border-primary-foreground hover:border-accent items-center flex select-none`}
@@ -58,7 +67,9 @@ function Item(props: {
           <ContextMenuContent class='w-48'>
             <ContextMenuItem
               onMouseDown={() =>
-                setEntryActive(props.item, !props.item.enabled)
+                store.filter?.execute(
+                  setEntryActive(props.item, !props.item.enabled),
+                )
               }
             >
               <span>{props.item.enabled ? "Disable" : "Enable"}</span>

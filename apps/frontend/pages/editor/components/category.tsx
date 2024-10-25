@@ -25,7 +25,7 @@ function Category(props: {
               onMouseDown={(e: MouseEvent) => {
                 // traverse down if children are categories
                 if (e.button === 0 && !e.shiftKey) {
-                  store.view = props.category;
+                  store.activeView = props.category;
                   store.crumbs = [
                     ...store.crumbs,
                     { title: props.category.name, view: props.category },
@@ -34,7 +34,9 @@ function Category(props: {
 
                 // disable category and all descendants if modifier held
                 if (e.button === 0 && e.shiftKey) {
-                  setEntryActive(props.category, !props.category.enabled);
+                  store.filter?.execute(
+                    setEntryActive(props.category, !props.category.enabled),
+                  );
                 }
               }}
             >
@@ -60,7 +62,9 @@ function Category(props: {
             <ContextMenuContent class='w-48'>
               <ContextMenuItem
                 onMouseDown={() =>
-                  setEntryActive(props.category, !props.category.enabled)
+                  store.filter?.execute(
+                    setEntryActive(props.category, !props.category.enabled),
+                  )
                 }
               >
                 <span>{props.category.enabled ? "Disable" : "Enable"}</span>
@@ -68,6 +72,9 @@ function Category(props: {
               </ContextMenuItem>
               <ContextMenuItem>
                 <span>Copy</span>
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => store.filter.undo()}>
+                <span>Undo</span>
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenuPortal>

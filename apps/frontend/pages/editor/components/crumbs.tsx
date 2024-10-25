@@ -14,10 +14,9 @@ export type Crumb = { title: string; view: FilterRoot | FilterCategory };
 function Crumbs() {
   function setCrumbs(crumb: Crumb, index: number) {
     if (crumb.view) {
-      store.view = crumb.view;
+      store.activeView = crumb.view;
     }
     store.crumbs = [...store.crumbs.slice(0, index + 1)];
-    console.log(crumb, index);
   }
 
   return (

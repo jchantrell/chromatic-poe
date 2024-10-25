@@ -4,6 +4,9 @@ import data from "@pkgs/data/raw.json";
 import { ActionBuilder } from "./action";
 import { ConditionBuilder, Operator } from "./condition";
 import chromatic from "./config";
+import { makeAutoObservable } from "mobx";
+import { store } from "@app/store";
+import { ulid } from "ulid";
 
 type PathElement = string | number;
 
@@ -55,23 +58,12 @@ export type ItemHierarchy =
 
 type FilterEntryTypes = "root" | "category" | "rule" | "item";
 
-export class FilterHierarchy {
+export interface FilterHierarchy {
+  id: ReturnType<typeof ulid>;
   name: string | null;
   type: FilterEntryTypes;
   icon?: string;
   value?: number | null;
-
-  constructor(opts: {
-    name: string | null;
-    type: FilterEntryTypes;
-    icon?: string;
-    value?: number;
-  }) {
-    this.name = opts.name;
-    this.type = opts.type;
-    if (opts.value) this.value = opts.value;
-    if (opts.icon) this.icon = opts.icon;
-  }
 }
 
 export interface FilterRoot extends FilterHierarchy {
@@ -136,7 +128,7 @@ class Command {
 export class Filter {
   name: string;
   version: number;
-  lastUpdated: Date;
+  lastUpdated: Date | string;
   rules: FilterRoot;
 
   undoStack: Difference[][] = [];
@@ -146,16 +138,39 @@ export class Filter {
   condition = new ConditionBuilder();
   block = new BlockBuilder();
 
+  isWriting = false;
+
   constructor(params: {
     name: string;
     version: number;
     lastUpdated: Date;
     rules: FilterRoot;
+    undoStack?: Difference[][];
+    redoStack?: Difference[][];
   }) {
     this.name = params.name;
     this.version = params.version;
     this.lastUpdated = params.lastUpdated;
     this.rules = params.rules;
+
+    if (params.undoStack) this.undoStack = params.undoStack;
+    if (params.redoStack) this.redoStack = params.redoStack;
+
+    makeAutoObservable(this);
+    store.addFilter(this);
+    this.addParentRefs();
+  }
+
+  setLastUpdated(date: Date) {
+    this.lastUpdated = date;
+  }
+
+  async updateName(newName: string) {
+    const oldPath = chromatic.getFiltersPath(this);
+    const newPath = chromatic.getFiltersPath(this, newName);
+    await chromatic.fileSystem.renameFile(oldPath, newPath);
+    this.name = newName;
+    await this.writeFile();
   }
 
   copy(): Filter {
@@ -163,34 +178,39 @@ export class Filter {
     return copy;
   }
 
-  undo() {
+  execute(command: Command) {
+    const copy = clone(this.rules);
+    command.execute();
+    this.undoStack.push(diff(copy, this.rules));
+    this.redoStack = [];
+  }
+
+  undo(): number {
     if (!this.undoStack.length) {
-      return;
+      return 0;
     }
     const copy = clone(this.rules);
     const changes = this.undoStack.pop();
     if (changes) {
       this.applyChanges(changes);
-      this.redoStack.push(diff(copy, this.rules));
+      this.redoStack.unshift(diff(copy, this.rules));
+      return changes.length;
     }
+    return 0;
   }
 
-  redo() {
+  redo(): number {
     if (!this.redoStack.length) {
-      return;
+      return 0;
     }
     const copy = clone(this.rules);
     const changes = this.redoStack.shift();
     if (changes) {
       this.applyChanges(changes);
       this.undoStack.push(diff(copy, this.rules));
+      return changes.length;
     }
-  }
-
-  execute(command: Command) {
-    const copy = clone(this.rules);
-    command.execute();
-    this.undoStack.push(diff(copy, this.rules));
+    return 0;
   }
 
   private applyChanges(changes: Difference[]) {
@@ -224,30 +244,29 @@ export class Filter {
     ref.parent[ref.key] = value;
   }
 
-  async updateName(newName: string) {
-    const oldPath = chromatic.getFiltersPath(this);
-    const newPath = chromatic.getFiltersPath(this, newName);
-    await chromatic.fileSystem.renameFile(oldPath, newPath);
-    await this.writeFile();
-    this.name = newName;
-  }
-
   async deleteFile() {
     const path = chromatic.getFiltersPath(this);
     await chromatic.fileSystem.deleteFile(path);
     await chromatic.fileSystem.deleteFile(
-      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile/${filter.name}.filter`,
+      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile/${this.name}.filter`,
     );
   }
 
   async writeFile() {
-    this.lastUpdated = new Date();
+    if (this.isWriting) {
+      return;
+    }
+    this.isWriting = true;
     const path = chromatic.getFiltersPath(this);
-    await chromatic.fileSystem.writeFile(path, stringifyJSON(this));
+    await chromatic.fileSystem.writeFile(
+      path,
+      stringifyJSON({ ...this, lastUpdated: new Date().toISOString() }),
+    );
     await chromatic.fileSystem.writeFile(
       `/mnt/c/Users/Joel/Documents/My Games/Path of Exile/${this.name}.filter`,
       this.serialize(),
     );
+    this.isWriting = false;
   }
 
   addParentRefs(entry?: ItemHierarchy): ItemHierarchy {
@@ -327,6 +346,26 @@ export class Filter {
   }
 }
 
+export function moveItem(
+  item: FilterItem,
+  sourceRule: FilterRule,
+  targetRule: FilterRule,
+  position: number,
+) {
+  return new Command(() => {
+    console.log(sourceRule.children.length);
+    sourceRule.children = sourceRule.children.filter(
+      (child) => child.id !== item.id,
+    );
+    console.log(sourceRule.children.length);
+    targetRule.children = [
+      ...targetRule.children.slice(0, position),
+      item,
+      ...targetRule.children.slice(position),
+    ];
+  });
+}
+
 export function setEntryActive(
   entry: FilterCategory | FilterRule | FilterItem,
   state: boolean,
@@ -336,7 +375,7 @@ export function setEntryActive(
     if (entry.type !== "item") {
       setChildrenActive(entry.children, state);
     }
-    if (entry.type !== "category" && entry.parent) {
+    if (entry.parent && entry.parent.type !== "root") {
       setParentActive(entry.parent);
     }
   });
@@ -348,28 +387,24 @@ function setChildrenActive(
 ) {
   for (const child of children) {
     child.enabled = state;
-    if (child.type === "category") setChildrenActive(child.children, state);
+    if (child.type === "category" || child.type === "rule") {
+      setChildrenActive(child.children, state);
+    }
   }
 }
 
 function setParentActive(parent: FilterCategory | FilterRule) {
-  if (parent?.children.some((e) => e.enabled)) {
-    parent.enabled = true;
-  } else {
-    parent.enabled = false;
-  }
-  if (parent.parent && parent.type !== "category")
+  parent.enabled = parent?.children.some((e) => e.enabled);
+  if (parent.parent && parent.parent.type !== "root") {
     setParentActive(parent.parent);
+  }
 }
 
 export function getIcon(entry: ItemHierarchy): string | null {
   if (entry.icon) return entry.icon;
   if (entry.type !== "item" && !entry.children.length) return null;
   if (entry.type === "item") return null;
-
-  const child = entry.children[0];
-
-  return getIcon(child);
+  return getIcon(entry.children[0]);
 }
 
 function getNestedReference(
@@ -461,6 +496,7 @@ function rollup<T extends ItemHierarchy>(
     switch (type[1]) {
       case "category":
         record = {
+          id: ulid(),
           name,
           type: type[1],
           enabled: true,
@@ -469,6 +505,7 @@ function rollup<T extends ItemHierarchy>(
         break;
       case "rule":
         record = {
+          id: ulid(),
           name,
           type: type[1],
           enabled: true,
@@ -477,6 +514,7 @@ function rollup<T extends ItemHierarchy>(
         break;
       case "item":
         record = {
+          id: ulid(),
           name,
           type: type[1],
           enabled: true,
@@ -662,6 +700,7 @@ export async function generate(
     throw new Error("Only PoE 1 is currently supported");
   }
   const rules = generateItems(data);
+  console.log(rules);
   const filter = new Filter({
     name,
     version: 1,
@@ -669,5 +708,6 @@ export async function generate(
     rules,
   });
   filter.addParentRefs();
+
   return filter;
 }

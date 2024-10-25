@@ -1,10 +1,10 @@
-import { batch, Suspense } from "solid-js";
+import { batch, createEffect, Suspense } from "solid-js";
 import { Resizable, ResizableHandle, ResizablePanel } from "@pkgs/ui/resizable";
 import { useColorMode } from "@kobalte/core";
 import { store } from "@app/store";
 import Setup from "./components/initial-setup";
 import { LoadScreenMenu } from "./components/load-screen";
-import { For, onMount } from "solid-js";
+import { For } from "solid-js";
 import { Separator } from "@pkgs/ui/separator";
 import Crumbs from "./components/crumbs";
 import Category from "./components/category";
@@ -19,9 +19,9 @@ import {
   type Id,
   type Draggable,
   type Droppable,
-  DragDropDebugger,
 } from "@thisbeyond/solid-dnd";
-import type { FilterItem, FilterRule } from "@app/lib/filter";
+import { moveItem, type FilterItem, type FilterRule } from "@app/lib/filter";
+import { toast } from "solid-sonner";
 
 interface DraggableItem extends Draggable {
   id: string;
@@ -47,30 +47,69 @@ function Preview() {
   );
 }
 
+const SAVE_KEY = "s";
+const REDO_KEY = "y";
+const UNDO_KEY = "z";
+const BACK_KEY = "Backspace";
+
 function ItemHierarchy() {
-  onMount(() => {
-    input.on("keydown", (key: string) => {
-      if (key === "Backspace" && store.filter && store.crumbs.length > 1) {
-        store.view = store.crumbs[store.crumbs.length - 2].view;
-        store.crumbs.pop();
-      }
-    });
+  createEffect(() => {
+    input.on(
+      "keypress",
+      (
+        key: string,
+        pressed: boolean,
+        event: { shift: boolean; alt: boolean; ctrl: boolean },
+      ) => {
+        if (
+          key === BACK_KEY &&
+          store.filter &&
+          store.crumbs.length > 1 &&
+          pressed
+        ) {
+          store.activeView = store.crumbs[store.crumbs.length - 2].view;
+          store.crumbs.pop();
+        }
+
+        if (key === UNDO_KEY && event.ctrl && pressed) {
+          const actionsReverted = store?.filter?.undo();
+          if (actionsReverted) {
+            toast(`Undid ${actionsReverted} actions.`);
+          }
+        }
+
+        if (key === REDO_KEY && event.ctrl && pressed) {
+          const actionsRedone = store?.filter?.redo();
+          if (actionsRedone) {
+            toast(`Redid ${actionsRedone} actions.`);
+          }
+        }
+
+        if (key === SAVE_KEY && event.ctrl && pressed) {
+          store.filter?.writeFile();
+          toast("Saved filter.");
+        }
+      },
+    );
   });
 
   function getContainer(
     element: DraggableItem | DroppableContainer,
   ): FilterRule | null {
     if (element.data.type === "rule") {
-      return element.data;
+      return store.rules[element.data.id];
     }
-    if (element.data.type === "item" && element.data.parent) {
-      return element.data.parent;
+    if (element.data.type === "item") {
+      return store.rules[element.data.parent];
     }
     return null;
   }
 
   function isContainer(droppable: DroppableContainer): boolean {
-    return droppable.data.type === "rule";
+    if (store.rules[droppable.data.id]) {
+      return true;
+    }
+    return false;
   }
 
   const closestContainerOrItem = (
@@ -84,7 +123,9 @@ function ItemHierarchy() {
       context,
     ) as DroppableContainer;
     if (closestContainer) {
-      const childIds = closestContainer.data.children.map((e) => e.name);
+      const childIds = store.rules[closestContainer.data.id].children.map(
+        (e) => e.id,
+      );
 
       const closestItem = closestCenter(
         draggable,
@@ -98,7 +139,7 @@ function ItemHierarchy() {
 
       const container = getContainer(draggable);
 
-      if (container && container.name !== closestContainer.id) {
+      if (container && container.id !== closestContainer.data.id) {
         const isLastItem =
           childIds.indexOf(closestItem.id as string) === childIds.length - 1;
 
@@ -126,25 +167,24 @@ function ItemHierarchy() {
     if (
       droppableContainer &&
       draggableContainer &&
-      (draggableContainer.name !== droppableContainer.name ||
+      (draggableContainer.id !== droppableContainer.id ||
         !onlyWhenChangingContainer) &&
       droppableContainer.type === "rule"
     ) {
-      const itemIds = droppableContainer.children.map((e) => e.name);
+      const itemIds = droppableContainer.children.map((e) => e.id);
       let index = itemIds.indexOf(droppable.id as string);
       if (index === -1) index = itemIds.length;
 
-      batch(() => {
-        draggableContainer.children = draggableContainer.children.filter(
-          (item) => item.name !== draggable.id,
-        );
-        draggable.data.parent = undefined;
-        droppableContainer.children = [
-          ...droppableContainer.children.slice(0, index),
-          { ...draggable.data, parent: droppableContainer },
-          ...droppableContainer.children.slice(index),
-        ];
-      });
+      const item = store.items[draggable.id];
+      const src = store.rules[draggableContainer.id];
+      const tar = store.rules[droppableContainer.id];
+
+      console.log(item.parent.id);
+
+      item.parent = tar;
+
+      console.log(item.parent.id);
+      store.filter?.execute(moveItem(item, src, tar, index));
     }
   };
 
@@ -170,15 +210,14 @@ function ItemHierarchy() {
     <>
       <Crumbs />
       <DragDropProvider
-        onDragMove={onDragMove}
         onDragEnd={onDragEnd}
         collisionDetector={closestContainerOrItem}
       >
         <DragDropSensors />
         <div class='m-2 p-1 flex flex-col h-full gap-2'>
-          <For each={store?.view?.children}>
+          <For each={store?.activeView?.children}>
             {(entry, i) => {
-              if (store?.view?.type === "root") {
+              if (store?.activeView?.type === "root") {
                 return (
                   <>
                     <div class='flex h-auto flex-wrap gap-2'>
@@ -190,8 +229,8 @@ function ItemHierarchy() {
                         }}
                       </For>
                     </div>
-                    {store?.view.children &&
-                    i() < store.view.children.length - 1 ? (
+                    {store?.activeView.children &&
+                    i() < store.activeView.children.length - 1 ? (
                       <Separator />
                     ) : (
                       <></>
@@ -207,7 +246,7 @@ function ItemHierarchy() {
               }
             }}
           </For>
-          {store.view?.children.some((e) => e.type === "rule") ? (
+          {store.activeView?.children.some((e) => e.type === "rule") ? (
             <CreateRule />
           ) : (
             <></>
@@ -226,9 +265,9 @@ function ItemHierarchy() {
 export function Editor() {
   return (
     <>
-      {!store.initialised ? <Setup /> : <></>}
-      {store.initialised && !store.filter ? <LoadScreenMenu /> : <></>}
-      {store.initialised && store.filter ? (
+      {!store.initialised && <Setup />}
+      {store.initialised && !store.filter && <LoadScreenMenu />}
+      {store.initialised && store.filter && (
         <Resizable orientation='horizontal' class='min-h-max'>
           <ResizablePanel class='h-fit flex flex-col'>
             <Suspense fallback={<>Loading...</>}>
@@ -240,8 +279,6 @@ export function Editor() {
             <Preview />
           </ResizablePanel>
         </Resizable>
-      ) : (
-        <></>
       )}
     </>
   );

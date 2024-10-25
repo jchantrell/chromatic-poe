@@ -1,5 +1,5 @@
 import { getVersion } from "@tauri-apps/api/app";
-import { documentDir } from "@tauri-apps/api/path";
+import { documentDir, appConfigDir } from "@tauri-apps/api/path";
 import { Filter } from "@app/lib/filter";
 import { WebStorage, DesktopStorage } from "@app/lib/storage";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -27,9 +27,10 @@ class Chromatic {
   runtime: "desktop" | "web";
   tauriWindow?: ReturnType<typeof getCurrentWindow> | null;
 
+  configPath!: string;
   imagePath = "images";
   filterPath = "filters";
-  configPath = "config.json";
+  configFile = "config.json";
 
   constructor() {
     const appWindow = tryGetAppWindow();
@@ -52,17 +53,23 @@ class Chromatic {
     }
 
     if (this.runtime === "web") {
-      store.initialised = true;
-      store.locale = await locale();
+      store.setInitialised(true);
+      return;
     }
+
+    this.configPath = await appConfigDir();
 
     await this.bootstrap();
 
-    const configExists = await this.fileSystem.exists(`${this.configPath}`);
+    const configExists = await this.fileSystem.exists(
+      `${this.configPath}/${this.configFile}`,
+    );
 
     if (configExists) {
       console.log("Config exists. Reading file...");
-      const raw = await this.fileSystem.readFile(`${this.configPath}`);
+      const raw = await this.fileSystem.readFile(
+        `${this.configPath}/${this.configFile}`,
+      );
 
       this.config = await this.parseConfig(raw);
     }
@@ -74,18 +81,21 @@ class Chromatic {
     }
 
     if (this.config.poeDirectory || this.runtime === "web") {
-      store.initialised = true;
-      store.locale = await locale();
+      store.setInitialised(true);
+      store.setLocale(await locale());
       await this.getAllFilters();
     }
   }
 
   async bootstrap() {
     if (this.fileSystem.runtime !== "desktop") return;
-    const basePath = `${this.configPath}`; // TODO:
-    await this.fileSystem.upsertDirectory("chromatic");
-    await this.fileSystem.upsertDirectory(this.imagePath);
-    await this.fileSystem.upsertDirectory(this.filterPath);
+    await this.fileSystem.upsertDirectory(`${this.configPath}/chromatic`);
+    await this.fileSystem.upsertDirectory(
+      `${this.configPath}/${this.imagePath}`,
+    );
+    await this.fileSystem.upsertDirectory(
+      `${this.configPath}/${this.filterPath}`,
+    );
   }
 
   async parseConfig(raw: string): Promise<ChromaticConfiguration> {
@@ -166,7 +176,7 @@ class Chromatic {
   }
 
   async writeConfig(config: ChromaticConfiguration) {
-    const path = `${this.configPath}`; // TODO:
+    const path = `${this.configPath}/${this.configFile}`; // TODO:
     await this.fileSystem.writeFile(path, JSON.stringify(config));
     console.log(`Successfully wrote config to ${path}`, config);
     this.config = config;
@@ -209,15 +219,17 @@ class Chromatic {
   }
 
   getFiltersPath(filter: Filter, newName?: string) {
-    return `${this.filterPath}/${newName ? newName : filter.name}.json`;
+    return `${this.configPath}/${this.filterPath}/${newName ? newName : filter.name}.json`;
   }
 
   async getAllFilters() {
-    const path = "";
+    const path = `${this.configPath}/${this.filterPath}`;
     const files = await this.fileSystem.getAllFiles(path);
     for (const file of files) {
       const props = JSON.parse(file);
-      store.filters.push(new Filter(props));
+      console.log(props);
+      props.lastUpdated = new Date(props.lastUpdated);
+      new Filter(props);
     }
     store.filters.sort(alphabeticalSort((filter) => filter.name));
   }

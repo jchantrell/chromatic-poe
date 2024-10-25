@@ -12,30 +12,34 @@ import { getIcon, setEntryActive, type FilterRule } from "@app/lib/filter";
 import { ChevronDownIcon } from "@pkgs/icons";
 import Item from "./item";
 import {
-  Draggable,
-  Droppable,
+  type Draggable,
+  type Droppable,
   SortableProvider,
   createDroppable,
   useDragDropContext,
 } from "@thisbeyond/solid-dnd";
+import { store } from "@app/store";
 
 function Rule(props: {
   rule: FilterRule;
 }) {
   const [expanded, setExpanded] = createSignal(false);
   const [hovered, setHovered] = createSignal(false);
-  const [icon, setIcon] = createSignal(getIcon(props.rule));
-  const droppableTitle = createDroppable(
-    `${props.rule.name}-title`,
-    props.rule,
-  );
-  const droppableBody = createDroppable(`${props.rule.name}-list`, props.rule);
+  const [icon, setIcon] = createSignal("");
+  const droppableTitle = createDroppable(`${props.rule.id}-title`, {
+    type: "rule",
+    id: props.rule.id,
+  });
+  const droppableBody = createDroppable(`${props.rule.id}-list`, {
+    type: "rule",
+    id: props.rule.id,
+  });
 
   const [_, { onDragEnd, onDragOver, onDragMove }] = useDragDropContext();
 
   onDragMove(({ draggable }: { draggable: Draggable }) => {
     const draggableIsChild = props.rule.children.some(
-      (e) => e.name === draggable.id,
+      (e) => e.id === draggable.id,
     );
     if (
       (droppableTitle.isActiveDroppable || droppableBody.isActiveDroppable) &&
@@ -57,7 +61,7 @@ function Rule(props: {
       // FIX: this is a hack
       // onDragEnd event is non-deterministic and doesnt play nicely with solid state
       // works for now I guess?
-      setIcon(getIcon(props.rule));
+      // setIcon(getIcon(props.rule));
     }, 5);
   });
 
@@ -77,7 +81,9 @@ function Rule(props: {
               }
 
               if (e.button === 0 && e.shiftKey) {
-                setEntryActive(props.rule, !props.rule.enabled);
+                store.filter?.execute(
+                  setEntryActive(props.rule, !props.rule.enabled),
+                );
               }
             }}
           >
@@ -106,7 +112,9 @@ function Rule(props: {
           <ContextMenuContent class='w-48'>
             <ContextMenuItem
               onMouseDown={() =>
-                setEntryActive(props.rule, !props.rule.enabled)
+                store.filter?.execute(
+                  setEntryActive(props.rule, !props.rule.enabled),
+                )
               }
             >
               <span>{props.rule.enabled ? "Disable" : "Enable"}</span>
@@ -123,7 +131,7 @@ function Rule(props: {
           class={`ms-6 borer-s-[1px] ps-1 ${props.rule.enabled ? "border-primary" : "border-accent"} flex flex-wrap gap-1 p-1`}
           ref={droppableBody.ref}
         >
-          <SortableProvider ids={props.rule.children.map((e) => e.name)}>
+          <SortableProvider ids={props.rule.children.map((e) => e.id)}>
             <For each={props.rule.children}>
               {(child) => {
                 return <Item item={child} setHovered={setHovered} />;

@@ -22,9 +22,13 @@ export function Settings() {
         <DialogHeader>
           <DialogTitle>General</DialogTitle>
         </DialogHeader>
-        <div class='grid gap-4 py-4'>
+        <div class='grid gap-4 py-2'>
           <TextField class='grid grid-cols-4 items-center gap-4'>
             <TextFieldLabel class='text-right'>PoE Directory</TextFieldLabel>
+            <ChooseDirectory class='col-span-3' />
+          </TextField>
+          <TextField class='grid grid-cols-4 items-center gap-4'>
+            <TextFieldLabel class='text-right'>Autosave</TextFieldLabel>
             <ChooseDirectory class='col-span-3' />
           </TextField>
         </div>

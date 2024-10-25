@@ -52,6 +52,8 @@ export function ChooseDirectory<T extends ValidComponent = "div">(
   });
 
   onMount(async () => {
+    if (chromatic.runtime === "web") return;
+
     const currentPlatform = platform();
 
     if (chromatic.config.poeDirectory) {
