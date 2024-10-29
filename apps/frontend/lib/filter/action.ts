@@ -69,3 +69,4 @@ export class ActionBuilder {
     return `PlayEffect ${color}${temporary ? " Temp" : ""}`;
   }
 }
+export const actions = new ActionBuilder();

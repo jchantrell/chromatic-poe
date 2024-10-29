@@ -3,7 +3,7 @@ import { documentDir, appConfigDir } from "@tauri-apps/api/path";
 import { Filter } from "@app/lib/filter";
 import { WebStorage, DesktopStorage } from "@app/lib/storage";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { store } from "@app/store";
+import { store, setInitialised, setLocale } from "@app/store";
 import { alphabeticalSort } from "@pkgs/lib/utils";
 import { locale } from "@tauri-apps/plugin-os";
 
@@ -53,7 +53,7 @@ class Chromatic {
     }
 
     if (this.runtime === "web") {
-      store.setInitialised(true);
+      setInitialised(true);
       return;
     }
 
@@ -81,8 +81,8 @@ class Chromatic {
     }
 
     if (this.config.poeDirectory || this.runtime === "web") {
-      store.setInitialised(true);
-      store.setLocale(await locale());
+      setInitialised(true);
+      setLocale(await locale());
       await this.getAllFilters();
     }
   }

@@ -5,18 +5,18 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@pkgs/ui/breadcrumb";
-import { store } from "@app/store";
 import { For } from "solid-js";
 import type { FilterCategory, FilterRoot } from "@app/lib/filter";
+import { setActiveView, setCrumbs, store } from "@app/store";
 
 export type Crumb = { title: string; view: FilterRoot | FilterCategory };
 
 function Crumbs() {
-  function setCrumbs(crumb: Crumb, index: number) {
+  function handleClick(crumb: Crumb, index: number) {
     if (crumb.view) {
-      store.activeView = crumb.view;
+      setActiveView(crumb.view);
     }
-    store.crumbs = [...store.crumbs.slice(0, index + 1)];
+    setCrumbs([...store.crumbs.slice(0, index + 1)]);
   }
 
   return (
@@ -31,7 +31,7 @@ function Crumbs() {
                     <BreadcrumbItem
                       onMouseDown={(e) => {
                         if (!e.target.ariaDisabled) {
-                          setCrumbs(crumb, i());
+                          handleClick(crumb, i());
                         }
                       }}
                     >

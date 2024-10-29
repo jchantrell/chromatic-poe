@@ -285,6 +285,8 @@ export class DbRepo {
           ELSE 'Gear'
         END) as pool,
         (CASE
+          WHEN sub_category = 'Quivers'
+          THEN 'Quivers'
           WHEN sub_category = 'Tinctures'
           THEN 'Flasks'
           WHEN sub_category = 'Trinkets'

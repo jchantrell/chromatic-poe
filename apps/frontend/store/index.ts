@@ -1,71 +1,49 @@
-import type {
-  Filter,
-  FilterRoot,
-  FilterCategory,
-  FilterRule,
-  FilterItem,
-} from "@app/lib/filter";
-import { Reaction, action, makeAutoObservable } from "mobx";
-import { enableExternalSource } from "solid-js";
+import type { Filter, FilterRoot, FilterCategory } from "@app/lib/filter";
+import type { Crumb } from "@app/pages/editor/components/crumbs";
+import { createMutable } from "solid-js/store";
 
-const enableMobXWithSolidJS = () => {
-  let id = 0;
-  enableExternalSource((fn, trigger) => {
-    const reaction = new Reaction(`externalSource@${++id}`, trigger);
-    return {
-      track: (x) => {
-        let next;
-        reaction.track(() => (next = fn(x)));
-        return next;
-      },
-      dispose: () => {
-        reaction.dispose();
-      },
-    };
-  });
-};
-
-enableMobXWithSolidJS();
-
-export class Store {
-  activeView: FilterRoot | FilterCategory | null = null;
-  filter: Filter | null = null;
-  filters: Filter[] = [];
-  rules: { [key: string]: FilterRule } = {};
-  items: { [key: string]: FilterItem } = {};
-  crumbs: { title: string; view: FilterRoot | FilterCategory }[] = [];
-  initialised = false;
-  locale: null | string = null;
-
-  constructor() {
-    makeAutoObservable(this, {
-      addFilter: action,
-      setFilter: action,
-      setActiveView: action,
-      setInitialised: action,
-      setLocale: action,
-    });
-  }
-
-  addFilter(filter: Filter) {
-    this.filters.push(filter);
-  }
-
-  setFilter(filter: Filter) {
-    this.filter = filter;
-  }
-
-  setActiveView(view: FilterRoot | FilterCategory | null) {
-    this.activeView = view;
-  }
-
-  setInitialised(state: boolean) {
-    this.initialised = state;
-  }
-
-  setLocale(locale: string | null) {
-    this.locale = locale;
-  }
+interface Store {
+  activeView: FilterRoot | FilterCategory | null;
+  filter: Filter | null;
+  filters: Filter[];
+  crumbs: Crumb[];
+  initialised: boolean;
+  locale: null | string;
 }
 
-export const store = new Store();
+export const store = createMutable<Store>({
+  activeView: null,
+  filter: null,
+  filters: [],
+  crumbs: [],
+  initialised: false,
+  locale: null,
+});
+
+export function removeFilter(filter: Filter) {
+  store.filters.filter((entry) => filter.name !== entry.name);
+}
+
+export function addFilter(filter: Filter) {
+  store.filters.push(filter);
+}
+
+export function setFilter(filter: Filter) {
+  store.filter = filter;
+}
+
+export function setActiveView(view: FilterRoot | FilterCategory | null) {
+  store.activeView = view;
+}
+
+export function setInitialised(state: boolean) {
+  store.initialised = state;
+}
+
+export function setLocale(locale: string | null) {
+  store.locale = locale;
+}
+
+export function setCrumbs(crumbs: Crumb[]) {
+  store.crumbs = crumbs;
+}

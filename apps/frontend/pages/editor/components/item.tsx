@@ -6,40 +6,62 @@ import {
   ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@pkgs/ui/context-menu";
-import { getIcon, setEntryActive, type FilterItem } from "@app/lib/filter";
 import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
-import type { Setter } from "solid-js";
+import { getIcon, setEntryActive, type FilterItem } from "@app/lib/filter";
 import { store } from "@app/store";
+import { createEffect, createSignal, type Setter } from "solid-js";
+
+export function ItemVisual(props: { item: FilterItem; class: string }) {
+  return (
+    <div
+      class={`p-1 px-2 ${props.item.enabled ? "text-primary" : "text-accent"} border items-center flex select-none ${props.class}`}
+    >
+      <figure class='max-w-lg'>
+        <img
+          class='mr-1 h-8 max-w-full pointer-events-none'
+          alt={`${props.item.name} icon`}
+          src={props.item.icon}
+        />
+      </figure>
+      <div class='pointer-events-none text-lg'>{props.item.name}</div>
+    </div>
+  );
+}
 
 function Item(props: {
   item: FilterItem;
   setHovered: Setter<boolean>;
 }) {
-  const icon = getIcon(props.item);
-  const sortable = createSortable(props.item.id, {
-    parent: props.item.parent?.id || "",
-    type: "item",
-  });
+  const [icon, setIcon] = createSignal(getIcon(props.item));
+  const sortable = createSortable(props.item.id, props.item);
 
   const [_, { onDragMove }] = useDragDropContext();
 
+  createEffect(() => {
+    setIcon(getIcon(props.item));
+  });
+
   onDragMove(({ draggable }) => {
-    const parent = store.rules[props.item.parent?.id || ""];
-    if (parent) {
-      const draggableIsChild = parent.children.some(
-        (e) => e.id === draggable.id,
-      );
-      if (sortable.isActiveDroppable && !draggableIsChild) {
-        props.setHovered(true);
-      }
+    // const draggableIsChild = draggable.data.parent.children.some(
+    //   (e) => e.id === draggable.id,
+    // );
+    if (sortable.isActiveDroppable) {
+      props.setHovered(true);
     }
   });
 
   return (
-    <li use:sortable classList={{ "opacity-25": sortable.isActiveDraggable }}>
+    <li
+      use:sortable
+      classList={{
+        "opacity-15": sortable.isActiveDraggable,
+      }}
+    >
       <ContextMenu>
         <ContextMenuTrigger>
-          <div
+          <ItemVisual
+            class='hover:border-accent'
+            item={props.item}
             onMouseDown={(e) => {
               if (e.button === 0 && e.shiftKey) {
                 store.filter?.execute(
@@ -47,21 +69,7 @@ function Item(props: {
                 );
               }
             }}
-            class={`p-1 px-2 ${props.item.enabled ? "text-primary" : "text-accent"} border border-primary-foreground hover:border-accent items-center flex select-none`}
-          >
-            {icon ? (
-              <figure class='max-w-lg'>
-                <img
-                  class='mr-1 h-8 max-w-full pointer-events-none'
-                  alt={`${props.item.name} icon`}
-                  src={icon}
-                />
-              </figure>
-            ) : (
-              <></>
-            )}
-            <div class='pointer-events-none text-lg'>{props.item.name}</div>
-          </div>
+          />
         </ContextMenuTrigger>
         <ContextMenuPortal>
           <ContextMenuContent class='w-48'>

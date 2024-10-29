@@ -7,7 +7,7 @@ import {
   ContextMenuTrigger,
 } from "@pkgs/ui/context-menu";
 import { Collapsible } from "@pkgs/ui/collapsible";
-import { store } from "@app/store";
+import { store, setActiveView, setCrumbs } from "@app/store";
 import { getIcon, setEntryActive, type FilterCategory } from "@app/lib/filter";
 
 function Category(props: {
@@ -25,11 +25,11 @@ function Category(props: {
               onMouseDown={(e: MouseEvent) => {
                 // traverse down if children are categories
                 if (e.button === 0 && !e.shiftKey) {
-                  store.activeView = props.category;
-                  store.crumbs = [
+                  setActiveView(props.category);
+                  setCrumbs([
                     ...store.crumbs,
                     { title: props.category.name, view: props.category },
-                  ];
+                  ]);
                 }
 
                 // disable category and all descendants if modifier held

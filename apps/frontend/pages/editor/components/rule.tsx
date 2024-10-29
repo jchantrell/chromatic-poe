@@ -1,4 +1,4 @@
-import { createSignal, For } from "solid-js";
+import { createEffect, createSignal, For } from "solid-js";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -8,9 +8,15 @@ import {
   ContextMenuTrigger,
 } from "@pkgs/ui/context-menu";
 import { Collapsible, CollapsibleContent } from "@pkgs/ui/collapsible";
-import { getIcon, setEntryActive, type FilterRule } from "@app/lib/filter";
+import {
+  addParentRefs,
+  getIcon,
+  setEntryActive,
+  type FilterRule,
+} from "@app/lib/filter";
 import { ChevronDownIcon } from "@pkgs/icons";
 import Item from "./item";
+import { store } from "@app/store";
 import {
   type Draggable,
   type Droppable,
@@ -18,33 +24,31 @@ import {
   createDroppable,
   useDragDropContext,
 } from "@thisbeyond/solid-dnd";
-import { store } from "@app/store";
 
 function Rule(props: {
   rule: FilterRule;
 }) {
+  const [icon, setIcon] = createSignal(getIcon(props.rule));
+
   const [expanded, setExpanded] = createSignal(false);
   const [hovered, setHovered] = createSignal(false);
-  const [icon, setIcon] = createSignal("");
-  const droppableTitle = createDroppable(`${props.rule.id}-title`, {
-    type: "rule",
-    id: props.rule.id,
-  });
-  const droppableBody = createDroppable(`${props.rule.id}-list`, {
-    type: "rule",
-    id: props.rule.id,
-  });
+  const droppableTitle = createDroppable(props.rule.id, props.rule);
 
   const [_, { onDragEnd, onDragOver, onDragMove }] = useDragDropContext();
+
+  createEffect(() => {
+    setIcon(getIcon(props.rule));
+  });
+
+  createEffect(() => {
+    addParentRefs(props.rule);
+  });
 
   onDragMove(({ draggable }: { draggable: Draggable }) => {
     const draggableIsChild = props.rule.children.some(
       (e) => e.id === draggable.id,
     );
-    if (
-      (droppableTitle.isActiveDroppable || droppableBody.isActiveDroppable) &&
-      !draggableIsChild
-    ) {
+    if (droppableTitle.isActiveDroppable && !draggableIsChild) {
       setHovered(true);
     }
   });
@@ -57,12 +61,6 @@ function Rule(props: {
 
   onDragEnd(() => {
     setHovered(false);
-    setTimeout(() => {
-      // FIX: this is a hack
-      // onDragEnd event is non-deterministic and doesnt play nicely with solid state
-      // works for now I guess?
-      // setIcon(getIcon(props.rule));
-    }, 5);
   });
 
   return (
@@ -74,7 +72,11 @@ function Rule(props: {
       <ContextMenu>
         <ContextMenuTrigger>
           <div
-            class={`p-1 border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer hover:border-primary h-full items-center flex justify-between select-none ${expanded() && props.rule.enabled ? "border-muted" : ""} ${expanded() && !props.rule.enabled ? "border-accent" : ""} ${hovered() ? "bg-muted" : ""}`}
+            class={`p-1 border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer h-full items-center flex justify-between select-none ${hovered() ? "border-accent" : "border-muted"}`}
+            onMouseOut={() => setHovered(false)}
+            onMouseOver={() => setHovered(true)}
+            onFocus={() => null}
+            onBlur={() => null}
             onMouseDown={(e: MouseEvent) => {
               if (e.button === 0 && !e.shiftKey) {
                 return setExpanded(!expanded());
@@ -93,7 +95,7 @@ function Rule(props: {
                   <img
                     class='mr-1 h-8 max-w-full pointer-events-none'
                     alt={`${props.rule.name} icon`}
-                    src={icon() as string}
+                    src={icon()}
                   />
                 </figure>
               ) : (
@@ -128,13 +130,16 @@ function Rule(props: {
       </ContextMenu>
       <CollapsibleContent>
         <ul
-          class={`ms-6 borer-s-[1px] ps-1 ${props.rule.enabled ? "border-primary" : "border-accent"} flex flex-wrap gap-1 p-1`}
-          ref={droppableBody.ref}
+          class={`ms-6 border-s-[1px] border-r-0 flex flex-wrap ${hovered() ? "border-accent" : "border-muted"}`}
+          onMouseOut={() => setHovered(false)}
+          onMouseOver={() => setHovered(true)}
+          onFocus={() => null}
+          onBlur={() => null}
         >
           <SortableProvider ids={props.rule.children.map((e) => e.id)}>
             <For each={props.rule.children}>
-              {(child) => {
-                return <Item item={child} setHovered={setHovered} />;
+              {(item) => {
+                return <Item item={item} setHovered={setHovered} />;
               }}
             </For>
           </SortableProvider>

@@ -15,7 +15,7 @@ import {
 } from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
 import { onMount } from "solid-js";
-import { store } from "./store";
+import { setFilter, store } from "./store";
 import { Toaster } from "@pkgs/ui/sonner";
 import { Settings } from "./components/settings";
 import { Route, Router } from "@solidjs/router";
@@ -47,7 +47,7 @@ function App() {
                   size='icon'
                   class='h-14 w-14'
                   onMouseDown={() => {
-                    store.filter = null;
+                    setFilter(null);
                   }}
                 >
                   <HouseIcon />

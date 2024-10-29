@@ -1,6 +1,5 @@
 import { createSignal, For, onMount } from "solid-js";
-import { store } from "@app/store";
-import { generate, type ItemHierarchy, type Filter } from "@app/lib/filter";
+import { generateFilter, type Filter } from "@app/lib/filter";
 import { Button } from "@pkgs/ui/button";
 import {
   Dialog,
@@ -22,27 +21,18 @@ import { notify } from "@pkgs/ui/sonner";
 import { toast } from "solid-sonner";
 import { useColorMode } from "@kobalte/core";
 import chromatic from "@app/lib/config";
+import {
+  store,
+  setFilter,
+  removeFilter,
+  setActiveView,
+  setCrumbs,
+} from "@app/store";
 
 function loadFilter(filter: Filter) {
-  store.filter = filter;
-  store.activeView = filter.rules;
-  store.crumbs = [{ title: "Home", view: store.filter?.rules }];
-  getRefs(filter.rules.children, []);
-}
-
-function getRefs(items: ItemHierarchy[]) {
-  for (const item of items) {
-    if (item.type === "category") {
-      getRefs(item.children);
-    }
-    if (item.type === "rule") {
-      store.rules[item.id] = item;
-      getRefs(item.children);
-    }
-    if (item.type === "item") {
-      store.items[item.id] = item;
-    }
-  }
+  setFilter(filter);
+  setActiveView(filter.rules);
+  setCrumbs([{ title: "Home", view: store.filter.rules }]);
 }
 
 export function CreateFilter() {
@@ -55,9 +45,8 @@ export function CreateFilter() {
       toast(`Filter with name ${name()} already exists.`);
       return;
     }
-    const filter = await generate(name(), version());
+    const filter = await generateFilter(name(), version());
     await filter.writeFile();
-    store.filters.push(filter);
     loadFilter(filter);
     setDialogOpen(false);
     toast(`Created filter named ${name()}.`);
@@ -145,9 +134,7 @@ function ExistingFilter(props: { filter: Filter }) {
   setInterval(() => setTimeSinceUpdate(timeSince(lastUpdated())), 1000);
 
   async function deleteFilter() {
-    store.filters = store.filters.filter(
-      (entry) => entry.name !== props.filter.name,
-    );
+    removeFilter(props.filter);
     await props.filter.deleteFile();
     toast(`Deleted filter ${props.filter.name}`);
   }
@@ -158,7 +145,7 @@ function ExistingFilter(props: { filter: Filter }) {
       return;
     }
 
-    const collision = store.filters.find((e) => e.name === copyName());
+    const collision = store.state.filters.find((e) => e.name === copyName());
 
     if (collision) {
       notify(`Filter with name "${copyName()}" already exists.`);
@@ -169,8 +156,6 @@ function ExistingFilter(props: { filter: Filter }) {
     const filter = props.filter.copy();
     filter.updateName(copyName());
     await filter.writeFile();
-    store.filters.push(filter);
-    store.filters.sort(alphabeticalSort((filter) => filter.name));
   }
 
   async function updateFilterName() {
@@ -190,7 +175,6 @@ function ExistingFilter(props: { filter: Filter }) {
     setNameDialogOpen(false);
     setName(updateName());
     setLastUpdated(props.filter.lastUpdated);
-    store.filters.sort(alphabeticalSort((filter) => filter.name));
   }
 
   return (
@@ -290,9 +274,8 @@ export function LoadScreenMenu() {
 
   onMount(async () => {
     if (chromatic.runtime === "web") {
-      const filter = await generate("test", 1);
+      const filter = await generateFilter("test", 1);
       filter.setLastUpdated(new Date());
-      await filter.writeFile();
       loadFilter(filter);
     }
   });

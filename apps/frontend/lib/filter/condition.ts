@@ -146,3 +146,5 @@ export class ConditionBuilder {
     return `HasCruciblePassiveTree ${bool}`;
   }
 }
+
+export const conditions = new ConditionBuilder();

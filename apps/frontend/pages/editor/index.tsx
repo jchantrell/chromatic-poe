@@ -1,7 +1,6 @@
-import { batch, createEffect, Suspense } from "solid-js";
+import { batch, createEffect, JSXElement, Suspense } from "solid-js";
 import { Resizable, ResizableHandle, ResizablePanel } from "@pkgs/ui/resizable";
 import { useColorMode } from "@kobalte/core";
-import { store } from "@app/store";
 import Setup from "./components/initial-setup";
 import { LoadScreenMenu } from "./components/load-screen";
 import { For } from "solid-js";
@@ -11,6 +10,7 @@ import Category from "./components/category";
 import Rule from "./components/rule";
 import { input } from "@app/lib/input";
 import CreateRule from "./components/create-rule";
+import { toast } from "solid-sonner";
 import {
   DragDropProvider,
   DragDropSensors,
@@ -19,9 +19,18 @@ import {
   type Id,
   type Draggable,
   type Droppable,
+  DragDropDebugger,
+  useDragDropContext,
 } from "@thisbeyond/solid-dnd";
-import { moveItem, type FilterItem, type FilterRule } from "@app/lib/filter";
-import { toast } from "solid-sonner";
+import { store, setActiveView, setCrumbs } from "@app/store";
+import {
+  addParentRefs,
+  Command,
+  FilterItem,
+  type FilterRule,
+} from "@app/lib/filter";
+import { unwrap } from "solid-js/store";
+import { ItemVisual } from "./components/item";
 
 interface DraggableItem extends Draggable {
   id: string;
@@ -41,9 +50,7 @@ function Preview() {
           ? "bg-[url('/backgrounds/bg-dark.jpg')]"
           : "bg-[url('/backgrounds/bg-light.jpg')]"
       } bg-fixed`}
-    >
-      a
-    </div>
+    ></div>
   );
 }
 
@@ -67,8 +74,8 @@ function ItemHierarchy() {
           store.crumbs.length > 1 &&
           pressed
         ) {
-          store.activeView = store.crumbs[store.crumbs.length - 2].view;
-          store.crumbs.pop();
+          setActiveView(store.crumbs[store.crumbs.length - 2].view);
+          setCrumbs(store.crumbs.slice(0, store.crumbs.length - 1));
         }
 
         if (key === UNDO_KEY && event.ctrl && pressed) {
@@ -93,20 +100,75 @@ function ItemHierarchy() {
     );
   });
 
+  return (
+    <>
+      <Crumbs />
+      <div class='m-2 p-1 flex flex-col h-full gap-2'>
+        <For each={store?.activeView?.children}>
+          {(entry, i) => {
+            if (store?.activeView?.type === "root") {
+              return (
+                <>
+                  <div class='flex h-auto flex-wrap gap-2'>
+                    <For each={entry.children}>
+                      {(child) => {
+                        if (child.type === "category") {
+                          return <Category category={child} />;
+                        }
+                      }}
+                    </For>
+                  </div>
+                  {store?.activeView.children &&
+                  i() < store.activeView.children.length - 1 ? (
+                    <Separator />
+                  ) : (
+                    <></>
+                  )}
+                </>
+              );
+            }
+            switch (entry.type) {
+              case "category":
+                return <Category category={entry} />;
+              case "rule":
+                return <Rule rule={entry} />;
+            }
+          }}
+        </For>
+        {store.activeView?.children.some((e) => e.type === "rule") ? (
+          <CreateRule />
+        ) : (
+          <></>
+        )}
+      </div>
+    </>
+  );
+}
+
+function AutoRecomputeLayouts() {
+  const [_, { onDragStart, recomputeLayouts }] = useDragDropContext();
+  onDragStart(() => {
+    recomputeLayouts();
+  });
+  return null;
+}
+
+function DragDrop(props: { children: JSXElement }) {
+  //
   function getContainer(
     element: DraggableItem | DroppableContainer,
   ): FilterRule | null {
     if (element.data.type === "rule") {
-      return store.rules[element.data.id];
+      return element.data;
     }
     if (element.data.type === "item") {
-      return store.rules[element.data.parent];
+      return element.data.parent;
     }
     return null;
   }
 
   function isContainer(droppable: DroppableContainer): boolean {
-    if (store.rules[droppable.data.id]) {
+    if (droppable.data.type === "rule") {
       return true;
     }
     return false;
@@ -123,9 +185,7 @@ function ItemHierarchy() {
       context,
     ) as DroppableContainer;
     if (closestContainer) {
-      const childIds = store.rules[closestContainer.data.id].children.map(
-        (e) => e.id,
-      );
+      const childIds = closestContainer.data.children.map((e) => e.id);
 
       const closestItem = closestCenter(
         draggable,
@@ -164,27 +224,32 @@ function ItemHierarchy() {
     const draggableContainer = getContainer(draggable);
     const droppableContainer = getContainer(droppable);
 
+    console.log(draggable.data.name, droppableContainer);
+
     if (
       droppableContainer &&
       draggableContainer &&
       (draggableContainer.id !== droppableContainer.id ||
-        !onlyWhenChangingContainer) &&
-      droppableContainer.type === "rule"
+        !onlyWhenChangingContainer)
     ) {
       const itemIds = droppableContainer.children.map((e) => e.id);
       let index = itemIds.indexOf(droppable.id as string);
       if (index === -1) index = itemIds.length;
 
-      const item = store.items[draggable.id];
-      const src = store.rules[draggableContainer.id];
-      const tar = store.rules[droppableContainer.id];
-
-      console.log(item.parent.id);
-
-      item.parent = tar;
-
-      console.log(item.parent.id);
-      store.filter?.execute(moveItem(item, src, tar, index));
+      store.filter?.execute(
+        new Command(() => {
+          batch(() => {
+            draggableContainer.children = draggableContainer.children.filter(
+              (entry) => draggable.id !== entry.id,
+            );
+            droppableContainer.children = [
+              ...droppableContainer.children.slice(0, index),
+              { ...draggable.data, parent: droppableContainer },
+              ...droppableContainer.children.slice(index),
+            ];
+          });
+        }),
+      );
     }
   };
 
@@ -207,58 +272,23 @@ function ItemHierarchy() {
   };
 
   return (
-    <>
-      <Crumbs />
-      <DragDropProvider
-        onDragEnd={onDragEnd}
-        collisionDetector={closestContainerOrItem}
-      >
-        <DragDropSensors />
-        <div class='m-2 p-1 flex flex-col h-full gap-2'>
-          <For each={store?.activeView?.children}>
-            {(entry, i) => {
-              if (store?.activeView?.type === "root") {
-                return (
-                  <>
-                    <div class='flex h-auto flex-wrap gap-2'>
-                      <For each={entry.children}>
-                        {(child) => {
-                          if (child.type === "category") {
-                            return <Category category={child} />;
-                          }
-                        }}
-                      </For>
-                    </div>
-                    {store?.activeView.children &&
-                    i() < store.activeView.children.length - 1 ? (
-                      <Separator />
-                    ) : (
-                      <></>
-                    )}
-                  </>
-                );
-              }
-              switch (entry.type) {
-                case "category":
-                  return <Category category={entry} />;
-                case "rule":
-                  return <Rule rule={entry} />;
-              }
-            }}
-          </For>
-          {store.activeView?.children.some((e) => e.type === "rule") ? (
-            <CreateRule />
-          ) : (
-            <></>
-          )}
-        </div>
-        <DragOverlay>
-          {(draggable) => {
-            return <div class='sortable'>{draggable.id}</div>;
-          }}
-        </DragOverlay>
-      </DragDropProvider>
-    </>
+    <DragDropProvider
+      onDragMove={onDragMove}
+      onDragEnd={onDragEnd}
+      collisionDetector={closestContainerOrItem}
+    >
+      <DragDropSensors />
+      {props.children}
+      <DragOverlay>
+        {(draggable) => {
+          return (
+            <div class='sortable'>
+              <ItemVisual item={draggable.data} />
+            </div>
+          );
+        }}
+      </DragOverlay>
+    </DragDropProvider>
   );
 }
 
@@ -266,12 +296,14 @@ export function Editor() {
   return (
     <>
       {!store.initialised && <Setup />}
-      {store.initialised && !store.filter && <LoadScreenMenu />}
-      {store.initialised && store.filter && (
+      {store.initialised && store.filter === null && <LoadScreenMenu />}
+      {store.initialised && store.filter !== null && (
         <Resizable orientation='horizontal' class='min-h-max'>
-          <ResizablePanel class='h-fit flex flex-col'>
+          <ResizablePanel class='h-fit flex w-full flex-col'>
             <Suspense fallback={<>Loading...</>}>
-              <ItemHierarchy />
+              <DragDrop>
+                <ItemHierarchy />
+              </DragDrop>
             </Suspense>
           </ResizablePanel>
           <ResizableHandle class='bg-primary-foreground w-2' />
