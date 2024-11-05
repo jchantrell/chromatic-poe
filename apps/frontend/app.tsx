@@ -14,12 +14,13 @@ import {
   PaletteIcon,
 } from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
-import { onMount } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 import { setFilter, store } from "./store";
 import { Toaster } from "@pkgs/ui/sonner";
 import { Settings } from "./components/settings";
 import { Route, Router } from "@solidjs/router";
 import chromatic from "./lib/config";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
 
 export const storageManager = createLocalStorageManager("theme");
 
@@ -27,12 +28,33 @@ function App() {
   onMount(async () => {
     await chromatic.init();
   });
+  let ref: HTMLDivElement;
+  const zoomLevels = [0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5];
+  const [zoom, setZoom] = createSignal(4);
+
+  document.addEventListener("wheel", async (event) => {
+    if (event.ctrlKey) {
+      const view = getCurrentWebview();
+      if (event.deltaY > 0 && zoomLevels[zoom() - 1]) {
+        setZoom(zoom() - 1);
+      } else if (event.deltaY < 0 && zoomLevels[zoom() + 1]) {
+        setZoom(zoom() + 1);
+      } else {
+        return;
+      }
+
+      return view.setZoom(zoomLevels[zoom()]);
+    }
+  });
 
   return (
     <>
       <ColorModeScript storageType={storageManager.type} />
       <ColorModeProvider storageManager={storageManager}>
-        <div class='h-screen flex flex-row overflow-hidden select-none'>
+        <div
+          class='h-screen flex flex-row overflow-hidden select-none'
+          ref={ref}
+        >
           <nav
             class='h-full flex flex-1 flex-col items-center justify-between py-2.5'
             data-tauri-drag-region

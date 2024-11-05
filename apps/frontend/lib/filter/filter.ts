@@ -5,17 +5,14 @@ import { addFilter } from "@app/store";
 import { ulid } from "ulid";
 import { applyPatch, compare, type Operation } from "fast-json-patch";
 import {
-  type FilterRule,
-  type FilterItem,
   type Command,
-  actions,
+  type Action,
+  serializeActions,
   conditions,
   addParentRefs,
   Operator,
 } from ".";
-import { FilterCategory } from "./category";
 import { createMutable, modifyMutable, reconcile } from "solid-js/store";
-import { createEffect } from "solid-js";
 
 export enum Block {
   show = "Show",
@@ -60,6 +57,45 @@ export interface FilterHierarchy {
   value?: number | null;
 }
 
+export interface FilterRoot extends FilterHierarchy {
+  id: string;
+  name: null;
+  type: "root";
+  children: FilterCategory[];
+}
+
+export interface FilterCategory extends FilterHierarchy {
+  id: string;
+  name: string;
+  type: "category";
+  icon: string | null;
+  enabled: boolean;
+  children: (FilterRule | FilterCategory)[];
+  parent?: FilterRoot | FilterCategory;
+}
+
+export interface FilterRule extends FilterHierarchy {
+  id: string;
+  name: string;
+  type: "rule";
+  icon: string | null;
+  enabled: boolean;
+  conditions: { [key: string]: string[] }[];
+  actions: Action;
+  children: FilterItem[];
+  parent?: FilterCategory;
+}
+
+export interface FilterItem extends FilterHierarchy {
+  id: string;
+  name: string;
+  type: "item";
+  icon: string;
+  value: number | null;
+  enabled: boolean;
+  parent?: FilterRule;
+}
+
 export class Filter {
   name: string;
   version: number;
@@ -68,8 +104,6 @@ export class Filter {
 
   undoStack: Operation[][] = [];
   redoStack: Operation[][] = [];
-
-  observer: undefined;
 
   constructor(params: {
     name: string;
@@ -109,17 +143,17 @@ export class Filter {
   }
 
   execute(command: Command) {
-    const originalState = clone(this.rules);
-    command.execute();
-    const changes = this.diff(originalState, clone(this.rules));
+    const currState = clone(this.rules);
+    command.execute(); // currState is mutated
+    const changes = this.diff(currState, this.rules);
     if (changes.length) {
       this.undoStack.push(changes);
       this.redoStack = [];
     }
   }
 
-  diff(currentState: FilterRoot, updatedState: FilterRoot) {
-    return compare(updatedState, currentState).filter(
+  diff(prevState: FilterRoot, nextState: FilterRoot) {
+    return compare(nextState, prevState).filter(
       (change) =>
         !change.path.endsWith("isDndShadowItem") &&
         !change.path.endsWith("parent"),
@@ -130,12 +164,13 @@ export class Filter {
     if (!this.undoStack.length) {
       return;
     }
+
     const changes = this.undoStack.pop();
     if (changes) {
       const updatedState = this.applyChanges(changes);
       const diff = this.diff(clone(this.rules), updatedState);
       modifyMutable(this.rules, reconcile(updatedState));
-      addParentRefs(this.rules); // FIX: this is wasteful
+
       if (diff.length) {
         this.redoStack.unshift(diff);
       }
@@ -206,25 +241,16 @@ export class Filter {
       const description = `# ${ancestors.join(" => ")} => ${entry.name.trim()}`;
 
       if (disabledBases.length) {
-        const block = this.createTextBlock(
-          description,
-          Block.hide,
-          [conditions.baseType(Operator.eq, disabledBases)],
-          [],
-        );
+        const block = this.createTextBlock(description, Block.hide, entry, [
+          conditions.baseType(Operator.eq, disabledBases),
+        ]);
         rules.push(block);
       }
 
       if (enabledBases.length) {
-        const block = this.createTextBlock(
-          description,
-          Block.show,
-          [conditions.baseType(Operator.eq, enabledBases)],
-          [
-            actions.setBackgroundColor(100, 100, 50, 255),
-            actions.setFontSize(30),
-          ],
-        );
+        const block = this.createTextBlock(description, Block.show, entry, [
+          conditions.baseType(Operator.eq, enabledBases),
+        ]);
         rules.push(block);
       }
 
@@ -242,30 +268,18 @@ export class Filter {
   createTextBlock(
     description: string,
     block: Block,
-    actions: string[],
+    entry: FilterRule,
     conditions: string[],
   ) {
     const eol = chromatic.fileSystem.eol();
-    return `${description}${eol}${block}${eol}${actions.map((action) => `   ${action}${eol}`).join("")}${conditions.map((condition) => `   ${condition}${eol}`).join("")}
+
+    const txt = `${description}${eol}${block}${eol}${conditions.map((condition) => `   ${condition}${eol}`).join("")}${serializeActions(
+      entry.actions,
+    )
+      .map((action) => `  ${action}${eol}`)
+      .join("")}
 `;
-  }
-}
-
-export class FilterRoot implements FilterHierarchy {
-  id: string;
-  name = null;
-  type = "root" as const;
-  children: FilterCategory[];
-
-  constructor(props: {
-    id: string;
-    children: FilterCategory[];
-  }) {
-    this.id = props.id;
-    this.children = props.children.map(
-      (category) => new FilterCategory(category),
-    );
-    createMutable(this);
+    return txt;
   }
 }
 
@@ -273,62 +287,6 @@ export function getIcon(entry: ItemHierarchy): string | null {
   if (entry.type === "item") return entry.icon;
   if (!entry.children.length) return null;
   return getIcon(entry.children[0]);
-}
-
-function rollup<T extends ItemHierarchy>(rawData: RawData, ancestor: T) {
-  const entries = Object.entries(rawData);
-  const children = entries.filter((entry) => entry[0] !== "type");
-
-  for (const child of children) {
-    const name = child[0];
-    const data = child[1];
-    const type: [string, FilterEntryTypes] = Object.entries(data).find(
-      (entry) => entry[0] === "type",
-    );
-
-    let record: ItemHierarchy;
-
-    switch (type[1]) {
-      case "category":
-        record = {
-          id: ulid(),
-          name,
-          type: "category",
-          enabled: true,
-          children: [],
-        };
-        break;
-      case "rule":
-        record = {
-          id: ulid(),
-          name,
-          type: "rule",
-          enabled: true,
-          children: [],
-        };
-        break;
-      case "item":
-        record = {
-          id: ulid(),
-          type: "item",
-          name,
-          enabled: true,
-          icon: `images/${data.file.replaceAll("/", "@").replace("dds", "png")}`,
-          value:
-            data.value && typeof data.value === "number" ? data.value : null,
-        };
-        break;
-    }
-
-    if (ancestor.type !== "item") {
-      ancestor.children.push(record);
-      ancestor.children = ancestor.children
-        .slice()
-        .sort((a, b) => (b.value || 0) - (a?.value || 0));
-    }
-    if (type[1] !== "item") rollup(child[1], record);
-  }
-  return ancestor;
 }
 
 function getType(entry: {
@@ -420,6 +378,85 @@ function recursivelySetKeys(
   schema[path[path.length - 1] as string] = { ...value, type: "item" };
 }
 
+function getPrimaryCategory(entry: RawData) {
+  const { major_category, sub_category } = entry;
+
+  if (["One Handed", "Two Handed", "Quivers"].includes(major_category)) {
+    return "Weapons";
+  }
+
+  if (
+    major_category === sub_category ||
+    major_category === sub_category.substring(0, sub_category.length - 1)
+  ) {
+    return sub_category;
+  }
+
+  return major_category;
+}
+
+function rollup<T extends ItemHierarchy>(rawData: RawData, ancestor: T) {
+  const entries = Object.entries(rawData);
+  const children = entries.filter((entry) => entry[0] !== "type");
+
+  for (const child of children) {
+    const name = child[0];
+    const data = child[1];
+    const type: [string, FilterEntryTypes] = Object.entries(data).find(
+      (entry) => entry[0] === "type",
+    );
+
+    let record: ItemHierarchy;
+
+    switch (type[1]) {
+      case "category":
+        record = {
+          id: ulid(),
+          name,
+          type: "category",
+          enabled: true,
+          children: [],
+        };
+        break;
+      case "rule":
+        record = {
+          id: ulid(),
+          name,
+          type: "rule",
+          conditions: [],
+          actions: {
+            text: { r: 255, g: 255, b: 255, a: 1 },
+            border: { r: 255, g: 255, b: 255, a: 1 },
+            background: { r: 19, g: 14, b: 6, a: 1 },
+          },
+          enabled: true,
+          children: [],
+        };
+        break;
+      case "item":
+        record = {
+          id: ulid(),
+          type: "item",
+          name,
+          enabled: true,
+          icon: `images/${data.file.replaceAll("/", "@").replace("dds", "png")}`,
+          value:
+            data.value && typeof data.value === "number" ? data.value : null,
+        };
+        break;
+    }
+
+    if (ancestor.type !== "item") {
+      ancestor.children.push(record);
+      ancestor.children = ancestor.children
+        .slice()
+        .sort((a, b) => (b.value || 0) - (a?.value || 0));
+    }
+    if (type[1] !== "item") rollup(child[1], record);
+  }
+  return ancestor;
+}
+
 export async function generateFilter(
   name: string,
   poeVersion: number,
@@ -451,19 +488,25 @@ export async function generateFilter(
     } = entry;
 
     const type = getType(entry);
-
-    const primaryCategory =
-      major_category === sub_category ||
-      major_category === sub_category.substring(0, sub_category.length - 1)
-        ? sub_category
-        : major_category;
+    const primaryCategory = getPrimaryCategory(entry);
 
     const typeFirst = [pool, primaryCategory, type, sub_category, base];
     const statFirst = [pool, primaryCategory, sub_category, type, base];
+    const weaponOverride = [
+      pool,
+      primaryCategory,
+      major_category,
+      sub_category,
+      base,
+    ];
 
     recursivelySetKeys(
       hierarchy,
-      ["Gems", "Off-hand"].includes(major_category) ? statFirst : typeFirst,
+      primaryCategory === "Weapons"
+        ? weaponOverride
+        : major_category === "Gems"
+          ? statFirst
+          : typeFirst,
       {
         file,
         value,

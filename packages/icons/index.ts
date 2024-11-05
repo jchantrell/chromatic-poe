@@ -14,3 +14,4 @@ export * from "./audio";
 export * from "./palette";
 export * from "./chevron-up";
 export * from "./chevron-down";
+export * from "./volume";

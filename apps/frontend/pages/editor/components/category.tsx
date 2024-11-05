@@ -21,7 +21,7 @@ function Category(props: {
         <ContextMenu>
           <ContextMenuTrigger>
             <div
-              class={`p-1 border ${props.category.enabled ? "text-primary" : "text-accent"} cursor-pointer hover:border-primary h-full items-center flex justify-between select-none`}
+              class={`p-1 border ${props.category.enabled ? "text-primary" : "text-accent"} cursor-pointer hover:border-accent h-full items-center flex justify-between select-none`}
               onMouseDown={(e: MouseEvent) => {
                 // traverse down if children are categories
                 if (e.button === 0 && !e.shiftKey) {

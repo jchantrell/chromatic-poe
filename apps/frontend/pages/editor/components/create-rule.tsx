@@ -11,6 +11,7 @@ import { TextField, TextFieldInput, TextFieldLabel } from "@pkgs/ui/text-field";
 import { store } from "@app/store";
 import { toast } from "solid-sonner";
 import type { FilterRule } from "@app/lib/filter";
+import { ulid } from "ulid";
 
 function CreateRule() {
   const [name, setName] = createSignal("");
@@ -20,27 +21,28 @@ function CreateRule() {
     if (name() === "") {
       return toast("Enter a name for the rule.");
     }
-    if (store.view?.children.some((e) => e.name === name())) {
+    if (store.activeView.children.some((e) => e.name === name())) {
       return toast(`Rule with name ${name()} already exists.`);
     }
 
-    if (!store.view || store.view.type !== "category") {
+    if (!store.activeView || store.activeView.type !== "category") {
       return toast(
         "Current filter view is not a category, cannot create rule.",
       );
     }
 
-    if (store.view && store.view.type === "category") {
+    if (store.activeView && store.activeView.type === "category") {
       const rule: FilterRule = {
+        id: ulid(),
         name: name(),
         enabled: true,
-        parent: store.view,
+        parent: store.activeView,
         type: "rule",
         children: [],
         conditions: [],
         actions: [],
       };
-      store.view.children.push(rule);
+      store.activeView.children.push(rule);
     }
 
     setDialogOpen(false);

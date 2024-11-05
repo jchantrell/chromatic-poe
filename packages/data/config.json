@@ -1,8 +1,12 @@
 {
   "patch": "3.25.1.2",
-  "files": [],
+  "files": ["Art/2DArt/Minimap/Player.png"],
   "translations": ["English"],
   "tables": [
+    {
+      "name": "MinimapIcons",
+      "columns": ["Id"]
+    },
     {
       "name": "BaseItemTypes",
       "columns": [

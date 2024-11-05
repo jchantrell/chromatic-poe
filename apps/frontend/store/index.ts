@@ -1,8 +1,14 @@
-import type { Filter, FilterRoot, FilterCategory } from "@app/lib/filter";
+import type {
+  Filter,
+  FilterRoot,
+  FilterCategory,
+  FilterRule,
+} from "@app/lib/filter";
 import type { Crumb } from "@app/pages/editor/components/crumbs";
 import { createMutable } from "solid-js/store";
 
 interface Store {
+  activeRule: FilterRule | null;
   activeView: FilterRoot | FilterCategory | null;
   filter: Filter | null;
   filters: Filter[];
@@ -12,6 +18,7 @@ interface Store {
 }
 
 export const store = createMutable<Store>({
+  activeRule: null,
   activeView: null,
   filter: null,
   filters: [],

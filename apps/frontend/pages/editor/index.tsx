@@ -1,4 +1,4 @@
-import { batch, createEffect, JSXElement, Suspense } from "solid-js";
+import { batch, createEffect, createSignal, type JSXElement } from "solid-js";
 import { Resizable, ResizableHandle, ResizablePanel } from "@pkgs/ui/resizable";
 import { useColorMode } from "@kobalte/core";
 import Setup from "./components/initial-setup";
@@ -19,18 +19,21 @@ import {
   type Id,
   type Draggable,
   type Droppable,
-  DragDropDebugger,
-  useDragDropContext,
 } from "@thisbeyond/solid-dnd";
 import { store, setActiveView, setCrumbs } from "@app/store";
 import {
-  addParentRefs,
+  Color,
   Command,
-  FilterItem,
+  IconSize,
+  Shape,
+  type FilterItem,
   type FilterRule,
 } from "@app/lib/filter";
-import { unwrap } from "solid-js/store";
 import { ItemVisual } from "./components/item";
+import MapIconPicker from "@app/pages/editor/components/map-icon-picker";
+import ColorPicker from "@app/pages/editor/components/color-picker";
+import { Checkbox } from "@pkgs/ui/checkbox";
+import { Label } from "@pkgs/ui/label";
 
 interface DraggableItem extends Draggable {
   id: string;
@@ -39,6 +42,76 @@ interface DraggableItem extends Draggable {
 interface DroppableContainer extends Droppable {
   id: string;
   data: FilterRule;
+}
+
+function RuleEditor() {
+  if (!store.activeRule) return <></>;
+  const [mapIconActive, setMapIconActive] = createSignal(false);
+
+  function handleMapIcon(enabled: boolean) {
+    if (store.activeRule?.actions.icon) {
+      store.activeRule.actions.icon.enabled = enabled;
+    }
+    if (store.activeRule && !store.activeRule?.actions.icon && enabled) {
+      store.activeRule.actions.icon = {
+        color: Color.Red,
+        shape: Shape.Circle,
+        size: IconSize.Small,
+        enabled: true,
+      };
+    }
+  }
+
+  createEffect(() => {
+    setMapIconActive(store.activeRule?.actions.icon?.enabled || false);
+  });
+
+  return (
+    <div class='size-full flex flex-col items-center p-10'>
+      <div
+        class='flex max-w-[300px] w-full items-center justify-between text-lg border-[1.5px]'
+        style={{
+          color: `rgba(${store.activeRule.actions.text.r}, ${store.activeRule.actions.text.g}, ${store.activeRule.actions.text.b}, ${store.activeRule.actions.text.a})`,
+          "border-color": `rgba(${store.activeRule.actions.border.r}, ${store.activeRule.actions.border.g}, ${store.activeRule.actions.border.b}, ${store.activeRule.actions.border.a})`,
+          "background-color": `rgba(${store.activeRule.actions.background.r}, ${store.activeRule.actions.background.g}, ${store.activeRule.actions.background.b}, ${store.activeRule.actions.background.a})`,
+        }}
+      >
+        <MapIconPicker />
+        <div class='text-center'>{store.activeRule.name}</div>
+        <div
+          style={{
+            height: "calc(64px / 1.5)",
+            width: "calc(64px / 1.5)",
+          }}
+        />
+      </div>
+      <div class='w-full grid sm:grid-flow-col gap-1.5 justify-center items-center mt-2'>
+        <ColorPicker label='Text' key='text' />
+        <ColorPicker label='Border' key='border' />
+        <ColorPicker label='Background' key='background' />
+        <div class='flex text-nowrap'>
+          <Checkbox
+            id='icon'
+            onChange={handleMapIcon}
+            checked={mapIconActive()}
+          />
+          <Label class='ml-1' for='icon'>
+            Map Icon
+          </Label>
+        </div>
+        <div class='flex text-nowrap'>
+          <Checkbox id='beam' />
+          <Label class='ml-1' for='beam'>
+            Beam
+          </Label>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FilterPreview() {
+  return <div class='size-full flex items-center justify-center'>preview</div>;
 }
 
 function Preview() {
@@ -50,7 +123,9 @@ function Preview() {
           ? "bg-[url('/backgrounds/bg-dark.jpg')]"
           : "bg-[url('/backgrounds/bg-light.jpg')]"
       } bg-fixed`}
-    ></div>
+    >
+      {store.activeRule ? <RuleEditor /> : <FilterPreview />}
+    </div>
   );
 }
 
@@ -58,6 +133,7 @@ const SAVE_KEY = "s";
 const REDO_KEY = "y";
 const UNDO_KEY = "z";
 const BACK_KEY = "Backspace";
+const ESCAPE_KEY = "Escape";
 
 function ItemHierarchy() {
   createEffect(() => {
@@ -95,6 +171,10 @@ function ItemHierarchy() {
         if (key === SAVE_KEY && event.ctrl && pressed) {
           store.filter?.writeFile();
           toast("Saved filter.");
+        }
+
+        if (key === ESCAPE_KEY) {
+          store.activeRule = null;
         }
       },
     );
@@ -143,14 +223,6 @@ function ItemHierarchy() {
       </div>
     </>
   );
-}
-
-function AutoRecomputeLayouts() {
-  const [_, { onDragStart, recomputeLayouts }] = useDragDropContext();
-  onDragStart(() => {
-    recomputeLayouts();
-  });
-  return null;
 }
 
 function DragDrop(props: { children: JSXElement }) {
@@ -221,31 +293,28 @@ function DragDrop(props: { children: JSXElement }) {
     droppable: DroppableContainer,
     onlyWhenChangingContainer = true,
   ) => {
-    const draggableContainer = getContainer(draggable);
-    const droppableContainer = getContainer(droppable);
-
-    console.log(draggable.data.name, droppableContainer);
+    const srcContainer = getContainer(draggable);
+    const tarContainer = getContainer(droppable);
 
     if (
-      droppableContainer &&
-      draggableContainer &&
-      (draggableContainer.id !== droppableContainer.id ||
-        !onlyWhenChangingContainer)
+      tarContainer &&
+      srcContainer &&
+      (srcContainer.id !== tarContainer.id || !onlyWhenChangingContainer)
     ) {
-      const itemIds = droppableContainer.children.map((e) => e.id);
-      let index = itemIds.indexOf(droppable.id as string);
+      const itemIds = tarContainer.children.map((e) => e.id);
+      let index = itemIds.indexOf(droppable.id);
       if (index === -1) index = itemIds.length;
 
       store.filter?.execute(
         new Command(() => {
           batch(() => {
-            draggableContainer.children = draggableContainer.children.filter(
+            srcContainer.children = srcContainer.children.filter(
               (entry) => draggable.id !== entry.id,
             );
-            droppableContainer.children = [
-              ...droppableContainer.children.slice(0, index),
-              { ...draggable.data, parent: droppableContainer },
-              ...droppableContainer.children.slice(index),
+            tarContainer.children = [
+              ...tarContainer.children.slice(0, index),
+              { ...draggable.data, parent: tarContainer },
+              ...tarContainer.children.slice(index),
             ];
           });
         }),
@@ -283,7 +352,7 @@ function DragDrop(props: { children: JSXElement }) {
         {(draggable) => {
           return (
             <div class='sortable'>
-              <ItemVisual item={draggable.data} />
+              <ItemVisual item={draggable?.data as FilterItem} />
             </div>
           );
         }}
@@ -300,13 +369,11 @@ export function Editor() {
       {store.initialised && store.filter !== null && (
         <Resizable orientation='horizontal' class='min-h-max'>
           <ResizablePanel class='h-fit flex w-full flex-col'>
-            <Suspense fallback={<>Loading...</>}>
-              <DragDrop>
-                <ItemHierarchy />
-              </DragDrop>
-            </Suspense>
+            <DragDrop>
+              <ItemHierarchy />
+            </DragDrop>
           </ResizablePanel>
-          <ResizableHandle class='bg-primary-foreground w-2' />
+          <ResizableHandle class='bg-secondary w-1' />
           <ResizablePanel>
             <Preview />
           </ResizablePanel>

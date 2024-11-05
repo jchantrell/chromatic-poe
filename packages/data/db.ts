@@ -285,8 +285,14 @@ export class DbRepo {
           ELSE 'Gear'
         END) as pool,
         (CASE
+          WHEN major_category = 'One Handed Weapons'
+          THEN 'One Handed'
+          WHEN major_category = 'Two Handed Weapons'
+          THEN 'Two Handed'
           WHEN sub_category = 'Quivers'
-          THEN 'Quivers'
+          THEN 'Two Handed'
+          WHEN sub_category = 'Shields'
+          THEN 'Armour'
           WHEN sub_category = 'Tinctures'
           THEN 'Flasks'
           WHEN sub_category = 'Trinkets'

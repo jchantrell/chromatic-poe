@@ -10,7 +10,8 @@
     "build:windows": "tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc",
     "build:linux": "tauri build",
     "tauri": "tauri",
-    "gamefiles": "pushd packages/data; pathofexile-dat; popd",
+    "gamefiles": "mkdir -p packages/assets/spritesheet; pushd packages/data; pathofexile-dat; mv files/*.png ../assets/spritesheet; popd",
+    "sprites": "pushd packages/data; npx tsx sprite.ts; popd",
     "images": "npx tsx packages/data/image.ts",
     "db": "npx tsx packages/data/db.ts"
   },
@@ -33,6 +34,7 @@
     "cmdk-solid": "^1.1.0",
     "d3": "^7.9.0",
     "fast-json-patch": "^3.1.1",
+    "lodash-es": "^4.17.21",
     "microdiff": "^1.4.0",
     "pathofexile-dat": "^9.1.0",
     "sharp": "^0.33.5",
@@ -40,6 +42,7 @@
     "solid-sonner": "^0.2.8",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
+    "tinycolor2": "^1.6.0",
     "ulid": "^2.3.0"
   },
   "devDependencies": {

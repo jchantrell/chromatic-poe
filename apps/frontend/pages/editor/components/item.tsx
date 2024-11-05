@@ -11,10 +11,17 @@ import { getIcon, setEntryActive, type FilterItem } from "@app/lib/filter";
 import { store } from "@app/store";
 import { createEffect, createSignal, type Setter } from "solid-js";
 
-export function ItemVisual(props: { item: FilterItem; class: string }) {
+export function ItemVisual(props: { item: FilterItem; class?: string }) {
   return (
     <div
-      class={`p-1 px-2 ${props.item.enabled ? "text-primary" : "text-accent"} border items-center flex select-none ${props.class}`}
+      class={`p-1 px-2 ${props.item.enabled ? "text-primary" : "text-accent"} cursor-pointer border items-center flex select-none ${props.class}`}
+      onMouseDown={(e) => {
+        if (e.button === 0 && e.shiftKey) {
+          store.filter?.execute(
+            setEntryActive(props.item, !props.item.enabled),
+          );
+        }
+      }}
     >
       <figure class='max-w-lg'>
         <img
@@ -59,17 +66,7 @@ function Item(props: {
     >
       <ContextMenu>
         <ContextMenuTrigger>
-          <ItemVisual
-            class='hover:border-accent'
-            item={props.item}
-            onMouseDown={(e) => {
-              if (e.button === 0 && e.shiftKey) {
-                store.filter?.execute(
-                  setEntryActive(props.item, !props.item.enabled),
-                );
-              }
-            }}
-          />
+          <ItemVisual class='hover:border-accent' item={props.item} />
         </ContextMenuTrigger>
         <ContextMenuPortal>
           <ContextMenuContent class='w-48'>

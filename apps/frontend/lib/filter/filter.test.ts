@@ -1,8 +1,8 @@
-import { generate, setEntryActive } from "@app/lib/filter";
+import { generateFilter, setEntryActive } from "@app/lib/filter";
 import { expect, test } from "vitest";
 
 test("setEntryActive", async () => {
-  const filter = await generate("test", 1);
+  const filter = await generateFilter("test", 1);
   const entry = filter.rules.children[1].children[2];
   expect(entry.enabled).toBe(true);
   expect(entry.children[0].enabled).toBe(true);
@@ -15,7 +15,7 @@ test("setEntryActive", async () => {
 });
 
 test("undo & redo", async () => {
-  const filter = await generate("test", 1);
+  const filter = await generateFilter("test", 1);
   const entry = filter.rules.children[1].children[2];
 
   // 1st state

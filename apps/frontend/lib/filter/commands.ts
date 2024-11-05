@@ -1,8 +1,8 @@
 import type {
   ItemHierarchy,
-  FilterCategory,
   FilterRule,
   FilterItem,
+  FilterCategory,
 } from "@app/lib/filter";
 
 export class Command {
