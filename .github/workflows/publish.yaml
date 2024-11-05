@@ -57,6 +57,18 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Extract game files
+        run: pnpm gamefiles
+
+      - name: Setup DB
+        run: pnpm db
+
+      - name: Extract spritesheet data
+        run: pnpm sprites
+
+      - name: Extract item icons
+        run: pnpm images
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
