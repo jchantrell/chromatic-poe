@@ -9,6 +9,7 @@ fi
 
 echo "Installing dependencies"
 pnpm install --frozen-lockfile
+pnpm i -g pathofexile-dat
 
 echo "Fetching game files"
 pnpm gamefiles
