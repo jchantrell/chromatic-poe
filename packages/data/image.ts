@@ -4,7 +4,7 @@ import fs from "node:fs";
 const FLASK_IMG_HEIGHT = 156;
 const GEM_IMG_HEIGHT = 78;
 const BATCH_AMOUNT = 20;
-const IMAGE_DIR = "packages/assets/images";
+const IMAGE_DIR = "./packages/assets/images";
 
 async function fixIcon(buffer: Buffer, height: number): Promise<Buffer> {
   const img = sharp(buffer);
