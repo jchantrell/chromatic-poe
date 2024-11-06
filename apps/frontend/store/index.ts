@@ -28,7 +28,7 @@ export const store = createMutable<Store>({
 });
 
 export function removeFilter(filter: Filter) {
-  store.filters.filter((entry) => filter.name !== entry.name);
+  store.filters = store.filters.filter((entry) => filter.name !== entry.name);
 }
 
 export function addFilter(filter: Filter) {

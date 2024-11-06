@@ -145,7 +145,7 @@ function ExistingFilter(props: { filter: Filter }) {
       return;
     }
 
-    const collision = store.state.filters.find((e) => e.name === copyName());
+    const collision = store.filters.find((e) => e.name === copyName());
 
     if (collision) {
       notify(`Filter with name "${copyName()}" already exists.`);
