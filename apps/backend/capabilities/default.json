@@ -12,7 +12,7 @@
     "core:window:allow-toggle-maximize",
     "core:webview:allow-set-webview-zoom",
     "os:default",
-    "shell:allow-open",
+    "fs:default",
     "dialog:default",
     {
       "identifier": "fs:read-all",
@@ -59,7 +59,7 @@
           "path": "$APPCONFIG/filters/**"
         }
       ]
-    },
-    "sql:default"
+    }
   ]
 }
+

@@ -2,6 +2,7 @@
   "productName": "Chromatic",
   "version": "0.1.0",
   "identifier": "chromatic",
+  "mainBinaryName": "chromatic",
   "build": {
     "beforeDevCommand": "pnpm vite dev",
     "devUrl": "http://localhost:1420",

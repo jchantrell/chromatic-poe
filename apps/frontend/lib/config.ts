@@ -89,7 +89,7 @@ class Chromatic {
 
   async bootstrap() {
     if (this.fileSystem.runtime !== "desktop") return;
-    await this.fileSystem.upsertDirectory(`${this.configPath}/chromatic`);
+    await this.fileSystem.upsertDirectory(`${this.configPath}`);
     await this.fileSystem.upsertDirectory(
       `${this.configPath}/${this.imagePath}`,
     );

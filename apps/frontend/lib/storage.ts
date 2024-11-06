@@ -29,7 +29,6 @@ export class WebStorage implements FileSystem {
   runtime = "web" as const;
   eol() {
     if (navigator.userAgent.toLowerCase().indexOf("win") > -1) return "\r\n";
-
     return "\n";
   }
   truncatePath(path: string) {
