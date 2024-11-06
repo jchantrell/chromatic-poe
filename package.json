@@ -10,7 +10,7 @@
     "build:windows": "tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc",
     "build:linux": "tauri build",
     "tauri": "tauri",
-    "gamefiles": "mkdir -p packages/assets/spritesheet; pushd packages/data; pathofexile-dat; mv files/*.png ../assets/spritesheet; popd",
+    "gamefiles": "pushd packages/data; pathofexile-dat; mv files/*.png ../assets/spritesheet; popd",
     "sprites": "pushd packages/data; npx tsx sprite.ts; popd",
     "images": "npx tsx packages/data/image.ts",
     "db": "npx tsx packages/data/db.ts"
