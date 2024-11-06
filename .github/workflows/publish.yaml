@@ -58,20 +58,8 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Extract game files
-        run: pnpm gamefiles
-
-      - name: Setup DB
-        run: pnpm db
-
-      - name: Extract spritesheet data
-        run: pnpm sprites
-
-      - name: Extract item icons
-        run: pnpm images
+      - name: Extract and migrate game files
+        run: ./ci/extract.sh
 
       - uses: tauri-apps/tauri-action@v0
         env:
