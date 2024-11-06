@@ -6,6 +6,10 @@ on:
     branches:
       - release
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   publish-tauri:
     permissions:
