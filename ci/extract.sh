@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-if [ "$RUNNER_OS" == "Windows" ]; then
-	pnpm config set script-shell "C:\\Program Files\\git\\bin\\bash.exe"
-else
-	pnpm config set script-shell "/usr/bin/bash"
-fi
-
 echo "Installing dependencies"
 pnpm install --frozen-lockfile
 pnpm i -g pathofexile-dat
