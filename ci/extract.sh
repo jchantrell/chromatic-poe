@@ -6,6 +6,7 @@ pnpm install --frozen-lockfile
 pnpm i -g pathofexile-dat
 
 echo "Fetching game files"
+mkdir -p packages/assets/images packages/assets/spritesheets
 pnpm gamefiles
 
 echo "Setting up local DB"

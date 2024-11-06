@@ -18,7 +18,7 @@ export function MinimapIcon(props: {
   return (
     <div
       style={{
-        "background-image": "url(/spritesheet/Art@2DArt@Minimap@Player.png)",
+        "background-image": "url(/spritesheets/Art@2DArt@Minimap@Player.png)",
         height: `calc(64px / ${props.scale})`,
         width: `calc(64px / ${props.scale})`,
         "background-position": `calc(-${minimapIcons[props.color][props.shape][props.size].x}px / ${props.scale}) calc(-${minimapIcons[props.color][props.shape][props.size].y}px / ${props.scale})`,
