@@ -11,6 +11,7 @@ import { TextField, TextFieldLabel } from "@pkgs/ui/text-field";
 import Theme from "./theme";
 import { Separator } from "@pkgs/ui/separator";
 import { ChooseDirectory } from "./choose-dir";
+import { Checkbox } from "@pkgs/ui/checkbox";
 
 export function Settings() {
   return (
@@ -22,21 +23,21 @@ export function Settings() {
         <DialogHeader>
           <DialogTitle>General</DialogTitle>
         </DialogHeader>
-        <div class='grid gap-4 py-2'>
+        <div class='grid py-2'>
           <TextField class='grid grid-cols-4 items-center gap-4'>
             <TextFieldLabel class='text-right'>PoE Directory</TextFieldLabel>
             <ChooseDirectory class='col-span-3' />
           </TextField>
           <TextField class='grid grid-cols-4 items-center gap-4'>
             <TextFieldLabel class='text-right'>Autosave</TextFieldLabel>
-            <ChooseDirectory class='col-span-3' />
+            <Checkbox />
           </TextField>
         </div>
         <Separator />
         <DialogHeader>
           <DialogTitle>Display</DialogTitle>
         </DialogHeader>
-        <div class='grid gap-4 py-4'>
+        <div class='grid py-4'>
           <TextField class='grid grid-cols-4 items-center gap-4'>
             <TextFieldLabel class='text-right'>Theme</TextFieldLabel>
             <Theme />
