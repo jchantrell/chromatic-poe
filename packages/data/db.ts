@@ -279,11 +279,7 @@ export class DbRepo {
         file,
        ${extraFields}
         value,
-        (CASE
-          WHEN sub_category = 'Trinkets'
-          THEN 'Static'
-          ELSE 'Gear'
-        END) as pool,
+        'Dynamic' as pool,
         (CASE
           WHEN major_category = 'One Handed Weapons'
           THEN 'One Handed'
@@ -296,7 +292,7 @@ export class DbRepo {
           WHEN sub_category = 'Tinctures'
           THEN 'Flasks'
           WHEN sub_category = 'Trinkets'
-          THEN 'Heist Items'
+          THEN 'Heist'
           ELSE major_category
         END) as major_category,
         (CASE
@@ -323,12 +319,18 @@ export class DbRepo {
         file,
        ${extraFields}
         value,
-        'Static' as pool,
+       (CASE
+          WHEN sub_category = 'Heist Items'
+          THEN 'Dynamic'
+          ELSE 'Static'
+        END) as pool,
        (CASE
           WHEN sub_category = 'Memories'
           THEN 'Fragments'
           WHEN sub_category = 'Corpse'
           THEN 'Corpses'
+          WHEN sub_category = 'Heist Items'
+          THEN 'Heist'
           ELSE sub_category
         END) as major_category,
        (CASE
@@ -443,7 +445,7 @@ export class DbRepo {
         file,
        ${extraFields}
         value,
-        'Gear' as pool,
+        'Dynamic' as pool,
         'Jewels' as major_category,
         'Abyss' as sub_category
         FROM ENTRIES
@@ -456,7 +458,7 @@ export class DbRepo {
         file,
        ${extraFields}
         value,
-        'Gear' as pool,
+        'Dynamic' as pool,
         'Jewels' as major_category,
         'Clusters' as sub_category
         FROM ENTRIES
@@ -470,7 +472,7 @@ export class DbRepo {
         file,
        ${extraFields}
         value,
-        'Gear' as pool,
+        'Dynamic' as pool,
         'Jewels' as major_category,
         'Common' as sub_category
         FROM ENTRIES
@@ -583,6 +585,22 @@ export class DbRepo {
           ELSE exchange_category
         END) as major_category,
         (CASE
+          WHEN base like 'Deafening Essence%'
+          THEN 'Defeaning'
+          WHEN base like 'Shrieking Essence%'
+          THEN 'Shrieking'
+          WHEN base like 'Screaming Essence%'
+          THEN 'Screaming'
+          WHEN base like 'Wailing Essence%'
+          THEN 'Wailing'
+          WHEN base like 'Weeping Essence%'
+          THEN 'Weeping'
+          WHEN base like 'Muttering Essence%'
+          THEN 'Muttering'
+          WHEN base like 'Whispering Essence%'
+          THEN 'Whispering'
+          WHEN exchange_sub_category = 'Special Essences'
+          THEN 'Special'
           WHEN exchange_sub_category = 'Delirium'
           THEN 'Fragments'
           WHEN exchange_sub_category = 'Delirium Orbs'
