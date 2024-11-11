@@ -112,7 +112,7 @@ export function serializeActions(actions: Action) {
   if (actions.background) {
     strs.push(setBackgroundColor(actions.background));
   }
-  if (actions.icon) {
+  if (actions.icon?.enabled) {
     strs.push(
       minimapIcon(actions.icon.size, actions.icon.color, actions.icon.shape),
     );
@@ -123,23 +123,23 @@ export function serializeActions(actions: Action) {
   if (actions.sound) {
     strs.push(customAlertSound(actions.sound, false));
   }
-  if (actions.beam) {
+  if (actions.beam?.enabled) {
     strs.push(playEffect(actions.beam.color, actions.beam.temp));
   }
 
   return strs;
 }
 
-export const colors = [
-  { name: Color.Red, hex: "#f80c1e" },
-  { name: Color.Brown, hex: "#8d1801" },
-  { name: Color.Orange, hex: "#e97000" },
-  { name: Color.Yellow, hex: "#be9a30" },
-  { name: Color.Green, hex: "#1e9912" },
-  { name: Color.Cyan, hex: "#0ca1b9" },
-  { name: Color.Blue, hex: "#114dab" },
-  { name: Color.Purple, hex: "#5d0f8c" },
-  { name: Color.Pink, hex: "#dc62cb" },
-  { name: Color.Grey, hex: "#1d1d1d" },
-  { name: Color.White, hex: "#a8babd" },
-];
+export const colors = {
+  [Color.Red]: "#f80c1e",
+  [Color.Brown]: "#8d1801",
+  [Color.Orange]: "#e97000",
+  [Color.Yellow]: "#be9a30",
+  [Color.Green]: "#1e9912",
+  [Color.Cyan]: "#0ca1b9",
+  [Color.Blue]: "#114dab",
+  [Color.Purple]: "#5d0f8c",
+  [Color.Pink]: "#dc62cb",
+  [Color.Grey]: "#1d1d1d",
+  [Color.White]: "#a8babd",
+};

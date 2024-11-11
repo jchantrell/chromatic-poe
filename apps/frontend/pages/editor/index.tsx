@@ -34,6 +34,7 @@ import MapIconPicker from "@app/pages/editor/components/map-icon-picker";
 import ColorPicker from "@app/pages/editor/components/color-picker";
 import { Checkbox } from "@pkgs/ui/checkbox";
 import { Label } from "@pkgs/ui/label";
+import BeamPicker from "./components/beam-picker";
 
 interface DraggableItem extends Draggable {
   id: string;
@@ -47,6 +48,7 @@ interface DroppableContainer extends Droppable {
 function RuleEditor() {
   if (!store.activeRule) return <></>;
   const [mapIconActive, setMapIconActive] = createSignal(false);
+  const [beamActive, setBeamActive] = createSignal(false);
 
   function handleMapIcon(enabled: boolean) {
     if (store.activeRule?.actions.icon) {
@@ -62,8 +64,25 @@ function RuleEditor() {
     }
   }
 
+  function handleBeam(enabled: boolean) {
+    if (store.activeRule?.actions.beam) {
+      store.activeRule.actions.beam.enabled = enabled;
+    }
+    if (store.activeRule && !store.activeRule?.actions.beam && enabled) {
+      store.activeRule.actions.beam = {
+        temp: false,
+        color: Color.Red,
+        enabled: true,
+      };
+    }
+  }
+
   createEffect(() => {
     setMapIconActive(store.activeRule?.actions.icon?.enabled || false);
+  });
+
+  createEffect(() => {
+    setBeamActive(store.activeRule?.actions.beam?.enabled || false);
   });
 
   return (
@@ -78,32 +97,31 @@ function RuleEditor() {
       >
         <MapIconPicker />
         <div class='text-center'>{store.activeRule.name}</div>
-        <div
-          style={{
-            height: "calc(64px / 1.5)",
-            width: "calc(64px / 1.5)",
-          }}
-        />
+        <BeamPicker />
       </div>
-      <div class='w-full grid sm:grid-flow-col gap-1.5 justify-center items-center mt-2'>
-        <ColorPicker label='Text' key='text' />
-        <ColorPicker label='Border' key='border' />
-        <ColorPicker label='Background' key='background' />
-        <div class='flex text-nowrap'>
-          <Checkbox
-            id='icon'
-            onChange={handleMapIcon}
-            checked={mapIconActive()}
-          />
-          <Label class='ml-1' for='icon'>
-            Map Icon
-          </Label>
+      <div class='w-full flex-col flex gap-1.5 justify-center items-center mt-2'>
+        <div class='flex gap-1.5'>
+          <ColorPicker label='Text' key='text' />
+          <ColorPicker label='Border' key='border' />
+          <ColorPicker label='Background' key='background' />
         </div>
-        <div class='flex text-nowrap'>
-          <Checkbox id='beam' />
-          <Label class='ml-1' for='beam'>
-            Beam
-          </Label>
+        <div class='flex gap-1.5'>
+          <div class='flex text-nowrap'>
+            <Checkbox
+              id='icon'
+              onChange={handleMapIcon}
+              checked={mapIconActive()}
+            />
+            <Label class='ml-1' for='icon'>
+              Map Icon
+            </Label>
+          </div>
+          <div class='flex text-nowrap'>
+            <Checkbox id='beam' onChange={handleBeam} checked={beamActive()} />
+            <Label class='ml-1' for='beam'>
+              Beam
+            </Label>
+          </div>
         </div>
       </div>
     </div>

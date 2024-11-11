@@ -11,9 +11,9 @@
     "build:linux": "tauri build",
     "tauri": "tauri",
     "gamefiles": "pushd packages/data; pathofexile-dat; mv files/*.png ../assets/spritesheets; popd",
+    "db": "npx tsx packages/data/db.ts",
     "sprites": "pushd packages/data; npx tsx sprite.ts; popd",
-    "images": "npx tsx packages/data/image.ts",
-    "db": "npx tsx packages/data/db.ts"
+    "images": "npx tsx packages/data/image.ts"
   },
   "license": "MIT",
   "dependencies": {

@@ -31,17 +31,23 @@ export function MinimapIcon(props: {
 function MapIconPicker() {
   const [open, setOpen] = createSignal(false);
   const [scale, setScale] = createSignal(0);
-  const [size, setSize] = createSignal<IconSize>(IconSize.Small);
-  const [shape, setShape] = createSignal<Shape>(Shape.Circle);
-  const [color, setColor] = createSignal<Color>(Color.Blue);
+  const [size, setSize] = createSignal<IconSize>(
+    store.activeRule?.actions.icon?.size || IconSize.Small,
+  );
+  const [shape, setShape] = createSignal<Shape>(
+    store.activeRule?.actions.icon?.shape || Shape.Circle,
+  );
+  const [color, setColor] = createSignal<Color>(
+    store.activeRule?.actions.icon?.color || Color.Blue,
+  );
 
   const previewScale = 1.5;
 
   onMount(() => {
     window.addEventListener("resize", () => {
-      setScale(window.devicePixelRatio * 1.5);
+      setScale(window.devicePixelRatio * previewScale);
     });
-    setScale(window.devicePixelRatio * 1.5);
+    setScale(window.devicePixelRatio * previewScale);
   });
 
   createEffect(
@@ -128,15 +134,15 @@ function MapIconPicker() {
                 </For>
               </RadioGroup>
               <div class='grid gap-1 size-full mt-2'>
-                <For each={colors}>
+                <For each={Object.entries(colors)}>
                   {(color) => {
                     return (
                       <button
-                        class='h-full rounded-lg border border-accent'
+                        class='w-full rounded-lg border border-accent'
                         type='button'
-                        style={{ background: color.hex }}
+                        style={{ background: color[1] }}
                         onClick={() => {
-                          setColor(color.name);
+                          setColor(color[0] as Color);
                         }}
                       />
                     );
