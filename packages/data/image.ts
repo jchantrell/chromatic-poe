@@ -1,10 +1,10 @@
 import sharp from "sharp";
 import fs from "node:fs";
+import { SingleBar, Presets } from "cli-progress";
 
 const FLASK_IMG_HEIGHT = 156;
 const GEM_IMG_HEIGHT = 78;
 const BATCH_AMOUNT = 20;
-const IMAGE_DIR = "./packages/assets/images";
 
 async function fixIcon(buffer: Buffer, height: number): Promise<Buffer> {
   const img = sharp(buffer);
@@ -22,7 +22,7 @@ async function fixIcon(buffer: Buffer, height: number): Promise<Buffer> {
   return three.composite([{ input: two }, { input: one }]).toBuffer();
 }
 
-async function saveImage(baseUrl: string, fileName: string) {
+async function saveImage(baseUrl: string, directory: string, fileName: string) {
   const request = await fetch(`${baseUrl}/${fileName}`);
   const arrayBuffer = await request.arrayBuffer();
   let buffer = Buffer.from(arrayBuffer);
@@ -39,33 +39,33 @@ async function saveImage(baseUrl: string, fileName: string) {
   }
 
   return fs.writeFileSync(
-    `${IMAGE_DIR}/${fileName.replaceAll("/", "@")}`,
+    `${directory}/${fileName.replaceAll("/", "@")}`,
     buffer,
   );
 }
 
-async function main() {
-  const startTime = performance.now();
-  const baseUrl = "https://web.poecdn.com/image";
-  const entries = JSON.parse(
-    fs.readFileSync("./packages/data/raw.json", "utf8"),
-  );
+export async function extractImages(
+  records: { file: string }[],
+  directory: string,
+) {
+  const baseUrl = `https://web.poecdn.com/image`;
+  console.log(`Extracting images for ${records.length} records...`);
+  const progressBar = new SingleBar({}, Presets.shades_classic);
+  progressBar.start(records.length, 0);
 
-  for (let i = 0; i < entries.length; i += BATCH_AMOUNT) {
+  for (let i = 0; i < records.length; i += BATCH_AMOUNT) {
     const promises = [];
     for (let j = i; j < BATCH_AMOUNT + i; j++) {
-      const batch = entries.slice(j, BATCH_AMOUNT + i);
+      progressBar.update(j);
+      const batch = records.slice(j, BATCH_AMOUNT + i);
       for (const entry of batch) {
-        if (entry.file) {
+        if (entry.file && entry.file !== "") {
           const fileName = `${entry.file.replace(".dds", ".png")}`;
-          promises.push(saveImage(baseUrl, fileName));
+          promises.push(saveImage(baseUrl, directory, fileName));
         }
       }
       await Promise.all(promises);
     }
   }
-  const endTime = performance.now();
-  console.log(`Finished in ${Math.abs(endTime - startTime) / 1000}`);
+  progressBar.stop();
 }
-
-main();

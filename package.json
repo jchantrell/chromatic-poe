@@ -10,10 +10,7 @@
     "build:windows": "tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc",
     "build:linux": "tauri build",
     "tauri": "tauri",
-    "gamefiles": "pushd packages/data; pathofexile-dat; mv files/*.png ../assets/spritesheets; popd",
-    "db": "npx tsx packages/data/db.ts",
-    "sprites": "pushd packages/data; npx tsx sprite.ts; popd",
-    "images": "npx tsx packages/data/image.ts"
+    "dat": "npx tsx packages/data/dat.ts"
   },
   "license": "MIT",
   "dependencies": {
@@ -29,13 +26,14 @@
     "@thisbeyond/solid-dnd": "^0.7.5",
     "better-sqlite3": "^11.5.0",
     "class-variance-authority": "^0.7.0",
+    "cli-progress": "^3.12.0",
     "clsx": "^2.1.1",
     "cmdk-solid": "^1.1.0",
     "d3": "^7.9.0",
     "fast-json-patch": "^3.1.1",
     "lodash-es": "^4.17.21",
     "microdiff": "^1.4.0",
-    "pathofexile-dat": "^9.1.0",
+    "pathofexile-dat": "^11.0.1",
     "sharp": "^0.33.5",
     "solid-js": "^1.9.3",
     "solid-sonner": "^0.2.8",
@@ -45,8 +43,8 @@
     "ulid": "^2.3.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
     "@tauri-apps/cli": "^2.0.4",
+    "@types/cli-progress": "^3.11.6",
     "@types/d3": "^7.4.3",
     "@types/node": "^20.17.6",
     "@types/wicg-file-system-access": "^2023.10.5",
@@ -60,5 +58,6 @@
     "vite": "^5.4.10",
     "vite-plugin-solid": "^2.10.2",
     "vitest": "^2.1.4"
-  }
+  },
+  "packageManager": "pnpm@9.12.3+sha512.cce0f9de9c5a7c95bef944169cc5dfe8741abfb145078c0d508b868056848a87c81e626246cb60967cbd7fd29a6c062ef73ff840d96b3c86c40ac92cf4a813ee"
 }

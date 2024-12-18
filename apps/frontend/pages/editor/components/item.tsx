@@ -6,9 +6,9 @@ import {
   ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@pkgs/ui/context-menu";
+import { store } from "@app/store";
 import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
 import { getIcon, setEntryActive, type FilterItem } from "@app/lib/filter";
-import { store } from "@app/store";
 import { createEffect, createSignal, type Setter } from "solid-js";
 
 export function ItemVisual(props: { item: FilterItem; class?: string }) {
@@ -16,10 +16,9 @@ export function ItemVisual(props: { item: FilterItem; class?: string }) {
     <div
       class={`p-1 px-2 ${props.item.enabled ? "text-primary" : "text-accent"} cursor-pointer border items-center flex select-none ${props.class}`}
       onMouseDown={(e) => {
-        if (e.button === 0 && e.shiftKey) {
-          store.filter?.execute(
-            setEntryActive(props.item, !props.item.enabled),
-          );
+        e.stopPropagation();
+        if (e.button === 0 && e.shiftKey && store.filter) {
+          setEntryActive(store.filter, props.item, !props.item.enabled);
         }
       }}
     >
@@ -43,6 +42,12 @@ function Item(props: {
   const sortable = createSortable(props.item.id, props.item);
 
   const [_, { onDragMove }] = useDragDropContext();
+
+  function handleActive() {
+    if (store.filter) {
+      setEntryActive(store.filter, props.item, !props.item.enabled);
+    }
+  }
 
   createEffect(() => {
     setIcon(getIcon(props.item));
@@ -70,13 +75,7 @@ function Item(props: {
         </ContextMenuTrigger>
         <ContextMenuPortal>
           <ContextMenuContent class='w-48'>
-            <ContextMenuItem
-              onMouseDown={() =>
-                store.filter?.execute(
-                  setEntryActive(props.item, !props.item.enabled),
-                )
-              }
-            >
+            <ContextMenuItem onMouseDown={handleActive}>
               <span>{props.item.enabled ? "Disable" : "Enable"}</span>
               <ContextMenuShortcut>⇧+LClick</ContextMenuShortcut>
             </ContextMenuItem>

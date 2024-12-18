@@ -136,3 +136,23 @@ export const withRetries = async <
 export const integerBetween = (max: number, min: number): number => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
+
+export function recursivelySetKeys(
+  object: Record<string, any>,
+  path: (string | null)[],
+  value: object,
+) {
+  let schema = object;
+  for (let i = 0; i < path.length - 1; i++) {
+    const entry = path[i];
+    if (!entry) {
+      continue;
+    }
+    const sameKey = path[i - 1] && entry === path[i - 1];
+    if (!schema[entry] && !sameKey) {
+      schema[entry] = {};
+    }
+    schema = sameKey ? schema : schema[entry];
+  }
+  schema[path[path.length - 1] as string] = value;
+}

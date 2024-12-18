@@ -10,6 +10,7 @@ import {
 import { Collapsible, CollapsibleContent } from "@pkgs/ui/collapsible";
 import {
   addParentRefs,
+  deleteRule,
   getIcon,
   setEntryActive,
   type FilterRule,
@@ -25,6 +26,7 @@ import {
   useDragDropContext,
 } from "@thisbeyond/solid-dnd";
 import { MinimapIcon } from "./map-icon-picker";
+import CreateRule from "./create-rule";
 
 function Rule(props: {
   rule: FilterRule;
@@ -41,11 +43,27 @@ function Rule(props: {
   let previewRef: HTMLDivElement | null = null;
 
   function onMouseDown(e: MouseEvent) {
+    e.stopPropagation();
     if (e.button === 0 && !e.shiftKey) {
+      console.log(e);
       store.activeRule = props.rule;
+      console.log(store.activeRule, props.rule);
     }
     if (e.button === 0 && e.shiftKey) {
-      store.filter?.execute(setEntryActive(props.rule, !props.rule.enabled));
+      handleActive();
+    }
+  }
+
+  function handleActive() {
+    if (store.filter) {
+      setEntryActive(store.filter, props.rule, !props.rule.enabled);
+    }
+  }
+
+  function handleDelete(e: MouseEvent) {
+    e.stopPropagation();
+    if (store.filter) {
+      deleteRule(store.filter, props.rule);
     }
   }
 
@@ -108,6 +126,7 @@ function Rule(props: {
       onOpenChange={(open) => setExpanded(open)}
       open={expanded()}
       ref={droppableTitle.ref}
+      class='w-full'
     >
       <ContextMenu>
         <ContextMenuTrigger>
@@ -124,8 +143,8 @@ function Rule(props: {
               <figure class='max-w-lg shrink-0'>
                 <img
                   class='mr-1 h-8 max-w-full pointer-events-none'
-                  alt={`${props.rule.name} icon`}
-                  src={icon()}
+                  alt={`${props.rule.name}`}
+                  src={icon() || "/images/Art@2DItems@Maps@VenariusFoil.png"} // FIXME placeholder image
                 />
               </figure>
               <div class='pointer-events-none text-xl p-1'>
@@ -135,30 +154,34 @@ function Rule(props: {
             <div
               class={`flex h-full items-center justify-end ${previewWidth() > 520 ? "w-full" : ""}`}
             >
-              <div
-                class={`h-6 px-3 max-w-[300px] items-center justify-center border border-1 mr-1 ${previewWidth() > 520 ? "flex" : "hidden"}`}
-                style={{
-                  color: `rgba(${props.rule.actions.text.r}, ${props.rule.actions.text.g}, ${props.rule.actions.text.b}, ${props.rule.actions.text.a})`,
-                  "border-color": `rgba(${props.rule.actions.border.r}, ${props.rule.actions.border.g}, ${props.rule.actions.border.b}, ${props.rule.actions.border.a})`,
-                  "background-color": `rgba(${props.rule.actions.background.r}, ${props.rule.actions.background.g}, ${props.rule.actions.background.b}, ${props.rule.actions.background.a})`,
-                }}
-              >
-                {props.rule.actions.icon?.enabled ? (
-                  <MinimapIcon
-                    scale={3}
-                    size={props.rule.actions.icon.size}
-                    shape={props.rule.actions.icon.shape}
-                    color={props.rule.actions.icon?.color}
-                  />
-                ) : (
-                  ""
-                )}
-                {
-                  props.rule.children.reduce((a, b) => {
-                    return a.name.length <= b.name.length ? a : b;
-                  }).name
-                }
-              </div>
+              {props.rule.children.some((e) => e.type === "item") ? (
+                <div
+                  class={`h-6 px-3 max-w-[300px] items-center justify-center border border-1 mr-1 ${previewWidth() > 520 ? "flex" : "hidden"}`}
+                  style={{
+                    color: `rgba(${props.rule.actions.text.r}, ${props.rule.actions.text.g}, ${props.rule.actions.text.b}, ${props.rule.actions.text.a})`,
+                    "border-color": `rgba(${props.rule.actions.border.r}, ${props.rule.actions.border.g}, ${props.rule.actions.border.b}, ${props.rule.actions.border.a})`,
+                    "background-color": `rgba(${props.rule.actions.background.r}, ${props.rule.actions.background.g}, ${props.rule.actions.background.b}, ${props.rule.actions.background.a})`,
+                  }}
+                >
+                  {props.rule.actions.icon?.enabled ? (
+                    <MinimapIcon
+                      scale={3}
+                      size={props.rule.actions.icon.size}
+                      shape={props.rule.actions.icon.shape}
+                      color={props.rule.actions.icon?.color}
+                    />
+                  ) : (
+                    ""
+                  )}
+                  {props.rule.children.length
+                    ? props.rule.children.reduce((a, b) => {
+                        return a.name.length <= b.name.length ? a : b;
+                      }).name
+                    : "Item"}
+                </div>
+              ) : (
+                <></>
+              )}
               <div
                 class='hover:bg-muted flex items-center h-full p-1'
                 onMouseDown={(e: MouseEvent) => {
@@ -175,18 +198,15 @@ function Rule(props: {
         </ContextMenuTrigger>
         <ContextMenuPortal>
           <ContextMenuContent class='w-48'>
-            <ContextMenuItem
-              onMouseDown={() =>
-                store.filter?.execute(
-                  setEntryActive(props.rule, !props.rule.enabled),
-                )
-              }
-            >
+            <ContextMenuItem onMouseDown={handleActive}>
               <span>{props.rule.enabled ? "Disable" : "Enable"}</span>
               <ContextMenuShortcut>⇧+LClick</ContextMenuShortcut>
             </ContextMenuItem>
             <ContextMenuItem>
               <span>Copy</span>
+            </ContextMenuItem>
+            <ContextMenuItem onMouseDown={handleDelete}>
+              <span>Delete</span>
             </ContextMenuItem>
           </ContextMenuContent>
         </ContextMenuPortal>
@@ -202,11 +222,25 @@ function Rule(props: {
         >
           <SortableProvider ids={props.rule.children.map((e) => e.id)}>
             <For each={props.rule.children}>
-              {(item) => {
-                return <Item item={item} setHovered={setHovered} />;
+              {(entry) => {
+                switch (entry.type) {
+                  case "rule":
+                    return <Rule rule={entry} />;
+                  case "item":
+                    return <Item item={entry} setHovered={setHovered} />;
+                }
               }}
             </For>
           </SortableProvider>
+          {!props.rule.children.some((entry) => entry.type === "item") ? (
+            <CreateRule parent={props.rule} />
+          ) : (
+            <button
+              class={`border w-10 p-2 text-center cursor-pointer hover:border-accent border-muted`}
+            >
+              +
+            </button>
+          )}
         </ul>
       </CollapsibleContent>
     </Collapsible>

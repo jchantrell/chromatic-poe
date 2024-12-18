@@ -6,10 +6,10 @@ test("setEntryActive", async () => {
   const entry = filter.rules.children[1].children[2];
   expect(entry.enabled).toBe(true);
   expect(entry.children[0].enabled).toBe(true);
-  filter.execute(setEntryActive(entry, false));
+  setEntryActive(filter, entry, false);
   expect(entry.enabled).toBe(false);
   expect(entry.children[0].enabled).toBe(false);
-  filter.execute(setEntryActive(entry, true));
+  setEntryActive(filter, entry, true);
   expect(entry.enabled).toBe(true);
   expect(entry.children[0].enabled).toBe(true);
 });
@@ -24,19 +24,19 @@ test("undo & redo", async () => {
   expect(filter.undoStack.length).toBe(0);
 
   // 2nd state
-  filter.execute(setEntryActive(entry, false));
+  setEntryActive(filter, entry, false);
   expect(entry.enabled).toBe(false);
   expect(entry.children[0].enabled).toBe(false);
   expect(filter.undoStack.length).toBe(1);
 
   // 3rd state
-  filter.execute(setEntryActive(entry, true));
+  setEntryActive(filter, entry, true);
   expect(entry.enabled).toBe(true);
   expect(entry.children[0].enabled).toBe(true);
   expect(filter.undoStack.length).toBe(2);
 
   // 4th state
-  filter.execute(setEntryActive(entry, false));
+  setEntryActive(filter, entry, false);
   expect(entry.enabled).toBe(false);
   expect(entry.children[0].enabled).toBe(false);
   expect(filter.undoStack.length).toBe(3);

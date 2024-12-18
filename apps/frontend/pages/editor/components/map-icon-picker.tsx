@@ -1,13 +1,22 @@
 import { createEffect, createSignal, on, onMount } from "solid-js";
 import { For } from "solid-js";
 import { store } from "@app/store";
-import { Color, colors, IconSize, Shape } from "@app/lib/filter";
+import {
+  Color,
+  colors,
+  IconSize,
+  setMapIconColor,
+  setMapIconShape,
+  setMapIconSize,
+  Shape,
+} from "@app/lib/filter";
 import { Popover, PopoverContent, PopoverTrigger } from "@pkgs/ui/popover";
 import minimapIcons from "@pkgs/assets/minimap.json";
 import { RadioGroup, RadioGroupItem } from "@pkgs/ui/radio-group";
 
 const SHEET_WIDTH = 896;
 const SHEET_HEIGHT = 3072;
+const PREVIEW_SCALE = 1.5; // magic number
 
 export function MinimapIcon(props: {
   size: IconSize;
@@ -38,45 +47,45 @@ function MapIconPicker() {
     store.activeRule?.actions.icon?.shape || Shape.Circle,
   );
   const [color, setColor] = createSignal<Color>(
-    store.activeRule?.actions.icon?.color || Color.Blue,
+    store.activeRule?.actions.icon?.color || Color.Red,
   );
-
-  const previewScale = 1.5;
 
   onMount(() => {
     window.addEventListener("resize", () => {
-      setScale(window.devicePixelRatio * previewScale);
+      setScale(window.devicePixelRatio * PREVIEW_SCALE);
     });
-    setScale(window.devicePixelRatio * previewScale);
+    setScale(window.devicePixelRatio * PREVIEW_SCALE);
   });
 
   createEffect(
+    on(open, () => {
+      setSize(store.activeRule?.actions.icon?.size || IconSize.Small);
+      setShape(store.activeRule?.actions.icon?.shape || Shape.Circle);
+      setColor(store.activeRule?.actions.icon?.color || Color.Blue);
+    }),
+  );
+
+  createEffect(
     on(size, () => {
-      if (store.activeRule?.actions.icon) {
-        store.activeRule.actions.icon.size = size();
+      if (store.filter && store.activeRule?.actions.icon) {
+        setMapIconSize(store.filter, store.activeRule, size());
       }
     }),
   );
   createEffect(
     on(color, () => {
-      if (store.activeRule?.actions.icon) {
-        store.activeRule.actions.icon.color = color();
+      if (store.filter && store.activeRule?.actions.icon) {
+        setMapIconColor(store.filter, store.activeRule, color());
       }
     }),
   );
   createEffect(
     on(shape, () => {
-      if (store.activeRule?.actions.icon) {
-        store.activeRule.actions.icon.shape = shape();
+      if (store.filter && store.activeRule?.actions.icon) {
+        setMapIconShape(store.filter, store.activeRule, shape());
       }
     }),
   );
-
-  createEffect(() => {
-    if (store.activeRule?.actions.icon) {
-      setSize(store.activeRule.actions.icon?.size);
-    }
-  });
 
   return (
     <div class='w-fit flex items-center flex-col'>
@@ -85,14 +94,14 @@ function MapIconPicker() {
           <div
             class='flex items-center justify-center'
             style={{
-              height: `calc(64px / ${previewScale})`,
-              width: `calc(64px / ${previewScale})`,
+              height: `calc(64px / ${PREVIEW_SCALE})`,
+              width: `calc(64px / ${PREVIEW_SCALE})`,
             }}
           >
             {store.activeRule?.actions.icon?.enabled ? (
               <PopoverTrigger>
                 <MinimapIcon
-                  scale={previewScale}
+                  scale={PREVIEW_SCALE}
                   size={store.activeRule.actions.icon.size}
                   shape={store.activeRule.actions.icon.shape}
                   color={store.activeRule.actions.icon?.color}

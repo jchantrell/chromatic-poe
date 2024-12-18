@@ -62,7 +62,7 @@ jobs:
           workspaces: './src-tauri -> target'
 
       - name: Extract and migrate game files
-        run: ./ci/extract.sh
+        run: ./ci/setup.sh
 
       - uses: tauri-apps/tauri-action@v0
         env:

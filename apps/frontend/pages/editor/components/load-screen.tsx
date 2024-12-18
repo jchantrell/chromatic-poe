@@ -60,7 +60,14 @@ export function CreateFilter() {
       >
         Create New Filter
       </DialogTrigger>
-      <DialogContent class='sm:max-w-[400px] p-4 bg-primary-foreground select-none'>
+      <DialogContent
+        class='sm:max-w-[400px] p-4 bg-primary-foreground select-none'
+        onKeyDown={(e: KeyboardEvent) => {
+          if (e.key === "Enter") {
+            createFilter();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Create Filter</DialogTitle>
         </DialogHeader>

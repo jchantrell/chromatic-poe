@@ -1,7 +1,7 @@
 import { createEffect, createSignal, on } from "solid-js";
 import { For } from "solid-js";
 import { store } from "@app/store";
-import { Color, colors } from "@app/lib/filter";
+import { Color, colors, setBeamColor, setBeamTemp } from "@app/lib/filter";
 import { Popover, PopoverContent, PopoverTrigger } from "@pkgs/ui/popover";
 import { Checkbox } from "@pkgs/ui/checkbox";
 import { Label } from "@pkgs/ui/label";
@@ -15,16 +15,16 @@ function BeamPicker() {
 
   createEffect(
     on(color, () => {
-      if (store.activeRule?.actions.beam) {
-        store.activeRule.actions.beam.color = color();
+      if (store.filter && store.activeRule?.actions.beam) {
+        setBeamColor(store.filter, store.activeRule, color());
       }
     }),
   );
 
   createEffect(
     on(temp, () => {
-      if (store.activeRule?.actions.beam) {
-        store.activeRule.actions.beam.temp = temp();
+      if (store.filter && store.activeRule?.actions.beam) {
+        setBeamTemp(store.filter, store.activeRule, temp());
       }
     }),
   );

@@ -8,7 +8,6 @@ function visualise(
   parentWidth: number,
   parentHeight: number,
 ) {
-  console.log(data);
   const root = hierarchy(data, (d) => {
     if (d.type === "item") return d;
     return d.children.filter((entry) => entry.enabled);
@@ -116,6 +115,7 @@ function visualise(
     .call(zoomer);
 
   function handleZoom({ transform }) {
+    console.log("click")
     g.attr("transform", transform);
   }
 
@@ -126,8 +126,8 @@ function Visualiser() {
   const [ref, setRef] = createSignal<HTMLDivElement>();
   return (
     <div ref={setRef} class='h-full w-full overflow-hidden'>
-      {store.view?.children.length ? (
-        visualise(store.view, ref()?.clientWidth, ref()?.clientHeight)
+      {store.filter?.rules.children.length ? (
+        visualise(store.filter.rules, ref()?.clientWidth, ref()?.clientHeight)
       ) : (
         <></>
       )}

@@ -49,7 +49,7 @@
   }
 
   .dark,
-  [data-kb-theme="dark"] {
+  [data-kb-theme='dark'] {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
 
@@ -105,8 +105,21 @@
   body {
     @apply bg-secondary text-foreground select-none h-full;
     font-feature-settings:
-      "rlig" 1,
-      "calt" 1;
+      'rlig' 1,
+      'calt' 1;
+  }
+
+  *::-webkit-scrollbar {
+    width: 0.5em;
+  }
+
+  *::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0);
+  }
+
+  *::-webkit-scrollbar-thumb {
+    border-radius: 20px;
+    background-color: hsl(var(--accent));
   }
 }
 

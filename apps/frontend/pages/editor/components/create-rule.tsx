@@ -8,56 +8,68 @@ import {
   DialogTrigger,
 } from "@pkgs/ui/dialog";
 import { TextField, TextFieldInput, TextFieldLabel } from "@pkgs/ui/text-field";
-import { store } from "@app/store";
 import { toast } from "solid-sonner";
-import type { FilterRule } from "@app/lib/filter";
+import { createRule, type FilterRule } from "@app/lib/filter";
 import { ulid } from "ulid";
+import { store } from "@app/store";
+import { clone } from "@pkgs/lib/utils";
 
-function CreateRule() {
+function CreateRule(props: { parent?: FilterRule }) {
   const [name, setName] = createSignal("");
   const [dialogOpen, setDialogOpen] = createSignal(false);
 
-  async function createRule() {
+  async function handleCreate() {
+    if (!store.filter) {
+      return;
+    }
     if (name() === "") {
       return toast("Enter a name for the rule.");
     }
-    if (store.activeView.children.some((e) => e.name === name())) {
+    if (
+      props.parent.children.some((e) => e.name === name() && e.type === "rule")
+    ) {
       return toast(`Rule with name ${name()} already exists.`);
     }
 
-    if (!store.activeView || store.activeView.type !== "category") {
-      return toast(
-        "Current filter view is not a category, cannot create rule.",
-      );
-    }
-
-    if (store.activeView && store.activeView.type === "category") {
-      const rule: FilterRule = {
-        id: ulid(),
-        name: name(),
-        enabled: true,
-        parent: store.activeView,
-        type: "rule",
-        children: [],
-        conditions: [],
-        actions: [],
-      };
-      store.activeView.children.push(rule);
-    }
-
+    const rule: FilterRule = {
+      id: ulid(),
+      name: name(),
+      icon: null,
+      enabled: true,
+      parent: props.parent,
+      type: "rule",
+      children: [],
+      conditions: [],
+      actions: props.parent
+        ? clone(props.parent.actions)
+        : {
+            text: { r: 255, g: 255, b: 255, a: 1 },
+            border: { r: 255, g: 255, b: 255, a: 1 },
+            background: { r: 19, g: 14, b: 6, a: 1 },
+          },
+    };
+    createRule(store.filter, rule, props.parent);
     setDialogOpen(false);
+    setName("");
   }
 
   return (
     <Dialog open={dialogOpen()} onOpenChange={setDialogOpen}>
       <DialogTrigger
         class={
-          "p-2 pl-3 border text-xl text-primary border-accent hover:border-primary select-none"
+          "p-1 pl-3 border w-full text-primary bg-secondary border-accent hover:border-primary select-none"
         }
       >
-        Create New Rule
+        New Rule
       </DialogTrigger>
-      <DialogContent class='sm:max-w-[400px] p-4 bg-primary-foreground select-none'>
+      <DialogContent
+        class='sm:max-w-[400px] p-4 bg-primary-foreground select-none'
+        onKeyDown={(e: KeyboardEvent) => {
+          if (e.key === "Enter") {
+            handleCreate();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>New Rule</DialogTitle>
         </DialogHeader>
@@ -73,7 +85,7 @@ function CreateRule() {
           <Button
             class='text-center cursor-pointer grid  max-w-sm rounded-lg items-center border p-0'
             type='submit'
-            onClick={createRule}
+            onClick={handleCreate}
           >
             Create
           </Button>

@@ -52,7 +52,7 @@ function App() {
       <ColorModeScript storageType={storageManager.type} />
       <ColorModeProvider storageManager={storageManager}>
         <div
-          class='h-screen flex flex-row overflow-hidden select-none'
+          class='h-screen flex flex-row overflow-hidden'
           ref={ref}
         >
           <nav

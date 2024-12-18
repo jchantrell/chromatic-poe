@@ -1,6 +1,5 @@
 {
-  "patch": "3.25.1.3",
-  "files": ["Art/2DArt/Minimap/Player.png"],
+  "patch": "4.1.0.8",
   "translations": ["English"],
   "tables": [
     {
@@ -45,14 +44,7 @@
     { "name": "ItemVisualIdentity", "columns": ["Id", "DDSFile", "AOFile"] },
     {
       "name": "UniqueStashTypes",
-      "columns": [
-        "Id",
-        "Name",
-        "Image",
-        "StandardCount",
-        "ChallengeLeagueCount",
-        "IsDisabled"
-      ]
+      "columns": ["Id", "Name", "Image", "StandardCount", "ChallengeLeagueCount", "IsDisabled"]
     },
     {
       "name": "UniqueStashLayout",
@@ -64,10 +56,6 @@
         "ShowIfEmptyStandard",
         "IsAlternateArt"
       ]
-    },
-    {
-      "name": "VillageUniqueDisenchantValues",
-      "columns": ["UniqueName", "Value"]
     },
     {
       "name": "TradeMarketCategory",
@@ -100,25 +88,7 @@
         "EvasionMin",
         "EvasionMax",
         "EnergyShieldMin",
-        "EnergyShieldMax",
-        "WardMin",
-        "WardMax"
-      ]
-    },
-    { "name": "ModType", "columns": ["Name"] },
-    { "name": "ModFamily", "columns": ["Id"] },
-    {
-      "name": "Mods",
-      "columns": [
-        "Id",
-        "Domain",
-        "ModTypeKey",
-        "Level",
-        "Name",
-        "GenerationType",
-        "Families",
-        "SpawnWeight_TagsKeys",
-        "SpawnWeight_Values"
+        "EnergyShieldMax"
       ]
     }
   ]

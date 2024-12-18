@@ -1,5 +1,5 @@
 import { clone, stringifyJSON } from "@pkgs/lib/utils";
-import data from "@pkgs/data/raw.json";
+import data from "@pkgs/data/raw-items.json";
 import chromatic from "@app/lib/config";
 import { addFilter } from "@app/store";
 import { ulid } from "ulid";
@@ -41,13 +41,9 @@ type RawData = {
   wardMax: number | null;
 };
 
-export type ItemHierarchy =
-  | FilterRoot
-  | FilterCategory
-  | FilterRule
-  | FilterItem;
+export type ItemHierarchy = FilterRoot | FilterRule | FilterItem;
 
-export type FilterEntryTypes = "root" | "category" | "rule" | "item";
+export type FilterEntryTypes = "root" | "rule" | "item";
 
 export interface FilterHierarchy {
   id: ReturnType<typeof ulid>;
@@ -61,17 +57,7 @@ export interface FilterRoot extends FilterHierarchy {
   id: string;
   name: null;
   type: "root";
-  children: FilterCategory[];
-}
-
-export interface FilterCategory extends FilterHierarchy {
-  id: string;
-  name: string;
-  type: "category";
-  icon: string | null;
-  enabled: boolean;
-  children: (FilterRule | FilterCategory)[];
-  parent?: FilterRoot | FilterCategory;
+  children: FilterRule[];
 }
 
 export interface FilterRule extends FilterHierarchy {
@@ -82,8 +68,8 @@ export interface FilterRule extends FilterHierarchy {
   enabled: boolean;
   conditions: { [key: string]: string[] }[];
   actions: Action;
-  children: FilterItem[];
-  parent?: FilterCategory;
+  children: (FilterRule | FilterItem)[];
+  parent?: FilterRoot | FilterRule;
 }
 
 export interface FilterItem extends FilterHierarchy {
@@ -366,12 +352,7 @@ function recursivelySetKeys(
     }
     const sameKey = path[i - 1] && entry === path[i - 1];
     if (!schema[entry] && !sameKey) {
-      if (i <= path.length - 3) {
-        schema[entry] = { type: "category" };
-      }
-      if (i === path.length - 2) {
-        schema[entry] = { type: "rule" };
-      }
+      schema[entry] = { type: "rule" };
     }
     schema = sameKey ? schema : schema[entry];
   }
@@ -380,6 +361,8 @@ function recursivelySetKeys(
 
 function getPrimaryCategory(entry: RawData) {
   const { major_category, sub_category } = entry;
+
+  console.log(entry);
 
   if (["One Handed", "Two Handed", "Quivers"].includes(major_category)) {
     return "Weapons";
@@ -409,26 +392,24 @@ function rollup<T extends ItemHierarchy>(rawData: RawData, ancestor: T) {
     let record: ItemHierarchy;
 
     switch (type[1]) {
-      case "category":
-        record = {
-          id: ulid(),
-          name,
-          type: "category",
-          enabled: true,
-          children: [],
-        };
-        break;
       case "rule":
         record = {
           id: ulid(),
           name,
           type: "rule",
           conditions: [],
-          actions: {
-            text: { r: 255, g: 255, b: 255, a: 1 },
-            border: { r: 255, g: 255, b: 255, a: 1 },
-            background: { r: 19, g: 14, b: 6, a: 1 },
-          },
+          actions: ancestor.actions
+            ? clone(ancestor.actions)
+            : {
+                text: { r: 255, g: 255, b: 255, a: 1 },
+                border: { r: 255, g: 255, b: 255, a: 1 },
+                background: {
+                  r: Math.random() * 255,
+                  g: Math.random() * 255,
+                  b: Math.random() * 255,
+                  a: 1,
+                },
+              },
           enabled: true,
           children: [],
         };
@@ -490,10 +471,9 @@ export async function generateFilter(
     const type = getType(entry);
     const primaryCategory = getPrimaryCategory(entry);
 
-    const typeFirst = [pool, primaryCategory, type, sub_category, base];
-    const statFirst = [pool, primaryCategory, sub_category, type, base];
+    const typeFirst = [primaryCategory, type, sub_category, base];
+    const statFirst = [primaryCategory, sub_category, type, base];
     const weaponOverride = [
-      pool,
       primaryCategory,
       major_category,
       sub_category,
@@ -508,6 +488,7 @@ export async function generateFilter(
           ? statFirst
           : typeFirst,
       {
+        pool,
         file,
         value,
         str,

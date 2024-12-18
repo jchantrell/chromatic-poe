@@ -1,0 +1,95 @@
+{
+  "patch": "3.25.3.4",
+  "translations": ["English"],
+  "tables": [
+    {
+      "name": "MinimapIcons",
+      "columns": ["Id"]
+    },
+    {
+      "name": "BaseItemTypes",
+      "columns": [
+        "Id",
+        "Name",
+        "ItemClassesKey",
+        "TradeMarketCategory",
+        "ItemVisualIdentity",
+        "InheritsFrom",
+        "TagsKeys",
+        "SiteVisibility",
+        "ModDomain"
+      ]
+    },
+    {
+      "name": "ItemClasses",
+      "columns": [
+        "Id",
+        "Name",
+        "TradeMarketCategory",
+        "ItemClassCategory",
+        "CanBeCorrupted",
+        "CanHaveInfluence",
+        "CanBeFractured"
+      ]
+    },
+    {
+      "name": "CurrencyExchange",
+      "columns": ["Item", "Category", "SubCategory", "GoldPurchaseFee"]
+    },
+    {
+      "name": "CurrencyExchangeCategories",
+      "columns": ["Id", "Name"]
+    },
+    { "name": "ItemClassCategories", "columns": ["Id", "Text"] },
+    { "name": "ItemVisualIdentity", "columns": ["Id", "DDSFile", "AOFile"] },
+    {
+      "name": "UniqueStashTypes",
+      "columns": ["Id", "Name", "Image", "StandardCount", "ChallengeLeagueCount", "IsDisabled"]
+    },
+    {
+      "name": "UniqueStashLayout",
+      "columns": [
+        "WordsKey",
+        "ItemVisualIdentityKey",
+        "UniqueStashTypesKey",
+        "ShowIfEmptyChallengeLeague",
+        "ShowIfEmptyStandard",
+        "IsAlternateArt"
+      ]
+    },
+    {
+      "name": "TradeMarketCategory",
+      "columns": ["Id", "Name", "StyleFlag", "Group"]
+    },
+    {
+      "name": "TradeMarketCategoryGroups",
+      "columns": ["Id", "Name"]
+    },
+    {
+      "name": "TradeMarketCategoryListAllClass",
+      "columns": ["TradeCategory", "ItemClass"]
+    },
+    {
+      "name": "SkillGems",
+      "columns": [
+        "BaseItemTypesKey",
+        "StrengthRequirementPercent",
+        "DexterityRequirementPercent",
+        "IntelligenceRequirementPercent",
+        "IsVaalVariant"
+      ]
+    },
+    {
+      "name": "ArmourTypes",
+      "columns": [
+        "BaseItemTypesKey",
+        "ArmourMin",
+        "ArmourMax",
+        "EvasionMin",
+        "EvasionMax",
+        "EnergyShieldMin",
+        "EnergyShieldMax"
+      ]
+    }
+  ]
+}

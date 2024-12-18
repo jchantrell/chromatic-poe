@@ -3,6 +3,7 @@ import { store } from "@app/store";
 import ColorPickerPrimitive, { type ColorResult } from "@pkgs/ui/color-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "@pkgs/ui/popover";
 import { Label } from "@pkgs/ui/label";
+import { setColor } from "@app/lib/filter";
 
 function ColorPicker(props: {
   label: string;
@@ -11,8 +12,8 @@ function ColorPicker(props: {
   const [open, setOpen] = createSignal(false);
 
   const handleChange = (color: ColorResult) => {
-    if (store.activeRule) {
-      store.activeRule.actions[props.key] = color.rgb;
+    if (store.filter && store.activeRule) {
+      setColor(store.filter, store.activeRule, props.key, color.rgb);
     }
   };
 
