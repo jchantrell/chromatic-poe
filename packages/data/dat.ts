@@ -9,10 +9,13 @@ import skillGems from "./poe2/tables/English/SkillGems.json";
 import currencyExchange from "./poe2/tables/English/CurrencyExchange.json";
 import currencyExchangeCategories from "./poe2/tables/English/CurrencyExchangeCategories.json";
 import minimapIcons from "./poe2/tables/English/MinimapIcons.json";
-import Database from "better-sqlite3";
+import Database, { type Database as IDatabase } from "better-sqlite3";
 import fs from "node:fs";
+import path from "node:path";
 import { extractMinimapIcons } from "./minimap";
-import { extractImages } from "./image";
+import { FileLoader } from "./loader";
+import { BundleIndex } from "./bundle";
+import { exportFiles } from "./file";
 
 enum Tables {
   BASES = "bases",
@@ -28,11 +31,20 @@ enum Tables {
 }
 
 export class DatFiles {
-  db: Database;
+  db: IDatabase;
+  loader!: FileLoader;
+  index!: BundleIndex;
 
-  constructor() {
+  constructor(patchVer: string) {
     this.db = new Database("chromatic.db", {});
     this.db.pragma("journal_mode = WAL");
+    this.loader = new FileLoader(path.join(process.cwd(), "/.cache"), patchVer);
+    this.index = new BundleIndex(this.loader);
+  }
+
+  async init() {
+    await this.loader.init();
+    await this.index.loadIndex();
   }
 
   insertDBRecords(table: Tables, data: Record<string, unknown>[]) {
@@ -187,21 +199,6 @@ export class DatFiles {
       armourTypes.map((entry, id) => ({
         id,
         baseId: entry.BaseItemTypesKey,
-        value:
-          (entry.ArmourMin +
-            entry.ArmourMax +
-            (entry.EvasionMin + entry.EvasionMax) +
-            (entry.EnergyShieldMin + entry.EnergyShieldMax) +
-            (entry.WardMin + entry.WardMax)) /
-          4,
-        armMin: entry.ArmourMin,
-        armMax: entry.ArmourMax,
-        evaMin: entry.EvasionMin,
-        evaMax: entry.EvasionMax,
-        esMin: entry.EnergyShieldMin,
-        esMax: entry.EnergyShieldMax,
-        wardMin: entry.WardMin,
-        wardMax: entry.WardMax,
       })),
     );
 
@@ -219,6 +216,7 @@ export class DatFiles {
   }
 
   async extract() {
+    await this.populateDB();
     console.log("Querying DB for raw item data...");
     const rows = this.db
       .prepare(
@@ -275,6 +273,7 @@ e.active as active,
         LEFT JOIN ${Tables.SKILL_GEMS} k
         on e.id = k.baseId
         WHERE (c.name != '' and e.active != 0 and e.active != 2 and c.name != 'Hidden Items')
+        AND f.file is not null AND f.file != ''
         )
 
         SELECT *
@@ -284,18 +283,23 @@ e.active as active,
       .all();
 
     fs.writeFileSync(
-      "./packages/data/raw-items.json",
+      "./packages/data/poe2/items.json",
       JSON.stringify(rows, null, " "),
     );
 
+    const files = rows.map((item) => item.file);
+
+    exportFiles(files, "images", this.loader);
+
     extractMinimapIcons(minimapIcons, "./packages/assets/poe2/minimap.json");
-    extractImages(rows, "./packages/assets/poe2/images");
   }
 }
 
+const PATCH_VER = "4.1.0.11";
+
 async function main() {
-  const dat = new DatFiles();
-  await dat.populateDB();
+  const dat = new DatFiles(PATCH_VER);
+  await dat.init();
   await dat.extract();
 }
 

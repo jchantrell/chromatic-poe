@@ -33,7 +33,7 @@
     "fast-json-patch": "^3.1.1",
     "lodash-es": "^4.17.21",
     "microdiff": "^1.4.0",
-    "pathofexile-dat": "^11.0.1",
+    "pathofexile-dat": "^13.0.0",
     "sharp": "^0.33.5",
     "solid-js": "^1.9.3",
     "solid-sonner": "^0.2.8",
@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.0.4",
+    "@types/better-sqlite3": "^7.6.12",
     "@types/cli-progress": "^3.11.6",
     "@types/d3": "^7.4.3",
     "@types/node": "^20.17.6",

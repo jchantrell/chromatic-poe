@@ -1,5 +1,5 @@
 import { clone, stringifyJSON } from "@pkgs/lib/utils";
-import data from "@pkgs/data/raw-items.json";
+import data from "@pkgs/data/poe2/items.json";
 import chromatic from "@app/lib/config";
 import { addFilter } from "@app/store";
 import { ulid } from "ulid";

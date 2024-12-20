@@ -66,8 +66,8 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
       pathofexile-dat:
-        specifier: ^11.0.1
-        version: 11.0.1
+        specifier: ^13.0.0
+        version: 13.0.0
       sharp:
         specifier: ^0.33.5
         version: 0.33.5
@@ -93,6 +93,9 @@ importers:
       '@tauri-apps/cli':
         specifier: ^2.0.4
         version: 2.0.4
+      '@types/better-sqlite3':
+        specifier: ^7.6.12
+        version: 7.6.12
       '@types/cli-progress':
         specifier: ^3.11.6
         version: 3.11.6
@@ -832,6 +835,9 @@ packages:
 
   '@types/babel__traverse@7.20.6':
     resolution: {integrity: sha512-r1bzfrm0tomOI8g1SzvCaQHo6Lcv6zu0EA+W2kHrt8dyrHQxGzBBL4kdkzIS+jBMV+EYcMAEAqXqYaLJq5rOZg==}
+
+  '@types/better-sqlite3@7.6.12':
+    resolution: {integrity: sha512-fnQmj8lELIj7BSrZQAdBMHEHX8OZLYIHXqAKT1O7tDfLxaINzf00PMjw22r3N/xXh0w/sGHlO6SVaCQ2mj78lg==}
 
   '@types/cli-progress@3.11.6':
     resolution: {integrity: sha512-cE3+jb9WRlu+uOSAugewNpITJDt1VF8dHOopPO4IABFc3SXYL5WE/+PTz/FCdZRRfIujiWW3n3aMbv1eIGVRWA==}
@@ -1860,11 +1866,11 @@ packages:
   pathe@1.1.2:
     resolution: {integrity: sha512-whLdWMYL2TwI08hn8/ZqAbrVemu0LNaNNJZX73O6qaIdCTfXutsLhMkjdENX0qhsQ9uIimo4/aQOmXkoon2nDQ==}
 
-  pathofexile-dat-schema@6.0.1:
-    resolution: {integrity: sha512-VP8dc2KXqM0KTQw5n6SvO0rQVLJeZil79ReRwbb7z7M8KT7r5qVYkGm5Klf8tzk5aVxyexrX+52Xj4C2mSxF5g==}
+  pathofexile-dat-schema@7.0.0:
+    resolution: {integrity: sha512-oLCh//jZxB1KUTW357khqTyoWp5lBGuNdW3HIZ8JfAciwniuAQdwOoiSJJpkN3IkU92tJWNOEQqqwUXb3AMl4Q==}
 
-  pathofexile-dat@11.0.1:
-    resolution: {integrity: sha512-q2mvVLaEAk3pPgYYZF/hSQB9xcv6ifaAHiIw26WqxdUIlcGPSCGbp1EmkDdyk/1VF6Qn2iegvY+nESiB8bJmYw==}
+  pathofexile-dat@13.0.0:
+    resolution: {integrity: sha512-oxgYJu9hs4AwFbBZWsaX4vw2l1An5IOLgQoKMRARMcjPXF2x14VNDkUDcaD7kzdJg12O1p9tk0tF7h7HmLQGyw==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -3034,6 +3040,10 @@ snapshots:
     dependencies:
       '@babel/types': 7.26.0
 
+  '@types/better-sqlite3@7.6.12':
+    dependencies:
+      '@types/node': 20.17.6
+
   '@types/cli-progress@3.11.6':
     dependencies:
       '@types/node': 20.17.6
@@ -4187,12 +4197,12 @@ snapshots:
 
   pathe@1.1.2: {}
 
-  pathofexile-dat-schema@6.0.1: {}
+  pathofexile-dat-schema@7.0.0: {}
 
-  pathofexile-dat@11.0.1:
+  pathofexile-dat@13.0.0:
     dependencies:
       ooz-wasm: 2.0.0
-      pathofexile-dat-schema: 6.0.1
+      pathofexile-dat-schema: 7.0.0
 
   pathval@2.0.0: {}
 

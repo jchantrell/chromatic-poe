@@ -1,5 +1,5 @@
 {
-  "patch": "4.1.0.8",
+  "patch": "4.1.0.11",
   "translations": ["English"],
   "tables": [
     {
@@ -44,7 +44,14 @@
     { "name": "ItemVisualIdentity", "columns": ["Id", "DDSFile", "AOFile"] },
     {
       "name": "UniqueStashTypes",
-      "columns": ["Id", "Name", "Image", "StandardCount", "ChallengeLeagueCount", "IsDisabled"]
+      "columns": [
+        "Id",
+        "Name",
+        "Image",
+        "StandardCount",
+        "ChallengeLeagueCount",
+        "IsDisabled"
+      ]
     },
     {
       "name": "UniqueStashLayout",
@@ -81,15 +88,7 @@
     },
     {
       "name": "ArmourTypes",
-      "columns": [
-        "BaseItemTypesKey",
-        "ArmourMin",
-        "ArmourMax",
-        "EvasionMin",
-        "EvasionMax",
-        "EnergyShieldMin",
-        "EnergyShieldMax"
-      ]
+      "columns": ["BaseItemTypesKey"]
     }
   ]
 }
