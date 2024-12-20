@@ -11,7 +11,7 @@ import {
   Shape,
 } from "@app/lib/filter";
 import { Popover, PopoverContent, PopoverTrigger } from "@pkgs/ui/popover";
-import minimapIcons from "@pkgs/assets/minimap.json";
+import minimapIcons from "@pkgs/assets/poe2/minimap.json";
 import { RadioGroup, RadioGroupItem } from "@pkgs/ui/radio-group";
 
 const SHEET_WIDTH = 896;

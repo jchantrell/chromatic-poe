@@ -362,8 +362,6 @@ function recursivelySetKeys(
 function getPrimaryCategory(entry: RawData) {
   const { major_category, sub_category } = entry;
 
-  console.log(entry);
-
   if (["One Handed", "Two Handed", "Quivers"].includes(major_category)) {
     return "Weapons";
   }
@@ -420,7 +418,7 @@ function rollup<T extends ItemHierarchy>(rawData: RawData, ancestor: T) {
           type: "item",
           name,
           enabled: true,
-          icon: `images/${data.file.replaceAll("/", "@").replace("dds", "png")}`,
+          icon: `poe2/images/${data.file.replaceAll("/", "@").replace("dds", "png")}`,
           value:
             data.value && typeof data.value === "number" ? data.value : null,
         };
@@ -507,21 +505,19 @@ export async function generateFilter(
     );
   }
 
-  const raw = rollup(
-    { ...hierarchy },
-    {
-      id: ulid(),
-      icon: null,
-      name: null,
-      type: "root",
-      children: [],
-    },
-  );
-
   return new Filter({
     name,
-    version: 1,
+    version: 2,
     lastUpdated: new Date(),
-    rules: raw,
+    rules: rollup(
+      { ...hierarchy },
+      {
+        id: ulid(),
+        icon: null,
+        name: null,
+        type: "root",
+        children: [],
+      },
+    ),
   });
 }

@@ -1,6 +1,7 @@
 dist
 node_modules
 chromatic.db
+.cache
 packages/data/poe1/items.json
 packages/data/poe2/items.json
 packages/data/poe1/tables

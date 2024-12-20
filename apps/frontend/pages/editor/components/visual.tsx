@@ -115,7 +115,7 @@ function visualise(
     .call(zoomer);
 
   function handleZoom({ transform }) {
-    console.log("click")
+    console.log("click");
     g.attr("transform", transform);
   }
 

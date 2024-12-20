@@ -34,6 +34,7 @@
     "lodash-es": "^4.17.21",
     "microdiff": "^1.4.0",
     "pathofexile-dat": "^13.0.0",
+    "pathofexile-dat-schema": "^7.0.0",
     "sharp": "^0.33.5",
     "solid-js": "^1.9.3",
     "solid-sonner": "^0.2.8",

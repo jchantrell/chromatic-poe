@@ -3,6 +3,10 @@
   "translations": ["English"],
   "tables": [
     {
+      "name": "AttributeRequirements",
+      "columns": ["BaseItemTypesKey", "ReqStr", "ReqDex", "ReqInt"]
+    },
+    {
       "name": "MinimapIcons",
       "columns": ["Id"]
     },
@@ -88,7 +92,17 @@
     },
     {
       "name": "ArmourTypes",
-      "columns": ["BaseItemTypesKey"]
+      "columns": [
+        "BaseItemTypesKey",
+        "Armour",
+        "Evasion",
+        "EnergyShield",
+        "Ward"
+      ]
+    },
+    {
+      "name": "WeaponTypes",
+      "columns": ["BaseItemTypesKey", "Speed", "DamageMin", "DamageMax"]
     }
   ]
 }
