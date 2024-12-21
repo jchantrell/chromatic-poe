@@ -1,8 +1,7 @@
 import { clone, stringifyJSON } from "@pkgs/lib/utils";
-import data from "@pkgs/data/poe2/items.json";
 import chromatic from "@app/lib/config";
 import { addFilter } from "@app/store";
-import { ulid } from "ulid";
+import type { ulid } from "ulid";
 import { applyPatch, compare, type Operation } from "fast-json-patch";
 import {
   type Command,
@@ -19,27 +18,6 @@ export enum Block {
   hide = "Hide",
   continue = "Continue",
 }
-
-type RawData = {
-  pool: string;
-  major_category: string;
-  sub_category: string;
-  base: string;
-  file: string;
-  value: number | null;
-  str: number | null;
-  dex: number | null;
-  int: number | null;
-  isVaalGem: number | null;
-  armMin: number | null;
-  armMax: number | null;
-  evaMin: number | null;
-  evaMax: number | null;
-  esMin: number | null;
-  esMax: number | null;
-  wardMin: number | null;
-  wardMax: number | null;
-};
 
 export type ItemHierarchy = FilterRoot | FilterRule | FilterItem;
 
@@ -86,7 +64,7 @@ export class Filter {
   name: string;
   version: number;
   lastUpdated: Date;
-  rules: FilterRoot;
+  rules: FilterRule[];
 
   undoStack: Operation[][] = [];
   redoStack: Operation[][] = [];
@@ -95,7 +73,7 @@ export class Filter {
     name: string;
     version: number;
     lastUpdated: Date;
-    rules: FilterRoot;
+    rules: FilterRule[];
     undoStack?: Operation[][];
     redoStack?: Operation[][];
   }) {
@@ -138,7 +116,7 @@ export class Filter {
     }
   }
 
-  diff(prevState: FilterRoot, nextState: FilterRoot) {
+  diff(prevState: FilterRule[], nextState: FilterRule[]) {
     return compare(nextState, prevState).filter(
       (change) =>
         !change.path.endsWith("isDndShadowItem") &&
@@ -207,8 +185,8 @@ export class Filter {
 
   serialize(): string {
     let text = "";
-    for (const child of this.rules.children) {
-      const rules = this.convertToText([], child);
+    for (const rule of this.rules) {
+      const rules = this.convertToText([], rule);
       text += rules.join("");
     }
     return text;
@@ -275,249 +253,14 @@ export function getIcon(entry: ItemHierarchy): string | null {
   return getIcon(entry.children[0]);
 }
 
-function getType(entry: {
-  isVaalGem: number | null;
-  str: number | null;
-  dex: number | null;
-  int: number | null;
-  armMax: number | null;
-  evaMax: number | null;
-  esMax: number | null;
-  wardMax: number | null;
-}): string | null {
-  const { str, dex, int, armMax, evaMax, esMax, wardMax } = entry;
-
-  if (str && dex && int) {
-    return "Misc";
-  }
-
-  if (str || dex || int) {
-    const normalisedStr = str ?? 0;
-    const normalisedDex = dex ?? 0;
-    const normalisedInt = int ?? 0;
-
-    if (normalisedStr > normalisedDex && normalisedStr > normalisedInt) {
-      return "Strength";
-    }
-    if (normalisedDex > normalisedStr && normalisedDex > normalisedInt) {
-      return "Dexterity";
-    }
-    if (normalisedInt > normalisedStr && normalisedInt > normalisedDex) {
-      return "Intelligence";
-    }
-  }
-
-  if (armMax && evaMax && esMax) {
-    return "Miscellaneous";
-  }
-  if (armMax && evaMax) {
-    return "Strength / Dexterity";
-  }
-  if (armMax && esMax) {
-    return "Strength / Intelligence";
-  }
-  if (evaMax && esMax) {
-    return "Dexterity / Intelligence";
-  }
-  if (armMax) {
-    return "Strength";
-  }
-  if (evaMax) {
-    return "Dexterity";
-  }
-  if (esMax) {
-    return "Intelligence";
-  }
-  if (wardMax) {
-    return "Ward";
-  }
-
-  if (armMax === 0 && evaMax === 0 && esMax === 0 && wardMax === 0) {
-    return "Miscellaneous";
-  }
-
-  return null;
-}
-
-function recursivelySetKeys(
-  object: Record<string, unknown>,
-  path: (string | null)[],
-  value: Omit<RawData, "pool" | "major_category" | "sub_category" | "base">,
-) {
-  let schema = object;
-  for (let i = 0; i < path.length - 1; i++) {
-    const entry = path[i];
-    if (!entry) {
-      continue;
-    }
-    const sameKey = path[i - 1] && entry === path[i - 1];
-    if (!schema[entry] && !sameKey) {
-      schema[entry] = { type: "rule" };
-    }
-    schema = sameKey ? schema : schema[entry];
-  }
-  schema[path[path.length - 1] as string] = { ...value, type: "item" };
-}
-
-function getPrimaryCategory(entry: RawData) {
-  const { major_category, sub_category } = entry;
-
-  if (["One Handed", "Two Handed", "Quivers"].includes(major_category)) {
-    return "Weapons";
-  }
-
-  if (
-    major_category === sub_category ||
-    major_category === sub_category.substring(0, sub_category.length - 1)
-  ) {
-    return sub_category;
-  }
-
-  return major_category;
-}
-
-function rollup<T extends ItemHierarchy>(rawData: RawData, ancestor: T) {
-  const entries = Object.entries(rawData);
-  const children = entries.filter((entry) => entry[0] !== "type");
-
-  for (const child of children) {
-    const name = child[0];
-    const data = child[1];
-    const type: [string, FilterEntryTypes] = Object.entries(data).find(
-      (entry) => entry[0] === "type",
-    );
-
-    let record: ItemHierarchy;
-
-    switch (type[1]) {
-      case "rule":
-        record = {
-          id: ulid(),
-          name,
-          type: "rule",
-          conditions: [],
-          actions: ancestor.actions
-            ? clone(ancestor.actions)
-            : {
-                text: { r: 255, g: 255, b: 255, a: 1 },
-                border: { r: 255, g: 255, b: 255, a: 1 },
-                background: {
-                  r: Math.random() * 255,
-                  g: Math.random() * 255,
-                  b: Math.random() * 255,
-                  a: 1,
-                },
-              },
-          enabled: true,
-          children: [],
-        };
-        break;
-      case "item":
-        record = {
-          id: ulid(),
-          type: "item",
-          name,
-          enabled: true,
-          icon: `poe2/images/${data.file.replaceAll("/", "@").replace("dds", "png")}`,
-          value:
-            data.value && typeof data.value === "number" ? data.value : null,
-        };
-        break;
-    }
-
-    if (ancestor.type !== "item") {
-      ancestor.children.push(record);
-      ancestor.children = ancestor.children
-        .slice()
-        .sort((a, b) => (b.value || 0) - (a?.value || 0));
-    }
-    if (type[1] !== "item") rollup(child[1], record);
-  }
-  return ancestor;
-}
-
 export async function generateFilter(
   name: string,
   poeVersion: number,
 ): Promise<Filter> {
-  if (poeVersion !== 1) {
-    throw new Error("Only PoE 1 is currently supported");
-  }
-  const hierarchy = {};
-  for (const entry of data) {
-    const {
-      pool,
-      major_category,
-      sub_category,
-      base,
-      file,
-      value,
-      str,
-      dex,
-      int,
-      isVaalGem,
-      armMin,
-      armMax,
-      evaMin,
-      evaMax,
-      esMin,
-      esMax,
-      wardMin,
-      wardMax,
-    } = entry;
-
-    const type = getType(entry);
-    const primaryCategory = getPrimaryCategory(entry);
-
-    const typeFirst = [primaryCategory, type, sub_category, base];
-    const statFirst = [primaryCategory, sub_category, type, base];
-    const weaponOverride = [
-      primaryCategory,
-      major_category,
-      sub_category,
-      base,
-    ];
-
-    recursivelySetKeys(
-      hierarchy,
-      primaryCategory === "Weapons"
-        ? weaponOverride
-        : major_category === "Gems"
-          ? statFirst
-          : typeFirst,
-      {
-        pool,
-        file,
-        value,
-        str,
-        dex,
-        int,
-        isVaalGem,
-        armMin,
-        armMax,
-        evaMin,
-        evaMax,
-        esMin,
-        esMax,
-        wardMin,
-        wardMax,
-      },
-    );
-  }
-
   return new Filter({
     name,
-    version: 2,
+    version: poeVersion,
     lastUpdated: new Date(),
-    rules: rollup(
-      { ...hierarchy },
-      {
-        id: ulid(),
-        icon: null,
-        name: null,
-        type: "root",
-        children: [],
-      },
-    ),
+    rules: [],
   });
 }

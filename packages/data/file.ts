@@ -55,6 +55,7 @@ export async function exportFiles(
   outDir: string,
   loader: FileLoader,
 ) {
+  console.log(`Exporting ${filesToExport.length} files...`);
   await fs.rm(outDir, { recursive: true, force: true });
   await fs.mkdir(outDir, { recursive: true });
 

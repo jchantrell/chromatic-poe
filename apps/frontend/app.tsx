@@ -51,10 +51,7 @@ function App() {
     <>
       <ColorModeScript storageType={storageManager.type} />
       <ColorModeProvider storageManager={storageManager}>
-        <div
-          class='h-screen flex flex-row overflow-hidden'
-          ref={ref}
-        >
+        <div class='h-screen flex flex-row overflow-hidden' ref={ref}>
           <nav
             class='h-full flex flex-1 flex-col items-center justify-between py-2.5'
             data-tauri-drag-region
@@ -73,16 +70,6 @@ function App() {
                   }}
                 >
                   <HouseIcon />
-                </Button>
-              </a>
-              <a href='/styles'>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  class='h-14 w-14'
-                  onMouseDown={() => null}
-                >
-                  <PaletteIcon />
                 </Button>
               </a>
               <a href='/sounds'>

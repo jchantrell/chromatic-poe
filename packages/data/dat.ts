@@ -44,6 +44,16 @@ export type Config = {
   tables: { [key: string]: string }[];
 };
 
+export type Item = {
+  name: string;
+  category: string;
+  subCategory: string;
+  class: string;
+  type: string;
+  art: string;
+  active: 0 | 1 | 2;
+};
+
 export class DatFiles {
   gameVersion: 1 | 2;
   config: Config;
@@ -148,7 +158,7 @@ export class DatFiles {
   }
 
   async populateDB() {
-    console.log("Populating DB with game data...");
+    console.log("Populating DB with dat files...");
     this.createDBTable(Tables.WEAPON_TYPES, weaponTypes);
     this.createDBTable(Tables.ARMOUR_TYPES, armourTypes);
     this.createDBTable(Tables.VISUALS, visuals);
@@ -164,8 +174,8 @@ export class DatFiles {
   }
 
   async extract() {
-    await this.populateDB();
-    console.log("Querying DB for item data...");
+    // await this.populateDB();
+    console.log("Querying DB for items...");
     const rows = this.db
       .prepare(`
 WITH ITEMS AS (
@@ -181,15 +191,30 @@ exchange_major.Name as 'exchangeCategory',
 exchange_sub.Name as 'exchangeSubCategory',
 
 ${Tables.EXCHANGE}.GoldPurchaseFee as 'price',
-${Tables.ATTRIBUTE_REQUIREMENTS}.ReqStr as 'strReq',
-${Tables.ATTRIBUTE_REQUIREMENTS}.ReqDex as 'dexReq',
-${Tables.ATTRIBUTE_REQUIREMENTS}.ReqInt as 'intReq',
+COALESCE(
+  ${Tables.ATTRIBUTE_REQUIREMENTS}.ReqStr,
+  ${Tables.SKILL_GEMS}.StrengthRequirementPercent
+) as 'strReq',
+COALESCE(
+  ${Tables.ATTRIBUTE_REQUIREMENTS}.ReqDex,
+  ${Tables.SKILL_GEMS}.DexterityRequirementPercent
+) as 'dexReq',
+COALESCE(
+  ${Tables.ATTRIBUTE_REQUIREMENTS}.ReqInt,
+  ${Tables.SKILL_GEMS}.IntelligenceRequirementPercent
+) as 'intReq',
 
 ${Tables.ARMOUR_TYPES}.Armour as 'armour',
 ${Tables.ARMOUR_TYPES}.Evasion as 'evasion',
 ${Tables.ARMOUR_TYPES}.EnergyShield as 'energyShield',
 ${Tables.ARMOUR_TYPES}.Ward as 'ward',
 
+${Tables.WEAPON_TYPES}.DamageMin as 'dmgMin',
+${Tables.WEAPON_TYPES}.DamageMax as 'dmgMax',
+${Tables.WEAPON_TYPES}.Speed as 'speed',
+
+${Tables.BASES}.Height as 'height',
+${Tables.BASES}.Width as 'width',
 ${Tables.BASES}.SiteVisibility as 'active'
 
 FROM ${Tables.BASES}
@@ -227,32 +252,463 @@ ON ${Tables.BASES}.${PK} = ${Tables.ARMOUR_TYPES}.BaseItemTypesKey
 
 LEFT JOIN ${Tables.WEAPON_TYPES}
 ON ${Tables.BASES}.${PK} = ${Tables.WEAPON_TYPES}.BaseItemTypesKey
+
+LEFT JOIN ${Tables.SKILL_GEMS}
+ON ${Tables.BASES}.${PK} = ${Tables.SKILL_GEMS}.BaseItemTypesKey
 )
 
--- Gear
+-- Weapons
+SELECT
+name,
+'Weapons' AS category,
+tradeCategory AS class,
+(CASE
+  WHEN strReq != 0 AND dexReq != 0 AND intReq != 0
+  THEN 'Hybrid'
+  WHEN strReq != 0 AND dexReq != 0
+  THEN 'Str/Dex'
+  WHEN strReq != 0 AND intReq != 0
+  THEN 'Str/Int'
+  WHEN intReq != 0 AND dexReq != 0
+  THEN 'Dex/Int'
+  WHEN tradeCategory in ('One Hand Swords', 'Two Hand Swords', 'One Hand Axes', 'Two Hand Axes', 'Crossbows')
+  THEN 'Str/Dex'
+  WHEN tradeCategory in ('Daggers')
+  THEN 'Dex/Int'
+  WHEN tradeCategory in ('One Hand Maces', 'Two Hand Maces')
+  THEN 'Str'
+  WHEN tradeCategory in ('Bows', 'Claws', 'Spears', 'Warstaves')
+  THEN 'Dex'
+  WHEN tradeCategory in ('Staves', 'Wands', 'Sceptres')
+  THEN 'Int'
+  ELSE 'Unknown'
+END) AS type,
+art,
+height,
+width,
+price,
+(dmgMin + dmgMax) / 2 * (1000 / speed) AS score,
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE tradeGroup IN ('One Handed Weapons', 'Two Handed Weapons')
+
+UNION ALL
+
+-- Offhands
+SELECT
+name,
+'Off-hands' AS category,
+class,
+(CASE
+  WHEN armour != 0 AND evasion != 0
+  THEN 'Str/Dex'
+  WHEN armour != 0 AND energyShield != 0
+  THEN 'Str/Int'
+  WHEN armour != 0
+  THEN 'Str'
+  WHEN evasion != 0
+  THEN 'Dex'
+  WHEN energyShield != 0
+  THEN 'Int'
+  WHEN tradeCategory in ('Quivers')
+  THEN 'Dex'
+  ELSE 'Unknown'
+END) AS type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE tradeGroup IN ('Off-hand') OR class = 'Foci'
+
+UNION ALL
+
+-- Armour
+SELECT
+name,
+'Armour' AS category,
+class,
+(CASE
+  WHEN armour != 0 AND evasion != 0 AND energyShield != 0
+  THEN 'Hybrid'
+  WHEN ward != 0
+  THEN 'Ward'
+  WHEN armour != 0 AND evasion != 0
+  THEN 'Str/Dex'
+  WHEN armour != 0 AND energyShield != 0
+  THEN 'Str/Int'
+  WHEN armour != 0
+  THEN 'Str'
+  WHEN evasion != 0
+  THEN 'Dex'
+  WHEN energyShield != 0
+  THEN 'Int'
+  ELSE 'Unknown'
+END) AS type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE tradeGroup IN ('Armour')
+
+UNION ALL
+
+-- Jewellery
+SELECT
+name,
+'Jewellery' AS category,
+class,
+null AS type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE tradeGroup IN ('Jewellery')
+
+UNION ALL
+
+-- Flasks
+SELECT
+name,
+'Flasks' AS category,
+class,
+null AS type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE tradeGroup IN ('Flasks')
+
+UNION ALL
+
+-- Gems
+SELECT
+name,
+'Gems' AS category,
+class,
+(CASE
+  WHEN strReq != 0 AND dexReq != 0 AND intReq != 0
+  THEN 'Hybrid'
+  WHEN strReq != 0 AND dexReq != 0
+  THEN 'Str/Dex'
+  WHEN strReq != 0 AND intReq != 0
+  THEN 'Str/Int'
+  WHEN intReq != 0 AND dexReq != 0
+  THEN 'Dex/Int'
+  WHEN strReq != 0
+  THEN 'Str'
+  WHEN dexReq != 0
+  THEN 'Dex'
+  WHEN intReq != 0
+  THEN 'Int'
+  ELSE 'Unknown'
+END) as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE tradeGroup IN ('Gems') AND name NOT LIKE '[DNT]%'
+
+UNION ALL
+
+-- Jewels
+SELECT
+name,
+'Jewels' AS category,
+class,
+(CASE
+  WHEN name LIKE 'Time-Lost%'
+  THEN 'Special'
+  WHEN name LIKE 'Timeless%'
+  THEN 'Special'
+  ELSE 'Common'
+END) as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE class = 'Jewels'
+
+UNION ALL
+
+-- Maps
+SELECT
+name,
+'Maps' AS category,
+class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE class = 'Waystones'
+
+UNION ALL
+
+-- Tablets
+SELECT
+name,
+'Maps' AS category,
+class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE class = 'Tablet'
+
+UNION ALL
+
+-- Expedition
+SELECT
+name,
+'Expedition' AS category,
+'Logbook' as class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE class = 'Expedition Logbooks'
+
+UNION ALL
 
 SELECT
 name,
-'Weapons' as 'category',
-tradeGroup as 'subCategory',
-tradeCategory as 'class'
+'Expedition' AS category,
+'Currency' as class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
 FROM ITEMS
-WHERE tradeGroup = 'One Handed Weapons'
+WHERE name IN ('Exotic Coinage', 'Sun Artifact', 'Broken Circle Artifact', 'Black Scythe Artifact', 'Order Artifact')
+
+
+UNION ALL
+
+-- Ultimatum
+SELECT
+name,
+'Ultimatum' AS category,
+'Fragment' as class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE exchangeSubcategory = 'Ultimatum Fragments'
+OR class = 'Inscribed Ultimatum'
+
+UNION ALL
+
+SELECT
+name,
+'Ultimatum' AS category,
+'Soul Cores' as class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE exchangeCategory = 'Soul Cores'
+
+UNION ALL
+
+-- Sekhema
+SELECT
+name,
+'Trial of the Sekhemas' AS category,
+'Fragment' as class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE class = 'Trial Coins'
+
+UNION ALL
+
+SELECT
+name,
+'Trial of the Sekhemas' AS category,
+class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE class = 'Relics'
+
+UNION ALL
+
+-- Ritual
+SELECT
+name,
+'Ritual' AS category,
+'Fragment' as class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE name = 'An Audience with the King'
+
+UNION ALL
+
+-- Ritual
+SELECT
+name,
+'Ritual' AS category,
+class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE class = 'Omens'
+
+UNION ALL
+
+-- Delirium, Breach
+SELECT
+name,
+exchangeCategory AS category,
+(CASE
+  WHEN exchangeSubcategory = exchangeCategory
+  THEN 'Fragments'
+  ELSE exchangeSubcategory
+END) as class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE exchangeCategory IN ('Delirium', 'Breach')
+
+UNION ALL
+
+-- Currency, Essence
+SELECT
+name,
+exchangeCategory AS category,
+(CASE
+  WHEN exchangeSubcategory = exchangeCategory
+  THEN 'Common'
+  ELSE exchangeSubcategory
+END) as class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE exchangeCategory IN ('Essences', 'Currency', 'Runes')
 `)
 
-      .all();
+      .all() as Item[];
 
+    console.log("Writing item file...");
     fs.writeFileSync(
       "./packages/data/poe2/items.json",
       JSON.stringify(rows, null, " "),
     );
-
     // exportFiles(
-    //   rows.map((item) => item.file),
+    //   rows.map((item) => item.art),
     //   "packages/assets/poe2/images",
     //   this.loader,
     // );
-    extractMinimapIcons(minimapIcons, "./packages/assets/poe2/minimap.json");
+    // extractMinimapIcons(minimapIcons, "./packages/assets/poe2/minimap.json");
   }
 }
 

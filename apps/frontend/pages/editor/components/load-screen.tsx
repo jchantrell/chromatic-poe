@@ -21,18 +21,10 @@ import { notify } from "@pkgs/ui/sonner";
 import { toast } from "solid-sonner";
 import { useColorMode } from "@kobalte/core";
 import chromatic from "@app/lib/config";
-import {
-  store,
-  setFilter,
-  removeFilter,
-  setActiveView,
-  setCrumbs,
-} from "@app/store";
+import { store, setFilter, removeFilter } from "@app/store";
 
 function loadFilter(filter: Filter) {
   setFilter(filter);
-  setActiveView(filter.rules);
-  setCrumbs([{ title: "Home", view: store.filter.rules }]);
 }
 
 export function CreateFilter() {

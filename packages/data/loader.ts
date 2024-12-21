@@ -53,6 +53,7 @@ export class FileLoader {
       await fs.access(this.cacheDir);
     } catch {
       console.log("Creating new bundle cache...");
+      console.log("CACHE ROOT", this.cacheRoot);
       // await fs.rm(this.cacheRoot, { recursive: true, force: true });
       await fs.mkdir(this.cacheDir, { recursive: true });
     }

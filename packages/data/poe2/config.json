@@ -21,7 +21,9 @@
         "InheritsFrom",
         "TagsKeys",
         "SiteVisibility",
-        "ModDomain"
+        "ModDomain",
+        "Width",
+        "Height"
       ]
     },
     {

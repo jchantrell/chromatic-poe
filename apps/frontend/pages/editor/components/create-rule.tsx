@@ -26,7 +26,10 @@ function CreateRule(props: { parent?: FilterRule }) {
       return toast("Enter a name for the rule.");
     }
     if (
-      props.parent.children.some((e) => e.name === name() && e.type === "rule")
+      props.parent?.children.some(
+        (e) => e.name === name() && e.type === "rule",
+      ) ||
+      store.filter.rules.some((e) => e.name === name())
     ) {
       return toast(`Rule with name ${name()} already exists.`);
     }
@@ -48,7 +51,11 @@ function CreateRule(props: { parent?: FilterRule }) {
             background: { r: 19, g: 14, b: 6, a: 1 },
           },
     };
-    createRule(store.filter, rule, props.parent);
+    createRule(
+      store.filter,
+      rule,
+      props.parent?.children || store.filter.rules,
+    );
     setDialogOpen(false);
     setName("");
   }

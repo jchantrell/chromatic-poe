@@ -21,7 +21,7 @@ import { store } from "@app/store";
 import { moveItem, type FilterItem, type FilterRule } from "@app/lib/filter";
 import { ItemVisual } from "./components/item";
 import { RuleEditor } from "./components/rule-editor";
-import Visualiser from "./components/visual";
+import { itemIndex } from "@app/lib/filter/items";
 
 interface DraggableItem extends Draggable {
   id: string;
@@ -93,16 +93,12 @@ function ItemHierarchy() {
 
   return (
     <div class='m-1 p-1 flex flex-col gap-2 overflow-y-auto'>
-      <For each={store?.activeView?.children}>
+      <For each={store?.filter?.rules}>
         {(entry) => {
           return <Rule rule={entry} />;
         }}
       </For>
-      {store.activeView?.children.some((e) => e.type === "rule") ? (
-        <CreateRule parent={store.activeView} />
-      ) : (
-        <></>
-      )}
+      <CreateRule />
     </div>
   );
 }
@@ -115,7 +111,7 @@ function DragDrop(props: { children: JSXElement }) {
       return element.data;
     }
     if (element.data.type === "item") {
-      return element.data.parent;
+      return element?.data.parent;
     }
     return null;
   }
@@ -230,6 +226,10 @@ function DragDrop(props: { children: JSXElement }) {
 }
 
 export function Editor() {
+  const d = itemIndex.search({ category: "'Ultimatum" });
+
+  console.log(d);
+
   return (
     <>
       {!store.initialised && <Setup />}
@@ -243,7 +243,7 @@ export function Editor() {
           </ResizablePanel>
           <ResizableHandle class='bg-primary-foreground' />
           <ResizablePanel>
-              <Preview/>
+            <Preview />
           </ResizablePanel>
         </Resizable>
       )}

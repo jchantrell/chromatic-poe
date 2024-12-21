@@ -22,6 +22,7 @@ function parseLootFilterId(id: string) {
 }
 
 export function extractMinimapIcons(icons: { Id: string }[], filePath: string) {
+  console.log("Extracting minimap icons...");
   const table = {};
 
   for (let i = 0; i < icons.length; i++) {

@@ -31,6 +31,7 @@
     "cmdk-solid": "^1.1.0",
     "d3": "^7.9.0",
     "fast-json-patch": "^3.1.1",
+    "fuse.js": "^7.0.0",
     "lodash-es": "^4.17.21",
     "microdiff": "^1.4.0",
     "pathofexile-dat": "^13.0.0",

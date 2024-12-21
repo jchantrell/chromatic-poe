@@ -1,13 +1,13 @@
-import {
-  type ItemHierarchy,
-  type FilterRule,
-  type FilterItem,
-  type Filter,
+import type {
+  ItemHierarchy,
+  FilterRule,
+  FilterItem,
+  Filter,
   Color,
   IconSize,
   Shape,
 } from "@app/lib/filter";
-import { RgbColor } from "@pkgs/ui/color-picker";
+import type { RgbColor } from "@pkgs/ui/color-picker";
 import { batch } from "solid-js";
 
 export class Command {
@@ -146,11 +146,11 @@ export function moveItem(
 export function createRule(
   filter: Filter,
   rule: FilterRule,
-  parent: FilterRule,
+  parentRef: FilterRule[],
 ) {
   filter?.execute(
     new Command(() => {
-      parent.children.push(rule);
+      parentRef.push(rule);
     }),
   );
 }
@@ -203,11 +203,17 @@ function setParentActive(parent: FilterRule) {
     setParentActive(parent.parent);
   }
 }
-export function addParentRefs(entry: ItemHierarchy): ItemHierarchy {
+export function addParentRefs(entries: ItemHierarchy[]) {
+  for (const entry of entries) {
+    addParentRef(entry);
+  }
+}
+
+function addParentRef(entry: ItemHierarchy) {
   if (entry.type === "item") return entry;
   for (const child of entry.children) {
     child.parent = entry;
-    if (child.type !== "item") addParentRefs(child);
+    if (child.type !== "item") addParentRef(child);
   }
   return entry;
 }
