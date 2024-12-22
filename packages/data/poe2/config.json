@@ -89,7 +89,8 @@
         "StrengthRequirementPercent",
         "DexterityRequirementPercent",
         "IntelligenceRequirementPercent",
-        "IsVaalVariant"
+        "IsVaalVariant",
+        "GemType"
       ]
     },
     {

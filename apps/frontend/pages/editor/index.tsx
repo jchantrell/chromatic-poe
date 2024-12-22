@@ -22,6 +22,7 @@ import { moveItem, type FilterItem, type FilterRule } from "@app/lib/filter";
 import { ItemVisual } from "./components/item";
 import { RuleEditor } from "./components/rule-editor";
 import { itemIndex } from "@app/lib/filter/items";
+import Search from "@app/components/search";
 
 interface DraggableItem extends Draggable {
   id: string;
@@ -42,8 +43,8 @@ function Preview() {
     <div
       class={`h-full bg-no-repeat bg-center bg-cover ${
         colorMode() === "dark"
-          ? "bg-[url('/backgrounds/bg-dark.jpg')]"
-          : "bg-[url('/backgrounds/bg-light.jpg')]"
+          ? "bg-[url('/poe2/backgrounds/bg-dark.jpg')]"
+          : "bg-[url('/poe2/backgrounds/bg-light.jpg')]"
       } bg-fixed`}
     >
       {store.activeRule ? <RuleEditor /> : <FilterPreview />}
@@ -99,6 +100,7 @@ function ItemHierarchy() {
         }}
       </For>
       <CreateRule />
+      <Search index={itemIndex} />
     </div>
   );
 }
@@ -226,10 +228,6 @@ function DragDrop(props: { children: JSXElement }) {
 }
 
 export function Editor() {
-  const d = itemIndex.search({ category: "'Ultimatum" });
-
-  console.log(d);
-
   return (
     <>
       {!store.initialised && <Setup />}

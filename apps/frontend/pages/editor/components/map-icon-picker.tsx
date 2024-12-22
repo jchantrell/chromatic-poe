@@ -15,7 +15,7 @@ import minimapIcons from "@pkgs/assets/poe2/minimap.json";
 import { RadioGroup, RadioGroupItem } from "@pkgs/ui/radio-group";
 
 const SHEET_WIDTH = 896;
-const SHEET_HEIGHT = 3072;
+const SHEET_HEIGHT = 3776;
 const PREVIEW_SCALE = 1.5; // magic number
 
 export function MinimapIcon(props: {
@@ -27,7 +27,7 @@ export function MinimapIcon(props: {
   return (
     <div
       style={{
-        "background-image": "url(/spritesheets/Art@2DArt@Minimap@Player.png)",
+        "background-image": "url(/poe2/images/Art@2DArt@Minimap@Player.png)",
         height: `calc(64px / ${props.scale})`,
         width: `calc(64px / ${props.scale})`,
         "background-position": `calc(-${minimapIcons[props.color][props.shape][props.size].x}px / ${props.scale}) calc(-${minimapIcons[props.color][props.shape][props.size].y}px / ${props.scale})`,

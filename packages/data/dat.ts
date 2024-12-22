@@ -174,7 +174,7 @@ export class DatFiles {
   }
 
   async extract() {
-    // await this.populateDB();
+    await this.populateDB();
     console.log("Querying DB for items...");
     const rows = this.db
       .prepare(`
@@ -215,7 +215,9 @@ ${Tables.WEAPON_TYPES}.Speed as 'speed',
 
 ${Tables.BASES}.Height as 'height',
 ${Tables.BASES}.Width as 'width',
-${Tables.BASES}.SiteVisibility as 'active'
+${Tables.BASES}.SiteVisibility as 'active',
+
+${Tables.SKILL_GEMS}.GemType as 'gemType'
 
 FROM ${Tables.BASES}
 
@@ -258,7 +260,7 @@ ON ${Tables.BASES}.${PK} = ${Tables.SKILL_GEMS}.BaseItemTypesKey
 )
 
 -- Weapons
-SELECT
+SELECT DISTINCT
 name,
 'Weapons' AS category,
 tradeCategory AS class,
@@ -297,7 +299,7 @@ WHERE tradeGroup IN ('One Handed Weapons', 'Two Handed Weapons')
 UNION ALL
 
 -- Offhands
-SELECT
+SELECT DISTINCT
 name,
 'Off-hands' AS category,
 class,
@@ -330,7 +332,7 @@ WHERE tradeGroup IN ('Off-hand') OR class = 'Foci'
 UNION ALL
 
 -- Armour
-SELECT
+SELECT DISTINCT
 name,
 'Armour' AS category,
 class,
@@ -365,7 +367,7 @@ WHERE tradeGroup IN ('Armour')
 UNION ALL
 
 -- Jewellery
-SELECT
+SELECT DISTINCT
 name,
 'Jewellery' AS category,
 class,
@@ -384,7 +386,7 @@ WHERE tradeGroup IN ('Jewellery')
 UNION ALL
 
 -- Flasks
-SELECT
+SELECT DISTINCT
 name,
 'Flasks' AS category,
 class,
@@ -403,7 +405,7 @@ WHERE tradeGroup IN ('Flasks')
 UNION ALL
 
 -- Gems
-SELECT
+SELECT DISTINCT
 name,
 'Gems' AS category,
 class,
@@ -433,12 +435,12 @@ strReq,
 dexReq,
 intReq
 FROM ITEMS
-WHERE tradeGroup IN ('Gems') AND name NOT LIKE '[DNT]%'
+WHERE tradeGroup IN ('Gems') AND name NOT LIKE '[DNT]%' AND name != 'Coming Soon'
 
 UNION ALL
 
 -- Jewels
-SELECT
+SELECT DISTINCT
 name,
 'Jewels' AS category,
 class,
@@ -463,7 +465,7 @@ WHERE class = 'Jewels'
 UNION ALL
 
 -- Maps
-SELECT
+SELECT DISTINCT
 name,
 'Maps' AS category,
 class,
@@ -482,7 +484,7 @@ WHERE class = 'Waystones'
 UNION ALL
 
 -- Tablets
-SELECT
+SELECT DISTINCT
 name,
 'Maps' AS category,
 class,
@@ -501,7 +503,7 @@ WHERE class = 'Tablet'
 UNION ALL
 
 -- Expedition
-SELECT
+SELECT DISTINCT
 name,
 'Expedition' AS category,
 'Logbook' as class,
@@ -519,7 +521,7 @@ WHERE class = 'Expedition Logbooks'
 
 UNION ALL
 
-SELECT
+SELECT DISTINCT
 name,
 'Expedition' AS category,
 'Currency' as class,
@@ -539,10 +541,10 @@ WHERE name IN ('Exotic Coinage', 'Sun Artifact', 'Broken Circle Artifact', 'Blac
 UNION ALL
 
 -- Ultimatum
-SELECT
+SELECT DISTINCT
 name,
 'Ultimatum' AS category,
-'Fragment' as class,
+'Fragments' as class,
 null as type,
 art,
 height,
@@ -558,7 +560,7 @@ OR class = 'Inscribed Ultimatum'
 
 UNION ALL
 
-SELECT
+SELECT DISTINCT
 name,
 'Ultimatum' AS category,
 'Soul Cores' as class,
@@ -577,10 +579,10 @@ WHERE exchangeCategory = 'Soul Cores'
 UNION ALL
 
 -- Sekhema
-SELECT
+SELECT DISTINCT
 name,
 'Trial of the Sekhemas' AS category,
-'Fragment' as class,
+'Fragments' as class,
 null as type,
 art,
 height,
@@ -595,7 +597,7 @@ WHERE class = 'Trial Coins'
 
 UNION ALL
 
-SELECT
+SELECT DISTINCT
 name,
 'Trial of the Sekhemas' AS category,
 class,
@@ -614,10 +616,10 @@ WHERE class = 'Relics'
 UNION ALL
 
 -- Ritual
-SELECT
+SELECT DISTINCT
 name,
 'Ritual' AS category,
-'Fragment' as class,
+'Fragments' as class,
 null as type,
 art,
 height,
@@ -633,7 +635,7 @@ WHERE name = 'An Audience with the King'
 UNION ALL
 
 -- Ritual
-SELECT
+SELECT DISTINCT
 name,
 'Ritual' AS category,
 class,
@@ -652,7 +654,7 @@ WHERE class = 'Omens'
 UNION ALL
 
 -- Delirium, Breach
-SELECT
+SELECT DISTINCT
 name,
 exchangeCategory AS category,
 (CASE
@@ -674,8 +676,8 @@ WHERE exchangeCategory IN ('Delirium', 'Breach')
 
 UNION ALL
 
--- Currency, Essence
-SELECT
+-- Currency, Essence, Runes
+SELECT DISTINCT
 name,
 exchangeCategory AS category,
 (CASE
@@ -694,21 +696,42 @@ dexReq,
 intReq
 FROM ITEMS
 WHERE exchangeCategory IN ('Essences', 'Currency', 'Runes')
+
+UNION ALL
+
+-- Boss Fragments
+SELECT DISTINCT
+name,
+'Pinnacle' AS category,
+'Fragments' AS class,
+null as type,
+art,
+height,
+width,
+price,
+0 AS score, -- FIXME
+strReq,
+dexReq,
+intReq
+FROM ITEMS
+WHERE exchangeSubcategory IN ('Pinnacle Fragments')
 `)
 
       .all() as Item[];
-
+    // exportFiles(
+    //   [...rows.map((item) => item.art), "Art/2DArt/Minimap/Player.png"],
+    //   "packages/assets/poe2/images",
+    //   this.loader,
+    // );
+    for (const item of rows) {
+      item.art = `poe2/images/${item.art.replaceAll("/", "@").replace("dds", "png")}`;
+    }
     console.log("Writing item file...");
     fs.writeFileSync(
       "./packages/data/poe2/items.json",
       JSON.stringify(rows, null, " "),
     );
-    // exportFiles(
-    //   rows.map((item) => item.art),
-    //   "packages/assets/poe2/images",
-    //   this.loader,
-    // );
-    // extractMinimapIcons(minimapIcons, "./packages/assets/poe2/minimap.json");
+    extractMinimapIcons(minimapIcons, "./packages/assets/poe2/minimap.json");
   }
 }
 

@@ -67,7 +67,7 @@ function CreateRule(props: { parent?: FilterRule }) {
           "p-1 pl-3 border w-full text-primary bg-secondary border-accent hover:border-primary select-none"
         }
       >
-        New Rule
+        +
       </DialogTrigger>
       <DialogContent
         class='sm:max-w-[400px] p-4 bg-primary-foreground select-none'

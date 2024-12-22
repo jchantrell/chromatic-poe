@@ -56,7 +56,7 @@ export async function exportFiles(
   loader: FileLoader,
 ) {
   console.log(`Exporting ${filesToExport.length} files...`);
-  await fs.rm(outDir, { recursive: true, force: true });
+  // await fs.rm(outDir, { recursive: true, force: true });
   await fs.mkdir(outDir, { recursive: true });
 
   // export from sprites

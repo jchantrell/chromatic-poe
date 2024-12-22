@@ -6,13 +6,7 @@ import {
 } from "@kobalte/core";
 import Editor from "@app/pages/editor";
 import { Button } from "@pkgs/ui/button";
-import {
-  AudioIcon,
-  ExitIcon,
-  HouseIcon,
-  MinimiseIcon,
-  PaletteIcon,
-} from "@pkgs/icons";
+import { AudioIcon, ExitIcon, HouseIcon, MinimiseIcon } from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
 import { createSignal, onMount } from "solid-js";
 import { setFilter, store } from "./store";
