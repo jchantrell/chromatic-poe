@@ -90,8 +90,16 @@
         "DexterityRequirementPercent",
         "IntelligenceRequirementPercent",
         "IsVaalVariant",
-        "GemType"
+        "GemEffects"
       ]
+    },
+    {
+      "name": "GemEffects",
+      "columns": ["Id", "Name", "GemTags"]
+    },
+    {
+      "name": "GemTags",
+      "columns": ["Id", "Tag"]
     },
     {
       "name": "ArmourTypes",

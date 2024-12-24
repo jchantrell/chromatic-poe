@@ -7,6 +7,8 @@ import tradeGroups from "./poe2/tables/English/TradeMarketCategoryGroups.json";
 import armourTypes from "./poe2/tables/English/ArmourTypes.json";
 import weaponTypes from "./poe2/tables/English/WeaponTypes.json";
 import skillGems from "./poe2/tables/English/SkillGems.json";
+import gemTags from "./poe2/tables/English/GemTags.json";
+import gemEffects from "./poe2/tables/English/GemEffects.json";
 import exchange from "./poe2/tables/English/CurrencyExchange.json";
 import exchangeCategory from "./poe2/tables/English/CurrencyExchangeCategories.json";
 import attributeRequirements from "./poe2/tables/English/AttributeRequirements.json";
@@ -31,6 +33,8 @@ enum Tables {
   EXCHANGE = "exchange",
   EXCHANGE_CATEGORY = "exchange_category",
   SKILL_GEMS = "skill_gems",
+  GEM_EFFECTS = "gem_effects",
+  GEM_TAGS = "gem_tags",
   ARMOUR_TYPES = "armour_types",
   WEAPON_TYPES = "weapon_types",
   ATTRIBUTE_REQUIREMENTS = "attribute_requirements",
@@ -170,12 +174,27 @@ export class DatFiles {
     this.createDBTable(Tables.EXCHANGE, exchange);
     this.createDBTable(Tables.EXCHANGE_CATEGORY, exchangeCategory);
     this.createDBTable(Tables.SKILL_GEMS, skillGems);
+    this.createDBTable(Tables.GEM_TAGS, gemTags);
+    this.createDBTable(Tables.GEM_EFFECTS, gemEffects);
     this.createDBTable(Tables.ATTRIBUTE_REQUIREMENTS, attributeRequirements);
   }
 
   async extract() {
     await this.populateDB();
     console.log("Querying DB for items...");
+
+    const extraFields = `
+art,
+height,
+width,
+price,
+strReq,
+dexReq,
+intReq,
+gemFx,
+class as itemClass
+`;
+
     const rows = this.db
       .prepare(`
 WITH ITEMS AS (
@@ -217,7 +236,7 @@ ${Tables.BASES}.Height as 'height',
 ${Tables.BASES}.Width as 'width',
 ${Tables.BASES}.SiteVisibility as 'active',
 
-${Tables.SKILL_GEMS}.GemType as 'gemType'
+${Tables.SKILL_GEMS}.GemEffects as 'gemFx'
 
 FROM ${Tables.BASES}
 
@@ -257,6 +276,8 @@ ON ${Tables.BASES}.${PK} = ${Tables.WEAPON_TYPES}.BaseItemTypesKey
 
 LEFT JOIN ${Tables.SKILL_GEMS}
 ON ${Tables.BASES}.${PK} = ${Tables.SKILL_GEMS}.BaseItemTypesKey
+
+WHERE ${Tables.BASES}.Name != '' AND ${Tables.BASES}.Name IS NOT NULL
 )
 
 -- Weapons
@@ -268,31 +289,25 @@ tradeCategory AS class,
   WHEN strReq != 0 AND dexReq != 0 AND intReq != 0
   THEN 'Hybrid'
   WHEN strReq != 0 AND dexReq != 0
-  THEN 'Str/Dex'
+  THEN 'Strength/Dexterity'
   WHEN strReq != 0 AND intReq != 0
-  THEN 'Str/Int'
+  THEN 'Strength/Intelligence'
   WHEN intReq != 0 AND dexReq != 0
-  THEN 'Dex/Int'
+  THEN 'Dexterity/Intelligence'
   WHEN tradeCategory in ('One Hand Swords', 'Two Hand Swords', 'One Hand Axes', 'Two Hand Axes', 'Crossbows')
-  THEN 'Str/Dex'
+  THEN 'Strength/Dexterity'
   WHEN tradeCategory in ('Daggers')
-  THEN 'Dex/Int'
+  THEN 'Dexterity/Intelligence'
   WHEN tradeCategory in ('One Hand Maces', 'Two Hand Maces')
-  THEN 'Str'
+  THEN 'Strength'
   WHEN tradeCategory in ('Bows', 'Claws', 'Spears', 'Warstaves')
-  THEN 'Dex'
+  THEN 'Dexterity'
   WHEN tradeCategory in ('Staves', 'Wands', 'Sceptres')
-  THEN 'Int'
+  THEN 'Intelligence'
   ELSE 'Unknown'
 END) AS type,
-art,
-height,
-width,
-price,
 (dmgMin + dmgMax) / 2 * (1000 / speed) AS score,
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE tradeGroup IN ('One Handed Weapons', 'Two Handed Weapons')
 
@@ -305,27 +320,21 @@ name,
 class,
 (CASE
   WHEN armour != 0 AND evasion != 0
-  THEN 'Str/Dex'
+  THEN 'Strength/Dexterity'
   WHEN armour != 0 AND energyShield != 0
-  THEN 'Str/Int'
+  THEN 'Strength/Intelligence'
   WHEN armour != 0
-  THEN 'Str'
+  THEN 'Strength'
   WHEN evasion != 0
-  THEN 'Dex'
+  THEN 'Dexterity'
   WHEN energyShield != 0
-  THEN 'Int'
+  THEN 'Intelligence'
   WHEN tradeCategory in ('Quivers')
-  THEN 'Dex'
+  THEN 'Dexterity'
   ELSE 'Unknown'
 END) AS type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE tradeGroup IN ('Off-hand') OR class = 'Foci'
 
@@ -342,25 +351,19 @@ class,
   WHEN ward != 0
   THEN 'Ward'
   WHEN armour != 0 AND evasion != 0
-  THEN 'Str/Dex'
+  THEN 'Strength/Dexterity'
   WHEN armour != 0 AND energyShield != 0
-  THEN 'Str/Int'
+  THEN 'Strength/Intelligence'
   WHEN armour != 0
-  THEN 'Str'
+  THEN 'Strength'
   WHEN evasion != 0
-  THEN 'Dex'
+  THEN 'Dexterity'
   WHEN energyShield != 0
-  THEN 'Int'
+  THEN 'Intelligence'
   ELSE 'Unknown'
 END) AS type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE tradeGroup IN ('Armour')
 
@@ -372,14 +375,8 @@ name,
 'Jewellery' AS category,
 class,
 null AS type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE tradeGroup IN ('Jewellery')
 
@@ -391,14 +388,8 @@ name,
 'Flasks' AS category,
 class,
 null AS type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE tradeGroup IN ('Flasks')
 
@@ -413,27 +404,21 @@ class,
   WHEN strReq != 0 AND dexReq != 0 AND intReq != 0
   THEN 'Hybrid'
   WHEN strReq != 0 AND dexReq != 0
-  THEN 'Str/Dex'
+  THEN 'Strength/Dexterity'
   WHEN strReq != 0 AND intReq != 0
-  THEN 'Str/Int'
+  THEN 'Strength/Intelligence'
   WHEN intReq != 0 AND dexReq != 0
-  THEN 'Dex/Int'
+  THEN 'Dexterity/Intelligence'
   WHEN strReq != 0
-  THEN 'Str'
+  THEN 'Strength'
   WHEN dexReq != 0
-  THEN 'Dex'
+  THEN 'Dexterity'
   WHEN intReq != 0
-  THEN 'Int'
+  THEN 'Intelligence'
   ELSE 'Unknown'
 END) as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE tradeGroup IN ('Gems') AND name NOT LIKE '[DNT]%' AND name != 'Coming Soon'
 
@@ -451,14 +436,8 @@ class,
   THEN 'Special'
   ELSE 'Common'
 END) as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE class = 'Jewels'
 
@@ -470,14 +449,8 @@ name,
 'Maps' AS category,
 class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE class = 'Waystones'
 
@@ -489,14 +462,8 @@ name,
 'Maps' AS category,
 class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE class = 'Tablet'
 
@@ -508,14 +475,8 @@ name,
 'Expedition' AS category,
 'Logbook' as class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE class = 'Expedition Logbooks'
 
@@ -526,14 +487,8 @@ name,
 'Expedition' AS category,
 'Currency' as class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE name IN ('Exotic Coinage', 'Sun Artifact', 'Broken Circle Artifact', 'Black Scythe Artifact', 'Order Artifact')
 
@@ -546,14 +501,8 @@ name,
 'Ultimatum' AS category,
 'Fragments' as class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE exchangeSubcategory = 'Ultimatum Fragments'
 OR class = 'Inscribed Ultimatum'
@@ -565,14 +514,8 @@ name,
 'Ultimatum' AS category,
 'Soul Cores' as class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE exchangeCategory = 'Soul Cores'
 
@@ -584,14 +527,8 @@ name,
 'Trial of the Sekhemas' AS category,
 'Fragments' as class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE class = 'Trial Coins'
 
@@ -602,14 +539,8 @@ name,
 'Trial of the Sekhemas' AS category,
 class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE class = 'Relics'
 
@@ -621,14 +552,8 @@ name,
 'Ritual' AS category,
 'Fragments' as class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE name = 'An Audience with the King'
 
@@ -640,14 +565,8 @@ name,
 'Ritual' AS category,
 class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE class = 'Omens'
 
@@ -663,14 +582,8 @@ exchangeCategory AS category,
   ELSE exchangeSubcategory
 END) as class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE exchangeCategory IN ('Delirium', 'Breach')
 
@@ -686,14 +599,8 @@ exchangeCategory AS category,
   ELSE exchangeSubcategory
 END) as class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE exchangeCategory IN ('Essences', 'Currency', 'Runes')
 
@@ -705,26 +612,36 @@ name,
 'Pinnacle' AS category,
 'Fragments' AS class,
 null as type,
-art,
-height,
-width,
-price,
 0 AS score, -- FIXME
-strReq,
-dexReq,
-intReq
+${extraFields}
 FROM ITEMS
 WHERE exchangeSubcategory IN ('Pinnacle Fragments')
 `)
 
       .all() as Item[];
-    // exportFiles(
-    //   [...rows.map((item) => item.art), "Art/2DArt/Minimap/Player.png"],
-    //   "packages/assets/poe2/images",
-    //   this.loader,
-    // );
+
+    exportFiles(
+      [...rows.map((item) => item.art), "Art/2DArt/Minimap/Player.png"],
+      "packages/assets/poe2/images",
+      this.loader,
+    );
     for (const item of rows) {
-      item.art = `poe2/images/${item.art.replaceAll("/", "@").replace("dds", "png")}`;
+      const replacedFilepath = `poe2/images/${item.art.replaceAll("/", "@").replace("dds", "png")}`;
+      item.art = replacedFilepath;
+
+      if (item.class === "Skill Gems") {
+        const effectIds = JSON.parse(item.gemFx);
+        for (const effect of effectIds) {
+          const tagIds = JSON.parse(gemEffects[effect].GemTags);
+          for (const tagId of tagIds) {
+            const tag = gemTags[tagId];
+            if (tag.Id === "buff") {
+              item.class = "Spirit Gems";
+            }
+          }
+        }
+      }
+      delete item.gemFx;
     }
     console.log("Writing item file...");
     fs.writeFileSync(

@@ -27,6 +27,7 @@ import { spawn } from "node:child_process";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import type { FileLoader } from "./loader";
+import sharp from "sharp";
 
 const SPRITE_LISTS = [
   {
@@ -45,6 +46,35 @@ const SPRITE_LISTS = [
     spritePrefix: "Art/Textures/Interface/2D/Shop/",
   },
 ];
+
+async function fixIcon(
+  buffer: Buffer,
+  height: number,
+  width: number,
+): Promise<Buffer> {
+  const img = sharp(buffer);
+  const widthByThree = Math.round(width / 3);
+  const one = await img
+    .clone()
+    .extract({ left: 0, top: 0, width: widthByThree, height })
+    .toBuffer();
+  const two = await img
+    .clone()
+    .extract({
+      left: widthByThree,
+      top: 0,
+      width: widthByThree,
+      height,
+    })
+    .toBuffer();
+  const three = img.clone().extract({
+    left: widthByThree * 2,
+    top: 0,
+    width: widthByThree,
+    height,
+  });
+  return three.composite([{ input: two }, { input: one }]).toBuffer();
+}
 
 function isInsideSprite(path: string) {
   return SPRITE_LISTS.some((list) => path.startsWith(list.namePrefix));
@@ -106,14 +136,25 @@ export async function exportFiles(
     const files = filesToExport.filter((path) => !isInsideSprite(path));
     for (const filePath of files) {
       if (filePath.endsWith(".dds")) {
+        const fileName = path.join(
+          outDir,
+          filePath.replace(/\//g, "@").replace(/\.dds$/, ".png"),
+        );
+
+        const split = filePath.split("/");
+        const type = split[2];
+
         await imagemagickConvertDDS(
           await loader.getFileContents(filePath),
           null,
-          path.join(
-            outDir,
-            filePath.replace(/\//g, "@").replace(/\.dds$/, ".png"),
-          ),
+          fileName,
         );
+
+        if (type === "Flasks" && !split[split.length - 1].endsWith("Sap.png")) {
+          const buffer = await fs.readFile(fileName);
+          const updated = await fixIcon(buffer, 212, 316);
+          await fs.writeFile(fileName, updated);
+        }
       } else {
         await fs.writeFile(
           path.join(outDir, filePath.replace(/\//g, "@")),
