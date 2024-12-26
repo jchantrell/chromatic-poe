@@ -83,8 +83,8 @@ export function CreateFilter() {
                   id='1'
                   name='version'
                   value='1'
-                  checked
                   class='mr-1'
+                  disabled={true}
                   onChange={() => setVersion(1)}
                 />
                 <label for='1'>1</label>
@@ -95,6 +95,7 @@ export function CreateFilter() {
                   id='2'
                   name='version'
                   value='2'
+                  checked
                   class='mr-1'
                   onChange={() => setVersion(2)}
                   disabled={true}

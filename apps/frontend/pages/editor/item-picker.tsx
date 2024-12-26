@@ -1,12 +1,4 @@
 import { type FilterItem, type FilterRule, itemIndex } from "@app/lib/filter";
-import { Button } from "@pkgs/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@pkgs/ui/dialog";
 import { Checkbox } from "@pkgs/ui/checkbox";
 import { createSignal, For } from "solid-js";
 import { createMutable } from "solid-js/store";
@@ -30,6 +22,7 @@ interface BaseItem {
 interface BranchNode {
   name: string;
   enabled: boolean;
+  parent?: BranchNode;
   children: TreeNode[];
   data?: never; // Branch nodes don't have data
 }
@@ -37,6 +30,7 @@ interface BranchNode {
 interface LeafNode {
   name: string;
   enabled: boolean;
+  parent?: BranchNode;
   children?: never; // Leaf nodes don't have children
   data: BaseItem;
 }
@@ -46,6 +40,14 @@ type TreeNode = BranchNode | LeafNode;
 type NestedData = {
   [key: string]: NestedData | BaseItem;
 };
+
+function updateParentState(node: TreeNode) {
+  if (node.parent) {
+    const activeChildren = node.parent.children.some((child) => child.enabled);
+    node.parent.enabled = activeChildren;
+    updateParentState(node.parent);
+  }
+}
 
 function transformData(
   data: NestedData,
@@ -59,10 +61,12 @@ function transformData(
   function processBranch(
     branchData: NestedData,
     branchName: string,
+    parent?: BranchNode,
   ): BranchNode {
     const node: BranchNode = {
       name: branchName,
       enabled: false,
+      parent,
       children: [],
     };
 
@@ -73,11 +77,16 @@ function transformData(
           enabled: bases.some(
             (base) => base.name === value.name && base.enabled,
           ),
+          parent: node,
           data: value,
         };
         node.children.push(leafNode);
+        if (leafNode.enabled) {
+          node.enabled = true;
+          updateParentState(node);
+        }
       } else {
-        node.children.push(processBranch(value, key));
+        node.children.push(processBranch(value, key, node));
       }
     }
 
@@ -167,11 +176,14 @@ export function ItemPicker(props: { rule: FilterRule }) {
 
   function toggleNode(node: TreeNode, enabled: boolean): void {
     node.enabled = enabled;
-    console.log(node.name);
     if ("children" in node && node.children) {
       for (const child of node.children) {
         toggleNode(child, enabled);
       }
+    }
+
+    if ("parent" in node) {
+      updateParentState(node);
     }
 
     if ("data" in node) {
@@ -207,20 +219,10 @@ export function ItemPicker(props: { rule: FilterRule }) {
   }
 
   return (
-    <Dialog>
-      <DialogTrigger variant='secondary' as={Button<"button">}>
-        Edit bases
-      </DialogTrigger>
-      <DialogContent class='sm:max-w-[600px]'>
-        <DialogHeader>
-          <DialogTitle>Select bases</DialogTitle>
-        </DialogHeader>
-        <div class='grid py-2'>
-          <For each={itemHierarchy.children}>
-            {(item) => <Node node={item} level={0} onToggle={handleToggle} />}
-          </For>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <div class='grid py-2'>
+      <For each={itemHierarchy.children}>
+        {(item) => <Node node={item} level={0} onToggle={handleToggle} />}
+      </For>
+    </div>
   );
 }

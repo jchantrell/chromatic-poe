@@ -25,13 +25,13 @@ import {
   useDragDropContext,
 } from "@thisbeyond/solid-dnd";
 import { MinimapIcon } from "./map-icon-picker";
-import { Button } from "@pkgs/ui/button";
 import { ItemPicker } from "./item-picker";
-import { Dialog } from "@pkgs/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@pkgs/ui/dialog";
 
 function Rule(props: {
   rule: FilterRule;
 }) {
+  const [itemPickerOpen, setItemPickerOpen] = createSignal(false);
   const [editNameActive, setEditNameActive] = createSignal(false);
   const [active, setActive] = createSignal<boolean>(false);
   const [expanded, setExpanded] = createSignal(false);
@@ -125,37 +125,37 @@ function Rule(props: {
   }
 
   return (
-    <Collapsible
-      onOpenChange={(open) => setExpanded(open)}
-      open={expanded()}
-      ref={droppableTitle.ref}
-      class='w-full'
-    >
-      <ContextMenu>
-        <ContextMenuTrigger>
-          <div
-            class={`h-10 flex border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer items-center justify-between select-none ${getBorderColor(active(), hovered())}`}
-            onMouseOut={() => setHovered(false)}
-            onMouseOver={() => setHovered(true)}
-            onFocus={() => null}
-            onBlur={() => null}
-            onMouseDown={onMouseDown}
-            ref={previewRef}
-          >
-            <div class='m-1 flex items-center min-w-max mr-10'>
-              <div class='text-xl p-1'>
-                <input
-                  class={`bg-primary-foreground outline-none border-none ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"}`}
-                  type='text'
-                  value={props.rule.name}
-                  onChange={handleNameChange}
-                />
-              </div>
-            </div>
+    <Dialog>
+      <Collapsible
+        onOpenChange={(open) => setExpanded(open)}
+        open={expanded()}
+        ref={droppableTitle.ref}
+        class='w-full'
+      >
+        <ContextMenu>
+          <ContextMenuTrigger>
             <div
-              class={`flex h-full items-center justify-end ${previewWidth() > 520 ? "w-full" : ""}`}
+              class={`h-10 flex border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer items-center justify-between select-none ${getBorderColor(active(), hovered())}`}
+              onMouseOut={() => setHovered(false)}
+              onMouseOver={() => setHovered(true)}
+              onFocus={() => null}
+              onBlur={() => null}
+              onMouseDown={onMouseDown}
+              ref={previewRef}
             >
-              {props.rule.bases.some((e) => e.type === "item") ? (
+              <div class='m-1 flex items-center min-w-max mr-10'>
+                <div class='text-xl p-1'>
+                  <input
+                    class={`bg-primary-foreground outline-none border-none ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"}`}
+                    type='text'
+                    value={props.rule.name}
+                    onChange={handleNameChange}
+                  />
+                </div>
+              </div>
+              <div
+                class={`flex h-full items-center justify-end ${previewWidth() > 520 ? "w-full" : ""}`}
+              >
                 <div
                   class={`h-6 px-3 max-w-[300px] items-center justify-center border border-1 mr-1 ${previewWidth() > 520 ? "flex" : "hidden"}`}
                   style={{
@@ -180,58 +180,64 @@ function Rule(props: {
                       }).name
                     : "Item"}
                 </div>
-              ) : (
-                <></>
-              )}
-              <div
-                class='hover:bg-muted flex items-center h-full p-1'
-                onMouseDown={(e: MouseEvent) => {
-                  e.stopPropagation();
-                  if (e.button === 0 && !e.shiftKey) {
-                    return setExpanded(!expanded());
-                  }
-                }}
-              >
-                <ChevronDownIcon />
+                <div
+                  class='hover:bg-muted flex items-center h-full p-1'
+                  onMouseDown={(e: MouseEvent) => {
+                    e.stopPropagation();
+                    if (e.button === 0 && !e.shiftKey) {
+                      return setExpanded(!expanded());
+                    }
+                  }}
+                >
+                  <ChevronDownIcon />
+                </div>
               </div>
             </div>
-          </div>
-        </ContextMenuTrigger>
-        <ContextMenuPortal>
-          <ContextMenuContent class='w-48'>
-            <ContextMenuItem onMouseDown={handleActive}>
-              <span>{props.rule.enabled ? "Disable" : "Enable"}</span>
-              <ContextMenuShortcut>⇧+LClick</ContextMenuShortcut>
-            </ContextMenuItem>
-            <ContextMenuItem disabled>
-              <span>Copy</span>
-            </ContextMenuItem>
-            <ContextMenuItem onMouseDown={handleDelete}>
-              <span>Delete</span>
-            </ContextMenuItem>
-          </ContextMenuContent>
-        </ContextMenuPortal>
-      </ContextMenu>
-      <CollapsibleContent>
-        <ul
-          class={`ms-6 border-s-[1px] grid border-r-0 ${hovered() ? "border-accent" : "border-muted"}`}
-          onMouseOut={() => setHovered(false)}
-          onMouseOver={() => setHovered(true)}
-          onMouseDown={onMouseDown}
-          onFocus={() => null}
-          onBlur={() => null}
-        >
-          <SortableProvider ids={props.rule.bases.map((e) => e.name)}>
-            <For each={props.rule.bases}>
-              {(entry) => {
-                return <Item item={entry} setHovered={setHovered} />;
-              }}
-            </For>
-          </SortableProvider>
+          </ContextMenuTrigger>
+          <ContextMenuPortal>
+            <ContextMenuContent class='w-48'>
+              <DialogTrigger
+                as={ContextMenuItem}
+                onClick={() => setExpanded(true)}
+              >
+                Edit Bases
+              </DialogTrigger>
+              <ContextMenuItem onMouseDown={handleActive}>
+                <span>{props.rule.enabled ? "Disable" : "Enable"}</span>
+                <ContextMenuShortcut>⇧+LClick</ContextMenuShortcut>
+              </ContextMenuItem>
+              <ContextMenuItem disabled>
+                <span>Copy</span>
+              </ContextMenuItem>
+              <ContextMenuItem onMouseDown={handleDelete}>
+                <span>Delete</span>
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenuPortal>
+        </ContextMenu>
+        <CollapsibleContent>
+          <ul
+            class={`ms-6 border-s-[1px] grid border-r-0 ${hovered() ? "border-accent" : "border-muted"}`}
+            onMouseOut={() => setHovered(false)}
+            onMouseOver={() => setHovered(true)}
+            onMouseDown={onMouseDown}
+            onFocus={() => null}
+            onBlur={() => null}
+          >
+            <SortableProvider ids={props.rule.bases.map((e) => e.name)}>
+              <For each={props.rule.bases}>
+                {(entry) => {
+                  return <Item item={entry} setHovered={setHovered} />;
+                }}
+              </For>
+            </SortableProvider>
+          </ul>
+        </CollapsibleContent>
+        <DialogContent>
           <ItemPicker rule={props.rule} />
-        </ul>
-      </CollapsibleContent>
-    </Collapsible>
+        </DialogContent>
+      </Collapsible>
+    </Dialog>
   );
 }
 

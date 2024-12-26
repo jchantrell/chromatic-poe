@@ -113,13 +113,13 @@ export function RuleEditor() {
         </div>
       </div>
       <div class='grid w-full'>
-        <div class='flex'>
+        <div class='flex gap-2'>
           <div>Rarity</div>
-          <div>x</div>
+          <div>TODO</div>
         </div>
-        <div class='flex'>
+        <div class='flex gap-2'>
           <div>ItemLevel</div>
-          <div>x</div>
+          <div>TODO</div>
         </div>
       </div>
     </div>
