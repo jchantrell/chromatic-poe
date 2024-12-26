@@ -3,6 +3,7 @@ import { Checkbox } from "@pkgs/ui/checkbox";
 import { createSignal, For } from "solid-js";
 import { createMutable } from "solid-js/store";
 import { ChevronDownIcon } from "@pkgs/icons";
+import { clone } from "@pkgs/lib/utils";
 
 interface BaseItem {
   name: string;
@@ -24,14 +25,14 @@ interface BranchNode {
   enabled: boolean;
   parent?: BranchNode;
   children: TreeNode[];
-  data?: never; // Branch nodes don't have data
+  data?: never;
 }
 
 interface LeafNode {
   name: string;
   enabled: boolean;
   parent?: BranchNode;
-  children?: never; // Leaf nodes don't have children
+  children?: never;
   data: BaseItem;
 }
 
@@ -49,61 +50,60 @@ function updateParentState(node: TreeNode) {
   }
 }
 
-function transformData(
-  data: NestedData,
+function enableNodeAndAncestors(node: TreeNode): void {
+  let current: TreeNode | undefined = node;
+  while (current) {
+    current.enabled = true;
+    current = current.parent;
+  }
+}
+
+function isLeafNode(obj: object): obj is BaseItem {
+  return obj.hasOwnProperty("name") && obj.hasOwnProperty("category");
+}
+
+function rollup(
+  branchData: NestedData,
+  branchName: string,
   bases: FilterItem[],
-  rootName = "Items",
+  parent?: BranchNode,
 ): BranchNode {
-  function isLeafNode(obj: object): obj is BaseItem {
-    return obj.hasOwnProperty("name") && obj.hasOwnProperty("category");
-  }
+  const node: BranchNode = {
+    name: branchName,
+    enabled: false,
+    parent,
+    children: [],
+  };
 
-  function processBranch(
-    branchData: NestedData,
-    branchName: string,
-    parent?: BranchNode,
-  ): BranchNode {
-    const node: BranchNode = {
-      name: branchName,
-      enabled: false,
-      parent,
-      children: [],
-    };
+  for (const [key, value] of Object.entries(branchData)) {
+    if (isLeafNode(value)) {
+      const leafNode: LeafNode = {
+        name: value.name,
+        enabled: false,
+        parent: node,
+        data: value,
+      };
+      node.children.push(leafNode);
 
-    for (const [key, value] of Object.entries(branchData)) {
-      if (isLeafNode(value)) {
-        const leafNode: LeafNode = {
-          name: value.name,
-          enabled: bases.some(
-            (base) => base.name === value.name && base.enabled,
-          ),
-          parent: node,
-          data: value,
-        };
-        node.children.push(leafNode);
-        if (leafNode.enabled) {
-          node.enabled = true;
-          updateParentState(node);
-        }
-      } else {
-        node.children.push(processBranch(value, key, node));
+      if (bases.some((base) => base.name === value.name)) {
+        enableNodeAndAncestors(leafNode);
       }
+    } else {
+      node.children.push(rollup(value, key, bases, node));
     }
-
-    node.children.sort((a, b) => {
-      if ("children" in a && "children" in b) {
-        return a.name.localeCompare(b.name);
-      }
-      if ("data" in a && "data" in b) {
-        return (a.data?.price || 0) - (b.data?.price || 0);
-      }
-      return "children" in a ? -1 : 1;
-    });
-
-    return node;
   }
 
-  return processBranch(data, rootName);
+  node.children.sort((a, b) => {
+    if ("children" in a && "children" in b) {
+      return a.name.localeCompare(b.name);
+    }
+    if ("data" in a && "data" in b) {
+      return (a.data?.price || 0) - (b.data?.price || 0);
+    }
+    return "children" in a ? -1 : 1;
+  });
+
+  return node;
 }
 
 function Node(props: {
@@ -139,7 +139,6 @@ function Node(props: {
           class='mx-1'
         />
 
-        {/* Node name with optional price for leaf nodes */}
         <div class='flex items-center flex-grow'>
           {"data" in props.node && (
             <figure class='max-w-lg'>
@@ -171,8 +170,10 @@ function Node(props: {
 
 export function ItemPicker(props: { rule: FilterRule }) {
   const itemHierarchy = createMutable(
-    transformData(itemIndex.hierarchy, props.rule.bases),
+    rollup(itemIndex.hierarchy, "Items", props.rule.bases),
   );
+
+  console.log(clone(itemHierarchy));
 
   function toggleNode(node: TreeNode, enabled: boolean): void {
     node.enabled = enabled;
