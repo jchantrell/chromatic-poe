@@ -12,6 +12,7 @@ import gemEffects from "./poe2/tables/English/GemEffects.json";
 import exchange from "./poe2/tables/English/CurrencyExchange.json";
 import exchangeCategory from "./poe2/tables/English/CurrencyExchangeCategories.json";
 import attributeRequirements from "./poe2/tables/English/AttributeRequirements.json";
+import currencyItems from "./poe2/tables/English/CurrencyItems.json";
 import minimapIcons from "./poe2/tables/English/MinimapIcons.json";
 
 import Database, { type Database as IDatabase } from "better-sqlite3";
@@ -38,6 +39,7 @@ enum Tables {
   ARMOUR_TYPES = "armour_types",
   WEAPON_TYPES = "weapon_types",
   ATTRIBUTE_REQUIREMENTS = "attribute_requirements",
+  CURRENCY_ITEMS = "currency_items",
 }
 
 const PK = "_index";
@@ -163,6 +165,7 @@ export class DatFiles {
 
   async populateDB() {
     console.log("Populating DB with dat files...");
+    this.createDBTable(Tables.CURRENCY_ITEMS, currencyItems);
     this.createDBTable(Tables.WEAPON_TYPES, weaponTypes);
     this.createDBTable(Tables.ARMOUR_TYPES, armourTypes);
     this.createDBTable(Tables.VISUALS, visuals);
@@ -192,7 +195,9 @@ strReq,
 dexReq,
 intReq,
 gemFx,
-class as itemClass
+class as itemClass,
+corruptable,
+stackable
 `;
 
     const rows = this.db
@@ -236,6 +241,14 @@ ${Tables.BASES}.Height as 'height',
 ${Tables.BASES}.Width as 'width',
 ${Tables.BASES}.SiteVisibility as 'active',
 
+${Tables.CLASSES}.CanBeCorrupted as corruptable,
+(CASE
+  WHEN ${Tables.CURRENCY_ITEMS}.StackSize IS NOT NULL
+  AND ${Tables.CURRENCY_ITEMS}.StackSize > 1
+  THEN 1
+  ELSE 0
+END) as stackable,
+
 ${Tables.SKILL_GEMS}.GemEffects as 'gemFx'
 
 FROM ${Tables.BASES}
@@ -276,6 +289,9 @@ ON ${Tables.BASES}.${PK} = ${Tables.WEAPON_TYPES}.BaseItemTypesKey
 
 LEFT JOIN ${Tables.SKILL_GEMS}
 ON ${Tables.BASES}.${PK} = ${Tables.SKILL_GEMS}.BaseItemTypesKey
+
+LEFT JOIN ${Tables.CURRENCY_ITEMS}
+ON ${Tables.BASES}.${PK} = ${Tables.CURRENCY_ITEMS}.BaseItemTypesKey
 
 WHERE ${Tables.BASES}.Name != '' AND ${Tables.BASES}.Name IS NOT NULL
 )

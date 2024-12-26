@@ -11,7 +11,7 @@ export default function Search(props: { index: Index }) {
   const [searchResults, setSearchResults] = createSignal<FuseResult<unknown>>();
 
   createEffect(() => {
-    setSearchResults(props.index.search(`'${searchTerm()}`));
+    setSearchResults(props.index.search(`${searchTerm()}`));
   });
   return (
     <>

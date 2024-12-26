@@ -8,7 +8,7 @@ import {
 } from "@pkgs/ui/context-menu";
 import { store } from "@app/store";
 import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
-import { getIcon, setEntryActive, type FilterItem } from "@app/lib/filter";
+import { setEntryActive, type FilterItem } from "@app/lib/filter";
 import { createEffect, createSignal, type Setter } from "solid-js";
 
 export function ItemVisual(props: { item: FilterItem; class?: string }) {
@@ -26,7 +26,7 @@ export function ItemVisual(props: { item: FilterItem; class?: string }) {
         <img
           class='mr-1 h-8 max-w-full pointer-events-none'
           alt={`${props.item.name} icon`}
-          src={props.item.icon}
+          src={props.item.art}
         />
       </figure>
       <div class='pointer-events-none text-lg'>{props.item.name}</div>
@@ -38,8 +38,7 @@ function Item(props: {
   item: FilterItem;
   setHovered: Setter<boolean>;
 }) {
-  const [icon, setIcon] = createSignal(getIcon(props.item));
-  const sortable = createSortable(props.item.id, props.item);
+  const sortable = createSortable(props.item.name, props.item);
 
   const [_, { onDragMove }] = useDragDropContext();
 
@@ -49,14 +48,7 @@ function Item(props: {
     }
   }
 
-  createEffect(() => {
-    setIcon(getIcon(props.item));
-  });
-
   onDragMove(({ draggable }) => {
-    // const draggableIsChild = draggable.data.parent.children.some(
-    //   (e) => e.id === draggable.id,
-    // );
     if (sortable.isActiveDroppable) {
       props.setHovered(true);
     }

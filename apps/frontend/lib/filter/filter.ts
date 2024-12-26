@@ -19,45 +19,33 @@ export enum Block {
   continue = "Continue",
 }
 
-export type ItemHierarchy = FilterRoot | FilterRule | FilterItem;
-
-export type FilterEntryTypes = "root" | "rule" | "item";
-
-export interface FilterHierarchy {
+export interface FilterRule {
   id: ReturnType<typeof ulid>;
-  name: string | null;
-  type: FilterEntryTypes;
-  icon?: string | null;
-  value?: number | null;
-}
-
-export interface FilterRoot extends FilterHierarchy {
-  id: string;
-  name: null;
-  type: "root";
-  children: FilterRule[];
-}
-
-export interface FilterRule extends FilterHierarchy {
-  id: string;
   name: string;
-  type: "rule";
   icon: string | null;
   enabled: boolean;
   conditions: { [key: string]: string[] }[];
   actions: Action;
-  children: (FilterRule | FilterItem)[];
-  parent?: FilterRoot | FilterRule;
+  bases: FilterItem[];
 }
 
-export interface FilterItem extends FilterHierarchy {
-  id: string;
+export interface FilterItem {
   name: string;
-  type: "item";
-  icon: string;
-  value: number | null;
+  art: string;
   enabled: boolean;
   parent?: FilterRule;
+  category: string;
+  class: string;
+  type: string;
+  score: number;
+  height: number;
+  width: number;
+  strReq: number;
+  dexReq: number;
+  intReq: number;
+  itemClass: string;
+  corruptable: boolean;
+  stackable: boolean;
 }
 
 export class Filter {
@@ -192,14 +180,14 @@ export class Filter {
     return text;
   }
 
-  convertToText(ancestors: (string | null)[], entry: ItemHierarchy): string[] {
+  convertToText(ancestors: (string | null)[], entry: FilterRule): string[] {
     const rules: string[] = [];
 
     if (entry.type === "rule") {
-      const enabledBases = entry.children
+      const enabledBases = entry.bases
         .filter((e) => e.enabled)
         .map((e) => e.name);
-      const disabledBases = entry.children
+      const disabledBases = entry.bases
         .filter((e) => !e.enabled)
         .map((e) => e.name);
       const description = `# ${ancestors.join(" => ")} => ${entry.name.trim()}`;
@@ -219,11 +207,6 @@ export class Filter {
       }
 
       return rules;
-    }
-    if (entry.type !== "item") {
-      for (const child of entry.children) {
-        rules.push(...this.convertToText([...ancestors, entry.name], child));
-      }
     }
 
     return rules;
@@ -245,12 +228,6 @@ export class Filter {
 `;
     return txt;
   }
-}
-
-export function getIcon(entry: ItemHierarchy): string | null {
-  if (entry.type === "item") return entry.icon;
-  if (!entry.children.length) return null;
-  return getIcon(entry.children[0]);
 }
 
 export async function generateFilter(

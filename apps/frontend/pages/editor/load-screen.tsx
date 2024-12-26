@@ -10,7 +10,7 @@ import {
 } from "@pkgs/ui/dialog";
 import { TextField, TextFieldInput, TextFieldLabel } from "@pkgs/ui/text-field";
 import { EditIcon, TrashIcon, CopyIcon } from "@pkgs/icons";
-import { alphabeticalSort, timeSince } from "@pkgs/lib/utils";
+import { timeSince } from "@pkgs/lib/utils";
 import {
   ContextMenu,
   ContextMenuItem,

@@ -11,7 +11,6 @@ import { Collapsible, CollapsibleContent } from "@pkgs/ui/collapsible";
 import {
   addParentRefs,
   deleteRule,
-  getIcon,
   setEntryActive,
   type FilterRule,
 } from "@app/lib/filter";
@@ -26,12 +25,14 @@ import {
   useDragDropContext,
 } from "@thisbeyond/solid-dnd";
 import { MinimapIcon } from "./map-icon-picker";
-import CreateRule from "./create-rule";
+import { Button } from "@pkgs/ui/button";
+import { ItemPicker } from "./item-picker";
+import { Dialog } from "@pkgs/ui/dialog";
 
 function Rule(props: {
   rule: FilterRule;
 }) {
-  const [icon, setIcon] = createSignal(getIcon(props.rule));
+  const [editNameActive, setEditNameActive] = createSignal(false);
   const [active, setActive] = createSignal<boolean>(false);
   const [expanded, setExpanded] = createSignal(false);
   const [hovered, setHovered] = createSignal(false);
@@ -45,13 +46,15 @@ function Rule(props: {
   function onMouseDown(e: MouseEvent) {
     e.stopPropagation();
     if (e.button === 0 && !e.shiftKey) {
-      console.log(e);
       store.activeRule = props.rule;
-      console.log(store.activeRule, props.rule);
     }
     if (e.button === 0 && e.shiftKey) {
       handleActive();
     }
+  }
+
+  function handleNameChange(e: Event) {
+    props.rule.name = e.target.value;
   }
 
   function handleActive() {
@@ -68,7 +71,7 @@ function Rule(props: {
   }
 
   onDragMove(({ draggable }: { draggable: Draggable }) => {
-    const draggableIsChild = props.rule.children.some(
+    const draggableIsChild = props.rule.bases.some(
       (e) => e.id === draggable.id,
     );
     if (droppableTitle.isActiveDroppable && !draggableIsChild) {
@@ -93,11 +96,11 @@ function Rule(props: {
   });
 
   createEffect(() => {
-    setIcon(getIcon(props.rule));
+    addParentRefs([props.rule]);
   });
 
   createEffect(() => {
-    addParentRefs(props.rule);
+    setEditNameActive(store.activeRule?.id === props.rule.id);
   });
 
   onMount(() => {
@@ -113,7 +116,7 @@ function Rule(props: {
 
   function getBorderColor(active: boolean, hovered: boolean) {
     if (active) {
-      return "border-primary";
+      return "border-[#EEE]";
     }
     if (hovered) {
       return "border-accent";
@@ -140,21 +143,19 @@ function Rule(props: {
             ref={previewRef}
           >
             <div class='m-1 flex items-center min-w-max mr-10'>
-              <figure class='max-w-lg shrink-0'>
-                <img
-                  class='mr-1 h-8 max-w-full pointer-events-none'
-                  alt={`${props.rule.name}`}
-                  src={icon() || "/images/Art@2DItems@Maps@VenariusFoil.png"} // FIXME placeholder image
+              <div class='text-xl p-1'>
+                <input
+                  class={`bg-primary-foreground outline-none border-none ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"}`}
+                  type='text'
+                  value={props.rule.name}
+                  onChange={handleNameChange}
                 />
-              </figure>
-              <div class='pointer-events-none text-xl p-1'>
-                {props.rule.name}
               </div>
             </div>
             <div
               class={`flex h-full items-center justify-end ${previewWidth() > 520 ? "w-full" : ""}`}
             >
-              {props.rule.children.some((e) => e.type === "item") ? (
+              {props.rule.bases.some((e) => e.type === "item") ? (
                 <div
                   class={`h-6 px-3 max-w-[300px] items-center justify-center border border-1 mr-1 ${previewWidth() > 520 ? "flex" : "hidden"}`}
                   style={{
@@ -173,8 +174,8 @@ function Rule(props: {
                   ) : (
                     ""
                   )}
-                  {props.rule.children.length
-                    ? props.rule.children.reduce((a, b) => {
+                  {props.rule.bases.length
+                    ? props.rule.bases.reduce((a, b) => {
                         return a.name.length <= b.name.length ? a : b;
                       }).name
                     : "Item"}
@@ -202,7 +203,7 @@ function Rule(props: {
               <span>{props.rule.enabled ? "Disable" : "Enable"}</span>
               <ContextMenuShortcut>⇧+LClick</ContextMenuShortcut>
             </ContextMenuItem>
-            <ContextMenuItem>
+            <ContextMenuItem disabled>
               <span>Copy</span>
             </ContextMenuItem>
             <ContextMenuItem onMouseDown={handleDelete}>
@@ -213,34 +214,21 @@ function Rule(props: {
       </ContextMenu>
       <CollapsibleContent>
         <ul
-          class={`ms-6 border-s-[1px] border-r-0 flex flex-wrap ${hovered() ? "border-accent" : "border-muted"}`}
+          class={`ms-6 border-s-[1px] grid border-r-0 ${hovered() ? "border-accent" : "border-muted"}`}
           onMouseOut={() => setHovered(false)}
           onMouseOver={() => setHovered(true)}
           onMouseDown={onMouseDown}
           onFocus={() => null}
           onBlur={() => null}
         >
-          <SortableProvider ids={props.rule.children.map((e) => e.id)}>
-            <For each={props.rule.children}>
+          <SortableProvider ids={props.rule.bases.map((e) => e.name)}>
+            <For each={props.rule.bases}>
               {(entry) => {
-                switch (entry.type) {
-                  case "rule":
-                    return <Rule rule={entry} />;
-                  case "item":
-                    return <Item item={entry} setHovered={setHovered} />;
-                }
+                return <Item item={entry} setHovered={setHovered} />;
               }}
             </For>
           </SortableProvider>
-          {!props.rule.children.some((entry) => entry.type === "item") ? (
-            <CreateRule parent={props.rule} />
-          ) : (
-            <button
-              class={`border w-10 p-2 text-center cursor-pointer hover:border-accent border-muted`}
-            >
-              +
-            </button>
-          )}
+          <ItemPicker rule={props.rule} />
         </ul>
       </CollapsibleContent>
     </Collapsible>

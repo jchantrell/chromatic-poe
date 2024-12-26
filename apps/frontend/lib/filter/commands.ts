@@ -1,5 +1,4 @@
 import type {
-  ItemHierarchy,
   FilterRule,
   FilterItem,
   Filter,
@@ -130,27 +129,21 @@ export function moveItem(
   filter?.execute(
     new Command(() => {
       batch(() => {
-        source.children = source.children.filter(
-          (entry) => item.id !== entry.id,
-        );
-        target.children = [
-          ...target.children.slice(0, index),
+        source.bases = source.bases.filter((entry) => item.id !== entry.id);
+        target.bases = [
+          ...target.bases.slice(0, index),
           { ...item.data, parent: target },
-          ...target.children.slice(index),
+          ...target.bases.slice(index),
         ];
       });
     }),
   );
 }
 
-export function createRule(
-  filter: Filter,
-  rule: FilterRule,
-  parentRef: FilterRule[],
-) {
+export function createRule(filter: Filter, rule: FilterRule) {
   filter?.execute(
     new Command(() => {
-      parentRef.push(rule);
+      filter.rules.push(rule);
     }),
   );
 }
@@ -158,11 +151,7 @@ export function createRule(
 export function deleteRule(filter: Filter, rule: FilterRule) {
   filter?.execute(
     new Command(() => {
-      if (rule.parent) {
-        rule.parent.children = rule.parent?.children.filter(
-          (entry) => entry.id !== rule.id,
-        );
-      }
+      filter.rules = filter.rules.filter((entry) => entry.id !== rule.id);
     }),
   );
 }
@@ -175,45 +164,23 @@ export function setEntryActive(
   filter?.execute(
     new Command(() => {
       entry.enabled = state;
-      if (entry.type !== "item") {
-        setChildrenActive(entry.children, state);
+      if (entry.type === "rule") {
+        for (const base of entry.bases) {
+          base.enabled = state;
+        }
       }
-      if (entry.parent && entry.parent.type !== "root") {
-        setParentActive(entry.parent);
+      if (entry.type === "item" && entry.parent) {
+        setEntryActive(filter, entry.parent, state);
       }
     }),
   );
 }
 
 // helpers
-function setChildrenActive(
-  children: (FilterRule | FilterItem)[],
-  state: boolean,
-) {
-  for (const child of children) {
-    child.enabled = state;
-    if (child.type === "rule") {
-      setChildrenActive(child.children, state);
+export function addParentRefs(rules: FilterRule[]) {
+  for (const rule of rules) {
+    for (const base of rule.bases) {
+      base.parent = rule;
     }
   }
-}
-function setParentActive(parent: FilterRule) {
-  parent.enabled = parent?.children.some((e) => e.enabled);
-  if (parent.parent && parent.parent.type !== "root") {
-    setParentActive(parent.parent);
-  }
-}
-export function addParentRefs(entries: ItemHierarchy[]) {
-  for (const entry of entries) {
-    addParentRef(entry);
-  }
-}
-
-function addParentRef(entry: ItemHierarchy) {
-  if (entry.type === "item") return entry;
-  for (const child of entry.children) {
-    child.parent = entry;
-    if (child.type !== "item") addParentRef(child);
-  }
-  return entry;
 }

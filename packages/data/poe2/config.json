@@ -114,6 +114,10 @@
     {
       "name": "WeaponTypes",
       "columns": ["BaseItemTypesKey", "Speed", "DamageMin", "DamageMax"]
+    },
+    {
+      "name": "CurrencyItems",
+      "columns": ["BaseItemTypesKey", "StackSize"]
     }
   ]
 }

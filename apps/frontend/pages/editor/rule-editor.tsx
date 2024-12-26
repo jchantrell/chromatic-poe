@@ -1,4 +1,4 @@
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, onMount } from "solid-js";
 import { store } from "@app/store";
 import {
   Color,
@@ -7,11 +7,11 @@ import {
   setMapIconEnabled,
   Shape,
 } from "@app/lib/filter";
-import MapIconPicker from "@app/pages/editor/components/map-icon-picker";
-import ColorPicker from "@app/pages/editor/components/color-picker";
+import MapIconPicker from "@app/pages/editor/map-icon-picker";
+import ColorPicker from "@app/pages/editor/color-picker";
 import { Checkbox } from "@pkgs/ui/checkbox";
 import { Label } from "@pkgs/ui/label";
-import BeamPicker from "@app/pages/editor/components/beam-picker";
+import BeamPicker from "@app/pages/editor/beam-picker";
 
 export function RuleEditor() {
   if (!store.activeRule) return <></>;
@@ -53,6 +53,26 @@ export function RuleEditor() {
     setBeamActive(store.activeRule?.actions.beam?.enabled || false);
   });
 
+  createEffect(() => {
+    const opts = { corruptable: false, stackable: false };
+    if (store.activeRule) {
+      for (const base of store.activeRule.bases) {
+        if (base.corruptable) {
+          opts.corruptable = true;
+        }
+        if (base.stackable) {
+          opts.stackable = true;
+        }
+        if (base.mirrorable) {
+          opts.mirrorable = true;
+        }
+        if (base.category === "Gems") {
+          // add gem conditions
+        }
+      }
+    }
+  });
+
   return (
     <div class='size-full flex flex-col items-center p-10'>
       <div
@@ -92,7 +112,16 @@ export function RuleEditor() {
           </div>
         </div>
       </div>
-      <div>conditions</div>
+      <div class='grid w-full'>
+        <div class='flex'>
+          <div>Rarity</div>
+          <div>x</div>
+        </div>
+        <div class='flex'>
+          <div>ItemLevel</div>
+          <div>x</div>
+        </div>
+      </div>
     </div>
   );
 }

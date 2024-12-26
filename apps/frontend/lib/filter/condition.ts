@@ -32,24 +32,26 @@ export enum Influence {
 }
 
 export class ConditionBuilder {
-  // general
+  // internal
   baseType(op: Operator, bases: string[]): string {
     return `BaseType ${op} ${bases.map((e) => `"${e}"`).join(" ")}`;
   }
   class(op: Operator, className: ClassName, ...rest: ClassName[]): string {
     return `Class ${op} "${className}"${rest ? rest.map((entry) => ` "${entry}"`) : ""}`;
   }
-  areaLevel(op: Operator, lvl: IntRange<0, 100>): string {
-    return `AreaLevel ${op} ${lvl}`;
-  }
-  dropLevel(op: Operator, lvl: IntRange<0, 100>): string {
-    return `DropLevel ${op} ${lvl}`;
-  }
+
+  // general
   height(op: Operator, height: IntRange<1, 4>): string {
     return `Height ${op} ${height}`;
   }
   width(op: Operator, width: IntRange<1, 2>): string {
     return `Width ${op} ${width}`;
+  }
+  areaLevel(op: Operator, lvl: IntRange<0, 100>): string {
+    return `AreaLevel ${op} ${lvl}`;
+  }
+  dropLevel(op: Operator, lvl: IntRange<0, 100>): string {
+    return `DropLevel ${op} ${lvl}`;
   }
 
   // stackables

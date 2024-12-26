@@ -1,12 +1,12 @@
 import { createEffect, type JSXElement } from "solid-js";
 import { Resizable, ResizableHandle, ResizablePanel } from "@pkgs/ui/resizable";
 import { useColorMode } from "@kobalte/core";
-import Setup from "./components/initial-setup";
-import { LoadScreenMenu } from "./components/load-screen";
+import Setup from "./initial-setup";
+import { LoadScreenMenu } from "./load-screen";
 import { For } from "solid-js";
-import Rule from "./components/rule";
+import Rule from "./rule";
 import { input } from "@app/lib/input";
-import CreateRule from "./components/create-rule";
+import CreateRule from "./create-rule";
 import { toast } from "solid-sonner";
 import {
   DragDropProvider,
@@ -19,10 +19,9 @@ import {
 } from "@thisbeyond/solid-dnd";
 import { store } from "@app/store";
 import { moveItem, type FilterItem, type FilterRule } from "@app/lib/filter";
-import { ItemVisual } from "./components/item";
-import { RuleEditor } from "./components/rule-editor";
-import { itemIndex } from "@app/lib/filter/items";
-import Search from "@app/components/search";
+import { ItemVisual } from "./item";
+import { RuleEditor } from "./rule-editor";
+import { ItemPicker } from "./item-picker";
 
 interface DraggableItem extends Draggable {
   id: string;
@@ -56,54 +55,6 @@ const SAVE_KEY = "s";
 const REDO_KEY = "y";
 const UNDO_KEY = "z";
 const ESCAPE_KEY = "Escape";
-
-function ItemHierarchy() {
-  createEffect(() => {
-    input.on(
-      "keypress",
-      (
-        key: string,
-        pressed: boolean,
-        event: { shift: boolean; alt: boolean; ctrl: boolean },
-      ) => {
-        if (key === UNDO_KEY && event.ctrl && pressed) {
-          const actionsReverted = store?.filter?.undo();
-          if (actionsReverted) {
-            toast(`Undid ${actionsReverted} actions.`);
-          }
-        }
-
-        if (key === REDO_KEY && event.ctrl && pressed) {
-          const actionsRedone = store?.filter?.redo();
-          if (actionsRedone) {
-            toast(`Redid ${actionsRedone} actions.`);
-          }
-        }
-
-        if (key === SAVE_KEY && event.ctrl && pressed) {
-          store.filter?.writeFile();
-          toast("Saved filter.");
-        }
-
-        if (key === ESCAPE_KEY) {
-          store.activeRule = null;
-        }
-      },
-    );
-  });
-
-  return (
-    <div class='m-1 p-1 flex flex-col gap-2 overflow-y-auto'>
-      <For each={store?.filter?.rules}>
-        {(entry) => {
-          return <Rule rule={entry} />;
-        }}
-      </For>
-      <CreateRule />
-      <Search index={itemIndex} />
-    </div>
-  );
-}
 
 function DragDrop(props: { children: JSXElement }) {
   function getContainer(
@@ -224,6 +175,53 @@ function DragDrop(props: { children: JSXElement }) {
         }}
       </DragOverlay>
     </DragDropProvider>
+  );
+}
+
+function ItemHierarchy() {
+  createEffect(() => {
+    input.on(
+      "keypress",
+      (
+        key: string,
+        pressed: boolean,
+        event: { shift: boolean; alt: boolean; ctrl: boolean },
+      ) => {
+        if (key === UNDO_KEY && event.ctrl && pressed) {
+          const actionsReverted = store?.filter?.undo();
+          if (actionsReverted) {
+            toast(`Undid ${actionsReverted} actions.`);
+          }
+        }
+
+        if (key === REDO_KEY && event.ctrl && pressed) {
+          const actionsRedone = store?.filter?.redo();
+          if (actionsRedone) {
+            toast(`Redid ${actionsRedone} actions.`);
+          }
+        }
+
+        if (key === SAVE_KEY && event.ctrl && pressed) {
+          store.filter?.writeFile();
+          toast("Saved filter.");
+        }
+
+        if (key === ESCAPE_KEY) {
+          store.activeRule = null;
+        }
+      },
+    );
+  });
+
+  return (
+    <div class='m-1 p-1 flex flex-col gap-2 overflow-y-auto'>
+      <For each={store?.filter?.rules}>
+        {(entry) => {
+          return <Rule rule={entry} />;
+        }}
+      </For>
+      <CreateRule />
+    </div>
   );
 }
 
