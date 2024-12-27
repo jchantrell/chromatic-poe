@@ -17,13 +17,6 @@ import {
 import { ChevronDownIcon } from "@pkgs/icons";
 import Item from "./item";
 import { store } from "@app/store";
-import {
-  type Draggable,
-  type Droppable,
-  SortableProvider,
-  createDroppable,
-  useDragDropContext,
-} from "@thisbeyond/solid-dnd";
 import { MinimapIcon } from "./map-icon-picker";
 import { ItemPicker } from "./item-picker";
 import { Dialog, DialogContent, DialogTrigger } from "@pkgs/ui/dialog";
@@ -31,17 +24,13 @@ import { Dialog, DialogContent, DialogTrigger } from "@pkgs/ui/dialog";
 function Rule(props: {
   rule: FilterRule;
 }) {
-  const [itemPickerOpen, setItemPickerOpen] = createSignal(false);
   const [editNameActive, setEditNameActive] = createSignal(false);
   const [active, setActive] = createSignal<boolean>(false);
   const [expanded, setExpanded] = createSignal(false);
   const [hovered, setHovered] = createSignal(false);
   const [previewWidth, setPreviewWidth] = createSignal(0);
-  const droppableTitle = createDroppable(props.rule.id, props.rule);
 
-  const [_, { onDragEnd, onDragOver, onDragMove }] = useDragDropContext();
-
-  let previewRef: HTMLDivElement | null = null;
+  let previewRef: HTMLDivElement | undefined;
 
   function onMouseDown(e: MouseEvent) {
     e.stopPropagation();
@@ -69,25 +58,6 @@ function Rule(props: {
       deleteRule(store.filter, props.rule);
     }
   }
-
-  onDragMove(({ draggable }: { draggable: Draggable }) => {
-    const draggableIsChild = props.rule.bases.some(
-      (e) => e.id === draggable.id,
-    );
-    if (droppableTitle.isActiveDroppable && !draggableIsChild) {
-      setHovered(true);
-    }
-  });
-
-  onDragOver(({ droppable }: { droppable: Droppable }) => {
-    if (droppable && droppable.id !== props.rule.name) {
-      setHovered(false);
-    }
-  });
-
-  onDragEnd(() => {
-    setHovered(false);
-  });
 
   createEffect(() => {
     if (store.activeRule) {
@@ -129,7 +99,6 @@ function Rule(props: {
       <Collapsible
         onOpenChange={(open) => setExpanded(open)}
         open={expanded()}
-        ref={droppableTitle.ref}
         class='w-full'
       >
         <ContextMenu>
@@ -224,13 +193,9 @@ function Rule(props: {
             onFocus={() => null}
             onBlur={() => null}
           >
-            <SortableProvider ids={props.rule.bases.map((e) => e.name)}>
-              <For each={props.rule.bases}>
-                {(entry) => {
-                  return <Item item={entry} setHovered={setHovered} />;
-                }}
-              </For>
-            </SortableProvider>
+            <For each={props.rule.bases}>
+              {(entry) => <Item item={entry} setHovered={setHovered} />}
+            </For>
           </ul>
         </CollapsibleContent>
         <DialogContent>

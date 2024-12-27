@@ -23,10 +23,6 @@ import { useColorMode } from "@kobalte/core";
 import chromatic from "@app/lib/config";
 import { store, setFilter, removeFilter } from "@app/store";
 
-function loadFilter(filter: Filter) {
-  setFilter(filter);
-}
-
 export function CreateFilter() {
   const [name, setName] = createSignal("Chromatic");
   const [dialogOpen, setDialogOpen] = createSignal(false);
@@ -39,7 +35,7 @@ export function CreateFilter() {
     }
     const filter = await generateFilter(name(), version());
     await filter.writeFile();
-    loadFilter(filter);
+    setFilter(filter);
     setDialogOpen(false);
     toast(`Created filter named ${name()}.`);
   }
@@ -231,7 +227,7 @@ function ExistingFilter(props: { filter: Filter }) {
         <ContextMenuTrigger class='w-full'>
           <Button
             class='flex text-left justify-between w-full rounded-t-lg p-0'
-            onClick={() => loadFilter(props.filter)}
+            onClick={() => setFilter(props.filter)}
             variant='secondary'
           >
             <div class='ml-2'>
@@ -269,14 +265,14 @@ function ExistingFilter(props: { filter: Filter }) {
     </li>
   );
 }
-export function LoadScreenMenu() {
+export default function LoadScreen() {
   const { colorMode } = useColorMode();
 
   onMount(async () => {
     if (chromatic.runtime === "web") {
       const filter = await generateFilter("test", 1);
       filter.setLastUpdated(new Date());
-      loadFilter(filter);
+      setFilter(filter);
     }
   });
 

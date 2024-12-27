@@ -7,11 +7,10 @@ import {
   ContextMenuTrigger,
 } from "@pkgs/ui/context-menu";
 import { store } from "@app/store";
-import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
 import { setEntryActive, type FilterItem } from "@app/lib/filter";
-import { createEffect, createSignal, type Setter } from "solid-js";
+import type { Setter } from "solid-js";
 
-export function ItemVisual(props: { item: FilterItem; class?: string }) {
+export function Visual(props: { item: FilterItem; class?: string }) {
   return (
     <div
       class={`p-1 px-2 ${props.item.enabled ? "text-primary" : "text-accent"} cursor-pointer border items-center flex select-none ${props.class}`}
@@ -34,36 +33,21 @@ export function ItemVisual(props: { item: FilterItem; class?: string }) {
   );
 }
 
-function Item(props: {
+export default function Item(props: {
   item: FilterItem;
   setHovered: Setter<boolean>;
 }) {
-  const sortable = createSortable(props.item.name, props.item);
-
-  const [_, { onDragMove }] = useDragDropContext();
-
   function handleActive() {
     if (store.filter) {
       setEntryActive(store.filter, props.item, !props.item.enabled);
     }
   }
 
-  onDragMove(({ draggable }) => {
-    if (sortable.isActiveDroppable) {
-      props.setHovered(true);
-    }
-  });
-
   return (
-    <li
-      use:sortable
-      classList={{
-        "opacity-15": sortable.isActiveDraggable,
-      }}
-    >
+    <li>
       <ContextMenu>
         <ContextMenuTrigger>
-          <ItemVisual class='hover:border-accent' item={props.item} />
+          <Visual class='hover:border-accent' item={props.item} />
         </ContextMenuTrigger>
         <ContextMenuPortal>
           <ContextMenuContent class='w-48'>
@@ -77,5 +61,3 @@ function Item(props: {
     </li>
   );
 }
-
-export default Item;

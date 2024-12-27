@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onMount } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import { store } from "@app/store";
 import {
   Color,
@@ -13,7 +13,7 @@ import { Checkbox } from "@pkgs/ui/checkbox";
 import { Label } from "@pkgs/ui/label";
 import BeamPicker from "@app/pages/editor/beam-picker";
 
-export function RuleEditor() {
+export default function RuleEditor() {
   if (!store.activeRule) return <></>;
   const [mapIconActive, setMapIconActive] = createSignal(false);
   const [beamActive, setBeamActive] = createSignal(false);
