@@ -112,15 +112,8 @@ export default function RuleEditor() {
           </div>
         </div>
       </div>
-      <div class='grid w-full'>
-        <div class='flex gap-2'>
-          <div>Rarity</div>
-          <div>TODO</div>
-        </div>
-        <div class='flex gap-2'>
-          <div>ItemLevel</div>
-          <div>TODO</div>
-        </div>
+      <div class='flex size-full'>
+        <div>Conditions</div>
       </div>
     </div>
   );

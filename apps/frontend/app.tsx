@@ -66,11 +66,12 @@ function App() {
                   <HouseIcon />
                 </Button>
               </a>
-              <a href='/sounds'>
+              <a href='/'>
                 <Button
                   variant='ghost'
                   size='icon'
                   class='h-14 w-14'
+                  disabled
                   onMouseDown={() => null}
                 >
                   <AudioIcon />

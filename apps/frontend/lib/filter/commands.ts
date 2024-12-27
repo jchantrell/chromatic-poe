@@ -7,7 +7,6 @@ import type {
   Shape,
 } from "@app/lib/filter";
 import type { RgbColor } from "@pkgs/ui/color-picker";
-import { batch } from "solid-js";
 
 export class Command {
   execute: (...args: unknown[]) => unknown;
@@ -119,23 +118,19 @@ export function setColor(
   );
 }
 
-export function moveItem(
-  filter: Filter,
-  index: number,
-  item: { data: FilterItem; id: string },
-  source: FilterRule,
-  target: FilterRule,
-) {
-  filter?.execute(
+export function moveRule(filter: Filter, sourceId: string, targetId: string) {
+  filter.execute(
     new Command(() => {
-      batch(() => {
-        source.bases = source.bases.filter((entry) => item.id !== entry.id);
-        target.bases = [
-          ...target.bases.slice(0, index),
-          { ...item.data, parent: target },
-          ...target.bases.slice(index),
-        ];
-      });
+      const itemIds = filter.rules.map((e) => e.id);
+      const fromIndex = itemIds.indexOf(sourceId);
+      const toIndex = itemIds.indexOf(targetId);
+      if (fromIndex !== toIndex) {
+        const updatedItems = filter.rules.slice();
+        if (updatedItems) {
+          updatedItems.splice(toIndex, 0, ...updatedItems.splice(fromIndex, 1));
+          filter.rules = updatedItems;
+        }
+      }
     }),
   );
 }
@@ -164,12 +159,12 @@ export function setEntryActive(
   filter?.execute(
     new Command(() => {
       entry.enabled = state;
-      if (entry.type === "rule") {
+      if ("conditions" in entry) {
         for (const base of entry.bases) {
           base.enabled = state;
         }
       }
-      if (entry.type === "item" && entry.parent) {
+      if ("category" in entry && entry.parent) {
         setEntryActive(filter, entry.parent, state);
       }
     }),
