@@ -165,7 +165,7 @@ export function setEntryActive(
         }
       }
       if ("category" in entry && entry.parent) {
-        setEntryActive(filter, entry.parent, state);
+        entry.parent.enabled = entry.parent.bases.some((base) => base.enabled);
       }
     }),
   );
