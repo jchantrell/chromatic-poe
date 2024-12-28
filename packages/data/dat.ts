@@ -22,7 +22,22 @@ import { extractMinimapIcons } from "./minimap";
 import { FileLoader } from "./loader";
 import { BundleIndex } from "./bundle";
 import { exportFiles } from "./file";
-import { exportTables } from "./table";
+
+export type Config = {
+  patch: string;
+  translations: string[];
+  tables: { [key: string]: string }[];
+};
+
+export type Item = {
+  name: string;
+  category: string;
+  subCategory: string;
+  class: string;
+  type: string;
+  art: string;
+  active: 0 | 1 | 2;
+};
 
 enum Tables {
   BASES = "bases",
@@ -44,22 +59,6 @@ enum Tables {
 
 const PK = "_index";
 
-export type Config = {
-  patch: string;
-  translations: string[];
-  tables: { [key: string]: string }[];
-};
-
-export type Item = {
-  name: string;
-  category: string;
-  subCategory: string;
-  class: string;
-  type: string;
-  art: string;
-  active: 0 | 1 | 2;
-};
-
 export class DatFiles {
   gameVersion: 1 | 2;
   config: Config;
@@ -67,28 +66,16 @@ export class DatFiles {
   loader!: FileLoader;
   index!: BundleIndex;
 
-  constructor(patchVer: string) {
+  constructor(config: Config) {
+    this.config = config;
     this.db = new Database("chromatic.db", {});
     this.db.pragma("journal_mode = WAL");
-    this.loader = new FileLoader(path.join(process.cwd(), "/.cache"), patchVer);
+    this.loader = new FileLoader(
+      path.join(process.cwd(), "/.cache"),
+      config.patch,
+    );
     this.index = new BundleIndex(this.loader);
-    this.gameVersion = patchVer.startsWith("4") ? 2 : 1;
-
-    if (this.gameVersion === 1) {
-      this.config = JSON.parse(
-        fs.readFileSync(
-          path.join(process.cwd(), "/packages/data/poe1/config.json"),
-          "utf8",
-        ),
-      );
-    } else {
-      this.config = JSON.parse(
-        fs.readFileSync(
-          path.join(process.cwd(), "/packages/data/poe2/config.json"),
-          "utf8",
-        ),
-      );
-    }
+    this.gameVersion = config.patch.startsWith("4") ? 2 : 1;
   }
 
   async init() {
@@ -109,6 +96,7 @@ export class DatFiles {
       for (const [key, value] of Object.entries(record)) {
         if (key === PK) continue;
         if (key === "Group") {
+          // dumb hack to avoid reserved word in SQL
           fields.set("Grouping", "INTEGER");
           continue;
         }
@@ -154,6 +142,7 @@ export class DatFiles {
             entry[key] = value ? 1 : 0;
           }
           if (key === "Group") {
+            // dumb hack to avoid reserved word in SQL
             entry.Grouping = value;
             delete entry.Group;
           }
@@ -440,6 +429,18 @@ WHERE tradeGroup IN ('Gems') AND name NOT LIKE '[DNT]%' AND name != 'Coming Soon
 
 UNION ALL
 
+SELECT DISTINCT
+name,
+'Gems' AS category,
+'Uncut' AS class,
+null as type,
+0 AS score, -- FIXME
+${extraFields}
+FROM ITEMS
+WHERE name IN ('Uncut Skill Gem', 'Uncut Support Gem', 'Uncut Spirit Gem')
+
+UNION ALL
+
 -- Jewels
 SELECT DISTINCT
 name,
@@ -668,10 +669,14 @@ WHERE exchangeSubcategory IN ('Pinnacle Fragments')
   }
 }
 
-const PATCH_VER = "4.1.0.11";
-
 async function main() {
-  const dat = new DatFiles(PATCH_VER);
+  const config = JSON.parse(
+    fs.readFileSync(
+      path.join(process.cwd(), "/packages/data/poe2/config.json"),
+      "utf8",
+    ),
+  );
+  const dat = new DatFiles(config);
   await dat.init();
   await dat.extract();
 }
