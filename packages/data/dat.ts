@@ -637,9 +637,9 @@ WHERE exchangeSubcategory IN ('Pinnacle Fragments')
 
       .all() as Item[];
 
-    exportFiles(
+    await exportFiles(
       [...rows.map((item) => item.art), "Art/2DArt/Minimap/Player.png"],
-      "packages/assets/poe2/images",
+      path.join(process.cwd(), "packages/assets/poe2/images"),
       this.loader,
     );
     for (const item of rows) {
