@@ -3,7 +3,6 @@ import { Checkbox } from "@pkgs/ui/checkbox";
 import { createSignal, For } from "solid-js";
 import { createMutable } from "solid-js/store";
 import { ChevronDownIcon } from "@pkgs/icons";
-import { clone } from "@pkgs/lib/utils";
 
 interface BaseItem {
   name: string;
@@ -42,6 +41,10 @@ type NestedData = {
   [key: string]: NestedData | BaseItem;
 };
 
+function isLeafNode(obj: object): obj is BaseItem {
+  return obj.hasOwnProperty("name") && obj.hasOwnProperty("category");
+}
+
 function updateParentState(node: TreeNode) {
   if (node.parent) {
     const activeChildren = node.parent.children.some((child) => child.enabled);
@@ -50,16 +53,9 @@ function updateParentState(node: TreeNode) {
   }
 }
 
-function enableNodeAndAncestors(node: TreeNode): void {
-  let current: TreeNode | undefined = node;
-  while (current) {
-    current.enabled = true;
-    current = current.parent;
-  }
-}
-
-function isLeafNode(obj: object): obj is BaseItem {
-  return obj.hasOwnProperty("name") && obj.hasOwnProperty("category");
+function getIcon(node: TreeNode) {
+  if (node.data) return node.data.art;
+  return getIcon(node.children[0]);
 }
 
 function rollup(
@@ -86,7 +82,11 @@ function rollup(
       node.children.push(leafNode);
 
       if (bases.some((base) => base.name === value.name)) {
-        enableNodeAndAncestors(leafNode);
+        let current: TreeNode | undefined = node;
+        while (current) {
+          current.enabled = true;
+          current = current.parent;
+        }
       }
     } else {
       node.children.push(rollup(value, key, bases, node));
@@ -114,13 +114,13 @@ function Node(props: {
   const [isExpanded, setIsExpanded] = createSignal(false);
   const isBranch = "children" in props.node;
 
-  const handleToggle = () => {
+  function handleToggle() {
     props.onToggle(props.node, !props.node.enabled);
-  };
+  }
 
-  const handleExpand = () => {
+  function handleExpand() {
     setIsExpanded(!isExpanded());
-  };
+  }
 
   return (
     <div class={`select-none ${props.level > 0 ? "ml-4" : ""}`}>
@@ -140,15 +140,17 @@ function Node(props: {
         />
 
         <div class='flex items-center flex-grow'>
-          {"data" in props.node && (
-            <figure class='max-w-lg'>
-              <img
-                class='mr-1 h-6 max-w-full pointer-events-none'
-                alt={`${props.node.data?.name} icon`}
-                src={props.node.data?.art}
-              />
-            </figure>
-          )}
+          <figure class='max-w-lg'>
+            <img
+              class='mr-1 h-6 max-w-full pointer-events-none'
+              alt={`${props.node.data?.name} icon`}
+              src={
+                "data" in props.node
+                  ? props.node.data?.art
+                  : getIcon(props.node)
+              }
+            />
+          </figure>
           <span>{props.node.name}</span>
         </div>
       </div>
@@ -172,8 +174,6 @@ export function ItemPicker(props: { rule: FilterRule }) {
   const itemHierarchy = createMutable(
     rollup(itemIndex.hierarchy, "Items", props.rule.bases),
   );
-
-  console.log(clone(itemHierarchy));
 
   function toggleNode(node: TreeNode, enabled: boolean): void {
     node.enabled = enabled;
