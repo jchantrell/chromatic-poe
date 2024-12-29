@@ -99,11 +99,8 @@
   * {
     @apply border-border;
   }
-  html {
-    @apply h-full;
-  }
   body {
-    @apply bg-secondary text-foreground select-none h-full;
+    @apply bg-secondary text-foreground select-none h-screen;
     font-feature-settings:
       'rlig' 1,
       'calt' 1;

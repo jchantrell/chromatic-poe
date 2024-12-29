@@ -45,9 +45,9 @@ function App() {
     <>
       <ColorModeScript storageType={storageManager.type} />
       <ColorModeProvider storageManager={storageManager}>
-        <div class='h-screen flex flex-row overflow-hidden' ref={ref}>
+        <div class='grid h-screen grid-cols-[80px,100fr]' ref={ref}>
           <nav
-            class='h-full flex flex-1 flex-col items-center justify-between py-2.5'
+            class='flex flex-1 flex-col items-center justify-between py-2.5'
             data-tauri-drag-region
           >
             <div class='flex flex-col gap-2'>
@@ -82,7 +82,7 @@ function App() {
               <Settings />
             </div>
           </nav>
-          <div class='w-[calc(100%-4.5rem)]'>
+          <div class='w-full'>
             <nav
               class='w-full flex justify-between items-center h-14'
               data-tauri-drag-region
@@ -111,7 +111,7 @@ function App() {
             </nav>
 
             <main
-              class='h-[calc(100%-3.5rem)] w-full flex rounded-tl-2xl bg-primary-foreground overflow-auto overflow-x-hidden'
+              class='size-full flex rounded-tl-2xl bg-primary-foreground overflow-auto overflow-x-hidden'
               onContextMenu={(e) => e.preventDefault()}
             >
               <Router>
