@@ -23,8 +23,8 @@ export function Theme() {
     <Select
       value={colorMode()}
       onChange={handleChange}
-      options={["light", "dark"]}
-      defaultValue={colorMode()}
+      options={["dark"]}
+      defaultValue={"dark"}
       itemComponent={(props) => (
         <SelectItem item={props.item}>
           {capitalizeFirstLetter(props.item.rawValue)}
