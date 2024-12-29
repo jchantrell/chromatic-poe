@@ -243,7 +243,7 @@ ${Tables.SKILL_GEMS}.GemEffects as 'gemFx'
 FROM ${Tables.BASES}
 
 LEFT JOIN ${Tables.CLASSES}
-ON ${Tables.BASES}.ItemClassesKey = ${Tables.CLASSES}.${PK}
+ON ${Tables.BASES}.ItemClass = ${Tables.CLASSES}.${PK}
 
 LEFT JOIN ${Tables.CLASS_CATEGORIES}
 ON ${Tables.CLASSES}.ItemClassCategory = ${Tables.CLASS_CATEGORIES}.${PK}
@@ -268,19 +268,19 @@ LEFT JOIN ${Tables.EXCHANGE_CATEGORY} as exchange_sub
 ON ${Tables.EXCHANGE}.SubCategory = exchange_sub.${PK}
 
 LEFT JOIN ${Tables.ATTRIBUTE_REQUIREMENTS}
-ON ${Tables.BASES}.${PK} = ${Tables.ATTRIBUTE_REQUIREMENTS}.BaseItemTypesKey
+ON ${Tables.BASES}.${PK} = ${Tables.ATTRIBUTE_REQUIREMENTS}.BaseItemType
 
 LEFT JOIN ${Tables.ARMOUR_TYPES}
-ON ${Tables.BASES}.${PK} = ${Tables.ARMOUR_TYPES}.BaseItemTypesKey
+ON ${Tables.BASES}.${PK} = ${Tables.ARMOUR_TYPES}.BaseItemType
 
 LEFT JOIN ${Tables.WEAPON_TYPES}
-ON ${Tables.BASES}.${PK} = ${Tables.WEAPON_TYPES}.BaseItemTypesKey
+ON ${Tables.BASES}.${PK} = ${Tables.WEAPON_TYPES}.BaseItemType
 
 LEFT JOIN ${Tables.SKILL_GEMS}
-ON ${Tables.BASES}.${PK} = ${Tables.SKILL_GEMS}.BaseItemTypesKey
+ON ${Tables.BASES}.${PK} = ${Tables.SKILL_GEMS}.BaseItemType
 
 LEFT JOIN ${Tables.CURRENCY_ITEMS}
-ON ${Tables.BASES}.${PK} = ${Tables.CURRENCY_ITEMS}.BaseItemTypesKey
+ON ${Tables.BASES}.${PK} = ${Tables.CURRENCY_ITEMS}.BaseItemType
 
 WHERE ${Tables.BASES}.Name != '' AND ${Tables.BASES}.Name IS NOT NULL
 )

@@ -4,7 +4,7 @@
   "tables": [
     {
       "name": "AttributeRequirements",
-      "columns": ["BaseItemTypesKey", "ReqStr", "ReqDex", "ReqInt"]
+      "columns": ["BaseItemType", "ReqStr", "ReqDex", "ReqInt"]
     },
     {
       "name": "MinimapIcons",
@@ -15,11 +15,11 @@
       "columns": [
         "Id",
         "Name",
-        "ItemClassesKey",
+        "ItemClass",
         "TradeMarketCategory",
         "ItemVisualIdentity",
         "InheritsFrom",
-        "TagsKeys",
+        "Tags",
         "SiteVisibility",
         "ModDomain",
         "Width",
@@ -85,7 +85,7 @@
     {
       "name": "SkillGems",
       "columns": [
-        "BaseItemTypesKey",
+        "BaseItemType",
         "StrengthRequirementPercent",
         "DexterityRequirementPercent",
         "IntelligenceRequirementPercent",
@@ -99,25 +99,19 @@
     },
     {
       "name": "GemTags",
-      "columns": ["Id", "Tag"]
+      "columns": ["Id", "Name"]
     },
     {
       "name": "ArmourTypes",
-      "columns": [
-        "BaseItemTypesKey",
-        "Armour",
-        "Evasion",
-        "EnergyShield",
-        "Ward"
-      ]
+      "columns": ["BaseItemType", "Armour", "Evasion", "EnergyShield", "Ward"]
     },
     {
       "name": "WeaponTypes",
-      "columns": ["BaseItemTypesKey", "Speed", "DamageMin", "DamageMax"]
+      "columns": ["BaseItemType", "Speed", "DamageMin", "DamageMax"]
     },
     {
       "name": "CurrencyItems",
-      "columns": ["BaseItemTypesKey", "StackSize"]
+      "columns": ["BaseItemType", "StackSize"]
     }
   ]
 }

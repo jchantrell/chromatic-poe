@@ -69,8 +69,8 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
       pathofexile-dat:
-        specifier: ^13.0.0
-        version: 13.0.0
+        specifier: ^14.0.0
+        version: 14.0.0
       pathofexile-dat-schema:
         specifier: ^7.0.0
         version: 7.0.0
@@ -1879,8 +1879,11 @@ packages:
   pathofexile-dat-schema@7.0.0:
     resolution: {integrity: sha512-oLCh//jZxB1KUTW357khqTyoWp5lBGuNdW3HIZ8JfAciwniuAQdwOoiSJJpkN3IkU92tJWNOEQqqwUXb3AMl4Q==}
 
-  pathofexile-dat@13.0.0:
-    resolution: {integrity: sha512-oxgYJu9hs4AwFbBZWsaX4vw2l1An5IOLgQoKMRARMcjPXF2x14VNDkUDcaD7kzdJg12O1p9tk0tF7h7HmLQGyw==}
+  pathofexile-dat-schema@8.0.0:
+    resolution: {integrity: sha512-sn/8cJHbDCM6HjLMk9LnWXXS5Nbl2YqzqZslbooC7ankKbnr0tBwfl8AxM5fI+IzX49zNnKGuqpFvQQ2UMFuig==}
+
+  pathofexile-dat@14.0.0:
+    resolution: {integrity: sha512-6dZkPRvKKlNcKt25rXqPCqyTLPeZMUxgyueSpj6Bad0SajmBfto/tW52yZu3i4uhWm0ptxvsgzwnHRdir79bVA==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -4211,10 +4214,12 @@ snapshots:
 
   pathofexile-dat-schema@7.0.0: {}
 
-  pathofexile-dat@13.0.0:
+  pathofexile-dat-schema@8.0.0: {}
+
+  pathofexile-dat@14.0.0:
     dependencies:
       ooz-wasm: 2.0.0
-      pathofexile-dat-schema: 7.0.0
+      pathofexile-dat-schema: 8.0.0
 
   pathval@2.0.0: {}
 

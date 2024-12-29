@@ -1,4 +1,4 @@
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, For } from "solid-js";
 import { store } from "@app/store";
 import {
   Color,
@@ -12,6 +12,7 @@ import ColorPicker from "@app/pages/editor/color-picker";
 import { Checkbox } from "@pkgs/ui/checkbox";
 import { Label } from "@pkgs/ui/label";
 import BeamPicker from "@app/pages/editor/beam-picker";
+import ConditionManager from "./condition-builder";
 
 export default function RuleEditor() {
   if (!store.activeRule) return <></>;
@@ -74,7 +75,7 @@ export default function RuleEditor() {
   });
 
   return (
-    <div class='size-full flex flex-col items-center p-10'>
+    <div class='flex flex-col items-center p-10'>
       <div
         class='flex max-w-[300px] w-full items-center justify-between text-lg border-[1.5px]'
         style={{
@@ -112,9 +113,7 @@ export default function RuleEditor() {
           </div>
         </div>
       </div>
-      <div class='flex size-full'>
-        <div>Conditions</div>
-      </div>
+      <ConditionManager />
     </div>
   );
 }

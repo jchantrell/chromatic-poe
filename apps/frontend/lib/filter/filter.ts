@@ -5,11 +5,12 @@ import type { ulid } from "ulid";
 import { applyPatch, compare, type Operation } from "fast-json-patch";
 import {
   type Command,
-  type Action,
+  type Actions,
+  type Conditions,
   serializeActions,
-  conditions,
   addParentRefs,
   Operator,
+  serializeConditions,
 } from ".";
 import { createMutable, modifyMutable, reconcile } from "solid-js/store";
 
@@ -23,9 +24,10 @@ export interface FilterRule {
   id: ReturnType<typeof ulid>;
   name: string;
   icon: string | null;
+  show: boolean;
   enabled: boolean;
-  conditions: { [key: string]: string[] }[];
-  actions: Action;
+  conditions: Conditions;
+  actions: Actions;
   bases: FilterItem[];
 }
 
@@ -155,7 +157,7 @@ export class Filter {
     const path = chromatic.getFiltersPath(this);
     await chromatic.fileSystem.deleteFile(path);
     await chromatic.fileSystem.deleteFile(
-      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile/${this.name}.filter`,
+      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile 2/${this.name}.filter`,
     );
   }
 
@@ -166,7 +168,7 @@ export class Filter {
       stringifyJSON({ ...this, lastUpdated: new Date().toISOString() }),
     );
     await chromatic.fileSystem.writeFile(
-      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile/${this.name}.filter`,
+      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile 2/${this.name}.filter`,
       this.serialize(),
     );
   }
@@ -174,55 +176,34 @@ export class Filter {
   serialize(): string {
     let text = "";
     for (const rule of this.rules) {
-      const rules = this.convertToText([], rule);
-      text += rules.join("");
+      if (rule.enabled) {
+        text += this.convertToText(rule);
+      }
     }
     return text;
   }
 
-  convertToText(ancestors: (string | null)[], entry: FilterRule): string[] {
-    const rules: string[] = [];
+  convertToText(rule: FilterRule): string {
+    const enabledBases = rule.bases.filter((e) => e.enabled).map((e) => e.name);
+    const block = this.createTextBlock(rule.name, rule.show, rule.actions, {
+      ...rule.conditions,
+      bases: enabledBases,
+    });
 
-    if (entry.type === "rule") {
-      const enabledBases = entry.bases
-        .filter((e) => e.enabled)
-        .map((e) => e.name);
-      const disabledBases = entry.bases
-        .filter((e) => !e.enabled)
-        .map((e) => e.name);
-      const description = `# ${ancestors.join(" => ")} => ${entry.name.trim()}`;
-
-      if (disabledBases.length) {
-        const block = this.createTextBlock(description, Block.hide, entry, [
-          conditions.baseType(Operator.eq, disabledBases),
-        ]);
-        rules.push(block);
-      }
-
-      if (enabledBases.length) {
-        const block = this.createTextBlock(description, Block.show, entry, [
-          conditions.baseType(Operator.eq, enabledBases),
-        ]);
-        rules.push(block);
-      }
-
-      return rules;
-    }
-
-    return rules;
+    return block;
   }
 
   createTextBlock(
     description: string,
-    block: Block,
-    entry: FilterRule,
-    conditions: string[],
+    show: boolean,
+    actions: Actions,
+    conditions: Conditions,
   ) {
     const eol = chromatic.fileSystem.eol();
 
-    const txt = `${description}${eol}${block}${eol}${conditions.map((condition) => `   ${condition}${eol}`).join("")}${serializeActions(
-      entry.actions,
-    )
+    const txt = `# ${description}${eol}${show ? Block.show : Block.hide}${eol}${serializeConditions(
+      conditions,
+    ).map((condition) => `  ${condition}${eol}`)}${serializeActions(actions)
       .map((action) => `  ${action}${eol}`)
       .join("")}
 `;

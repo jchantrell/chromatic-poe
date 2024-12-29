@@ -201,12 +201,12 @@ class Chromatic {
   async getAssumedPoeDirectory(os: string): Promise<string | null> {
     if (os === "windows") {
       const docPath = await documentDir();
-      return `${docPath}\\My Games\\Path of Exile`;
+      return `${docPath}\\My Games\\Path of Exile 2`;
     }
 
     if (os === "linux") {
       const docPath = await documentDir();
-      return `${docPath}/.steam/root/steamapps/compatdata/238960/pfx/drive_c/users/steamuser/My Documents/My Games/Path of Exile`;
+      return `${docPath}/.steam/root/steamapps/compatdata/238960/pfx/drive_c/users/steamuser/My Documents/My Games/Path of Exile 2`;
     }
 
     return null;
@@ -227,7 +227,6 @@ class Chromatic {
     const files = await this.fileSystem.getAllFiles(path);
     for (const file of files) {
       const props = JSON.parse(file);
-      console.log(props);
       props.lastUpdated = new Date(props.lastUpdated);
       new Filter(props);
     }

@@ -2,6 +2,10 @@ import type { ClassValue } from "clsx";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+export function isDefined(val: unknown) {
+  return typeof val !== "undefined";
+}
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

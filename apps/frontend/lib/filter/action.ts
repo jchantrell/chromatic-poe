@@ -1,7 +1,7 @@
 import type { IntRange } from "@pkgs/lib/types";
 import type { RgbColor } from "@pkgs/ui/color-picker";
 
-export type Action = {
+export type Actions = {
   fontSize?: IntRange<1, 45>;
   text?: RgbColor;
   border?: RgbColor;
@@ -97,7 +97,7 @@ export function playEffect(color: Color, temporary?: boolean) {
   return `PlayEffect ${color}${temporary ? " Temp" : ""}`;
 }
 
-export function serializeActions(actions: Action) {
+export function serializeActions(actions: Actions) {
   const strs = [];
 
   if (actions.fontSize) {

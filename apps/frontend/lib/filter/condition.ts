@@ -1,4 +1,75 @@
-import type { IntRange } from "@pkgs/lib/types";
+import { isDefined } from "@pkgs/lib/utils";
+
+type ListCondition<T> = {
+  values: T[];
+};
+
+type OpListCondition<T> = {
+  operator: Operator;
+  values: T[];
+};
+
+type OpValueCondition<T> = {
+  operator: Operator;
+  value: T | string;
+};
+
+export type Conditions = {
+  bases?: string[];
+  classes?: OpListCondition<string>;
+
+  height?: OpValueCondition<number>;
+  width?: OpValueCondition<number>;
+
+  areaLevel?: OpValueCondition<number>;
+  dropLevel?: OpValueCondition<number>;
+  stackSize?: OpValueCondition<number>;
+  quality?: OpValueCondition<number>;
+
+  gemLevel?: OpValueCondition<number>;
+  transfiguredGem?: boolean;
+
+  mapTier?: OpValueCondition<number>;
+  elderMap?: boolean;
+  shapedMap?: boolean;
+  blightedMap?: boolean;
+  uberBlightedMap?: boolean;
+
+  hasImplicitMod?: boolean;
+  itemLevel?: OpValueCondition<number>;
+  rarity?: OpValueCondition<Rarity>;
+  identified?: boolean;
+  scourged?: boolean;
+  fractured?: boolean;
+  mirrored?: boolean;
+  corrupted?: boolean;
+  enchanted?: boolean;
+  synthesised?: boolean;
+  replica?: boolean;
+  crucibleTree?: boolean;
+
+  corruptedMods?: OpValueCondition<number>;
+
+  hasExplicitMod?: ListCondition<string>;
+  hasEnchantment?: ListCondition<string>;
+  archnemesisMod?: ListCondition<string>;
+  enchantmentPassiveNode?: ListCondition<string>;
+  enchantmentPassiveNum?: OpValueCondition<number>;
+
+  hasSearingExarchImplicit?: OpValueCondition<number>;
+  hasEaterOfWorldsImplicit?: OpValueCondition<number>;
+  hasInfluence?: ListCondition<Influence>;
+
+  linkedSockets?: OpValueCondition<number>;
+  sockets?: OpValueCondition<string>; // TODO: is this right?
+  socketGroup?: OpValueCondition<string>;
+
+  defencePercentile?: OpValueCondition<number>;
+  armour?: OpValueCondition<number>;
+  evasion?: OpValueCondition<number>;
+  energyShield?: OpValueCondition<number>;
+  ward?: OpValueCondition<number>;
+};
 
 export enum Operator {
   eq = "==",
@@ -16,11 +87,6 @@ export enum Rarity {
   unique = "Unique",
 }
 
-export enum ClassName {
-  amulets = "Amulets",
-  belts = "Belts",
-}
-
 export enum Influence {
   elder = "Elder",
   shaper = "Shaper",
@@ -31,179 +97,345 @@ export enum Influence {
   none = "None",
 }
 
-export class ConditionBuilder {
-  // internal
-  baseType(op: Operator, bases: string[]): string {
-    return `BaseType ${op} ${bases.map((e) => `"${e}"`).join(" ")}`;
-  }
-  class(op: Operator, className: ClassName, ...rest: ClassName[]): string {
-    return `Class ${op} "${className}"${rest ? rest.map((entry) => ` "${entry}"`) : ""}`;
-  }
-
-  // general
-  height(op: Operator, height: IntRange<1, 4>): string {
-    return `Height ${op} ${height}`;
-  }
-  width(op: Operator, width: IntRange<1, 2>): string {
-    return `Width ${op} ${width}`;
-  }
-  areaLevel(op: Operator, lvl: IntRange<0, 100>): string {
-    return `AreaLevel ${op} ${lvl}`;
-  }
-  dropLevel(op: Operator, lvl: IntRange<0, 100>): string {
-    return `DropLevel ${op} ${lvl}`;
-  }
-
-  // stackables
-  stackSize(op: Operator, size: number): string {
-    return `StackSize ${op} ${size}`;
-  }
-
-  // quality (gear, gems, maps)
-  quality(op: Operator, qual: IntRange<0, 100>): string {
-    return `Quality ${op} ${qual}`;
-  }
-
-  // gems
-  gemLevel(op: Operator, lvl: IntRange<1, 21>): string {
-    return `GemLevel ${op} ${lvl}`;
-  }
-  alternateQuality(bool: boolean): string {
-    return `AlternateQuality ${bool}`;
-  }
-  transfiguredGem(bool: boolean): string {
-    return `TransfiguredGem "${bool}"`;
-  }
-
-  // maps
-  mapTier(
-    op: Operator,
-    tier: IntRange<1, 17>,
-    ...rest: IntRange<1, 17>[]
-  ): string {
-    return `MapTier ${op} "${tier}"${rest ? rest.map((entry) => ` "${entry}"`) : ""}`;
-  }
-  elderMap(bool: boolean): string {
-    return `ElderMap ${bool}`;
-  }
-  shapedMap(bool: boolean): string {
-    return `ShapedMap ${bool}`;
-  }
-  blightedMap(bool: boolean): string {
-    return `BlightedMap ${bool}`;
-  }
-  uberBlightedMap(bool: boolean): string {
-    return `UberBlightedMap "${bool}"`;
-  }
-
-  // gear & maps (general)
-  itemLevel(op: Operator, lvl: IntRange<0, 100>): string {
-    return `ItemLevel ${op} ${lvl}`;
-  }
-  rarity(op: Operator, rarity: Rarity): string {
-    return `Rarity ${op} ${rarity}`;
-  }
-  identified(bool: boolean): string {
-    return `Identified ${bool}`;
-  }
-  hasImplicitMod(bool: boolean): string {
-    return `HasImplicitMod ${bool}`;
-  }
-  scourged(bool: boolean): string {
-    return `Scourged "${bool}"`;
-  }
-  fracturedItem(bool: boolean): string {
-    return `FracturedItem ${bool}`;
-  }
-  corrupted(bool: boolean): string {
-    return `Corrupted ${bool}`;
-  }
-  corruptedMods(op: Operator, number: IntRange<1, 2>): string {
-    return `CorruptedMods ${op} ${number}`;
-  }
-  mirrored(bool: boolean): string {
-    return `Mirrored ${bool}`;
-  }
-  hasExplicitMod(mod: string, ...rest: string[]): string {
-    return `HasExplicitMod "${mod}"${rest ? rest.map((entry) => ` "${entry}"`) : ""}`;
-  }
-  anyEnchantment(bool: boolean): string {
-    return `AnyEnchantment ${bool}`;
-  }
-  hasEnchantment(enchant: string, ...rest: string[]): string {
-    return `HasEnchantment "${enchant}"${rest ? rest.map((entry) => ` "${entry}"`) : ""}`;
-  }
-
-  // gear(socketable)
-  linkedSockets(op: Operator, links: IntRange<0, 6>): string {
-    return `LinkedSockets ${op} ${links}`;
-  }
-  socketGroup(
-    op: Operator,
-    links: IntRange<0, 6>,
-    combination: string,
-  ): string {
-    return `SocketGroup ${op} ${links}${combination}`;
-  }
-  sockets(op: Operator, links: IntRange<0, 6>, combination: string): string {
-    return `Sockets ${op} ${links}${combination}`;
-  }
-
-  // gear (clusters)
-  enchantmentPassiveNode(enchant: string, ...rest: string[]): string {
-    return `EnchantmentPassiveNode "${enchant}"${rest ? rest.map((entry) => ` "${entry}"`) : ""}`;
-  }
-  enchantmentPassiveNum(op: Operator, number: IntRange<2, 12>): string {
-    return `EnchantmentPassiveNum ${op} ${number}`;
-  }
-
-  // gear (weapons)
-  hasCruciblePassiveTree(bool: boolean): string {
-    return `HasCruciblePassiveTree ${bool}`;
-  }
-
-  // gear (armour)
-  baseDefencePercentile(op: Operator, value: number): string {
-    return `BaseDefencePercentile ${op} ${value}`;
-  }
-  baseArmour(op: Operator, value: number): string {
-    return `BaseArmour ${op} ${value}`;
-  }
-  baseEnergyShield(op: Operator, value: number): string {
-    return `BaseEnergyShield ${op} ${value}`;
-  }
-  baseEvasion(op: Operator, value: number): string {
-    return `BaseEvasion ${op} ${value}`;
-  }
-  baseWard(op: Operator, value: number): string {
-    return `BaseWard ${op} ${value}`;
-  }
-
-  // gear (influence)
-  hasInfluence(influence: Influence, ...rest: Influence[]): string {
-    return `HasInfluence "${influence}"${rest ? rest.map((entry) => ` "${entry}"`) : ""}`;
-  }
-  hasSearingExarchImplicit(op: Operator, amount: IntRange<0, 6>): string {
-    return `HasSearingExarchImplicit ${op} ${amount}`;
-  }
-  hasEaterOfWorldsImplicit(op: Operator, amount: IntRange<0, 6>): string {
-    return `HasEaterOfWorldsImplicit ${op} ${amount}`;
-  }
-
-  // gear (synth)
-  synthesisedItem(bool: boolean): string {
-    return `SynthesisedItem ${bool}`;
-  }
-
-  // gear (uniques)
-  replica(bool: boolean): string {
-    return `Replica ${bool}`;
-  }
-
-  // archhem
-  archnemesisMod(modName: string): string {
-    return `ArchnemesisMod "${modName}"`;
-  }
+// internal
+function baseType(op: Operator, bases: string[]): string {
+  return `BaseType ${op} ${bases.map((e) => `"${e}"`).join(" ")}`;
+}
+function className(op: Operator, classNames: string[]): string {
+  return `Class ${op} ${classNames.map((entry) => ` "${entry}"`)}`;
 }
 
-export const conditions = new ConditionBuilder();
+// general
+function height(op: Operator, height: number | string): string {
+  return `Height ${op} ${height}`;
+}
+function width(op: Operator, width: number | string): string {
+  return `Width ${op} ${width}`;
+}
+function areaLevel(op: Operator, lvl: number | string): string {
+  return `AreaLevel ${op} ${lvl}`;
+}
+function dropLevel(op: Operator, lvl: number | string): string {
+  return `DropLevel ${op} ${lvl}`;
+}
+
+// stackables
+function stackSize(op: Operator, size: number | string): string {
+  return `StackSize ${op} ${size}`;
+}
+
+// quality (gear, gems, maps)
+function quality(op: Operator, qual: number | string): string {
+  return `Quality ${op} ${qual}`;
+}
+
+// gems
+function gemLevel(op: Operator, lvl: number | string): string {
+  return `GemLevel ${op} ${lvl}`;
+}
+function alternateQuality(bool: boolean): string {
+  return `AlternateQuality ${bool}`;
+}
+function transfiguredGem(bool: boolean): string {
+  return `TransfiguredGem "${bool}"`;
+}
+
+// maps
+function mapTier(op: Operator, tier: number | string): string {
+  return `MapTier ${op} "${tier}"`;
+}
+function elderMap(bool: boolean): string {
+  return `ElderMap ${bool}`;
+}
+function shapedMap(bool: boolean): string {
+  return `ShapedMap ${bool}`;
+}
+function blightedMap(bool: boolean): string {
+  return `BlightedMap ${bool}`;
+}
+function uberBlightedMap(bool: boolean): string {
+  return `UberBlightedMap "${bool}"`;
+}
+
+// gear & maps (general)
+function itemLevel(op: Operator, lvl: number | string): string {
+  return `ItemLevel ${op} ${lvl}`;
+}
+function rarity(op: Operator, rarity: Rarity): string {
+  return `Rarity ${op} ${rarity}`;
+}
+function identified(bool: boolean): string {
+  return `Identified ${bool}`;
+}
+function hasImplicitMod(bool: boolean): string {
+  return `HasImplicitMod ${bool}`;
+}
+function scourged(bool: boolean): string {
+  return `Scourged "${bool}"`;
+}
+function fractured(bool: boolean): string {
+  return `FracturedItem ${bool}`;
+}
+function corrupted(bool: boolean): string {
+  return `Corrupted ${bool}`;
+}
+function corruptedMods(op: Operator, number: number | string): string {
+  return `CorruptedMods ${op} ${number}`;
+}
+function mirrored(bool: boolean): string {
+  return `Mirrored ${bool}`;
+}
+function hasExplicitMod(mods: string[]): string {
+  return `HasExplicitMod ${mods.map((entry) => ` "${entry}"`)}`;
+}
+function anyEnchantment(bool: boolean): string {
+  return `AnyEnchantment ${bool}`;
+}
+function hasEnchantment(enchantments: string[]): string {
+  return `HasEnchantment ${enchantments.map((entry) => ` "${entry}"`)}`;
+}
+
+// gear(socketable)
+function linkedSockets(op: Operator, links: number | string): string {
+  return `LinkedSockets ${op} ${links}`;
+}
+function socketGroup(op: Operator, groupString: string): string {
+  return `SocketGroup ${op} ${groupString}`;
+}
+function sockets(op: Operator, groupString: string): string {
+  return `Sockets ${op} ${groupString}`;
+}
+
+// gear (clusters)
+function enchantmentPassiveNode(enchantments: string[]): string {
+  return `EnchantmentPassiveNode ${enchantments.map((entry) => ` "${entry}"`)}`;
+}
+function enchantmentPassiveNum(op: Operator, number: number | string): string {
+  return `EnchantmentPassiveNum ${op} ${number}`;
+}
+
+// gear (weapons)
+function crucibleTree(bool: boolean): string {
+  return `HasCruciblePassiveTree ${bool}`;
+}
+
+// gear (armour)
+function baseDefencePercentile(op: Operator, value: number | string): string {
+  return `BaseDefencePercentile ${op} ${value}`;
+}
+function baseArmour(op: Operator, value: number | string): string {
+  return `BaseArmour ${op} ${value}`;
+}
+function baseEnergyShield(op: Operator, value: number | string): string {
+  return `BaseEnergyShield ${op} ${value}`;
+}
+function baseEvasion(op: Operator, value: number | string): string {
+  return `BaseEvasion ${op} ${value}`;
+}
+function baseWard(op: Operator, value: number | string): string {
+  return `BaseWard ${op} ${value}`;
+}
+
+// gear (influence)
+function hasInfluence(influence: Influence[]): string {
+  return `HasInfluence ${influence.map((entry) => ` "${entry}"`)}`;
+}
+function hasSearingExarchImplicit(
+  op: Operator,
+  amount: number | string,
+): string {
+  return `HasSearingExarchImplicit ${op} ${amount}`;
+}
+function hasEaterOfWorldsImplicit(
+  op: Operator,
+  amount: number | string,
+): string {
+  return `HasEaterOfWorldsImplicit ${op} ${amount}`;
+}
+
+// gear (synth)
+function synthesised(bool: boolean): string {
+  return `SynthesisedItem ${bool}`;
+}
+
+// gear (uniques)
+function replica(bool: boolean): string {
+  return `Replica ${bool}`;
+}
+
+// archhem
+function archnemesisMod(modNames: string[]): string {
+  return `ArchnemesisMod ${modNames.map((entry) => ` "${entry}"`)}`;
+}
+
+export function serializeConditions(conditions: Conditions) {
+  const strs = [];
+
+  if (conditions.bases) {
+    strs.push(baseType(Operator.eq, conditions.bases));
+  }
+
+  if (conditions.classes) {
+    strs.push(
+      className(conditions.classes.operator, conditions.classes.values),
+    );
+  }
+  if (conditions.height) {
+    strs.push(height(conditions.height.operator, conditions.height.value));
+  }
+  if (conditions.width) {
+    strs.push(width(conditions.width.operator, conditions.width.value));
+  }
+  if (conditions.areaLevel) {
+    strs.push(
+      areaLevel(conditions.areaLevel.operator, conditions.areaLevel.value),
+    );
+  }
+  if (conditions.dropLevel) {
+    strs.push(
+      dropLevel(conditions.dropLevel.operator, conditions.dropLevel.value),
+    );
+  }
+  if (conditions.stackSize) {
+    strs.push(
+      stackSize(conditions.stackSize.operator, conditions.stackSize.value),
+    );
+  }
+  if (conditions.quality) {
+    strs.push(quality(conditions.quality.operator, conditions.quality.value));
+  }
+  if (conditions.gemLevel) {
+    strs.push(
+      gemLevel(conditions.gemLevel.operator, conditions.gemLevel.value),
+    );
+  }
+  if (conditions.mapTier) {
+    strs.push(mapTier(conditions.mapTier.operator, conditions.mapTier.value));
+  }
+  if (isDefined(conditions.transfiguredGem)) {
+    strs.push(transfiguredGem(conditions.transfiguredGem));
+  }
+  if (isDefined(conditions.elderMap)) {
+    strs.push(elderMap(conditions.elderMap));
+  }
+  if (isDefined(conditions.shapedMap)) {
+    strs.push(shapedMap(conditions.shapedMap));
+  }
+  if (isDefined(conditions.blightedMap)) {
+    strs.push(blightedMap(conditions.blightedMap));
+  }
+  if (isDefined(conditions.uberBlightedMap)) {
+    strs.push(uberBlightedMap(conditions.uberBlightedMap));
+  }
+  if (isDefined(conditions.hasImplicitMod)) {
+    strs.push(hasImplicitMod(conditions.hasImplicitMod));
+  }
+  if (isDefined(conditions.identified)) {
+    strs.push(identified(conditions.identified));
+  }
+  if (isDefined(conditions.scourged)) {
+    strs.push(scourged(conditions.scourged));
+  }
+  if (isDefined(conditions.fractured)) {
+    strs.push(fractured(conditions.fractured));
+  }
+  if (isDefined(conditions.mirrored)) {
+    strs.push(mirrored(conditions.mirrored));
+  }
+  if (isDefined(conditions.corrupted)) {
+    strs.push(corrupted(conditions.corrupted));
+  }
+  if (isDefined(conditions.synthesised)) {
+    strs.push(synthesised(conditions.synthesised));
+  }
+  if (isDefined(conditions.replica)) {
+    strs.push(replica(conditions.replica));
+  }
+  if (isDefined(conditions.crucibleTree)) {
+    strs.push(crucibleTree(conditions.crucibleTree));
+  }
+  if (conditions.itemLevel) {
+    strs.push(
+      itemLevel(conditions.itemLevel.operator, conditions.itemLevel.value),
+    );
+  }
+  if (conditions.defencePercentile) {
+    strs.push(
+      baseDefencePercentile(
+        conditions.defencePercentile.operator,
+        conditions.defencePercentile.value,
+      ),
+    );
+  }
+  if (conditions.armour) {
+    strs.push(baseArmour(conditions.armour.operator, conditions.armour.value));
+  }
+  if (conditions.evasion) {
+    strs.push(
+      baseEvasion(conditions.evasion.operator, conditions.evasion.value),
+    );
+  }
+  if (conditions.energyShield) {
+    strs.push(
+      baseEnergyShield(
+        conditions.energyShield.operator,
+        conditions.energyShield.value,
+      ),
+    );
+  }
+  if (conditions.ward) {
+    strs.push(baseWard(conditions.ward.operator, conditions.ward.value));
+  }
+  if (conditions.corruptedMods) {
+    strs.push(
+      corruptedMods(
+        conditions.corruptedMods.operator,
+        conditions.corruptedMods.value,
+      ),
+    );
+  }
+  if (conditions.hasExplicitMod) {
+    strs.push(hasExplicitMod(conditions.hasExplicitMod.values));
+  }
+  if (conditions.hasEnchantment) {
+    strs.push(hasEnchantment(conditions.hasEnchantment.values));
+  }
+  if (conditions.archnemesisMod) {
+    strs.push(archnemesisMod(conditions.archnemesisMod.values));
+  }
+  if (conditions.enchantmentPassiveNode) {
+    strs.push(enchantmentPassiveNode(conditions.enchantmentPassiveNode.values));
+  }
+  if (conditions.enchantmentPassiveNum) {
+    strs.push(
+      enchantmentPassiveNum(
+        conditions.enchantmentPassiveNum.operator,
+        conditions.enchantmentPassiveNum.value,
+      ),
+    );
+  }
+  if (conditions.hasSearingExarchImplicit) {
+    strs.push(
+      hasSearingExarchImplicit(
+        conditions.hasSearingExarchImplicit.operator,
+        conditions.hasSearingExarchImplicit.value,
+      ),
+    );
+  }
+  if (conditions.hasEaterOfWorldsImplicit) {
+    strs.push(
+      hasEaterOfWorldsImplicit(
+        conditions.hasEaterOfWorldsImplicit.operator,
+        conditions.hasEaterOfWorldsImplicit.value,
+      ),
+    );
+  }
+  if (conditions.hasInfluence) {
+    strs.push(hasInfluence(conditions.hasInfluence.values));
+  }
+  if (conditions.sockets) {
+    strs.push(sockets(conditions.sockets.operator, conditions.sockets.value));
+  }
+
+  return strs;
+}

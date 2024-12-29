@@ -13,11 +13,11 @@ function CreateRule(props: { parent?: FilterRule }) {
     const rule: FilterRule = {
       id: ulid(),
       name: "New rule",
+      show: true,
       icon: null,
       enabled: true,
-      type: "rule",
       bases: [],
-      conditions: [],
+      conditions: {},
       actions: props.parent
         ? clone(props.parent.actions)
         : {

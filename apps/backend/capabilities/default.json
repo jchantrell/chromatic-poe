@@ -21,6 +21,9 @@
           "path": "/mnt/c/Users/Joel/Documents/My Games/Path of Exile/*"
         },
         {
+          "path": "/mnt/c/Users/Joel/Documents/My Games/Path of Exile 2/*"
+        },
+        {
           "path": "$APPCONFIG"
         },
         {
@@ -44,6 +47,9 @@
           "path": "/mnt/c/Users/Joel/Documents/My Games/Path of Exile/*"
         },
         {
+          "path": "/mnt/c/Users/Joel/Documents/My Games/Path of Exile 2/*"
+        },
+        {
           "path": "$APPCONFIG"
         },
         {
@@ -62,4 +68,3 @@
     }
   ]
 }
-
