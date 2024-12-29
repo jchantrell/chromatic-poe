@@ -17,7 +17,16 @@ import {
   ContextMenuTrigger,
 } from "@pkgs/ui/context-menu";
 
-const conditionTypes = {
+type ConditionType = {
+  label: string;
+  type: string;
+  operators: boolean;
+  min?: number;
+  max?: number;
+  options?: string[];
+};
+
+const conditionTypes: Record<string, ConditionType> = {
   height: {
     label: "Height",
     type: "slider",
@@ -44,7 +53,7 @@ function Input(props: {
   type: string;
   value: string;
   onChange: (...rest: unknown[]) => void;
-  config: { min: number; max: number; options: string[] };
+  config: Partial<{ min: number; max: number; options: string[] }>;
 }) {
   switch (props.type) {
     case "slider":
@@ -155,6 +164,61 @@ const ConditionManager = () => {
       value: "",
     },
     {
+      name: "height",
+      operator: ">",
+      value: "",
+    },
+    {
+      name: "height",
+      operator: ">",
+      value: "",
+    },
+    {
+      name: "height",
+      operator: ">",
+      value: "",
+    },
+    {
+      name: "height",
+      operator: ">",
+      value: "",
+    },
+    {
+      name: "height",
+      operator: ">",
+      value: "",
+    },
+    {
+      name: "height",
+      operator: ">",
+      value: "",
+    },
+    {
+      name: "height",
+      operator: ">",
+      value: "",
+    },
+    {
+      name: "height",
+      operator: ">",
+      value: "",
+    },
+    {
+      name: "height",
+      operator: ">",
+      value: "",
+    },
+    {
+      name: "height",
+      operator: ">",
+      value: "",
+    },
+    {
+      name: "height",
+      operator: ">",
+      value: "",
+    },
+    {
       name: "rarity",
       value: "",
     },
@@ -241,7 +305,11 @@ const ConditionManager = () => {
                           type={conditionTypes[condition.name].type}
                           value={condition.value}
                           onChange={(value) => {
-                            return updateCondition(index(), "value", value);
+                            return updateCondition(
+                              index(),
+                              "value",
+                              String(value),
+                            );
                           }}
                           config={conditionTypes[condition.name]}
                         />

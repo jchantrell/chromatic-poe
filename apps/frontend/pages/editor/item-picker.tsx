@@ -42,7 +42,7 @@ type NestedData = {
 };
 
 function isLeafNode(obj: object): obj is BaseItem {
-  return obj.hasOwnProperty("name") && obj.hasOwnProperty("category");
+  return "name" in obj && "category" in obj;
 }
 
 function updateParentState(node: TreeNode) {

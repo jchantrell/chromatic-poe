@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import { store } from "@app/store";
 import {
   Color,
@@ -55,7 +55,7 @@ export default function RuleEditor() {
   });
 
   createEffect(() => {
-    const opts = { corruptable: false, stackable: false };
+    const opts = { corruptable: false, stackable: false, mirrorable: false };
     if (store.activeRule) {
       for (const base of store.activeRule.bases) {
         if (base.corruptable) {
@@ -75,13 +75,13 @@ export default function RuleEditor() {
   });
 
   return (
-    <div class='flex flex-col items-center p-10'>
+    <div class='size-full p-10 overflow-y-auto flex flex-col items-center'>
       <div
         class='flex max-w-[300px] w-full items-center justify-between text-lg border-[1.5px]'
         style={{
-          color: `rgba(${store.activeRule.actions.text.r}, ${store.activeRule.actions.text.g}, ${store.activeRule.actions.text.b}, ${store.activeRule.actions.text.a})`,
-          "border-color": `rgba(${store.activeRule.actions.border.r}, ${store.activeRule.actions.border.g}, ${store.activeRule.actions.border.b}, ${store.activeRule.actions.border.a})`,
-          "background-color": `rgba(${store.activeRule.actions.background.r}, ${store.activeRule.actions.background.g}, ${store.activeRule.actions.background.b}, ${store.activeRule.actions.background.a})`,
+          color: `rgba(${store.activeRule.actions.text?.r ?? 0}, ${store.activeRule.actions.text?.g ?? 0}, ${store.activeRule.actions.text?.b ?? 0}, ${store.activeRule.actions.text?.a ?? 1})`,
+          "border-color": `rgba(${store.activeRule.actions.border?.r ?? 0}, ${store.activeRule.actions.border?.g ?? 0}, ${store.activeRule.actions.border?.b ?? 0}, ${store.activeRule.actions.border?.a ?? 1})`,
+          "background-color": `rgba(${store.activeRule.actions.background?.r ?? 0}, ${store.activeRule.actions.background?.g ?? 0}, ${store.activeRule.actions.background?.b ?? 0}, ${store.activeRule.actions.background?.a ?? 1})`,
         }}
       >
         <MapIconPicker />

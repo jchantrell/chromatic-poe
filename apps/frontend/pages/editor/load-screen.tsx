@@ -268,13 +268,7 @@ function ExistingFilter(props: { filter: Filter }) {
 export default function LoadScreen() {
   const { colorMode } = useColorMode();
 
-  onMount(async () => {
-    if (chromatic.runtime === "web") {
-      const filter = await generateFilter("test", 1);
-      filter.setLastUpdated(new Date());
-      setFilter(filter);
-    }
-  });
+  onMount(async () => {});
 
   return (
     <div

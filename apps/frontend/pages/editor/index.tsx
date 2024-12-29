@@ -56,18 +56,18 @@ export default function Editor() {
       {!store.initialised && <Setup />}
       {store.initialised && store.filter === null && <LoadScreen />}
       {store.initialised && store.filter !== null && (
-        <Resizable orientation='horizontal' class='min-h-max'>
-          <ResizablePanel class='flex w-full flex-col p-0'>
+        <Resizable orientation='horizontal'>
+          <ResizablePanel class='w-full overflow-y-auto flex-col'>
             <Rules />
           </ResizablePanel>
           <ResizableHandle class='bg-primary-foreground' />
-          <ResizablePanel>
+          <ResizablePanel class='overflow-y-auto'>
             <div
-              class={`h-full bg-no-repeat bg-center bg-cover ${
+              class={`bg-no-repeat bg-center bg-cover size-full ${
                 colorMode() === "dark"
                   ? "bg-[url('/poe2/backgrounds/bg-dark.jpg')]"
                   : "bg-[url('/poe2/backgrounds/bg-light.jpg')]"
-              } bg-fixed`}
+              }`}
             >
               {store.activeRule ? <RuleEditor /> : <Preview />}
             </div>

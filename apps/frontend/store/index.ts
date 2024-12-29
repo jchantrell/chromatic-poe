@@ -25,7 +25,7 @@ export function addFilter(filter: Filter) {
   store.filters.push(filter);
 }
 
-export function setFilter(filter: Filter) {
+export function setFilter(filter: Filter | null) {
   store.filter = filter;
 }
 

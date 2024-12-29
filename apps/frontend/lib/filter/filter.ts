@@ -47,6 +47,7 @@ export interface FilterItem {
   intReq: number;
   itemClass: string;
   corruptable: boolean;
+  mirrorable: boolean;
   stackable: boolean;
 }
 
