@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "pnpm vite dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm vite build",
+    "beforeBuildCommand": "pnpm vite build --mode tauri",
     "frontendDist": "../../dist"
   },
   "app": {
