@@ -34,7 +34,7 @@ function BeamPicker() {
       <Popover open={open()} onOpenChange={setOpen}>
         <div class='flex items-center w-full'>
           <div
-            class='flex items-center justify-center rounded-lg'
+            class='flex items-center justify-center rounded-full'
             style={{
               height: "calc(64px / 1.5)",
               width: "calc(64px / 1.5)",
@@ -44,7 +44,10 @@ function BeamPicker() {
               <PopoverTrigger class='size-full p-3'>
                 <div
                   style={{ background: `${colors[color()]}` }}
-                  class='h-full w-full rounded-md border border-muted'
+                  class='h-4 w-4 border border-muted'
+                  style={{
+                    transform: "rotate(-45deg)",
+                  }}
                 />
               </PopoverTrigger>
             ) : (

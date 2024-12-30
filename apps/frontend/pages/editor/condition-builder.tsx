@@ -163,69 +163,6 @@ const ConditionManager = () => {
       operator: ">",
       value: "",
     },
-    {
-      name: "height",
-      operator: ">",
-      value: "",
-    },
-    {
-      name: "height",
-      operator: ">",
-      value: "",
-    },
-    {
-      name: "height",
-      operator: ">",
-      value: "",
-    },
-    {
-      name: "height",
-      operator: ">",
-      value: "",
-    },
-    {
-      name: "height",
-      operator: ">",
-      value: "",
-    },
-    {
-      name: "height",
-      operator: ">",
-      value: "",
-    },
-    {
-      name: "height",
-      operator: ">",
-      value: "",
-    },
-    {
-      name: "height",
-      operator: ">",
-      value: "",
-    },
-    {
-      name: "height",
-      operator: ">",
-      value: "",
-    },
-    {
-      name: "height",
-      operator: ">",
-      value: "",
-    },
-    {
-      name: "height",
-      operator: ">",
-      value: "",
-    },
-    {
-      name: "rarity",
-      value: "",
-    },
-    {
-      name: "corrupted",
-      value: "true",
-    },
   ]);
 
   function addCondition() {
@@ -257,7 +194,7 @@ const ConditionManager = () => {
           <button
             onClick={addCondition}
             type='button'
-            class='flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors'
+            class='flex items-center gap-2 px-3 py-2 bg-neutral-700 text-white rounded hover:bg-primary-muted transition-colors'
           >
             Add Condition
           </button>
@@ -275,7 +212,21 @@ const ConditionManager = () => {
                   <ContextMenuTrigger>
                     <div class='flex gap-4 items-start p-4 bg-neutral-500/50 rounded-lg'>
                       <div class='w-1/3'>
-                        {conditionTypes[condition.name].label}
+                        <select
+                          value={conditionTypes[condition.name].label}
+                          onChange={(e) => {
+                            return e;
+                          }}
+                          class='w-full px-3 py-2 bg-muted border rounded focus:outline-none focus:ring-2 focus:ring-accent-foreground'
+                        >
+                          <For each={Object.keys(conditionTypes)}>
+                            {(condition) => (
+                              <option value={condition}>
+                                {conditionTypes[condition].label}
+                              </option>
+                            )}
+                          </For>
+                        </select>
                       </div>
 
                       {conditionTypes[condition.name].operators ? (

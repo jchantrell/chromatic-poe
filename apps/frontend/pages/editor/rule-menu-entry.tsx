@@ -22,6 +22,8 @@ import { ItemPicker } from "./item-picker";
 import { Dialog, DialogContent, DialogTrigger } from "@pkgs/ui/dialog";
 import { useDragDropContext, createSortable } from "@thisbeyond/solid-dnd";
 
+const MIN_PREVIEW_WIDTH = 350; // Adjust this value as needed
+
 export default function Rule(props: {
   rule: FilterRule;
 }) {
@@ -115,7 +117,7 @@ export default function Rule(props: {
           <ContextMenu>
             <ContextMenuTrigger>
               <div
-                class={`h-10 flex border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer items-center justify-between select-none ${getBorderColor(active(), hovered())}`}
+                class={`h-12 flex border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer items-center justify-between select-none ${getBorderColor(active(), hovered())}`}
                 onMouseOut={() => setHovered(false)}
                 onMouseOver={() => setHovered(true)}
                 onFocus={() => null}
@@ -123,7 +125,7 @@ export default function Rule(props: {
                 onMouseDown={onMouseDown}
                 ref={previewRef}
               >
-                <div class='m-1 flex items-center min-w-max mr-10'>
+                <div class='m-1 flex items-center max-w-max'>
                   <div class='text-xl p-1'>
                     <input
                       class={`bg-primary-foreground outline-none border-none ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"}`}
@@ -133,12 +135,12 @@ export default function Rule(props: {
                     />
                   </div>
                 </div>
-                <div
-                  class={`flex h-full items-center justify-end ${previewWidth() > 400 ? "w-full" : ""}`}
-                >
+                <div class='flex items-center justify-center'>
                   <div
-                    class={`h-6 px-3 max-w-[300px] items-center justify-center border border-1 mr-1 ${previewWidth() > 400 ? "flex" : "hidden"}`}
+                    class='flex text-nowrap p-1 w-full items-center justify-center border border-1 mr-1'
                     style={{
+                      display:
+                        previewWidth() >= MIN_PREVIEW_WIDTH ? "flex" : "none",
                       color: `rgba(${props.rule.actions.text?.r ?? 0}, ${props.rule.actions.text?.g ?? 0}, ${props.rule.actions.text?.b ?? 0}, ${(props.rule.actions.text?.a ?? 255) / 255})`,
                       "border-color": `rgba(${props.rule.actions.border?.r ?? 0}, ${props.rule.actions.border?.g ?? 0}, ${props.rule.actions.border?.b ?? 0}, ${(props.rule.actions.border?.a ?? 255) / 255})`,
                       "background-color": `rgba(${props.rule.actions.background?.r ?? 0}, ${props.rule.actions.background?.g ?? 0}, ${props.rule.actions.background?.b ?? 0}, ${(props.rule.actions.background?.a ?? 255) / 255})`,

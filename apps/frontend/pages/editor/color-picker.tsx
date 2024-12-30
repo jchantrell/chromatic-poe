@@ -2,6 +2,8 @@ import { createEffect, createSignal } from "solid-js";
 import { store } from "@app/store";
 import { setColor } from "@app/lib/filter";
 import tinycolor from "tinycolor2";
+import { Slider, SliderFill, SliderThumb, SliderTrack } from "@pkgs/ui/slider";
+import { Label } from "@pkgs/ui/label";
 
 function ColorPicker(props: {
   label: string;
@@ -39,8 +41,9 @@ function ColorPicker(props: {
 
   return (
     <div class='w-fit flex items-center flex-col'>
-      <div id='color_wrapper'>
-        <div class='flex gap-1 items-center'>
+      <div class='flex w-full gap-1 items-center'>
+        <Label class='w-20'>{props.label}</Label>
+        <div class='flex items-center gap-1'>
           <input
             id={`${props.label}-color-picker`}
             onInput={(v) => {
@@ -51,28 +54,32 @@ function ColorPicker(props: {
             value={`#${tinycolor(rgb()).toHex()}`}
           />
           <label
-            class='flex items-center gap-1'
+            class='flex w-full items-center gap-1'
             for={`${props.label}-color-picker`}
           >
             <div
-              class='h-5 w-5 rounded-md border border-accent'
+              class='h-5 w-6 rounded-md border border-accent'
               style={{
-                "background-color": `rgba(${rgb()?.r ?? 0}, ${rgb()?.g ?? 0}, ${rgb()?.b ?? 0}, ${(rgb()?.a ?? 255) / 255})`,
+                "background-color": `rgba(${rgb()?.r ?? 0}, ${rgb()?.g ?? 0}, ${rgb()?.b ?? 0}, 1)`,
               }}
             />
-            <div>{props.label}</div>
           </label>
+          <div class='flex items-center justify-center gap-1 w-full'>
+            <Slider
+              class='w-[80px] ml-2'
+              minValue={0}
+              maxValue={255}
+              step={1}
+              value={[rgb()?.a ?? 255]}
+              onChange={(v) => handleInput("alpha", v[0].toString())}
+            >
+              <SliderTrack class='bg-accent'>
+                <SliderFill class='bg-neutral-400' />
+                <SliderThumb class='size-4' />
+              </SliderTrack>
+            </Slider>
+          </div>
         </div>
-        <input
-          id={`${props.label}-color-picker-alpha`}
-          class='w-full'
-          value={rgb()?.a ?? 255}
-          onInput={(v) => handleInput("alpha", v.target.value)}
-          type='range'
-          min='0'
-          max='255'
-          step='1'
-        />
       </div>
     </div>
   );
