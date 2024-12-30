@@ -24,6 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install latest ImageMagick
+        uses: mfinelli/setup-imagemagick@v5
+
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
@@ -52,4 +55,3 @@ jobs:
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
-
