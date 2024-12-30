@@ -26,18 +26,14 @@ export default function Editor() {
         pressed: boolean,
         event: { shift: boolean; alt: boolean; ctrl: boolean },
       ) => {
+        if (!store.filter) return;
+
         if (key === UNDO_KEY && event.ctrl && pressed) {
-          const actionsReverted = store?.filter?.undo();
-          if (actionsReverted) {
-            toast(`Undid ${actionsReverted} actions.`);
-          }
+          store?.filter?.undo();
         }
 
         if (key === REDO_KEY && event.ctrl && pressed) {
-          const actionsRedone = store?.filter?.redo();
-          if (actionsRedone) {
-            toast(`Redid ${actionsRedone} actions.`);
-          }
+          store?.filter?.redo();
         }
 
         if (key === SAVE_KEY && event.ctrl && pressed) {

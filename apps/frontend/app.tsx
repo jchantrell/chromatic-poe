@@ -105,6 +105,7 @@ function Main() {
 function App() {
   onMount(async () => {
     await chromatic.init();
+    await chromatic.getAllFilters();
   });
   const zoomLevels = [0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5];
   const [zoom, setZoom] = createSignal(4);
@@ -121,6 +122,15 @@ function App() {
       }
 
       return view.setZoom(zoomLevels[zoom()]);
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "s" &&
+      (navigator.userAgent.includes("Mac") ? event.metaKey : event.ctrlKey)
+    ) {
+      event.preventDefault();
     }
   });
 

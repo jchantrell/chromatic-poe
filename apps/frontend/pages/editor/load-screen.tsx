@@ -1,4 +1,4 @@
-import { createSignal, For, onMount } from "solid-js";
+import { createSignal, For } from "solid-js";
 import { generateFilter, type Filter } from "@app/lib/filter";
 import { Button } from "@pkgs/ui/button";
 import {
@@ -20,7 +20,6 @@ import {
 import { notify } from "@pkgs/ui/sonner";
 import { toast } from "solid-sonner";
 import { useColorMode } from "@kobalte/core";
-import chromatic from "@app/lib/config";
 import { store, setFilter, removeFilter } from "@app/store";
 
 export function CreateFilter() {
@@ -267,8 +266,6 @@ function ExistingFilter(props: { filter: Filter }) {
 }
 export default function LoadScreen() {
   const { colorMode } = useColorMode();
-
-  onMount(async () => {});
 
   return (
     <div

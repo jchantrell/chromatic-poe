@@ -41,19 +41,36 @@ export class WebStorage implements FileSystem {
     return;
   }
   async exists(path: string) {
+    const split = path.split("/");
+    const filters = localStorage.getItem(split[0]);
+    console.log(filters);
     return false;
   }
   async writeFile(path: string, data: string) {
-    return;
+    const split = path.split("/");
+    const files = localStorage.getItem(split[0]);
+    const filters = JSON.parse(files ?? "{}");
+    filters[split[1]] = data;
+    localStorage.setItem(split[0], JSON.stringify(filters));
   }
   async deleteFile(path: string) {
-    return;
+    const split = path.split("/");
+    const files = localStorage.getItem(split[0]);
+    const filters = JSON.parse(files ?? "{}");
+    filters[split[1]] = undefined;
+    localStorage.setItem(split[0], JSON.stringify(filters));
   }
-  async readFile(path: string) {
-    return "";
+  async readFile(path: string): Promise<string> {
+    const split = path.split("/");
+    const files = localStorage.getItem(split[0]);
+    const filters = JSON.parse(files ?? "{}");
+    return filters[split[1]];
   }
   async getAllFiles(path: string): Promise<string[]> {
-    return [];
+    console.log(path);
+    const files = localStorage.getItem(path);
+    const filters = JSON.parse(files ?? "{}");
+    return Object.entries(filters).map(([_, value]) => value) as string[];
   }
 }
 

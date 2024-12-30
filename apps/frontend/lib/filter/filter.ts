@@ -157,6 +157,7 @@ export class Filter {
   async deleteFile() {
     const path = chromatic.getFiltersPath(this);
     await chromatic.fileSystem.deleteFile(path);
+    // dumb hack to remove from windows via WSL
     await chromatic.fileSystem.deleteFile(
       `/mnt/c/Users/Joel/Documents/My Games/Path of Exile 2/${this.name}.filter`,
     );
@@ -168,6 +169,7 @@ export class Filter {
       path,
       stringifyJSON({ ...this, lastUpdated: new Date().toISOString() }),
     );
+    // dumb hack to save to windows via WSL
     await chromatic.fileSystem.writeFile(
       `/mnt/c/Users/Joel/Documents/My Games/Path of Exile 2/${this.name}.filter`,
       this.serialize(),

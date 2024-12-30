@@ -80,10 +80,9 @@ class Chromatic {
       await this.writeConfig(defaultConfig);
     }
 
-    if (this.config.poeDirectory || this.runtime === "web") {
+    if (this.config.poeDirectory) {
       setInitialised(true);
       setLocale(await locale());
-      await this.getAllFilters();
     }
   }
 
@@ -219,12 +218,25 @@ class Chromatic {
   }
 
   getFiltersPath(filter: Filter, newName?: string) {
+    if (this.runtime === "web") {
+      return `${this.filterPath}/${newName ? newName : filter.name}`;
+    }
     return `${this.configPath}/${this.filterPath}/${newName ? newName : filter.name}.json`;
   }
 
   async getAllFilters() {
-    const path = `${this.configPath}/${this.filterPath}`;
-    const files = await this.fileSystem.getAllFiles(path);
+    const files = [];
+    if (this.runtime === "web") {
+      files.push(...(await this.fileSystem.getAllFiles(this.filterPath)));
+    }
+    if (this.runtime === "desktop") {
+      files.push(
+        ...(await this.fileSystem.getAllFiles(
+          `${this.configPath}/${this.filterPath}`,
+        )),
+      );
+    }
+
     for (const file of files) {
       const props = JSON.parse(file);
       props.lastUpdated = new Date(props.lastUpdated);
