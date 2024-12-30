@@ -1,5 +1,9 @@
 /* @refresh reload */
 import { render } from "solid-js/web";
-import App from "./app";
+import { Router } from "@solidjs/router";
+import { routes } from "./app";
 
-render(() => <App />, document.getElementById("root") as HTMLElement);
+render(
+  () => <Router>{routes}</Router>,
+  document.getElementById("root") as HTMLElement,
+);
