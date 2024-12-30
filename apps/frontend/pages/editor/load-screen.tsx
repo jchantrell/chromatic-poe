@@ -269,7 +269,7 @@ export default function LoadScreen() {
 
   return (
     <div
-      class={`size-full flex items-center justify-center relative bg-cover ${colorMode() === "dark" ? "bg-[url('/backgrounds/bg-dark.jpg')]" : "bg-[url('/images/editor-bg-light.jpg')]"}`}
+      class={`size-full flex items-center justify-center relative bg-cover ${colorMode() === "dark" ? "bg-[url('/static/bg-dark.jpg')]" : "bg-[url('/static/bg-light.jpg')]"}`}
     >
       <div class='bg-neutral-900/70 border-neutral-900/70 text-foreground w-full max-w-sm rounded-lg border p-4 grid gap-2 items-center z-0'>
         <CreateFilter />

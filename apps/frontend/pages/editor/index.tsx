@@ -61,8 +61,8 @@ export default function Editor() {
             <div
               class={`bg-no-repeat bg-center bg-cover size-full ${
                 colorMode() === "dark"
-                  ? "bg-[url('/poe2/backgrounds/bg-dark.jpg')]"
-                  : "bg-[url('/poe2/backgrounds/bg-light.jpg')]"
+                  ? "bg-[url('/static/bg-dark.jpg')]"
+                  : "bg-[url('/static/bg-light.jpg')]"
               }`}
             >
               {store.activeRule ? <RuleEditor /> : <Preview />}
