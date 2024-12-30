@@ -26,6 +26,8 @@ jobs:
 
       - name: Install latest ImageMagick
         uses: mfinelli/setup-imagemagick@v5
+        with:
+          cache: true
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4

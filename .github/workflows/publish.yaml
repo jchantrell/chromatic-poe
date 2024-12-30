@@ -18,8 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - platform: 'ubuntu-22.04'
-          #   args: ''
+          - platform: 'ubuntu-22.04'
+            args: ''
           - platform: 'windows-latest'
             args: ''
 
@@ -36,6 +36,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf imagemagick
           pnpm config set script-shell "/usr/bin/bash"
+
+      - name: Install latest ImageMagick
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: mfinelli/setup-imagemagick@v5
+        with:
+          cache: true
 
       - name: Install Windows build dependencies
         if: matrix.platform == 'windows-latest'
