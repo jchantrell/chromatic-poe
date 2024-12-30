@@ -112,12 +112,11 @@ export default function Rule(props: {
         <Collapsible
           onOpenChange={(open) => setExpanded(open)}
           open={expanded()}
-          class='w-full'
         >
           <ContextMenu>
             <ContextMenuTrigger>
               <div
-                class={`h-12 flex border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer items-center justify-between select-none ${getBorderColor(active(), hovered())}`}
+                class={`h-12 flex min-w-max border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer items-center justify-between select-none ${getBorderColor(active(), hovered())}`}
                 onMouseOut={() => setHovered(false)}
                 onMouseOver={() => setHovered(true)}
                 onFocus={() => null}
@@ -125,7 +124,7 @@ export default function Rule(props: {
                 onMouseDown={onMouseDown}
                 ref={previewRef}
               >
-                <div class='m-1 flex items-center max-w-max'>
+                <div class='m-1 flex items-center min-w-max'>
                   <div class='text-xl p-1'>
                     <input
                       class={`bg-primary-foreground outline-none border-none ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"}`}
@@ -135,9 +134,9 @@ export default function Rule(props: {
                     />
                   </div>
                 </div>
-                <div class='flex items-center justify-center'>
+                <div class='flex items-center'>
                   <div
-                    class='flex text-nowrap p-1 w-full items-center justify-center border border-1 mr-1'
+                    class='flex text-nowrap p-1 px-4 w-full items-center justify-center border border-1 mr-1'
                     style={{
                       display:
                         previewWidth() >= MIN_PREVIEW_WIDTH ? "flex" : "none",

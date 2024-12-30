@@ -53,7 +53,7 @@ export default function Editor() {
       {store.initialised && store.filter === null && <LoadScreen />}
       {store.initialised && store.filter !== null && (
         <Resizable orientation='horizontal'>
-          <ResizablePanel class='w-full overflow-y-auto flex-col'>
+          <ResizablePanel class='flex flex-col'>
             <Rules />
           </ResizablePanel>
           <ResizableHandle class='bg-primary-foreground' />
