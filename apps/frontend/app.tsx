@@ -12,7 +12,7 @@ import { createSignal, onMount } from "solid-js";
 import { setActiveRule, setFilter, store } from "./store";
 import { Toaster } from "@pkgs/ui/sonner";
 import { Settings } from "./components/settings";
-import { A, Route, Router } from "@solidjs/router";
+import { Route, Router } from "@solidjs/router";
 import chromatic from "./lib/config";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 export const storageManager = createLocalStorageManager("theme");
@@ -29,7 +29,7 @@ function SideBar() {
         <Avatar class='w-14 h-14 cursor-pointer'>
           <AvatarImage src='https://web.poecdn.com/gen/image/WzAsMSx7ImlkIjo2MjYsInNpemUiOiJhdmF0YXIifV0/71ec2c3cb4/Path_of_Exile_Gallery_Image.jpg' />
         </Avatar>
-        <A href='/'>
+        <a href={BASE_URL}>
           <Button
             variant='ghost'
             size='icon'
@@ -41,8 +41,8 @@ function SideBar() {
           >
             <HouseIcon />
           </Button>
-        </A>
-        <A href='/'>
+        </a>
+        <a href={BASE_URL}>
           <Button
             variant='ghost'
             size='icon'
@@ -52,7 +52,7 @@ function SideBar() {
           >
             <AudioIcon />
           </Button>
-        </A>
+        </a>
       </div>
       <div class='flex flex-col'>
         <Settings />
@@ -99,7 +99,7 @@ function Main() {
       onContextMenu={(e) => e.preventDefault()}
     >
       <Router>
-        <Route path='/' component={() => <Editor />} />
+        <Route path={BASE_URL} component={() => <Editor />} />
       </Router>
     </main>
   );
@@ -156,4 +156,4 @@ function App() {
   );
 }
 
-export const routes = [{ path: BASE_URL, component: App }];
+export default App;
