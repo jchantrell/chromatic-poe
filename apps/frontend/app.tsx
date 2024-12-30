@@ -156,4 +156,4 @@ function App() {
   );
 }
 
-export const routes = [{ path: "/", component: App }];
+export const routes = [{ path: BASE_URL, component: App }];
