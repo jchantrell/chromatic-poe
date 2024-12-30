@@ -17,6 +17,8 @@ import chromatic from "./lib/config";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 export const storageManager = createLocalStorageManager("theme");
 
+const BASE_URL = import.meta.env.BASE_URL;
+
 function SideBar() {
   return (
     <nav
@@ -27,7 +29,7 @@ function SideBar() {
         <Avatar class='w-14 h-14 cursor-pointer'>
           <AvatarImage src='https://web.poecdn.com/gen/image/WzAsMSx7ImlkIjo2MjYsInNpemUiOiJhdmF0YXIifV0/71ec2c3cb4/Path_of_Exile_Gallery_Image.jpg' />
         </Avatar>
-        <a href='/'>
+        <a href={`${BASE_URL}`}>
           <Button
             variant='ghost'
             size='icon'
@@ -40,7 +42,7 @@ function SideBar() {
             <HouseIcon />
           </Button>
         </a>
-        <a href='/'>
+        <a href={`${BASE_URL}`}>
           <Button
             variant='ghost'
             size='icon'
