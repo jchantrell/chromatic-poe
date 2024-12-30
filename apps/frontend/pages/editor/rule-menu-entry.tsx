@@ -134,14 +134,14 @@ export default function Rule(props: {
                   </div>
                 </div>
                 <div
-                  class={`flex h-full items-center justify-end ${previewWidth() > 520 ? "w-full" : ""}`}
+                  class={`flex h-full items-center justify-end ${previewWidth() > 400 ? "w-full" : ""}`}
                 >
                   <div
-                    class={`h-6 px-3 max-w-[300px] items-center justify-center border border-1 mr-1 ${previewWidth() > 520 ? "flex" : "hidden"}`}
+                    class={`h-6 px-3 max-w-[300px] items-center justify-center border border-1 mr-1 ${previewWidth() > 400 ? "flex" : "hidden"}`}
                     style={{
-                      color: `rgba(${props.rule.actions.text.r}, ${props.rule.actions.text.g}, ${props.rule.actions.text.b}, ${props.rule.actions.text.a})`,
-                      "border-color": `rgba(${props.rule.actions.border.r}, ${props.rule.actions.border.g}, ${props.rule.actions.border.b}, ${props.rule.actions.border.a})`,
-                      "background-color": `rgba(${props.rule.actions.background.r}, ${props.rule.actions.background.g}, ${props.rule.actions.background.b}, ${props.rule.actions.background.a})`,
+                      color: `rgba(${props.rule.actions.text?.r ?? 0}, ${props.rule.actions.text?.g ?? 0}, ${props.rule.actions.text?.b ?? 0}, ${(props.rule.actions.text?.a ?? 255) / 255})`,
+                      "border-color": `rgba(${props.rule.actions.border?.r ?? 0}, ${props.rule.actions.border?.g ?? 0}, ${props.rule.actions.border?.b ?? 0}, ${(props.rule.actions.border?.a ?? 255) / 255})`,
+                      "background-color": `rgba(${props.rule.actions.background?.r ?? 0}, ${props.rule.actions.background?.g ?? 0}, ${props.rule.actions.background?.b ?? 0}, ${(props.rule.actions.background?.a ?? 255) / 255})`,
                     }}
                   >
                     {props.rule.actions.icon?.enabled ? (

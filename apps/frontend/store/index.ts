@@ -29,6 +29,10 @@ export function setFilter(filter: Filter | null) {
   store.filter = filter;
 }
 
+export function setActiveRule(rule: FilterRule | null) {
+  store.activeRule = rule;
+}
+
 export function setInitialised(state: boolean) {
   store.initialised = state;
 }

@@ -6,7 +6,6 @@ import type {
   IconSize,
   Shape,
 } from "@app/lib/filter";
-import type { RgbColor } from "@pkgs/ui/color-picker";
 
 export class Command {
   execute: (...args: unknown[]) => unknown;
@@ -109,11 +108,20 @@ export function setColor(
   filter: Filter,
   rule: FilterRule,
   key: "text" | "background" | "border",
-  rgb: RgbColor,
+  color: { r: number; g: number; b: number; a: number },
 ) {
   filter.execute(
     new Command(() => {
-      rule.actions[key] = rgb;
+      const existingColor = rule.actions[key];
+      if (
+        !existingColor ||
+        existingColor.r !== color.r ||
+        existingColor.g !== color.g ||
+        existingColor.b !== color.b ||
+        existingColor.a !== color.a
+      ) {
+        rule.actions[key] = color;
+      }
     }),
   );
 }

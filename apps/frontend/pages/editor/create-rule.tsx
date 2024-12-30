@@ -21,9 +21,9 @@ function CreateRule(props: { parent?: FilterRule }) {
       actions: props.parent
         ? clone(props.parent.actions)
         : {
-            text: { r: 255, g: 255, b: 255, a: 1 },
-            border: { r: 255, g: 255, b: 255, a: 1 },
-            background: { r: 19, g: 14, b: 6, a: 1 },
+            text: { r: 255, g: 255, b: 255, a: 255 },
+            border: { r: 255, g: 255, b: 255, a: 255 },
+            background: { r: 19, g: 14, b: 6, a: 255 },
           },
     };
     createRule(store.filter, rule);

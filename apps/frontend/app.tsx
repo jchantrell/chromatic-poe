@@ -9,7 +9,7 @@ import { Button } from "@pkgs/ui/button";
 import { AudioIcon, ExitIcon, HouseIcon, MinimiseIcon } from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
 import { createSignal, onMount } from "solid-js";
-import { setFilter, store } from "./store";
+import { setActiveRule, setFilter, store } from "./store";
 import { Toaster } from "@pkgs/ui/sonner";
 import { Settings } from "./components/settings";
 import { Route, Router } from "@solidjs/router";
@@ -33,6 +33,7 @@ function SideBar() {
             size='icon'
             class='h-14 w-14'
             onMouseDown={() => {
+              setActiveRule(null);
               setFilter(null);
             }}
           >
