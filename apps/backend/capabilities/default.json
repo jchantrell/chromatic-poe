@@ -18,10 +18,7 @@
       "identifier": "fs:read-all",
       "allow": [
         {
-          "path": "/mnt/c/Users/Joel/Documents/My Games/Path of Exile/*"
-        },
-        {
-          "path": "/mnt/c/Users/Joel/Documents/My Games/Path of Exile 2/*"
+          "path": "$HOME/**"
         },
         {
           "path": "$APPCONFIG"
@@ -44,10 +41,7 @@
       "identifier": "fs:write-all",
       "allow": [
         {
-          "path": "/mnt/c/Users/Joel/Documents/My Games/Path of Exile/*"
-        },
-        {
-          "path": "/mnt/c/Users/Joel/Documents/My Games/Path of Exile 2/*"
+          "path": "$HOME/**"
         },
         {
           "path": "$APPCONFIG"

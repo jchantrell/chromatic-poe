@@ -101,7 +101,8 @@ export class DesktopStorage implements FileSystem {
     await rename(oldPath, newPath);
   }
   async readFile(path: string) {
-    return readTextFile(path);
+    const bytes = await readTextFile(path);
+    return this.decoder.decode(bytes);
   }
   async deleteFile(path: string) {
     await remove(path);

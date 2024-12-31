@@ -40,10 +40,10 @@ export default function RuleEditor() {
 
   return (
     <div class='size-full p-10 overflow-y-auto flex flex-col items-center'>
-      <div class='flex w-full h-10'>
+      <div class='flex h-10'>
         <div class='flex gap-1 w-full items-center justify-center'>
           <div
-            class='flex w-full items-center justify-center border-[1.5px] min-w-fit max-h-fit py-1'
+            class='flex w-full items-center justify-center border-[1.5px] min-w-fit max-h-fit px-2'
             style={{
               color: `rgba(${store.activeRule.actions.text?.r ?? 0}, ${store.activeRule.actions.text?.g ?? 0}, ${store.activeRule.actions.text?.b ?? 0}, ${(store.activeRule.actions.text?.a ?? 255) / 255})`,
               "border-color": `rgba(${store.activeRule.actions.border?.r ?? 0}, ${store.activeRule.actions.border?.g ?? 0}, ${store.activeRule.actions.border?.b ?? 0}, ${(store.activeRule.actions.border?.a ?? 255) / 255})`,

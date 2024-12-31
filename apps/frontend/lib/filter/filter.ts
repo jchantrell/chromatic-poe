@@ -9,10 +9,11 @@ import {
   type Conditions,
   serializeActions,
   addParentRefs,
-  Operator,
   serializeConditions,
 } from ".";
 import { createMutable, modifyMutable, reconcile } from "solid-js/store";
+import { invoke } from "@tauri-apps/api/core";
+import { sep } from "@tauri-apps/api/path";
 
 export enum Block {
   show = "Show",
@@ -157,10 +158,6 @@ export class Filter {
   async deleteFile() {
     const path = chromatic.getFiltersPath(this);
     await chromatic.fileSystem.deleteFile(path);
-    // dumb hack to remove from windows via WSL
-    await chromatic.fileSystem.deleteFile(
-      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile 2/${this.name}.filter`,
-    );
   }
 
   async writeFile() {
@@ -169,11 +166,20 @@ export class Filter {
       path,
       stringifyJSON({ ...this, lastUpdated: new Date().toISOString() }),
     );
-    // dumb hack to save to windows via WSL
-    await chromatic.fileSystem.writeFile(
-      `/mnt/c/Users/Joel/Documents/My Games/Path of Exile 2/${this.name}.filter`,
-      this.serialize(),
-    );
+
+    if (chromatic.fileSystem.runtime === "desktop") {
+      await chromatic.fileSystem.writeFile(
+        `${chromatic.config.poeDirectory}${sep()}${this.name}.filter`,
+        this.serialize(),
+      );
+      setTimeout(async () => {
+        await invoke("reload_filter");
+      }, 250);
+    }
+
+    if (chromatic.fileSystem.runtime === "web") {
+      // TODO: download filter
+    }
   }
 
   serialize(): string {
@@ -188,10 +194,16 @@ export class Filter {
 
   convertToText(rule: FilterRule): string {
     const enabledBases = rule.bases.filter((e) => e.enabled).map((e) => e.name);
-    const block = this.createTextBlock(rule.name, rule.show, rule.actions, {
-      ...rule.conditions,
-      bases: enabledBases,
-    });
+    const conditions = { ...rule.conditions };
+    if (enabledBases.length) {
+      conditions.bases = enabledBases;
+    }
+    const block = this.createTextBlock(
+      rule.name,
+      rule.show,
+      rule.actions,
+      conditions,
+    );
 
     return block;
   }

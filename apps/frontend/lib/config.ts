@@ -70,6 +70,7 @@ class Chromatic {
       const raw = await this.fileSystem.readFile(
         `${this.configPath}/${this.configFile}`,
       );
+      console.log("Raw config", raw);
 
       this.config = await this.parseConfig(raw);
     }

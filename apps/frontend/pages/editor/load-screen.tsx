@@ -25,7 +25,7 @@ import { store, setFilter, removeFilter } from "@app/store";
 export function CreateFilter() {
   const [name, setName] = createSignal("Chromatic");
   const [dialogOpen, setDialogOpen] = createSignal(false);
-  const [version, setVersion] = createSignal(1);
+  const [version, setVersion] = createSignal(2);
 
   async function createFilter() {
     if (store.filters.some((e) => e.name === name())) {
@@ -230,7 +230,9 @@ function ExistingFilter(props: { filter: Filter }) {
             variant='secondary'
           >
             <div class='ml-2'>
-              <div class='text-primary'>{name()}</div>
+              <div class='text-primary'>
+                {name()} - PoE {props.filter.version}
+              </div>
               <div class='text-xs text-muted-foreground'>
                 {timeSinceUpdate()}
               </div>

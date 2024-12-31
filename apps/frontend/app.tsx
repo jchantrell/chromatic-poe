@@ -68,7 +68,9 @@ function TopBar() {
       data-tauri-drag-region
     >
       <div class='ml-2 font-semibold text-xl'>
-        {store.filter ? `${store.filter?.name}` : ""}
+        {store.filter
+          ? `${store.filter?.name} (PoE ${store.filter.version})`
+          : ""}
       </div>
       <div class='flex'>
         <Button

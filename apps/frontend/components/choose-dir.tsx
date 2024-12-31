@@ -34,6 +34,7 @@ export function ChooseDirectory<T extends ValidComponent = "div">(
     if (directory() !== "" && chromatic.fileSystem.runtime === "desktop") {
       const [err, val] = await to(chromatic.fileSystem.exists(directory()));
       if (err || !val) {
+        toast.error(err?.message || "Error checking directory");
         setDirValid(false);
       }
       if (val) {
@@ -44,7 +45,6 @@ export function ChooseDirectory<T extends ValidComponent = "div">(
 
   createEffect(async () => {
     if (dirValid() && directory() !== chromatic.config.poeDirectory) {
-      console.log("?");
       await chromatic.updatePoeDirectory(directory());
       toast(`Updated PoE directory to ${directory()}`);
       store.initialised = true;
