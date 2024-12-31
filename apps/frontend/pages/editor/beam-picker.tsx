@@ -5,6 +5,7 @@ import { Color, colors, setBeamColor, setBeamTemp } from "@app/lib/filter";
 import { Popover, PopoverContent, PopoverTrigger } from "@pkgs/ui/popover";
 import { Checkbox } from "@pkgs/ui/checkbox";
 import { Label } from "@pkgs/ui/label";
+import { isDefined } from "@pkgs/lib/utils";
 
 function BeamPicker() {
   const [open, setOpen] = createSignal(false);
@@ -13,21 +14,29 @@ function BeamPicker() {
     store.activeRule?.actions.beam?.temp || false,
   );
 
-  createEffect(
-    on(color, () => {
-      if (store.filter && store.activeRule?.actions.beam) {
-        setBeamColor(store.filter, store.activeRule, color());
-      }
-    }),
-  );
+  createEffect(() => {
+    if (store.activeRule?.actions.beam?.color) {
+      setColor(store.activeRule.actions.beam.color);
+    }
+  });
 
-  createEffect(
-    on(temp, () => {
-      if (store.filter && store.activeRule?.actions.beam) {
-        setBeamTemp(store.filter, store.activeRule, temp());
-      }
-    }),
-  );
+  createEffect(() => {
+    if (isDefined(store.activeRule?.actions.beam?.temp)) {
+      setTemp(store.activeRule.actions.beam.temp);
+    }
+  });
+
+  function handleChange(key: "temp" | "color", value: boolean | Color) {
+    console.log(key, value);
+    if (key === "temp") {
+      setBeamTemp(store.filter, store.activeRule, value);
+    }
+    if (key === "color") {
+      setBeamColor(store.filter, store.activeRule, value);
+    }
+
+    console.log(store.activeRule?.actions.beam);
+  }
 
   return (
     <div class='w-fit flex items-center flex-col'>
@@ -66,7 +75,7 @@ function BeamPicker() {
                 <Checkbox
                   id='temp-beam'
                   class='ml-1'
-                  onChange={setTemp}
+                  onChange={() => handleChange("temp", !temp())}
                   checked={temp()}
                 />
               </div>
@@ -79,7 +88,7 @@ function BeamPicker() {
                         type='button'
                         style={{ background: color[1] }}
                         onClick={() => {
-                          setColor(color[0] as Color);
+                          handleChange("color", color[0] as Color);
                         }}
                       />
                     );
