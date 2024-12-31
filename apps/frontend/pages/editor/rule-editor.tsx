@@ -40,23 +40,25 @@ export default function RuleEditor() {
 
   return (
     <div class='size-full p-10 overflow-y-auto flex flex-col items-center'>
-      <div
-        class='flex max-w-[300px] w-full items-center justify-between text-lg border-[1.5px]'
-        style={{
-          color: `rgba(${store.activeRule.actions.text?.r ?? 0}, ${store.activeRule.actions.text?.g ?? 0}, ${store.activeRule.actions.text?.b ?? 0}, ${(store.activeRule.actions.text?.a ?? 255) / 255})`,
-          "border-color": `rgba(${store.activeRule.actions.border?.r ?? 0}, ${store.activeRule.actions.border?.g ?? 0}, ${store.activeRule.actions.border?.b ?? 0}, ${(store.activeRule.actions.border?.a ?? 255) / 255})`,
-          "background-color": `rgba(${store.activeRule.actions.background?.r ?? 0}, ${store.activeRule.actions.background?.g ?? 0}, ${store.activeRule.actions.background?.b ?? 0}, ${(store.activeRule.actions.background?.a ?? 255) / 255})`,
-        }}
-      >
-        <MapIconPicker />
-        <div class='text-center'>
-          {store.activeRule.bases.length
-            ? store.activeRule.bases.reduce((a, b) => {
-                return a.name.length <= b.name.length ? a : b;
-              }).name
-            : "Item"}
+      <div class='flex w-full h-10'>
+        <div class='flex gap-1 w-full items-center justify-center'>
+          <div
+            class='flex w-full items-center justify-center border-[1.5px] min-w-fit max-h-fit py-1'
+            style={{
+              color: `rgba(${store.activeRule.actions.text?.r ?? 0}, ${store.activeRule.actions.text?.g ?? 0}, ${store.activeRule.actions.text?.b ?? 0}, ${(store.activeRule.actions.text?.a ?? 255) / 255})`,
+              "border-color": `rgba(${store.activeRule.actions.border?.r ?? 0}, ${store.activeRule.actions.border?.g ?? 0}, ${store.activeRule.actions.border?.b ?? 0}, ${(store.activeRule.actions.border?.a ?? 255) / 255})`,
+              "background-color": `rgba(${store.activeRule.actions.background?.r ?? 0}, ${store.activeRule.actions.background?.g ?? 0}, ${store.activeRule.actions.background?.b ?? 0}, ${(store.activeRule.actions.background?.a ?? 255) / 255})`,
+              "max-width": `${(store.activeRule.actions.fontSize || 32) * 6}px`,
+              "font-size": `${(store.activeRule.actions.fontSize || 32) / 2}px`,
+            }}
+          >
+            {store.activeRule.bases.length
+              ? store.activeRule.bases.reduce((a, b) => {
+                  return a.name.length <= b.name.length ? a : b;
+                }).name
+              : "Item"}
+          </div>
         </div>
-        <BeamPicker />
       </div>
       <div class='w-full flex-col flex gap-4 justify-center items-center mt-2'>
         <div class='gap-1 flex flex-col'>
@@ -76,19 +78,26 @@ export default function RuleEditor() {
 }
 
 function LabelSize() {
-  const [size, setSize] = createSignal(0);
+  const [size, setSize] = createSignal(32);
 
-  function handleChange(value: number) {}
+  function handleChange(value: number) {
+    if (store.filter && store.activeRule?.actions) {
+      store.activeRule.actions.fontSize = value;
+    }
+  }
 
-  createEffect(() => {});
+  createEffect(() => {
+    setSize(store.activeRule?.actions.fontSize || 32);
+  });
 
   return (
     <div class='flex items-center gap-1.5'>
-      <Label for='beam'>Size</Label>
+      <Label class='w-[87px]'>Size</Label>
+      {size()}
       <Slider
         class='w-[80px] ml-2'
-        minValue={0}
-        maxValue={255}
+        minValue={1}
+        maxValue={45}
         step={1}
         value={[size()]}
         onChange={(v) => handleChange(v[0])}
@@ -121,12 +130,21 @@ function ToggleMapIcon() {
   createEffect(() => {
     setMapIconActive(store.activeRule?.actions.icon?.enabled || false);
   });
+
   return (
-    <div class='flex text-nowrap'>
-      <Label class='mr-2' for='icon'>
+    <div class='flex text-nowrap items-center h-8'>
+      <Label class='w-[94px]' for='icon'>
         Map Icon
       </Label>
-      <Checkbox id='icon' onChange={handleMapIcon} checked={mapIconActive()} />
+      <Checkbox
+        id='icon'
+        class='mr-1'
+        onChange={handleMapIcon}
+        checked={mapIconActive()}
+      />
+      <div class='flex'>
+        {store.activeRule?.actions.icon?.enabled ? <MapIconPicker /> : ""}
+      </div>
     </div>
   );
 }
@@ -152,11 +170,14 @@ function ToggleBeam() {
   });
 
   return (
-    <div class='flex text-nowrap'>
-      <Label class='mr-2' for='beam'>
+    <div class='flex text-nowrap items-center h-2'>
+      <Label class='w-[94px]' for='beam'>
         Beam
       </Label>
       <Checkbox id='beam' onChange={handleBeam} checked={beamActive()} />
+      <div class='flex grow-0'>
+        {store.activeRule?.actions.beam?.enabled ? <BeamPicker /> : ""}
+      </div>
     </div>
   );
 }

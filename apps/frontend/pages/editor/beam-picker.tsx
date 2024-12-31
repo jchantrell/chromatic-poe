@@ -44,7 +44,7 @@ function BeamPicker() {
               <PopoverTrigger class='size-full p-3'>
                 <div
                   style={{ background: `${colors[color()]}` }}
-                  class='h-4 w-4 border border-muted'
+                  class='h-4 w-4 border border-primary'
                   style={{
                     transform: "rotate(-45deg)",
                   }}

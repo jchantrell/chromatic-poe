@@ -55,6 +55,9 @@ function updateParentState(node: TreeNode) {
 
 function getIcon(node: TreeNode) {
   if (node.data) return node.data.art;
+  if (node.children[0].data && node.children[node.children.length - 1]) {
+    return node.children[node.children.length - 1].data.art;
+  }
   return getIcon(node.children[0]);
 }
 

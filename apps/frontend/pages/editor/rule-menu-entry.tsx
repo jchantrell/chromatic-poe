@@ -22,7 +22,7 @@ import { ItemPicker } from "./item-picker";
 import { Dialog, DialogContent, DialogTrigger } from "@pkgs/ui/dialog";
 import { useDragDropContext, createSortable } from "@thisbeyond/solid-dnd";
 
-const MIN_PREVIEW_WIDTH = 350; // Adjust this value as needed
+const MIN_PREVIEW_WIDTH = 500; // Adjust this value as needed
 
 export default function Rule(props: {
   rule: FilterRule;
@@ -145,16 +145,18 @@ export default function Rule(props: {
                       "background-color": `rgba(${props.rule.actions.background?.r ?? 0}, ${props.rule.actions.background?.g ?? 0}, ${props.rule.actions.background?.b ?? 0}, ${(props.rule.actions.background?.a ?? 255) / 255})`,
                     }}
                   >
-                    {props.rule.actions.icon?.enabled ? (
-                      <MinimapIcon
-                        scale={3}
-                        size={props.rule.actions.icon.size}
-                        shape={props.rule.actions.icon.shape}
-                        color={props.rule.actions.icon?.color}
-                      />
-                    ) : (
-                      ""
-                    )}
+                    <div class='mr-1'>
+                      {props.rule.actions.icon?.enabled ? (
+                        <MinimapIcon
+                          scale={3}
+                          size={props.rule.actions.icon.size}
+                          shape={props.rule.actions.icon.shape}
+                          color={props.rule.actions.icon?.color}
+                        />
+                      ) : (
+                        ""
+                      )}
+                    </div>
                     {props.rule.bases.length
                       ? props.rule.bases.reduce((a, b) => {
                           return a.name.length <= b.name.length ? a : b;
