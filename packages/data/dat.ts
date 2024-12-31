@@ -652,6 +652,18 @@ WHERE exchangeCategory IN ('Essences', 'Currency', 'Runes')
 
 UNION ALL
 
+SELECT DISTINCT
+name,
+'Currency' AS category,
+'Common' as class,
+null as type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name = 'Gold'
+
+UNION ALL
+
 -- Boss Fragments
 SELECT DISTINCT
 name,
@@ -833,10 +845,10 @@ ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
     ];
     const allUniques = [...uniques, ...uniqueOverrides] as Item[];
     const allItems = [...items, ...allUniques] as Item[];
-    const extraFiles = ["Art/2DArt/Minimap/Player.png"];
+    const extraFiles = ["art/2dart/minimap/player.png"];
 
     await exportFiles(
-      [...allItems.map((item) => item.art), ...extraFiles],
+      [...extraFiles, ...allItems.map((item) => item.art)],
       path.join(process.cwd(), "packages/assets/poe2/images"),
       this.loader,
     );
