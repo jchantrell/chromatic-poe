@@ -66,13 +66,13 @@ function getIconSize(size: IconSize) {
 }
 
 export function setBorderColor(color: RgbColor) {
-  return `SetBorderColor ${color.r} ${color.g} ${color.b} ${Math.round((color.a || 1) * 255)}`;
+  return `SetBorderColor ${color.r} ${color.g} ${color.b} ${color.a}`;
 }
 export function setTextColor(color: RgbColor) {
-  return `SetTextColor ${color.r} ${color.g} ${color.b} ${Math.round((color.a || 1) * 255)}`;
+  return `SetTextColor ${color.r} ${color.g} ${color.b} ${color.a}`;
 }
 export function setBackgroundColor(color: RgbColor) {
-  return `SetBackgroundColor ${color.r} ${color.g} ${color.b} ${Math.round((color.a || 1) * 255)}`;
+  return `SetBackgroundColor ${color.r} ${color.g} ${color.b} ${color.a}`;
 }
 export function setFontSize(size: IntRange<1, 45>) {
   return `SetFontSize ${size}`;
