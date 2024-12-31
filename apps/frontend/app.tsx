@@ -17,7 +17,7 @@ import chromatic from "./lib/config";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 export const storageManager = createLocalStorageManager("theme");
 
-const BASE_URL = import.meta.env.BASE_URL;
+export const BASE_URL = import.meta.env.BASE_URL;
 
 function SideBar() {
   return (

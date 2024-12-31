@@ -13,6 +13,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@pkgs/ui/popover";
 import minimapIcons from "@pkgs/assets/poe2/minimap.json";
 import { RadioGroup, RadioGroupItem } from "@pkgs/ui/radio-group";
+import { BASE_URL } from "@app/app";
 
 const SHEET_WIDTH = 896;
 const SHEET_HEIGHT = 3776;
@@ -27,7 +28,7 @@ export function MinimapIcon(props: {
   return (
     <div
       style={{
-        "background-image": "url('/poe2/images/art@2dart@minimap@player.png')",
+        "background-image": `url('${BASE_URL}/poe2/images/art@2dart@minimap@player.png')`,
         height: `calc(64px / ${props.scale})`,
         width: `calc(64px / ${props.scale})`,
         "background-position": `calc(-${minimapIcons[props.color][props.shape][props.size].x}px / ${props.scale}) calc(-${minimapIcons[props.color][props.shape][props.size].y}px / ${props.scale})`,
