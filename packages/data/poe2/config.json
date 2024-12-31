@@ -71,6 +71,10 @@
       ]
     },
     {
+      "name": "Words",
+      "columns": ["Text"]
+    },
+    {
       "name": "TradeMarketCategory",
       "columns": ["Id", "Name", "StyleFlag", "Group"]
     },

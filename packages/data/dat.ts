@@ -14,6 +14,9 @@ import exchangeCategory from "./poe2/tables/English/CurrencyExchangeCategories.j
 import attributeRequirements from "./poe2/tables/English/AttributeRequirements.json";
 import currencyItems from "./poe2/tables/English/CurrencyItems.json";
 import minimapIcons from "./poe2/tables/English/MinimapIcons.json";
+import words from "./poe2/tables/English/Words.json";
+import uniqueStashLayout from "./poe2/tables/English/UniqueStashLayout.json";
+import uniqueStashTypes from "./poe2/tables/English/UniqueStashTypes.json";
 
 import Database, { type Database as IDatabase } from "better-sqlite3";
 import fs from "node:fs";
@@ -55,6 +58,9 @@ enum Tables {
   WEAPON_TYPES = "weapon_types",
   ATTRIBUTE_REQUIREMENTS = "attribute_requirements",
   CURRENCY_ITEMS = "currency_items",
+  WORDS = "words",
+  UNIQUE_STASH_LAYOUT = "unique_stash_layout",
+  UNIQUE_STASH_TYPES = "unique_stash_types",
 }
 
 const PK = "_index";
@@ -84,7 +90,7 @@ export class DatFiles {
   }
 
   generateInsertStmt(table: string, keys: string[]) {
-    return `INSERT OR REPLACE INTO ${table}(${keys}) VALUES(${keys.map((key) => `@${key}`)})`;
+    return `INSERT INTO ${table}(${keys}) VALUES(${keys.map((key) => `@${key}`)})`;
   }
 
   async createDBTable(
@@ -169,6 +175,9 @@ export class DatFiles {
     this.createDBTable(Tables.GEM_TAGS, gemTags);
     this.createDBTable(Tables.GEM_EFFECTS, gemEffects);
     this.createDBTable(Tables.ATTRIBUTE_REQUIREMENTS, attributeRequirements);
+    this.createDBTable(Tables.WORDS, words);
+    this.createDBTable(Tables.UNIQUE_STASH_LAYOUT, uniqueStashLayout);
+    this.createDBTable(Tables.UNIQUE_STASH_TYPES, uniqueStashTypes);
   }
 
   async extract() {
@@ -186,10 +195,11 @@ intReq,
 gemFx,
 class as itemClass,
 corruptable,
-stackable
+stackable,
+0 as uniqueItem
 `;
 
-    const rows = this.db
+    const items = this.db
       .prepare(`
 WITH ITEMS AS (
 
@@ -338,7 +348,7 @@ class,
   THEN 'Dexterity'
   ELSE 'Unknown'
 END) AS type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE tradeGroup IN ('Off-hand') OR class = 'Foci'
@@ -367,7 +377,7 @@ class,
   THEN 'Intelligence'
   ELSE 'Unknown'
 END) AS type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE tradeGroup IN ('Armour')
@@ -380,7 +390,7 @@ name,
 'Jewellery' AS category,
 class,
 null AS type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE tradeGroup IN ('Jewellery')
@@ -393,10 +403,29 @@ name,
 'Flasks' AS category,
 class,
 null AS type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE tradeGroup IN ('Flasks')
+WHERE tradeGroup IN ('Flasks') AND class != 'Charms'
+
+UNION ALL
+
+-- Charms
+SELECT DISTINCT
+name,
+'Charms' AS category,
+(CASE
+  WHEN name IN ('Thawing Charm', 'Shivering Charm', 'Antidote Charm', 'Dousing Charm', 'Grounding Charm', 'Stone Charm', 'Silver Charm', 'Staunching Charm')
+  THEN 'Ailment'
+  WHEN name IN ('Ruby Charm', 'Sapphire Charm', 'Topaz Charm', 'Amethyst Charm')
+  THEN 'Resist'
+  ELSE 'Other'
+END) as class,
+null AS type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Charms'
 
 UNION ALL
 
@@ -422,7 +451,7 @@ class,
   THEN 'Intelligence'
   ELSE 'Unknown'
 END) as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE tradeGroup IN ('Gems') AND name NOT LIKE '[DNT]%' AND name != 'Coming Soon'
@@ -434,7 +463,7 @@ name,
 'Gems' AS category,
 'Uncut' AS class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE name IN ('Uncut Skill Gem', 'Uncut Support Gem', 'Uncut Spirit Gem')
@@ -453,7 +482,7 @@ class,
   THEN 'Special'
   ELSE 'Common'
 END) as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE class = 'Jewels'
@@ -466,7 +495,7 @@ name,
 'Maps' AS category,
 class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE class = 'Waystones'
@@ -479,7 +508,7 @@ name,
 'Maps' AS category,
 class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE class = 'Tablet'
@@ -492,7 +521,7 @@ name,
 'Expedition' AS category,
 'Logbook' as class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE class = 'Expedition Logbooks'
@@ -504,7 +533,7 @@ name,
 'Expedition' AS category,
 'Currency' as class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE name IN ('Exotic Coinage', 'Sun Artifact', 'Broken Circle Artifact', 'Black Scythe Artifact', 'Order Artifact')
@@ -518,7 +547,7 @@ name,
 'Ultimatum' AS category,
 'Fragments' as class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE exchangeSubcategory = 'Ultimatum Fragments'
@@ -531,7 +560,7 @@ name,
 'Ultimatum' AS category,
 'Soul Cores' as class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE exchangeCategory = 'Soul Cores'
@@ -544,7 +573,7 @@ name,
 'Trial of the Sekhemas' AS category,
 'Fragments' as class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE class = 'Trial Coins'
@@ -556,7 +585,7 @@ name,
 'Trial of the Sekhemas' AS category,
 class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE class = 'Relics'
@@ -569,7 +598,7 @@ name,
 'Ritual' AS category,
 'Fragments' as class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE name = 'An Audience with the King'
@@ -582,7 +611,7 @@ name,
 'Ritual' AS category,
 class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE class = 'Omens'
@@ -599,7 +628,7 @@ exchangeCategory AS category,
   ELSE exchangeSubcategory
 END) as class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE exchangeCategory IN ('Delirium', 'Breach')
@@ -616,7 +645,7 @@ exchangeCategory AS category,
   ELSE exchangeSubcategory
 END) as class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE exchangeCategory IN ('Essences', 'Currency', 'Runes')
@@ -629,20 +658,189 @@ name,
 'Pinnacle' AS category,
 'Fragments' AS class,
 null as type,
-0 AS score, -- FIXME
+0 AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE exchangeSubcategory IN ('Pinnacle Fragments')
 `)
 
-      .all() as Item[];
+      .all();
+
+    const uniques = this.db
+      .prepare(`
+SELECT DISTINCT
+${Tables.WORDS}.Text as name,
+'Uniques' as category,
+${Tables.UNIQUE_STASH_TYPES}.Name as class,
+null as type,
+0 AS score, 
+${Tables.VISUALS}.DDSFile as art,
+null as height,
+null as width,
+null as price,
+null as strReq,
+null as dexReq,
+null as intReq,
+null as gemFx,
+null as itemClass,
+1 as corruptable,
+0 as stackable,
+1 as uniqueItem
+FROM ${Tables.UNIQUE_STASH_LAYOUT}
+LEFT JOIN ${Tables.UNIQUE_STASH_TYPES}
+ON ${Tables.UNIQUE_STASH_LAYOUT}.UniqueStashTypesKey = ${Tables.UNIQUE_STASH_TYPES}.${PK}
+LEFT JOIN ${Tables.WORDS}
+ON ${Tables.UNIQUE_STASH_LAYOUT}.WordsKey = ${Tables.WORDS}.${PK}
+LEFT JOIN ${Tables.VISUALS}
+ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
+`)
+      .all();
+
+    const uniqueOverrides = [
+      {
+        name: "Strugglescream",
+        category: "Uniques",
+        class: "Amulets",
+        type: null,
+        score: 0,
+        height: null,
+        width: null,
+        price: null,
+        strReq: null,
+        dexReq: null,
+        intReq: null,
+        gemFx: null,
+        itemClass: "Amulets",
+        corruptable: 1,
+        stackable: 0,
+        uniqueItem: 1,
+        art: "Art/2DItems/Amulets/Uniques/DeliriumAmulet.dds",
+      },
+      {
+        name: "The Peacemaker's Draught",
+        category: "Uniques",
+        class: "Relics",
+        type: null,
+        score: 0,
+        height: null,
+        width: null,
+        price: null,
+        strReq: null,
+        dexReq: null,
+        intReq: null,
+        gemFx: null,
+        itemClass: "Relics",
+        corruptable: 1,
+        stackable: 0,
+        uniqueItem: 1,
+        art: "Art/2DItems/Relics/RelicUnique1x3.dds",
+      },
+      {
+        name: "The Desperate Alliance",
+        category: "Uniques",
+        class: "Relics",
+        type: null,
+        score: 0,
+        height: null,
+        width: null,
+        price: null,
+        strReq: null,
+        dexReq: null,
+        intReq: null,
+        gemFx: null,
+        itemClass: "Relics",
+        corruptable: 1,
+        stackable: 0,
+        uniqueItem: 1,
+        art: "Art/2DItems/Relics/RelicUnique1x4.dds",
+      },
+      {
+        name: "The Changing Seasons",
+        category: "Uniques",
+        class: "Relics",
+        type: null,
+        score: 0,
+        height: null,
+        width: null,
+        price: null,
+        strReq: null,
+        dexReq: null,
+        intReq: null,
+        gemFx: null,
+        itemClass: "Relics",
+        corruptable: 1,
+        stackable: 0,
+        uniqueItem: 1,
+        art: "Art/2DItems/Relics/RelicUnique2x1.dds",
+      },
+      {
+        name: "The Remembered Tales",
+        category: "Uniques",
+        class: "Relics",
+        type: null,
+        score: 0,
+        height: null,
+        width: null,
+        price: null,
+        strReq: null,
+        dexReq: null,
+        intReq: null,
+        gemFx: null,
+        itemClass: "Relics",
+        corruptable: 1,
+        stackable: 0,
+        uniqueItem: 1,
+        art: "Art/2DItems/Relics/RelicUnique2x2.dds",
+      },
+      {
+        name: "The Burden of Leadership",
+        category: "Uniques",
+        class: "Relics",
+        type: null,
+        score: 0,
+        height: null,
+        width: null,
+        price: null,
+        strReq: null,
+        dexReq: null,
+        intReq: null,
+        gemFx: null,
+        itemClass: "Relics",
+        corruptable: 1,
+        stackable: 0,
+        uniqueItem: 1,
+        art: "Art/2DItems/Relics/RelicUnique3x1.dds",
+      },
+      {
+        name: "The Last Flame",
+        category: "Uniques",
+        class: "Relics",
+        type: null,
+        score: 0,
+        height: null,
+        width: null,
+        price: null,
+        strReq: null,
+        dexReq: null,
+        intReq: null,
+        gemFx: null,
+        itemClass: "Relics",
+        corruptable: 1,
+        stackable: 0,
+        uniqueItem: 1,
+        art: "Art/2DItems/Relics/RelicUnique4x1.dds",
+      },
+    ];
+    const allUniques = [...uniques, ...uniqueOverrides] as Item[];
+    const allItems = [...items, ...allUniques] as Item[];
+    const extraFiles = ["Art/2DArt/Minimap/Player.png"];
 
     await exportFiles(
-      [...rows.map((item) => item.art), "Art/2DArt/Minimap/Player.png"],
+      [...allItems.map((item) => item.art), ...extraFiles],
       path.join(process.cwd(), "packages/assets/poe2/images"),
       this.loader,
     );
-    for (const item of rows) {
+    for (const item of allItems) {
       const replacedFilepath = `poe2/images/${item.art.replaceAll("/", "@").replace("dds", "png")}`;
       item.art = replacedFilepath;
 
@@ -663,7 +861,7 @@ WHERE exchangeSubcategory IN ('Pinnacle Fragments')
     console.log("Writing item file...");
     fs.writeFileSync(
       "./packages/data/poe2/items.json",
-      JSON.stringify(rows, null, " "),
+      JSON.stringify(allItems, null, " "),
     );
     extractMinimapIcons(minimapIcons, "./packages/assets/poe2/minimap.json");
   }
