@@ -13,7 +13,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@pkgs/ui/popover";
 import minimapIcons from "@pkgs/assets/poe2/minimap.json";
 import { RadioGroup, RadioGroupItem } from "@pkgs/ui/radio-group";
-import minimapImg from "@pkgs/assets/poe2/images/Art@2DArt@Minimap@Player.png";
+import minimapImg from "@pkgs/assets/poe2/images/art@2dart@minimap@player.png";
 
 const SHEET_WIDTH = 896;
 const SHEET_HEIGHT = 3776;
