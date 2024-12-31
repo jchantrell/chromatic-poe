@@ -10,6 +10,10 @@ defaults:
   run:
     shell: bash
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     permissions:
@@ -79,3 +83,17 @@ jobs:
           prerelease: true
           updaterJsonPreferNsis: true
           args: ${{ matrix.args }}
+
+      - name: Build for Github Pages
+        if: matrix.platform == 'ubuntu-22.04'
+        run: pnpm build:gh-pages
+
+      - name: Upload static files as artifact
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
+      - name: Deploy to GitHub Pages
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: actions/deploy-pages@v4
