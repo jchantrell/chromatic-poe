@@ -138,7 +138,7 @@ function ToggleMapIcon() {
       </Label>
       <Checkbox
         id='icon'
-        class='mr-1'
+        class='mr-2'
         onChange={handleMapIcon}
         checked={mapIconActive()}
       />

@@ -39,7 +39,7 @@ function BeamPicker() {
   }
 
   return (
-    <div class='w-fit flex items-center flex-col'>
+    <div class='flex items-center flex-col'>
       <Popover open={open()} onOpenChange={setOpen}>
         <div class='flex items-center w-full'>
           <div
@@ -52,11 +52,8 @@ function BeamPicker() {
             {store.activeRule?.actions.beam?.enabled ? (
               <PopoverTrigger class='size-full p-3'>
                 <div
+                  class='h-5 w-6 rounded-md border border-accent'
                   style={{ background: `${colors[color()]}` }}
-                  class='h-4 w-4 border border-primary'
-                  style={{
-                    transform: "rotate(-45deg)",
-                  }}
                 />
               </PopoverTrigger>
             ) : (
