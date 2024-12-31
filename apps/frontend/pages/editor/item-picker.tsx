@@ -85,7 +85,7 @@ function rollup(
       node.children.push(leafNode);
 
       if (bases.some((base) => base.name === value.name)) {
-        let current: TreeNode | undefined = node;
+        let current: TreeNode | undefined = leafNode;
         while (current) {
           current.enabled = true;
           current = current.parent;
@@ -222,19 +222,8 @@ export function ItemPicker(props: { rule: FilterRule }) {
     updateNode(itemHierarchy, node, enabled);
   }
 
-  const goldOverride = {
-    name: "Gold",
-    enabled: false,
-    parent: itemHierarchy,
-    children: [],
-    data: {
-      name: "Gold",
-    },
-  };
-
   return (
     <div class='grid py-2'>
-      <Node node={goldOverride} level={0} onToggle={handleToggle} />
       <For each={itemHierarchy.children}>
         {(item) => <Node node={item} level={0} onToggle={handleToggle} />}
       </For>
