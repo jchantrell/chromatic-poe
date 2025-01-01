@@ -18,7 +18,8 @@ Tauri takes the SolidJS frontend application and wraps it with [WebView](https:/
 
 > Located in `packages/data`
 
-The data fetching and transformation are driven by two things
+The data fetching and transformation are driven by three things
 - Scripts in the above directory, the entry being `packages/data/dat.ts` which builds out a local SQLite DB (which I found to be the easiest way to get the data in the right format for the application)
 - Table fetching via the CLI tool [`pathofexile-dat`](https://github.com/SnosMe/poe-dat-viewer/tree/master/lib) 
 - File fetching using a ported version of `pathofexile-dat`'s implementation. See `loader.ts`, `file.ts`, `sprite.ts`, `bundle.ts` and `table.ts` in `packages/data`.
+- Unique base types are fetched by [PoE Wiki](https://www.poewiki.net/)'s Cargo API
