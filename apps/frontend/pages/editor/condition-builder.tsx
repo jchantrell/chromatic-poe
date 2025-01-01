@@ -584,7 +584,7 @@ export default function ConditionManager() {
   }
 
   function removeCondition(condition: keyof Conditions) {
-    if (store.filter) {
+    if (store.filter && condition in store.activeRule.conditions) {
       excuteCmd(store.filter, () => {
         delete store.activeRule.conditions[condition];
       });

@@ -180,7 +180,7 @@ export class Filter {
       setTimeout(async () => {
         await invoke("reload_filter");
       }, 250);
-      toast(`Wrote filter to ${path}`);
+      toast("Wrote filter to PoE directory.");
     }
 
     if (chromatic.fileSystem.runtime === "web") {

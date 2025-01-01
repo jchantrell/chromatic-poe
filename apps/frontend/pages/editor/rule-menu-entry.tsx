@@ -157,8 +157,8 @@ export default function Rule(props: {
                       {props.rule.actions.icon?.enabled ? (
                         <MinimapIcon
                           scale={3}
-                          size={props.rule.actions.icon.size}
-                          shape={props.rule.actions.icon.shape}
+                          size={props.rule.actions.icon?.size}
+                          shape={props.rule.actions.icon?.shape}
                           color={props.rule.actions.icon?.color}
                         />
                       ) : (
