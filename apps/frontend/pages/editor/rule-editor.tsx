@@ -18,32 +18,6 @@ import { Slider, SliderFill, SliderThumb, SliderTrack } from "@pkgs/ui/slider";
 export default function RuleEditor() {
   if (!store.activeRule) return <></>;
 
-  createEffect(() => {
-    const opts = { corruptable: false, stackable: false, mirrorable: false };
-    if (store.activeRule) {
-      for (const base of store.activeRule.bases) {
-        if (base.corruptable) {
-          opts.corruptable = true;
-        }
-        if (base.stackable) {
-          opts.stackable = true;
-        }
-        if (base.mirrorable) {
-          opts.mirrorable = true;
-        }
-        if (base.category === "Gems") {
-          // add gem conditions
-        }
-      }
-    }
-  });
-
-  createEffect(() => {
-    if (!store.activeRule) {
-      console.log("?");
-    }
-  });
-
   return (
     <div class='size-full p-10 overflow-y-auto flex flex-col items-center'>
       <div class='flex h-10'>

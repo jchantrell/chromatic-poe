@@ -23,12 +23,9 @@ function CreateRule() {
       icon: null,
       enabled: true,
       bases: [],
-      conditions: {
-        _: true,
-      },
+      conditions: {},
       actions: clone(DEFAULT_STYLE),
     };
-    console.log(rule);
     createRule(store.filter, rule);
   }
 
