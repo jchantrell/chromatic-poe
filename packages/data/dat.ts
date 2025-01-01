@@ -359,7 +359,7 @@ UNION ALL
 SELECT DISTINCT
 name,
 'Armour' AS category,
-class,
+class as type,
 (CASE
   WHEN armour != 0 AND evasion != 0 AND energyShield != 0
   THEN 'Hybrid'
@@ -376,7 +376,7 @@ class,
   WHEN energyShield != 0
   THEN 'Intelligence'
   ELSE 'Unknown'
-END) AS type,
+END) AS class,
 0 AS score, 
 ${extraFields}
 FROM ITEMS
