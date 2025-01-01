@@ -1,4 +1,4 @@
-import { createSignal, For } from "solid-js";
+import { For } from "solid-js";
 import {
   Slider,
   SliderFill,
@@ -509,20 +509,17 @@ function CheckboxInput(props: {
 function ConditionToggle(props: {
   label: string;
   key: keyof Conditions;
-  checked: boolean;
   onChange: (...rest: unknown[]) => void;
 }) {
   return (
     <div class='flex items-center gap-2 h-5'>
-      <Switch
-        checked={props.checked}
-        class='flex items-center space-x-2 h-5'
-        onChange={(v) => props.onChange(props.key, v)}
-      >
-        <SwitchControl class='bg-accent'>
-          <SwitchThumb />
-        </SwitchControl>
-      </Switch>
+      <input
+        type='checkbox'
+        id='icon'
+        class='size-5'
+        checked={store.activeRule?.conditions[props.key]}
+        onInput={(v) => props.onChange(props.key, v.target.checked)}
+      />
       <Label>{props.label}</Label>
     </div>
   );
@@ -544,7 +541,6 @@ function ConditionToggleGroup(props: {
         {([key, value]) => (
           <ConditionToggle
             label={value.label}
-            checked={store.activeRule?.conditions[key as keyof Conditions]}
             key={key}
             onChange={(key, checked) => {
               props.onChange(key, checked);
@@ -596,7 +592,8 @@ export default function ConditionManager() {
       excuteCmd(store.filter, () => {
         if (checked) {
           addCondition(key as keyof Conditions);
-        } else {
+        }
+        if (!checked) {
           removeCondition(key as keyof Conditions);
         }
       });
@@ -645,6 +642,13 @@ export default function ConditionManager() {
                 {([key, value]) => {
                   const condition =
                     conditionTypes[key as keyof typeof conditionTypes];
+                  const EXCLUDED_OPERATORS = [Operator.gte, Operator.lte];
+                  const filteredOperators = operators.filter((op) => {
+                    if (key === "sockets" && EXCLUDED_OPERATORS.includes(op)) {
+                      return false;
+                    }
+                    return true;
+                  });
                   return (
                     <div class='flex gap-4 items-center justify-between p-4 bg-neutral-500/50 rounded-lg'>
                       <Label class='text-md text-nowrap'>
@@ -658,7 +662,7 @@ export default function ConditionManager() {
                             onChange={(value) => {
                               updateCondition(key, "operator", value);
                             }}
-                            options={operators || []}
+                            options={filteredOperators}
                             itemComponent={(props) => (
                               <SelectItem item={props.item}>
                                 {props.item.rawValue}
