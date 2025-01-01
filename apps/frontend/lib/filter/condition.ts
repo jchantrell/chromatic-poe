@@ -205,8 +205,12 @@ function linkedSockets(op: Operator, links: number | string): string {
 function socketGroup(op: Operator, groupString: string): string {
   return `SocketGroup ${op} ${groupString}`;
 }
-function sockets(op: Operator, groupString: string): string {
-  return `Sockets ${op} ${groupString}`;
+function sockets(
+  op: Operator,
+  amount: number | string,
+  groupString?: string,
+): string {
+  return `Sockets ${op} ${amount}${groupString ? ` ${groupString}` : ""}`;
 }
 
 // gear (clusters)
