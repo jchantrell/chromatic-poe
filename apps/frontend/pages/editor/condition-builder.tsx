@@ -196,16 +196,17 @@ function CheckboxInput(props: {
   );
 }
 
-const ConditionManager = () => {
-  const [conditions, setConditions] = createStore<Conditions>(
-    store.activeRule?.conditions || {},
-  );
-
+export default function ConditionManager() {
   function addCondition<T extends keyof Conditions>(condition: T) {
-    setConditions((conditions) => ({
-      ...conditions,
-      [condition]: { value: conditionTypes[condition].defaultValue },
-    }));
+    if (store.activeRule) {
+      const newCondition: Conditions[T] = {
+        value: conditionTypes[condition as T].defaultValue,
+      };
+      if (conditionTypes[condition].operators) {
+        newCondition.operator = Operator.eq;
+      }
+      store.activeRule.conditions[condition] = newCondition as Conditions[T];
+    }
   }
 
   function updateCondition<T extends keyof Conditions>(
@@ -213,26 +214,19 @@ const ConditionManager = () => {
     key: keyof Conditions[T],
     value: Conditions[keyof Conditions],
   ) {
-    setConditions(condition, (condition) => ({
-      ...condition,
-      [key]: value,
-    }));
-  }
-
-  function removeCondition(condition: T) {
-    setConditions((conditions) => {
-      const newConditions = { ...conditions };
-      delete newConditions[condition];
-      return newConditions;
-    });
-  }
-
-  createEffect(() => {
     if (store.activeRule) {
-      setConditions(store.activeRule.conditions);
+      store.activeRule.conditions[condition] = {
+        ...store.activeRule.conditions[condition],
+        [key]: value,
+      };
     }
-    console.log(store.activeRule);
-  });
+  }
+
+  function removeCondition(condition: keyof Conditions) {
+    if (store.activeRule) {
+      delete store.activeRule.conditions[condition];
+    }
+  }
 
   return (
     <div class='mx-auto p-4'>
@@ -243,6 +237,7 @@ const ConditionManager = () => {
             <Switch
               checked={store.activeRule?.show}
               onChange={(checked) => {
+                // FIXME
                 store.activeRule.show = checked;
               }}
               class='flex items-center space-x-2'
@@ -261,13 +256,13 @@ const ConditionManager = () => {
           </button>
         </div>
 
-        {Object.keys(conditions).length === 0 ? (
+        {Object.keys(store.activeRule?.conditions || {}).length === 0 ? (
           <div class='text-center py-8 text-muted-foreground'>
-            No conditions added. Click "Add Condition" to start.
+            No conditions. Click "Edit Conditions" to start.
           </div>
         ) : (
           <div class='space-y-4 flex flex-col items-start'>
-            <For each={Object.entries(conditions)}>
+            <For each={Object.entries(store.activeRule?.conditions || {})}>
               {([key, value]) => {
                 const condition =
                   conditionTypes[key as keyof typeof conditionTypes];
@@ -281,7 +276,9 @@ const ConditionManager = () => {
                           <div class='w-full'>
                             <select
                               value={value.operator}
-                              onChange={(e) => {}}
+                              onChange={(value) => {
+                                updateCondition(key, "operator", value);
+                              }}
                               class='w-full px-3 py-2 bg-muted border rounded focus:outline-none focus:ring-2 focus:ring-accent-foreground'
                             >
                               <For each={operators}>
@@ -296,8 +293,8 @@ const ConditionManager = () => {
                             <SliderInput
                               key={key}
                               value={value.value}
-                              onChange={(value) => {
-                                updateCondition(key, "value", value);
+                              onChange={(v) => {
+                                updateCondition(key, "value", v);
                               }}
                             />
                           )}
@@ -305,8 +302,8 @@ const ConditionManager = () => {
                             <RangeInput
                               key={key}
                               value={value.value}
-                              onChange={(value) => {
-                                updateCondition(key, "value", value);
+                              onChange={(v) => {
+                                updateCondition(key, "value", v);
                               }}
                             />
                           )}
@@ -314,8 +311,8 @@ const ConditionManager = () => {
                             <SelectInput
                               key={key}
                               value={value.value}
-                              onChange={(value) => {
-                                updateCondition(key, "value", value);
+                              onChange={(v) => {
+                                updateCondition(key, "value", v);
                               }}
                             />
                           )}
@@ -323,8 +320,8 @@ const ConditionManager = () => {
                             <ToggleInput
                               key={key}
                               value={value.value}
-                              onChange={(value) => {
-                                updateCondition(key, "value", value);
+                              onChange={(v) => {
+                                updateCondition(key, "value", v);
                               }}
                             />
                           )}
@@ -332,8 +329,8 @@ const ConditionManager = () => {
                             <CheckboxInput
                               key={key}
                               value={value.value}
-                              onChange={(value) => {
-                                updateCondition(key, "value", value);
+                              onChange={(v) => {
+                                updateCondition(key, "value", v);
                               }}
                             />
                           )}
@@ -342,7 +339,9 @@ const ConditionManager = () => {
                     </ContextMenuTrigger>
                     <ContextMenuPortal>
                       <ContextMenuContent class='w-48'>
-                        <ContextMenuItem onMouseDown={() => removeCondition()}>
+                        <ContextMenuItem
+                          onMouseDown={() => removeCondition(key)}
+                        >
                           <span>Delete</span>
                         </ContextMenuItem>
                       </ContextMenuContent>
@@ -356,6 +355,4 @@ const ConditionManager = () => {
       </div>
     </div>
   );
-};
-
-export default ConditionManager;
+}
