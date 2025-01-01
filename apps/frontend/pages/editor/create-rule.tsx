@@ -2,6 +2,7 @@ import { createRule, type FilterRule } from "@app/lib/filter";
 import { ulid } from "ulid";
 import { store } from "@app/store";
 import { Button } from "@pkgs/ui/button";
+import { clone } from "@pkgs/lib/utils";
 
 const DEFAULT_STYLE = {
   text: { r: 255, g: 255, b: 255, a: 255 },
@@ -22,8 +23,10 @@ function CreateRule() {
       icon: null,
       enabled: true,
       bases: [],
-      conditions: {},
-      actions: DEFAULT_STYLE,
+      conditions: {
+        _: true,
+      },
+      actions: clone(DEFAULT_STYLE),
     };
     console.log(rule);
     createRule(store.filter, rule);

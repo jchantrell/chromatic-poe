@@ -17,6 +17,7 @@ type BoolCondition = {
 };
 
 export type Conditions = {
+  _: boolean; // dumb hack to preserve key in json
   bases?: string[];
   classes?: OpListCondition<string>;
 
