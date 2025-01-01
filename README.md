@@ -1,4 +1,7 @@
-# Chromatic PoE
+# ![Chromatic PoE](./apps/backend/icons/Square44x44Logo.png) Chromatic PoE 
+
+> [!IMPORTANT]
+> Chromatic PoE is currently in a pre-release state. It is usable but not feature complete.
 
 Chromatic PoE is a tool to generate [item filters](https://www.pathofexile.com/item-filter/about) for Path of Exile. It is free and open source for the peace of mind of anyone that uses it.
 
