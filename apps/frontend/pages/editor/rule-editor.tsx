@@ -43,19 +43,25 @@ export default function RuleEditor() {
       <div class='flex h-10'>
         <div class='flex gap-1 w-full items-center justify-center'>
           <div
-            class='flex w-full items-center justify-center border-[1.5px] min-w-fit max-h-fit px-2'
+            class='flex w-full items-center justify-center border-[1.5px] min-w-fit max-h-fit px-2 mb-2'
             style={{
               color: `rgba(${store.activeRule.actions.text?.r ?? 0}, ${store.activeRule.actions.text?.g ?? 0}, ${store.activeRule.actions.text?.b ?? 0}, ${(store.activeRule.actions.text?.a ?? 255) / 255})`,
               "border-color": `rgba(${store.activeRule.actions.border?.r ?? 0}, ${store.activeRule.actions.border?.g ?? 0}, ${store.activeRule.actions.border?.b ?? 0}, ${(store.activeRule.actions.border?.a ?? 255) / 255})`,
               "background-color": `rgba(${store.activeRule.actions.background?.r ?? 0}, ${store.activeRule.actions.background?.g ?? 0}, ${store.activeRule.actions.background?.b ?? 0}, ${(store.activeRule.actions.background?.a ?? 255) / 255})`,
               "max-width": `${(store.activeRule.actions.fontSize || 32) * 6}px`,
-              "font-size": `${(store.activeRule.actions.fontSize || 32) / 2}px`,
+              "font-size": `${(store.activeRule.actions.fontSize || 32) / 1.5}px`,
             }}
           >
             {store.activeRule.bases.length
-              ? store.activeRule.bases.reduce((a, b) => {
-                  return a.name.length <= b.name.length ? a : b;
-                }).name
+              ? store.activeRule.bases
+                  .filter((base) => base.enabled)
+                  .reduce(
+                    (a, b) => {
+                      return a.name.length <= b.name.length ? a : b;
+                    },
+                    store.activeRule.bases.find((base) => base.enabled) ||
+                      store.activeRule.bases[0],
+                  ).name
               : "Item"}
           </div>
         </div>

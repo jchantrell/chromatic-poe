@@ -1,17 +1,19 @@
-import { isDefined } from "@pkgs/lib/utils";
-
 type ListCondition<T> = {
-  values: T[];
+  value: T[];
 };
 
 type OpListCondition<T> = {
   operator: Operator;
-  values: T[];
+  value: T[];
 };
 
 type OpValueCondition<T> = {
   operator: Operator;
   value: T | string;
+};
+
+type BoolCondition = {
+  value: boolean;
 };
 
 export type Conditions = {
@@ -27,26 +29,26 @@ export type Conditions = {
   quality?: OpValueCondition<number>;
 
   gemLevel?: OpValueCondition<number>;
-  transfiguredGem?: boolean;
+  transfiguredGem?: BoolCondition;
 
   mapTier?: OpValueCondition<number>;
-  elderMap?: boolean;
-  shapedMap?: boolean;
-  blightedMap?: boolean;
-  uberBlightedMap?: boolean;
+  elderMap?: BoolCondition;
+  shapedMap?: BoolCondition;
+  blightedMap?: BoolCondition;
+  uberBlightedMap?: BoolCondition;
 
-  hasImplicitMod?: boolean;
+  hasImplicitMod?: BoolCondition;
   itemLevel?: OpValueCondition<number>;
   rarity?: OpValueCondition<Rarity>;
-  identified?: boolean;
-  scourged?: boolean;
-  fractured?: boolean;
-  mirrored?: boolean;
-  corrupted?: boolean;
-  enchanted?: boolean;
-  synthesised?: boolean;
-  replica?: boolean;
-  crucibleTree?: boolean;
+  identified?: BoolCondition;
+  scourged?: BoolCondition;
+  fractured?: BoolCondition;
+  mirrored?: BoolCondition;
+  corrupted?: BoolCondition;
+  enchanted?: BoolCondition;
+  synthesised?: BoolCondition;
+  replica?: BoolCondition;
+  crucibleTree?: BoolCondition;
 
   corruptedMods?: OpValueCondition<number>;
 
@@ -312,47 +314,47 @@ export function serializeConditions(conditions: Conditions) {
   if (conditions.mapTier) {
     strs.push(mapTier(conditions.mapTier.operator, conditions.mapTier.value));
   }
-  if (isDefined(conditions.transfiguredGem)) {
-    strs.push(transfiguredGem(conditions.transfiguredGem));
+  if (conditions.transfiguredGem) {
+    strs.push(transfiguredGem(conditions.transfiguredGem.value));
   }
-  if (isDefined(conditions.elderMap)) {
-    strs.push(elderMap(conditions.elderMap));
+  if (conditions.elderMap) {
+    strs.push(elderMap(conditions.elderMap.value));
   }
-  if (isDefined(conditions.shapedMap)) {
-    strs.push(shapedMap(conditions.shapedMap));
+  if (conditions.shapedMap) {
+    strs.push(shapedMap(conditions.shapedMap.value));
   }
-  if (isDefined(conditions.blightedMap)) {
-    strs.push(blightedMap(conditions.blightedMap));
+  if (conditions.blightedMap) {
+    strs.push(blightedMap(conditions.blightedMap.value));
   }
-  if (isDefined(conditions.uberBlightedMap)) {
-    strs.push(uberBlightedMap(conditions.uberBlightedMap));
+  if (conditions.uberBlightedMap) {
+    strs.push(uberBlightedMap(conditions.uberBlightedMap.value));
   }
-  if (isDefined(conditions.hasImplicitMod)) {
-    strs.push(hasImplicitMod(conditions.hasImplicitMod));
+  if (conditions.hasImplicitMod) {
+    strs.push(hasImplicitMod(conditions.hasImplicitMod.value));
   }
-  if (isDefined(conditions.identified)) {
-    strs.push(identified(conditions.identified));
+  if (conditions.identified) {
+    strs.push(identified(conditions.identified.value));
   }
-  if (isDefined(conditions.scourged)) {
-    strs.push(scourged(conditions.scourged));
+  if (conditions.scourged) {
+    strs.push(scourged(conditions.scourged.value));
   }
-  if (isDefined(conditions.fractured)) {
-    strs.push(fractured(conditions.fractured));
+  if (conditions.fractured) {
+    strs.push(fractured(conditions.fractured.value));
   }
-  if (isDefined(conditions.mirrored)) {
-    strs.push(mirrored(conditions.mirrored));
+  if (conditions.mirrored) {
+    strs.push(mirrored(conditions.mirrored.value));
   }
-  if (isDefined(conditions.corrupted)) {
-    strs.push(corrupted(conditions.corrupted));
+  if (conditions.corrupted) {
+    strs.push(corrupted(conditions.corrupted.value));
   }
-  if (isDefined(conditions.synthesised)) {
-    strs.push(synthesised(conditions.synthesised));
+  if (conditions.synthesised) {
+    strs.push(synthesised(conditions.synthesised.value));
   }
-  if (isDefined(conditions.replica)) {
-    strs.push(replica(conditions.replica));
+  if (conditions.replica) {
+    strs.push(replica(conditions.replica.value));
   }
-  if (isDefined(conditions.crucibleTree)) {
-    strs.push(crucibleTree(conditions.crucibleTree));
+  if (conditions.crucibleTree) {
+    strs.push(crucibleTree(conditions.crucibleTree.value));
   }
   if (conditions.itemLevel) {
     strs.push(

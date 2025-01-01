@@ -226,14 +226,15 @@ export class Filter {
     conditions: Conditions,
   ) {
     const eol = chromatic.fileSystem.eol();
+    const block = show ? Block.show : Block.hide;
+    const conditionText = serializeConditions(conditions)
+      .map((condition) => `  ${condition}${eol}`)
+      .join("");
+    const actionText = serializeActions(actions)
+      .map((condition) => `  ${condition}${eol}`)
+      .join("");
 
-    const txt = `# ${description}${eol}${show ? Block.show : Block.hide}${eol}${serializeConditions(
-      conditions,
-    ).map((condition) => `  ${condition}${eol}`)}${serializeActions(actions)
-      .map((action) => `  ${action}${eol}`)
-      .join("")}
-`;
-    return txt;
+    return `# ${description}${eol}${block}${eol}${conditionText}${actionText}${eol}`;
   }
 }
 

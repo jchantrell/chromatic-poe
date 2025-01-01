@@ -21,6 +21,7 @@ import { MinimapIcon } from "./map-icon-picker";
 import { ItemPicker } from "./item-picker";
 import { Dialog, DialogContent, DialogTrigger } from "@pkgs/ui/dialog";
 import { useDragDropContext, createSortable } from "@thisbeyond/solid-dnd";
+import { Badge } from "@pkgs/ui/badge";
 
 const MIN_PREVIEW_WIDTH = 500; // Adjust this value as needed
 
@@ -125,7 +126,14 @@ export default function Rule(props: {
                 ref={previewRef}
               >
                 <div class='m-1 flex items-center min-w-max'>
-                  <div class='text-xl p-1'>
+                  <div class='text-xl p-1 flex'>
+                    <div class='w-16'>
+                      {props.rule.show ? (
+                        <Badge variant='success'>Show</Badge>
+                      ) : (
+                        <Badge variant='error'>Hide</Badge>
+                      )}
+                    </div>
                     <input
                       class={`bg-primary-foreground outline-none border-none ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"}`}
                       type='text'
@@ -158,9 +166,15 @@ export default function Rule(props: {
                       )}
                     </div>
                     {props.rule.bases.length
-                      ? props.rule.bases.reduce((a, b) => {
-                          return a.name.length <= b.name.length ? a : b;
-                        }).name
+                      ? props.rule.bases
+                          .filter((base) => base.enabled)
+                          .reduce(
+                            (a, b) => {
+                              return a.name.length <= b.name.length ? a : b;
+                            },
+                            props.rule.bases.find((base) => base.enabled) ||
+                              props.rule.bases[0],
+                          ).name
                       : "Item"}
                   </div>
                   <div

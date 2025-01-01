@@ -1,4 +1,4 @@
-import { createRule, type FilterRule } from "@app/lib/filter";
+import { createRule, Operator, type FilterRule } from "@app/lib/filter";
 import { ulid } from "ulid";
 import { store } from "@app/store";
 import { Button } from "@pkgs/ui/button";
@@ -16,13 +16,19 @@ function CreateRule() {
       icon: null,
       enabled: true,
       bases: [],
-      conditions: {},
+      conditions: {
+        height: {
+          operator: Operator.gte,
+          value: 1,
+        },
+      },
       actions: {
         text: { r: 255, g: 255, b: 255, a: 255 },
         border: { r: 19, g: 14, b: 6, a: 255 },
         background: { r: 19, g: 14, b: 6, a: 255 },
       },
     };
+    console.log(rule);
     createRule(store.filter, rule);
   }
 
