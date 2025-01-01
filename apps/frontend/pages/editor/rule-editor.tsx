@@ -38,6 +38,12 @@ export default function RuleEditor() {
     }
   });
 
+  createEffect(() => {
+    if (!store.activeRule) {
+      console.log("?");
+    }
+  });
+
   return (
     <div class='size-full p-10 overflow-y-auto flex flex-col items-center'>
       <div class='flex h-10'>

@@ -6,7 +6,14 @@ import {
 } from "@kobalte/core";
 import Editor from "@app/pages/editor";
 import { Button } from "@pkgs/ui/button";
-import { AudioIcon, ExitIcon, HouseIcon, MinimiseIcon } from "@pkgs/icons";
+import {
+  AudioIcon,
+  DownloadIcon,
+  ExitIcon,
+  HouseIcon,
+  MinimiseIcon,
+  SaveIcon,
+} from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
 import { createSignal, onMount } from "solid-js";
 import { setActiveRule, setFilter, store } from "./store";
@@ -15,7 +22,9 @@ import { Settings } from "./components/settings";
 import { Route, Router } from "@solidjs/router";
 import chromatic from "./lib/config";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
+import Tooltip from "./components/tooltip";
 export const storageManager = createLocalStorageManager("theme");
+import { SAVE_KEY, WRITE_KEY } from "@app/constants";
 
 export const BASE_URL = import.meta.env.BASE_URL;
 
@@ -67,10 +76,36 @@ function TopBar() {
       class='w-full flex justify-between items-center'
       data-tauri-drag-region
     >
-      <div class='ml-2 font-semibold text-xl'>
-        {store.filter
-          ? `${store.filter?.name} (PoE ${store.filter.version})`
-          : ""}
+      <div class='flex items-center gap-2'>
+        {store.filter ? (
+          <>
+            <div class='ml-2 font-semibold text-xl mr-4'>
+              {store.filter?.name} (PoE {store.filter.version})
+            </div>
+            <Tooltip text={`Save (Ctrl + ${SAVE_KEY.toUpperCase()})`}>
+              <Button
+                variant='ghost'
+                size='icon'
+                onMouseUp={() => {
+                  store.filter?.save();
+                }}
+              >
+                <SaveIcon />
+              </Button>
+            </Tooltip>
+            <Tooltip text={`Export (Ctrl + ${WRITE_KEY.toUpperCase()})`}>
+              <Button
+                variant='ghost'
+                size='icon'
+                onMouseUp={() => {
+                  store.filter?.writeFile();
+                }}
+              >
+                <DownloadIcon />
+              </Button>
+            </Tooltip>
+          </>
+        ) : null}
       </div>
       <div class='flex'>
         <Button
@@ -132,7 +167,7 @@ function App() {
 
   document.addEventListener("keydown", (event) => {
     if (
-      event.key === "s" &&
+      [SAVE_KEY, WRITE_KEY].includes(event.key) &&
       (navigator.userAgent.includes("Mac") ? event.metaKey : event.ctrlKey)
     ) {
       event.preventDefault();

@@ -27,6 +27,7 @@ import {
 } from "@pkgs/ui/dialog";
 import { Button } from "@pkgs/ui/button";
 import { Separator } from "@pkgs/ui/separator";
+import { excuteCmd } from "@app/lib/filter/commands";
 
 const operators = [
   Operator.gte,
@@ -557,14 +558,16 @@ function ConditionToggleGroup(props: {
 
 export default function ConditionManager() {
   function addCondition<T extends keyof Conditions>(condition: T) {
-    if (store.activeRule) {
-      const newCondition: Conditions[T] = {
-        value: conditionTypes[condition as T].defaultValue,
-      };
-      if (conditionTypes[condition].operators) {
-        newCondition.operator = Operator.eq;
-      }
-      store.activeRule.conditions[condition] = newCondition as Conditions[T];
+    if (store.filter) {
+      excuteCmd(store.filter, () => {
+        const newCondition: Conditions[T] = {
+          value: conditionTypes[condition as T].defaultValue,
+        };
+        if (conditionTypes[condition].operators) {
+          newCondition.operator = Operator.eq;
+        }
+        store.activeRule.conditions[condition] = newCondition as Conditions[T];
+      });
     }
   }
 
@@ -573,37 +576,55 @@ export default function ConditionManager() {
     key: keyof Conditions[T],
     value: Conditions[keyof Conditions],
   ) {
-    if (store.activeRule) {
-      store.activeRule.conditions[condition][key] = value;
+    if (store.filter) {
+      excuteCmd(store.filter, () => {
+        store.activeRule.conditions[condition][key] = value;
+      });
     }
   }
 
   function removeCondition(condition: keyof Conditions) {
-    if (store.activeRule) {
-      delete store.activeRule.conditions[condition];
+    if (store.filter) {
+      excuteCmd(store.filter, () => {
+        delete store.activeRule.conditions[condition];
+      });
     }
   }
 
   function toggleCondition(key: keyof Conditions, checked: boolean) {
-    if (checked) {
-      addCondition(key as keyof Conditions);
-    } else {
-      removeCondition(key as keyof Conditions);
+    if (store.filter) {
+      excuteCmd(store.filter, () => {
+        if (checked) {
+          addCondition(key as keyof Conditions);
+        } else {
+          removeCondition(key as keyof Conditions);
+        }
+      });
+    }
+  }
+
+  function toggleRule(checked: boolean) {
+    if (store.filter) {
+      excuteCmd(store.filter, () => {
+        store.activeRule.show = checked;
+      });
     }
   }
 
   return (
     <Dialog>
       <div class='mx-auto p-4 '>
-        <div class='space-y-4 flex flex-col w-full'>
-          <div class='flex justify-between items-center'>
+        <div class='space-y-4 flex flex-col justify-center w-[300px]'>
+          <div class='flex gap-5 items-center'>
+            <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
+              Edit Conditions
+            </DialogTrigger>
             <div class='flex items-center gap-1'>
               <Label class='text-md font-semibold'>Show</Label>
               <Switch
                 checked={store.activeRule?.show}
                 onChange={(checked) => {
-                  // FIXME
-                  store.activeRule.show = checked;
+                  toggleRule(checked);
                 }}
                 class='flex items-center space-x-2'
               >
@@ -612,18 +633,15 @@ export default function ConditionManager() {
                 </SwitchControl>
               </Switch>
             </div>
-            <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
-              Edit Conditions
-            </DialogTrigger>
           </div>
 
-          {Object.keys(store.activeRule?.conditions || {}).length === 0 ? (
+          {Object.keys(store.activeRule?.conditions).length === 0 ? (
             <div class='text-center py-8 text-muted-foreground'>
               No conditions. Click "Edit Conditions" to start.
             </div>
           ) : (
             <div class='space-y-4 flex flex-col items-start'>
-              <For each={Object.entries(store.activeRule?.conditions || {})}>
+              <For each={Object.entries(store.activeRule?.conditions)}>
                 {([key, value]) => {
                   const condition =
                     conditionTypes[key as keyof typeof conditionTypes];

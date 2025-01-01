@@ -14,6 +14,7 @@ import {
 import { createMutable, modifyMutable, reconcile } from "solid-js/store";
 import { invoke } from "@tauri-apps/api/core";
 import { sep } from "@tauri-apps/api/path";
+import { toast } from "solid-sonner";
 
 export enum Block {
   show = "Show",
@@ -106,7 +107,6 @@ export class Filter {
       this.undoStack.push(changes);
       this.redoStack = [];
     }
-    this.save();
   }
 
   diff(prevState: FilterRule[], nextState: FilterRule[]) {
@@ -162,6 +162,7 @@ export class Filter {
   }
 
   async save() {
+    toast("Saved filter.");
     const path = chromatic.getFiltersPath(this);
     await chromatic.fileSystem.writeFile(
       path,
@@ -170,16 +171,13 @@ export class Filter {
   }
 
   async writeFile() {
-    this.save();
-
     if (chromatic.fileSystem.runtime === "desktop") {
-      await chromatic.fileSystem.writeFile(
-        `${chromatic.config.poeDirectory}${sep()}${this.name}.filter`,
-        this.serialize(),
-      );
+      const path = `${chromatic.config.poeDirectory}${sep()}${this.name}.filter`;
+      await chromatic.fileSystem.writeFile(path, this.serialize());
       setTimeout(async () => {
         await invoke("reload_filter");
       }, 250);
+      toast(`Wrote filter to ${path}`);
     }
 
     if (chromatic.fileSystem.runtime === "web") {
@@ -195,6 +193,7 @@ export class Filter {
         elem.click();
         document.body.removeChild(elem);
       }
+      toast("Exported filter. Check your downloads folder.");
     }
   }
 

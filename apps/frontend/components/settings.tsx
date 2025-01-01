@@ -12,6 +12,8 @@ import Theme from "./theme";
 import { Separator } from "@pkgs/ui/separator";
 import { ChooseDirectory } from "./choose-dir";
 import { Checkbox } from "@pkgs/ui/checkbox";
+import { Label } from "@pkgs/ui/label";
+import chromatic from "@app/lib/config";
 
 export function Settings() {
   return (
@@ -24,13 +26,17 @@ export function Settings() {
           <DialogTitle>General</DialogTitle>
         </DialogHeader>
         <div class='grid py-2'>
+          {chromatic.fileSystem.runtime === "desktop" && (
+            <TextField class='grid grid-cols-4 items-center gap-4'>
+              <TextFieldLabel class='text-right'>PoE Directory</TextFieldLabel>
+              <ChooseDirectory class='col-span-3' />
+            </TextField>
+          )}
           <TextField class='grid grid-cols-4 items-center gap-4'>
-            <TextFieldLabel class='text-right'>PoE Directory</TextFieldLabel>
-            <ChooseDirectory class='col-span-3' />
-          </TextField>
-          <TextField class='grid grid-cols-4 items-center gap-4'>
-            <TextFieldLabel class='text-right'>Autosave</TextFieldLabel>
-            <Checkbox />
+            <Label aria-disabled={true} class='text-right'>
+              Autosave
+            </Label>
+            <Checkbox disabled checked={false} />
           </TextField>
         </div>
         <Separator />

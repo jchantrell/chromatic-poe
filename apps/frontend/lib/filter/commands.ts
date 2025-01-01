@@ -159,6 +159,14 @@ export function deleteRule(filter: Filter, rule: FilterRule) {
   );
 }
 
+export function excuteCmd(filter: Filter, fn: (...rest: unknown[]) => unknown) {
+  filter.execute(
+    new Command(() => {
+      fn();
+    }),
+  );
+}
+
 export function setEntryActive(
   filter: Filter,
   entry: FilterRule | FilterItem,

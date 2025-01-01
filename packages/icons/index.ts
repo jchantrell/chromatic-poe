@@ -15,3 +15,5 @@ export * from "./palette";
 export * from "./chevron-up";
 export * from "./chevron-down";
 export * from "./volume";
+export * from "./save";
+export * from "./download";
