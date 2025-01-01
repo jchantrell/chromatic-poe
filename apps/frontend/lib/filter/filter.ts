@@ -106,6 +106,7 @@ export class Filter {
       this.undoStack.push(changes);
       this.redoStack = [];
     }
+    this.save();
   }
 
   diff(prevState: FilterRule[], nextState: FilterRule[]) {
@@ -160,12 +161,16 @@ export class Filter {
     await chromatic.fileSystem.deleteFile(path);
   }
 
-  async writeFile() {
+  async save() {
     const path = chromatic.getFiltersPath(this);
     await chromatic.fileSystem.writeFile(
       path,
       stringifyJSON({ ...this, lastUpdated: new Date().toISOString() }),
     );
+  }
+
+  async writeFile() {
+    this.save();
 
     if (chromatic.fileSystem.runtime === "desktop") {
       await chromatic.fileSystem.writeFile(
@@ -231,7 +236,7 @@ export class Filter {
       .map((condition) => `  ${condition}${eol}`)
       .join("");
     const actionText = serializeActions(actions)
-      .map((condition) => `  ${condition}${eol}`)
+      .map((action) => `  ${action}${eol}`)
       .join("");
 
     return `# ${description}${eol}${block}${eol}${conditionText}${actionText}${eol}`;

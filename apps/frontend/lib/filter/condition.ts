@@ -104,7 +104,7 @@ function baseType(op: Operator, bases: string[]): string {
   return `BaseType ${op} ${bases.map((e) => `"${e}"`).join(" ")}`;
 }
 function className(op: Operator, classNames: string[]): string {
-  return `Class ${op} ${classNames.map((entry) => ` "${entry}"`)}`;
+  return `Class ${op} ${classNames.map((entry) => `"${entry}"`).join(" ")}`;
 }
 
 // general
@@ -163,8 +163,9 @@ function uberBlightedMap(bool: boolean): string {
 function itemLevel(op: Operator, lvl: number | string): string {
   return `ItemLevel ${op} ${lvl}`;
 }
-function rarity(op: Operator, rarity: Rarity): string {
-  return `Rarity ${op} ${rarity}`;
+function rarity(op: Operator, rarity: Rarity[]): string | null {
+  if (rarity.length === 0) return null;
+  return `Rarity ${op} ${rarity.map((entry) => `"${entry}"`).join(" ")}`;
 }
 function identified(bool: boolean): string {
   return `Identified ${bool}`;
@@ -188,13 +189,13 @@ function mirrored(bool: boolean): string {
   return `Mirrored ${bool}`;
 }
 function hasExplicitMod(mods: string[]): string {
-  return `HasExplicitMod ${mods.map((entry) => ` "${entry}"`)}`;
+  return `HasExplicitMod ${mods.map((entry) => `"${entry}"`).join(" ")}`;
 }
 function anyEnchantment(bool: boolean): string {
   return `AnyEnchantment ${bool}`;
 }
 function hasEnchantment(enchantments: string[]): string {
-  return `HasEnchantment ${enchantments.map((entry) => ` "${entry}"`)}`;
+  return `HasEnchantment ${enchantments.map((entry) => `"${entry}"`).join(" ")}`;
 }
 
 // gear(socketable)
@@ -210,7 +211,7 @@ function sockets(op: Operator, groupString: string): string {
 
 // gear (clusters)
 function enchantmentPassiveNode(enchantments: string[]): string {
-  return `EnchantmentPassiveNode ${enchantments.map((entry) => ` "${entry}"`)}`;
+  return `EnchantmentPassiveNode ${enchantments.map((entry) => `"${entry}"`).join(" ")}`;
 }
 function enchantmentPassiveNum(op: Operator, number: number | string): string {
   return `EnchantmentPassiveNum ${op} ${number}`;
@@ -240,7 +241,7 @@ function baseWard(op: Operator, value: number | string): string {
 
 // gear (influence)
 function hasInfluence(influence: Influence[]): string {
-  return `HasInfluence ${influence.map((entry) => ` "${entry}"`)}`;
+  return `HasInfluence ${influence.map((entry) => `"${entry}"`).join(" ")}`;
 }
 function hasSearingExarchImplicit(
   op: Operator,
@@ -267,7 +268,7 @@ function replica(bool: boolean): string {
 
 // archhem
 function archnemesisMod(modNames: string[]): string {
-  return `ArchnemesisMod ${modNames.map((entry) => ` "${entry}"`)}`;
+  return `ArchnemesisMod ${modNames.map((entry) => `"${entry}"`).join(" ")}`;
 }
 
 export function serializeConditions(conditions: Conditions) {
@@ -278,9 +279,7 @@ export function serializeConditions(conditions: Conditions) {
   }
 
   if (conditions.classes) {
-    strs.push(
-      className(conditions.classes.operator, conditions.classes.values),
-    );
+    strs.push(className(conditions.classes.operator, conditions.classes.value));
   }
   if (conditions.height) {
     strs.push(height(conditions.height.operator, conditions.height.value));
@@ -396,17 +395,23 @@ export function serializeConditions(conditions: Conditions) {
       ),
     );
   }
+  if (conditions.rarity) {
+    const condition = rarity(Operator.eq, conditions.rarity.value);
+    if (condition) {
+      strs.push(condition);
+    }
+  }
   if (conditions.hasExplicitMod) {
-    strs.push(hasExplicitMod(conditions.hasExplicitMod.values));
+    strs.push(hasExplicitMod(conditions.hasExplicitMod.value));
   }
   if (conditions.hasEnchantment) {
-    strs.push(hasEnchantment(conditions.hasEnchantment.values));
+    strs.push(hasEnchantment(conditions.hasEnchantment.value));
   }
   if (conditions.archnemesisMod) {
-    strs.push(archnemesisMod(conditions.archnemesisMod.values));
+    strs.push(archnemesisMod(conditions.archnemesisMod.value));
   }
   if (conditions.enchantmentPassiveNode) {
-    strs.push(enchantmentPassiveNode(conditions.enchantmentPassiveNode.values));
+    strs.push(enchantmentPassiveNode(conditions.enchantmentPassiveNode.value));
   }
   if (conditions.enchantmentPassiveNum) {
     strs.push(
@@ -433,7 +438,7 @@ export function serializeConditions(conditions: Conditions) {
     );
   }
   if (conditions.hasInfluence) {
-    strs.push(hasInfluence(conditions.hasInfluence.values));
+    strs.push(hasInfluence(conditions.hasInfluence.value));
   }
   if (conditions.sockets) {
     strs.push(sockets(conditions.sockets.operator, conditions.sockets.value));

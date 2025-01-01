@@ -1,4 +1,4 @@
-import { createEffect, For } from "solid-js";
+import { createSignal, For } from "solid-js";
 import {
   Slider,
   SliderFill,
@@ -6,16 +6,8 @@ import {
   SliderTrack,
   SliderValueLabel,
 } from "@pkgs/ui/slider";
-import { createStore } from "solid-js/store";
 import { ToggleGroup, ToggleGroupItem } from "@pkgs/ui/toggle-group";
 import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuPortal,
-  ContextMenuTrigger,
-} from "@pkgs/ui/context-menu";
 import {
   Select,
   SelectContent,
@@ -23,9 +15,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@pkgs/ui/select";
-import { type Conditions, Operator } from "@app/lib/filter";
+import { type Conditions, Operator, Rarity } from "@app/lib/filter";
 import { store } from "@app/store";
 import { Label } from "@pkgs/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@pkgs/ui/dialog";
+import { Button } from "@pkgs/ui/button";
+import { Separator } from "@pkgs/ui/separator";
 
 const operators = [
   Operator.gte,
@@ -35,44 +36,352 @@ const operators = [
   Operator.lt,
 ];
 
-const conditionTypes: Record<
-  keyof Conditions,
-  {
-    label: string;
-    type: string;
-    operators: boolean;
-    defaultValue: Conditions[keyof Conditions]["value"];
-    min?: number;
-    max?: number;
-    options?: string[];
-  }
+const conditionTypes: Partial<
+  Record<
+    keyof Conditions,
+    {
+      label: string;
+      type: string;
+      group: string;
+      operators: boolean;
+      defaultValue: Conditions[keyof Conditions]["value"];
+      min?: number;
+      max?: number;
+      options?: string[];
+    }
+  >
 > = {
+  // Basic properties
   height: {
     label: "Height",
     type: "slider",
+    group: "General",
     operators: true,
     defaultValue: 1,
     min: 1,
     max: 4,
   },
+  width: {
+    label: "Width",
+    type: "slider",
+    group: "General",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 4,
+  },
+
+  // Level and quality related
+  areaLevel: {
+    label: "Area Level",
+    type: "slider",
+    group: "General",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 100,
+  },
+  dropLevel: {
+    label: "Drop Level",
+    type: "slider",
+    group: "General",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 100,
+  },
+  itemLevel: {
+    label: "Item Level",
+    type: "slider",
+    group: "General",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 100,
+  },
+  quality: {
+    label: "Quality",
+    type: "slider",
+    group: "General",
+    operators: true,
+    defaultValue: 0,
+    min: 0,
+    max: 30,
+  },
+
+  // Stack properties
+  stackSize: {
+    label: "Stack Size",
+    type: "slider",
+    group: "Currency",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+  },
+
+  // Gem specific
+  gemLevel: {
+    label: "Gem Level",
+    type: "slider",
+    group: "Gems",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 21,
+  },
+  // transfiguredGem: {
+  //   label: "Transfigured Gem",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+
+  // Map specific
+  mapTier: {
+    label: "Map Tier",
+    type: "slider",
+    group: "Maps",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 16,
+  },
+  // elderMap: {
+  //   label: "Elder Map",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  // shapedMap: {
+  //   label: "Shaped Map",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  // blightedMap: {
+  //   label: "Blighted Map",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  // uberBlightedMap: {
+  //   label: "Uber Blighted Map",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+
+  // Item state
+  hasImplicitMod: {
+    label: "Has Implicit Mod",
+    type: "checkbox",
+    group: "Gear",
+    operators: false,
+    defaultValue: false,
+  },
   rarity: {
     label: "Rarity",
     type: "toggle",
+    group: "General",
     operators: false,
     defaultValue: [],
-    options: ["Normal", "Magic", "Rare"],
+    options: Object.values(Rarity).filter((r) => r !== Rarity.unique),
+  },
+  identified: {
+    label: "Identified",
+    type: "checkbox",
+    group: "General",
+    operators: false,
+    defaultValue: false,
+  },
+  // scourged: {
+  //   label: "Scourged",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  // fractured: {
+  //   label: "Fractured",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  mirrored: {
+    label: "Mirrored",
+    type: "checkbox",
+    group: "Gear",
+    operators: false,
+    defaultValue: false,
   },
   corrupted: {
     label: "Corrupted",
     type: "checkbox",
-    defaultValue: false,
+    group: "Gear",
     operators: false,
+    defaultValue: false,
+  },
+  enchanted: {
+    label: "Enchanted",
+    type: "checkbox",
+    group: "Gear",
+    operators: false,
+    defaultValue: false,
+  },
+  // synthesised: {
+  //   label: "Synthesised",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  // replica: {
+  //   label: "Replica",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  // crucibleTree: {
+  //   label: "Has Crucible Tree",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+
+  // Mods and enchantments
+  // corruptedMods: {
+  //   label: "Corrupted Mods",
+  //   type: "slider",
+  //   operators: true,
+  //   defaultValue: 0,
+  //   min: 0,
+  // },
+  // hasExplicitMod: {
+  //   label: "Explicit Mods",
+  //   type: "text-list",
+  //   operators: false,
+  //   defaultValue: [],
+  // },
+  // hasEnchantment: {
+  //   label: "Enchantments",
+  //   type: "text-list",
+  //   operators: false,
+  //   defaultValue: [],
+  // },
+  // archnemesisMod: {
+  //   label: "Archnemesis Mods",
+  //   type: "text-list",
+  //   operators: false,
+  //   defaultValue: [],
+  // },
+
+  // // Cluster jewel specific
+  // enchantmentPassiveNode: {
+  //   label: "Passive Node",
+  //   type: "text-list",
+  //   operators: false,
+  //   defaultValue: [],
+  // },
+  // enchantmentPassiveNum: {
+  //   label: "slider of Passives",
+  //   type: "slider",
+  //   operators: true,
+  //   defaultValue: 1,
+  //   min: 1,
+  // },
+
+  // Influence
+  // hasSearingExarchImplicit: {
+  //   label: "Searing Exarch Implicit",
+  //   type: "slider",
+  //   operators: true,
+  //   defaultValue: 0,
+  //   min: 0,
+  // },
+  // hasEaterOfWorldsImplicit: {
+  //   label: "Eater of Worlds Implicit",
+  //   type: "slider",
+  //   operators: true,
+  //   defaultValue: 0,
+  //   min: 0,
+  // },
+  // hasInfluence: {
+  //   label: "Influence",
+  //   type: "toggle",
+  //   operators: false,
+  //   defaultValue: [],
+  //   options: Object.values(Influence),
+  // },
+
+  // Sockets
+  // linkedSockets: {
+  //   label: "Linked Sockets",
+  //   type: "slider",
+  //   operators: true,
+  //   defaultValue: 0,
+  //   min: 0,
+  //   max: 6,
+  // },
+  sockets: {
+    label: "Sockets",
+    type: "slider",
+    group: "Gear",
+    operators: true,
+    defaultValue: 0,
+    min: 0,
+    max: 3,
+  },
+  // socketGroup: {
+  //   label: "Socket Group",
+  //   type: "text",
+  //   operators: true,
+  //   defaultValue: "",
+  // },
+
+  // Defense stats
+  // defencePercentile: {
+  //   label: "Defence Percentile",
+  //   type: "slider",
+  //   operators: true,
+  //   defaultValue: 0,
+  //   min: 0,
+  //   max: 100,
+  // },
+  armour: {
+    label: "Armour",
+    type: "slider",
+    group: "Armour",
+    operators: true,
+    defaultValue: 0,
+    min: 0,
+  },
+  evasion: {
+    label: "Evasion",
+    type: "slider",
+    group: "Armour",
+    operators: true,
+    defaultValue: 0,
+    min: 0,
+  },
+  energyShield: {
+    label: "Energy Shield",
+    type: "slider",
+    group: "Armour",
+    operators: true,
+    defaultValue: 0,
+    min: 0,
+  },
+  ward: {
+    label: "Ward",
+    type: "slider",
+    group: "Armour",
+    operators: true,
+    defaultValue: 0,
+    min: 0,
   },
 };
 
 function SliderInput(props: {
+  key: string;
   value: number;
-  key: (typeof conditionTypes)[keyof typeof conditionTypes];
   onChange: (...rest: unknown[]) => void;
 }) {
   return (
@@ -80,14 +389,14 @@ function SliderInput(props: {
       value={[props.value]}
       minValue={conditionTypes[props.key].min}
       maxValue={conditionTypes[props.key].max}
+      onChange={(v) => props.onChange(v[0])}
       getValueLabel={(params) => {
         return `${params.values[0]}`;
       }}
-      onChange={(v) => props.onChange(v[0])}
       class='space-y-1 w-[150px]'
     >
       <SliderValueLabel />
-      <div class='flex w-full'>
+      <div class='flex w-[150px]'>
         <SliderTrack>
           <SliderThumb class='border border-neutral-400' />
         </SliderTrack>
@@ -196,6 +505,56 @@ function CheckboxInput(props: {
   );
 }
 
+function ConditionToggle(props: {
+  label: string;
+  key: keyof Conditions;
+  checked: boolean;
+  onChange: (...rest: unknown[]) => void;
+}) {
+  return (
+    <div class='flex items-center gap-2 h-5'>
+      <Switch
+        checked={props.checked}
+        class='flex items-center space-x-2 h-5'
+        onChange={(v) => props.onChange(props.key, v)}
+      >
+        <SwitchControl class='bg-accent'>
+          <SwitchThumb />
+        </SwitchControl>
+      </Switch>
+      <Label>{props.label}</Label>
+    </div>
+  );
+}
+
+function ConditionToggleGroup(props: {
+  key: string;
+  onChange: (...rest: unknown[]) => void;
+}) {
+  return (
+    <div class='flex flex-col gap-3 py-2'>
+      <Label class='text-lg h-5 mb-1'>{props.key}</Label>
+      <Separator />
+      <For
+        each={Object.entries(conditionTypes).filter(
+          ([_, value]) => value.group === props.key,
+        )}
+      >
+        {([key, value]) => (
+          <ConditionToggle
+            label={value.label}
+            checked={store.activeRule?.conditions[key as keyof Conditions]}
+            key={key}
+            onChange={(key, checked) => {
+              props.onChange(key, checked);
+            }}
+          />
+        )}
+      </For>
+    </div>
+  );
+}
+
 export default function ConditionManager() {
   function addCondition<T extends keyof Conditions>(condition: T) {
     if (store.activeRule) {
@@ -215,10 +574,7 @@ export default function ConditionManager() {
     value: Conditions[keyof Conditions],
   ) {
     if (store.activeRule) {
-      store.activeRule.conditions[condition] = {
-        ...store.activeRule.conditions[condition],
-        [key]: value,
-      };
+      store.activeRule.conditions[condition][key] = value;
     }
   }
 
@@ -228,131 +584,177 @@ export default function ConditionManager() {
     }
   }
 
+  function toggleCondition(key: keyof Conditions, checked: boolean) {
+    if (checked) {
+      addCondition(key as keyof Conditions);
+    } else {
+      removeCondition(key as keyof Conditions);
+    }
+  }
+
   return (
-    <div class='mx-auto p-4'>
-      <div class='space-y-4'>
-        <div class='flex justify-between items-center'>
-          <div class='flex items-center gap-1'>
-            <Label class='text-lg font-semibold'>Show</Label>
-            <Switch
-              checked={store.activeRule?.show}
-              onChange={(checked) => {
-                // FIXME
-                store.activeRule.show = checked;
-              }}
-              class='flex items-center space-x-2'
-            >
-              <SwitchControl class='bg-accent'>
-                <SwitchThumb class='border border-neutral-400 data-checked:border-neutral-500' />
-              </SwitchControl>
-            </Switch>
+    <Dialog>
+      <div class='mx-auto p-4 '>
+        <div class='space-y-4 flex flex-col w-full'>
+          <div class='flex justify-between items-center'>
+            <div class='flex items-center gap-1'>
+              <Label class='text-md font-semibold'>Show</Label>
+              <Switch
+                checked={store.activeRule?.show}
+                onChange={(checked) => {
+                  // FIXME
+                  store.activeRule.show = checked;
+                }}
+                class='flex items-center space-x-2'
+              >
+                <SwitchControl class='bg-accent'>
+                  <SwitchThumb />
+                </SwitchControl>
+              </Switch>
+            </div>
+            <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
+              Edit Conditions
+            </DialogTrigger>
           </div>
-          <button
-            onClick={() => addCondition("rarity")}
-            type='button'
-            class='flex items-center gap-2 px-3 py-2 bg-neutral-700 text-white rounded hover:bg-primary-muted transition-colors'
-          >
-            Edit Conditions
-          </button>
-        </div>
 
-        {Object.keys(store.activeRule?.conditions || {}).length === 0 ? (
-          <div class='text-center py-8 text-muted-foreground'>
-            No conditions. Click "Edit Conditions" to start.
-          </div>
-        ) : (
-          <div class='space-y-4 flex flex-col items-start'>
-            <For each={Object.entries(store.activeRule?.conditions || {})}>
-              {([key, value]) => {
-                const condition =
-                  conditionTypes[key as keyof typeof conditionTypes];
-                return (
-                  <ContextMenu>
-                    <ContextMenuTrigger>
-                      <div class='flex gap-4 items-center justify-between p-4 bg-neutral-500/50 rounded-lg'>
-                        <Label class='text-md'>{condition.label}</Label>
+          {Object.keys(store.activeRule?.conditions || {}).length === 0 ? (
+            <div class='text-center py-8 text-muted-foreground'>
+              No conditions. Click "Edit Conditions" to start.
+            </div>
+          ) : (
+            <div class='space-y-4 flex flex-col items-start'>
+              <For each={Object.entries(store.activeRule?.conditions || {})}>
+                {([key, value]) => {
+                  const condition =
+                    conditionTypes[key as keyof typeof conditionTypes];
+                  return (
+                    <div class='flex gap-4 items-center justify-between p-4 bg-neutral-500/50 rounded-lg'>
+                      <Label class='text-md text-nowrap'>
+                        {condition.label}
+                      </Label>
 
-                        {condition.operators && (
-                          <div class='w-full'>
-                            <select
-                              value={value.operator}
-                              onChange={(value) => {
-                                updateCondition(key, "operator", value);
-                              }}
-                              class='w-full px-3 py-2 bg-muted border rounded focus:outline-none focus:ring-2 focus:ring-accent-foreground'
-                            >
-                              <For each={operators}>
-                                {(op) => <option value={op}>{op}</option>}
-                              </For>
-                            </select>
-                          </div>
-                        )}
-
-                        <div class='ml-2'>
-                          {condition.type === "slider" && (
-                            <SliderInput
-                              key={key}
-                              value={value.value}
-                              onChange={(v) => {
-                                updateCondition(key, "value", v);
-                              }}
-                            />
-                          )}
-                          {condition.type === "range" && (
-                            <RangeInput
-                              key={key}
-                              value={value.value}
-                              onChange={(v) => {
-                                updateCondition(key, "value", v);
-                              }}
-                            />
-                          )}
-                          {condition.type === "select" && (
-                            <SelectInput
-                              key={key}
-                              value={value.value}
-                              onChange={(v) => {
-                                updateCondition(key, "value", v);
-                              }}
-                            />
-                          )}
-                          {condition.type === "toggle" && (
-                            <ToggleInput
-                              key={key}
-                              value={value.value}
-                              onChange={(v) => {
-                                updateCondition(key, "value", v);
-                              }}
-                            />
-                          )}
-                          {condition.type === "checkbox" && (
-                            <CheckboxInput
-                              key={key}
-                              value={value.value}
-                              onChange={(v) => {
-                                updateCondition(key, "value", v);
-                              }}
-                            />
-                          )}
+                      {condition.operators && (
+                        <div class='w-full'>
+                          <Select
+                            value={value.operator}
+                            onChange={(value) => {
+                              updateCondition(key, "operator", value);
+                            }}
+                            options={operators || []}
+                            itemComponent={(props) => (
+                              <SelectItem item={props.item}>
+                                {props.item.rawValue}
+                              </SelectItem>
+                            )}
+                          >
+                            <SelectTrigger class='w-[70px] bg-muted'>
+                              <SelectValue<string>>
+                                {(state) => state.selectedOption()}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent />
+                          </Select>
                         </div>
+                      )}
+
+                      <div class='ml-2'>
+                        {condition.type === "slider" && (
+                          <SliderInput
+                            key={key}
+                            value={value.value}
+                            onChange={(v) => {
+                              updateCondition(key, "value", v);
+                            }}
+                          />
+                        )}
+                        {condition.type === "range" && (
+                          <RangeInput
+                            key={key}
+                            value={value.value}
+                            onChange={(v) => {
+                              updateCondition(key, "value", v);
+                            }}
+                          />
+                        )}
+                        {condition.type === "select" && (
+                          <SelectInput
+                            key={key}
+                            value={value.value}
+                            onChange={(v) => {
+                              updateCondition(key, "value", v);
+                            }}
+                          />
+                        )}
+                        {condition.type === "toggle" && (
+                          <ToggleInput
+                            key={key}
+                            value={value.value}
+                            onChange={(v) => {
+                              updateCondition(key, "value", v);
+                            }}
+                          />
+                        )}
+                        {condition.type === "checkbox" && (
+                          <CheckboxInput
+                            key={key}
+                            value={value.value}
+                            onChange={(v) => {
+                              updateCondition(key, "value", v);
+                            }}
+                          />
+                        )}
                       </div>
-                    </ContextMenuTrigger>
-                    <ContextMenuPortal>
-                      <ContextMenuContent class='w-48'>
-                        <ContextMenuItem
-                          onMouseDown={() => removeCondition(key)}
-                        >
-                          <span>Delete</span>
-                        </ContextMenuItem>
-                      </ContextMenuContent>
-                    </ContextMenuPortal>
-                  </ContextMenu>
-                );
-              }}
-            </For>
-          </div>
-        )}
+                    </div>
+                  );
+                }}
+              </For>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+      <DialogContent class='sm:max-w-[600px]'>
+        <DialogHeader>
+          <DialogTitle>Edit {store.activeRule?.name} Conditions</DialogTitle>
+        </DialogHeader>
+        <div class='grid grid-cols-2 gap-3 py-2'>
+          <ConditionToggleGroup
+            key='General'
+            onChange={(key, checked) => {
+              toggleCondition(key, checked);
+            }}
+          />
+          <ConditionToggleGroup
+            key='Gear'
+            onChange={(key, checked) => {
+              toggleCondition(key, checked);
+            }}
+          />
+          <ConditionToggleGroup
+            key='Armour'
+            onChange={(key, checked) => {
+              toggleCondition(key, checked);
+            }}
+          />
+          <ConditionToggleGroup
+            key='Currency'
+            onChange={(key, checked) => {
+              toggleCondition(key, checked);
+            }}
+          />
+          <ConditionToggleGroup
+            key='Gems'
+            onChange={(key, checked) => {
+              toggleCondition(key, checked);
+            }}
+          />
+          <ConditionToggleGroup
+            key='Maps'
+            onChange={(key, checked) => {
+              toggleCondition(key, checked);
+            }}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
