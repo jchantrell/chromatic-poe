@@ -23,7 +23,8 @@
         "SiteVisibility",
         "ModDomain",
         "Width",
-        "Height"
+        "Height",
+        "DropLevel"
       ]
     },
     {

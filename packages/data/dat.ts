@@ -39,7 +39,8 @@ export type Item = {
   class: string;
   type: string;
   art: string;
-  active: 0 | 1 | 2;
+  itemClass: string;
+  base: string;
 };
 
 enum Tables {
@@ -188,15 +189,9 @@ export class DatFiles {
 art,
 height,
 width,
-price,
-strReq,
-dexReq,
-intReq,
 gemFx,
 class as itemClass,
-corruptable,
-stackable,
-0 as uniqueItem
+name as base
 `;
 
     const items = this.db
@@ -248,7 +243,8 @@ ${Tables.CLASSES}.CanBeCorrupted as corruptable,
   ELSE 0
 END) as stackable,
 
-${Tables.SKILL_GEMS}.GemEffects as 'gemFx'
+${Tables.SKILL_GEMS}.GemEffects as 'gemFx',
+${Tables.BASES}.DropLevel as 'dropLevel'
 
 FROM ${Tables.BASES}
 
@@ -300,27 +296,7 @@ SELECT DISTINCT
 name,
 'Weapons' AS category,
 tradeCategory AS class,
-(CASE
-  WHEN strReq != 0 AND dexReq != 0 AND intReq != 0
-  THEN 'Hybrid'
-  WHEN strReq != 0 AND dexReq != 0
-  THEN 'Strength/Dexterity'
-  WHEN strReq != 0 AND intReq != 0
-  THEN 'Strength/Intelligence'
-  WHEN intReq != 0 AND dexReq != 0
-  THEN 'Dexterity/Intelligence'
-  WHEN tradeCategory in ('One Hand Swords', 'Two Hand Swords', 'One Hand Axes', 'Two Hand Axes', 'Crossbows')
-  THEN 'Strength/Dexterity'
-  WHEN tradeCategory in ('Daggers')
-  THEN 'Dexterity/Intelligence'
-  WHEN tradeCategory in ('One Hand Maces', 'Two Hand Maces')
-  THEN 'Strength'
-  WHEN tradeCategory in ('Bows', 'Claws', 'Spears', 'Warstaves')
-  THEN 'Dexterity'
-  WHEN tradeCategory in ('Staves', 'Wands', 'Sceptres')
-  THEN 'Intelligence'
-  ELSE 'Unknown'
-END) AS type,
+null as type,
 (dmgMin + dmgMax) / 2 * (1000 / speed) AS score,
 ${extraFields}
 FROM ITEMS
@@ -359,10 +335,10 @@ UNION ALL
 SELECT DISTINCT
 name,
 'Armour' AS category,
-class as type,
+class,
 (CASE
   WHEN armour != 0 AND evasion != 0 AND energyShield != 0
-  THEN 'Hybrid'
+  THEN 'Miscellaneous'
   WHEN ward != 0
   THEN 'Ward'
   WHEN armour != 0 AND evasion != 0
@@ -375,12 +351,13 @@ class as type,
   THEN 'Dexterity'
   WHEN energyShield != 0
   THEN 'Intelligence'
-  ELSE 'Unknown'
-END) AS class,
-0 AS score, 
+  ELSE 'Miscellaneous'
+END) AS type,
+armour + evasion + energyShield + ward AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE tradeGroup IN ('Armour')
+AND ((name LIKE 'Expert %' OR name LIKE 'Advanced %') OR dropLevel < 45)
 
 UNION ALL
 
@@ -451,10 +428,10 @@ class,
   THEN 'Intelligence'
   ELSE 'Unknown'
 END) as type,
-0 AS score, 
+strReq + dexReq + intReq AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE tradeGroup IN ('Gems') AND name NOT LIKE '[DNT]%' AND name != 'Coming Soon'
+WHERE tradeGroup IN ('Gems') AND name NOT LIKE '[DNT]%' AND name NOT IN ('Coming Soon', 'Shroud')
 
 UNION ALL
 
@@ -515,13 +492,30 @@ WHERE class = 'Tablet'
 
 UNION ALL
 
+-- Currency, Essence, Runes
+SELECT DISTINCT
+name,
+exchangeCategory AS category,
+(CASE
+  WHEN exchangeSubcategory = exchangeCategory
+  THEN 'Common'
+  ELSE exchangeSubcategory
+END) as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory IN ('Essences', 'Currency', 'Runes')
+
+UNION ALL
+
 -- Expedition
 SELECT DISTINCT
 name,
 'Expedition' AS category,
 'Logbook' as class,
 null as type,
-0 AS score, 
+price AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE class = 'Expedition Logbooks'
@@ -533,7 +527,7 @@ name,
 'Expedition' AS category,
 'Currency' as class,
 null as type,
-0 AS score, 
+price AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE name IN ('Exotic Coinage', 'Sun Artifact', 'Broken Circle Artifact', 'Black Scythe Artifact', 'Order Artifact')
@@ -547,7 +541,7 @@ name,
 'Ultimatum' AS category,
 'Fragments' as class,
 null as type,
-0 AS score, 
+price AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE exchangeSubcategory = 'Ultimatum Fragments'
@@ -560,7 +554,7 @@ name,
 'Ultimatum' AS category,
 'Soul Cores' as class,
 null as type,
-0 AS score, 
+price AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE exchangeCategory = 'Soul Cores'
@@ -573,7 +567,7 @@ name,
 'Trial of the Sekhemas' AS category,
 'Fragments' as class,
 null as type,
-0 AS score, 
+price AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE class = 'Trial Coins'
@@ -598,7 +592,7 @@ name,
 'Ritual' AS category,
 'Fragments' as class,
 null as type,
-0 AS score, 
+price AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE name = 'An Audience with the King'
@@ -611,10 +605,10 @@ name,
 'Ritual' AS category,
 class,
 null as type,
-0 AS score, 
+price AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE class = 'Omens'
+WHERE class = 'Omen'
 
 UNION ALL
 
@@ -628,27 +622,10 @@ exchangeCategory AS category,
   ELSE exchangeSubcategory
 END) as class,
 null as type,
-0 AS score, 
+price AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE exchangeCategory IN ('Delirium', 'Breach')
-
-UNION ALL
-
--- Currency, Essence, Runes
-SELECT DISTINCT
-name,
-exchangeCategory AS category,
-(CASE
-  WHEN exchangeSubcategory = exchangeCategory
-  THEN 'Common'
-  ELSE exchangeSubcategory
-END) as class,
-null as type,
-0 AS score, 
-${extraFields}
-FROM ITEMS
-WHERE exchangeCategory IN ('Essences', 'Currency', 'Runes')
 
 UNION ALL
 
@@ -657,7 +634,7 @@ name,
 'Currency' AS category,
 'Common' as class,
 null as type,
-0 AS score, 
+price AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE name = 'Gold'
@@ -670,7 +647,7 @@ name,
 'Pinnacle' AS category,
 'Fragments' AS class,
 null as type,
-0 AS score, 
+price AS score, 
 ${extraFields}
 FROM ITEMS
 WHERE exchangeSubcategory IN ('Pinnacle Fragments')
@@ -689,15 +666,8 @@ null as type,
 ${Tables.VISUALS}.DDSFile as art,
 null as height,
 null as width,
-null as price,
-null as strReq,
-null as dexReq,
-null as intReq,
 null as gemFx,
-null as itemClass,
-1 as corruptable,
-0 as stackable,
-1 as uniqueItem
+null as itemClass
 FROM ${Tables.UNIQUE_STASH_LAYOUT}
 LEFT JOIN ${Tables.UNIQUE_STASH_TYPES}
 ON ${Tables.UNIQUE_STASH_LAYOUT}.UniqueStashTypesKey = ${Tables.UNIQUE_STASH_TYPES}.${PK}
@@ -705,6 +675,7 @@ LEFT JOIN ${Tables.WORDS}
 ON ${Tables.UNIQUE_STASH_LAYOUT}.WordsKey = ${Tables.WORDS}.${PK}
 LEFT JOIN ${Tables.VISUALS}
 ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
+WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolve Cold', 'Sekhema''s Resolve Lightning')
 `)
       .all();
 
@@ -712,20 +683,13 @@ ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
       {
         name: "Strugglescream",
         category: "Uniques",
-        class: "Amulets",
+        class: "Amulet",
         type: null,
         score: 0,
         height: null,
         width: null,
-        price: null,
-        strReq: null,
-        dexReq: null,
-        intReq: null,
         gemFx: null,
         itemClass: "Amulets",
-        corruptable: 1,
-        stackable: 0,
-        uniqueItem: 1,
         art: "Art/2DItems/Amulets/Uniques/DeliriumAmulet.dds",
       },
       {
@@ -736,15 +700,8 @@ ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
         score: 0,
         height: null,
         width: null,
-        price: null,
-        strReq: null,
-        dexReq: null,
-        intReq: null,
         gemFx: null,
         itemClass: "Relics",
-        corruptable: 1,
-        stackable: 0,
-        uniqueItem: 1,
         art: "Art/2DItems/Relics/RelicUnique1x3.dds",
       },
       {
@@ -755,15 +712,8 @@ ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
         score: 0,
         height: null,
         width: null,
-        price: null,
-        strReq: null,
-        dexReq: null,
-        intReq: null,
         gemFx: null,
         itemClass: "Relics",
-        corruptable: 1,
-        stackable: 0,
-        uniqueItem: 1,
         art: "Art/2DItems/Relics/RelicUnique1x4.dds",
       },
       {
@@ -774,15 +724,8 @@ ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
         score: 0,
         height: null,
         width: null,
-        price: null,
-        strReq: null,
-        dexReq: null,
-        intReq: null,
         gemFx: null,
         itemClass: "Relics",
-        corruptable: 1,
-        stackable: 0,
-        uniqueItem: 1,
         art: "Art/2DItems/Relics/RelicUnique2x1.dds",
       },
       {
@@ -793,15 +736,8 @@ ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
         score: 0,
         height: null,
         width: null,
-        price: null,
-        strReq: null,
-        dexReq: null,
-        intReq: null,
         gemFx: null,
         itemClass: "Relics",
-        corruptable: 1,
-        stackable: 0,
-        uniqueItem: 1,
         art: "Art/2DItems/Relics/RelicUnique2x2.dds",
       },
       {
@@ -812,15 +748,8 @@ ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
         score: 0,
         height: null,
         width: null,
-        price: null,
-        strReq: null,
-        dexReq: null,
-        intReq: null,
         gemFx: null,
         itemClass: "Relics",
-        corruptable: 1,
-        stackable: 0,
-        uniqueItem: 1,
         art: "Art/2DItems/Relics/RelicUnique3x1.dds",
       },
       {
@@ -831,27 +760,33 @@ ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
         score: 0,
         height: null,
         width: null,
-        price: null,
-        strReq: null,
-        dexReq: null,
-        intReq: null,
         gemFx: null,
         itemClass: "Relics",
-        corruptable: 1,
-        stackable: 0,
-        uniqueItem: 1,
         art: "Art/2DItems/Relics/RelicUnique4x1.dds",
       },
     ];
     const allUniques = [...uniques, ...uniqueOverrides] as Item[];
-    const allItems = [...items, ...allUniques] as Item[];
+    const allItems = [...allUniques, ...items] as Item[];
     const extraFiles = ["art/2dart/minimap/player.png"];
+
+    console.log("Querying wiki for unique bases...");
+    const wikiUniques = await this.queryWiki(0, []);
+
+    for (const unique of allUniques) {
+      const entry = wikiUniques.find((entry) => entry.name === unique.name);
+      if (entry) {
+        unique.base = entry.base;
+      } else {
+        console.warn(`Missed base for ${unique.name}`);
+      }
+    }
 
     await exportFiles(
       [...extraFiles, ...allItems.map((item) => item.art)],
       path.join(process.cwd(), "packages/assets/poe2/images"),
       this.loader,
     );
+
     for (const item of allItems) {
       const replacedFilepath = `poe2/images/${item.art.replaceAll("/", "@").replace("dds", "png")}`;
       item.art = replacedFilepath;
@@ -876,6 +811,30 @@ ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
       JSON.stringify(allItems, null, " "),
     );
     extractMinimapIcons(minimapIcons, "./packages/assets/poe2/minimap.json");
+  }
+
+  async queryWiki(
+    offset: number,
+    results: unknown[],
+  ): Promise<{ name: string; base: string }[]> {
+    const req = await fetch(
+      `https://www.poe2wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&offset=${offset}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      },
+    );
+    const res = await req.json();
+    if (res.cargoquery.length) {
+      return this.queryWiki(offset + 50, [...results, ...res.cargoquery]);
+    }
+
+    return [...results, ...res.cargoquery].map(({ title }) => ({
+      name: title.name,
+      base: title["base item"],
+    }));
   }
 }
 

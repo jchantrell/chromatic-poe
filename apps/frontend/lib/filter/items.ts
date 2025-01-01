@@ -22,8 +22,13 @@ class ItemIndex {
     const hierarchy: Hierarchy = {};
 
     for (const item of items) {
-      const path = [item.category, item.class];
+      let path = [item.category, item.class];
       if (item.type) path.push(item.type);
+
+      if (item.category === "Armour") {
+        path = [item.category, item.type, item.class];
+      }
+
       path.push(item.name);
       recursivelySetKeys(hierarchy, path, item);
     }

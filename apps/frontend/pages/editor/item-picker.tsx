@@ -4,21 +4,6 @@ import { createSignal, For } from "solid-js";
 import { createMutable } from "solid-js/store";
 import { ChevronDownIcon } from "@pkgs/icons";
 
-interface BaseItem {
-  name: string;
-  category: string;
-  class: string;
-  type: string | null;
-  score: number;
-  art: string;
-  height: number;
-  width: number;
-  price: number | null;
-  strReq: number | null;
-  dexReq: number | null;
-  intReq: number | null;
-}
-
 interface BranchNode {
   name: string;
   enabled: boolean;
@@ -32,16 +17,16 @@ interface LeafNode {
   enabled: boolean;
   parent?: BranchNode;
   children?: never;
-  data: BaseItem;
+  data: FilterItem;
 }
 
 type TreeNode = BranchNode | LeafNode;
 
 type NestedData = {
-  [key: string]: NestedData | BaseItem;
+  [key: string]: NestedData | FilterItem;
 };
 
-function isLeafNode(obj: object): obj is BaseItem {
+function isLeafNode(obj: object): obj is FilterItem {
   return "name" in obj && "category" in obj;
 }
 
@@ -55,9 +40,6 @@ function updateParentState(node: TreeNode) {
 
 function getIcon(node: TreeNode) {
   if (node.data) return node.data.art;
-  if (node.children[0].data && node.children[node.children.length - 1]) {
-    return node.children[node.children.length - 1].data.art;
-  }
   return getIcon(node.children[0]);
 }
 
@@ -95,16 +77,6 @@ function rollup(
       node.children.push(rollup(value, key, bases, node));
     }
   }
-
-  node.children.sort((a, b) => {
-    if ("children" in a && "children" in b) {
-      return a.name.localeCompare(b.name);
-    }
-    if ("data" in a && "data" in b) {
-      return (a.data?.price || 0) - (b.data?.price || 0);
-    }
-    return "children" in a ? -1 : 1;
-  });
 
   return node;
 }

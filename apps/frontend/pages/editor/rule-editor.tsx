@@ -23,7 +23,7 @@ export default function RuleEditor() {
       <div class='flex h-10'>
         <div class='flex gap-1 w-full items-center justify-center'>
           <div
-            class='flex w-full items-center justify-center border-[1.5px] min-w-fit max-h-fit px-2 mb-2'
+            class='flex w-full text-nowrap items-center justify-center border-[1.5px] min-w-fit max-h-fit px-2 mb-2'
             style={{
               color: `rgba(${store.activeRule.actions.text?.r ?? 0}, ${store.activeRule.actions.text?.g ?? 0}, ${store.activeRule.actions.text?.b ?? 0}, ${(store.activeRule.actions.text?.a ?? 255) / 255})`,
               "border-color": `rgba(${store.activeRule.actions.border?.r ?? 0}, ${store.activeRule.actions.border?.g ?? 0}, ${store.activeRule.actions.border?.b ?? 0}, ${(store.activeRule.actions.border?.a ?? 255) / 255})`,

@@ -44,13 +44,8 @@ export interface FilterItem {
   score: number;
   height: number;
   width: number;
-  strReq: number;
-  dexReq: number;
-  intReq: number;
   itemClass: string;
-  corruptable: boolean;
-  mirrorable: boolean;
-  stackable: boolean;
+  itemBase: string;
 }
 
 export class Filter {
@@ -211,7 +206,9 @@ export class Filter {
   }
 
   convertToText(rule: FilterRule): string {
-    const enabledBases = rule.bases.filter((e) => e.enabled).map((e) => e.name);
+    const enabledBases = rule.bases
+      .filter((e) => e.enabled)
+      .map((e) => e.itemBase);
     const conditions = { ...rule.conditions };
     if (enabledBases.length) {
       conditions.bases = enabledBases;
