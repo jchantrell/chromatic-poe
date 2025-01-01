@@ -6,7 +6,7 @@ See [Releases](https://github.com/jchantrell/chromatic-poe/releases) for downloa
 
 ## Showcase
 
-[![Image from Gyazo](https://i.gyazo.com/c37eaa2ef856b6162379e906a3b0da92.gif)](https://gyazo.com/c37eaa2ef856b6162379e906a3b0da92)
+![Showcase](./showcase.gif)
 
 ## Development
 
