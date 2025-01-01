@@ -33,10 +33,9 @@ export function CreateFilter() {
       return;
     }
     const filter = await generateFilter(name(), version());
-    await filter.writeFile();
+    await filter.save();
     setFilter(filter);
     setDialogOpen(false);
-    toast(`Created filter named ${name()}.`);
   }
 
   return (
@@ -131,7 +130,6 @@ function ExistingFilter(props: { filter: Filter }) {
   async function deleteFilter() {
     removeFilter(props.filter);
     await props.filter.deleteFile();
-    toast(`Deleted filter ${props.filter.name}`);
   }
 
   async function copyFilter() {
@@ -150,7 +148,7 @@ function ExistingFilter(props: { filter: Filter }) {
     setCopyDialogOpen(false);
     const filter = props.filter.copy();
     filter.updateName(copyName());
-    await filter.writeFile();
+    await filter.save();
   }
 
   async function updateFilterName() {

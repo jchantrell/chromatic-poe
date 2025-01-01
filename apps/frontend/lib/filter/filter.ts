@@ -157,17 +157,20 @@ export class Filter {
   }
 
   async deleteFile() {
-    const path = chromatic.getFiltersPath(this);
-    await chromatic.fileSystem.deleteFile(path);
+    const configPath = chromatic.getFiltersPath(this);
+    const filterPath = `${chromatic.config.poeDirectory}${sep()}${this.name}.filter`;
+    await chromatic.fileSystem.deleteFile(configPath);
+    await chromatic.fileSystem.deleteFile(filterPath);
+    toast("Deleted filter.");
   }
 
   async save() {
-    toast("Saved filter.");
     const path = chromatic.getFiltersPath(this);
     await chromatic.fileSystem.writeFile(
       path,
       stringifyJSON({ ...this, lastUpdated: new Date().toISOString() }),
     );
+    toast("Saved filter");
   }
 
   async writeFile() {
