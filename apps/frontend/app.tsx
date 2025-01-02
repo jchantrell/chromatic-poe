@@ -23,10 +23,10 @@ import { Route, Router } from "@solidjs/router";
 import chromatic from "./lib/config";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import Tooltip from "./components/tooltip";
-export const storageManager = createLocalStorageManager("theme");
 import { SAVE_KEY, WRITE_KEY } from "@app/constants";
 
 export const BASE_URL = import.meta.env.BASE_URL;
+export const storageManager = createLocalStorageManager("theme");
 
 function SideBar() {
   return (
@@ -176,8 +176,14 @@ function App() {
 
   return (
     <>
-      <ColorModeScript storageType={storageManager.type} />
-      <ColorModeProvider storageManager={storageManager}>
+      <ColorModeScript
+        storageType={storageManager.type}
+        initialColorMode='dark'
+      />
+      <ColorModeProvider
+        storageManager={storageManager}
+        initialColorMode='dark'
+      >
         <div class='grid h-screen size-full grid-cols-[80px,1fr] fixed inset-0'>
           <SideBar />
           <div class='size-full flex flex-col'>
