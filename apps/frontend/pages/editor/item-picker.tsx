@@ -1,11 +1,12 @@
 import {
+  excuteCmd,
   type FilterItem,
   type FilterRule,
   hasEnabledWithAttribute,
   itemIndex,
 } from "@app/lib/filter";
 import { Checkbox } from "@pkgs/ui/checkbox";
-import { createSignal, For, JSXElement } from "solid-js";
+import { createSignal, For } from "solid-js";
 import { createMutable } from "solid-js/store";
 import { ChevronDownIcon } from "@pkgs/icons";
 import { toast } from "solid-sonner";
@@ -179,6 +180,13 @@ export function ItemPicker(props: { rule: FilterRule }) {
     const isUnique = isBranchWithKey(node, "category", "Uniques");
     const isPinnacleKeys = isBranchWithKey(node, "itemClass", "Pinnacle Keys");
     const isRegularItem = !isUnique && !isPinnacleKeys;
+
+    if (!enabled && isPinnacleKeys) {
+      props.rule.conditions.classes = undefined;
+    }
+    if (!enabled && isUnique) {
+      props.rule.conditions.rarity = undefined;
+    }
 
     if (enabled) {
       const hasEnabledUniques = hasEnabledWithAttribute(
