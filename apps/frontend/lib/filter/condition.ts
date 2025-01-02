@@ -426,8 +426,8 @@ export function serializeConditions(conditions: Conditions) {
   if (conditions.hasExplicitMod) {
     strs.push(hasExplicitMod(conditions.hasExplicitMod.value));
   }
-  if (conditions.hasEnchantment) {
-    strs.push(hasEnchantment(conditions.hasEnchantment.value));
+  if (conditions.enchanted) {
+    strs.push(anyEnchantment(conditions.enchanted.value));
   }
   if (conditions.archnemesisMod) {
     strs.push(archnemesisMod(conditions.archnemesisMod.value));
