@@ -73,7 +73,12 @@ function rollup(
       };
       node.children.push(leafNode);
 
-      if (bases.some((base) => base.name === value.name)) {
+      if (
+        bases.some(
+          (base) =>
+            base.name === value.name && base.category === value.category,
+        )
+      ) {
         let current: TreeNode | undefined = leafNode;
         while (current) {
           current.enabled = true;
