@@ -675,11 +675,24 @@ LEFT JOIN ${Tables.WORDS}
 ON ${Tables.UNIQUE_STASH_LAYOUT}.WordsKey = ${Tables.WORDS}.${PK}
 LEFT JOIN ${Tables.VISUALS}
 ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
-WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolve Cold', 'Sekhema''s Resolve Lightning')
+WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolve Cold', 'Sekhema''s Resolve Lightning', 'The Wailing Wall')
 `)
       .all();
 
     const uniqueOverrides = [
+      {
+        name: "The Wailing Wall",
+        category: "Uniques",
+        class: "Shield",
+        type: null,
+        score: 0,
+        height: null,
+        width: null,
+        gemFx: null,
+        itemClass: "Shield",
+        art: "Art/2DItems/Offhand/Shields/Uniques/TheWailingWall.dds",
+        base: "Effigial Tower Shield",
+      },
       {
         name: "Strugglescream",
         category: "Uniques",
@@ -773,6 +786,7 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
     const wikiUniques = await this.queryWiki(0, []);
 
     for (const unique of allUniques) {
+      if (unique.base) continue;
       const entry = wikiUniques.find((entry) => entry.name === unique.name);
       if (entry) {
         unique.base = entry.base;
