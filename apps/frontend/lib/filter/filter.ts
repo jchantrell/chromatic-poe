@@ -211,10 +211,17 @@ export class Filter {
     const enabledBases = rule.bases.filter((e) => e.enabled).map((e) => e.base);
 
     const basesAreUnique = rule.bases.every((e) => e.category === "Uniques");
+    const basesArePinnacleKeys = rule.bases.every(
+      (e) => e.itemClass === "Pinnacle Keys",
+    );
 
     const conditions = { ...rule.conditions };
-    if (enabledBases.length) {
+    if (enabledBases.length && !basesArePinnacleKeys) {
       conditions.bases = Array.from(new Set(enabledBases));
+    }
+
+    if (basesArePinnacleKeys) {
+      conditions.classes = { operator: Operator.eq, value: ["Pinnacle Keys"] };
     }
 
     if (basesAreUnique) {

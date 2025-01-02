@@ -101,12 +101,20 @@ export enum Influence {
   none = "None",
 }
 
-export function hasEnabledUniques(items: FilterItem[]): boolean {
-  return items.some((item) => item.enabled && item.category === "Uniques");
+export function hasEnabledWithAttribute(
+  items: FilterItem[],
+  key: keyof FilterItem,
+  value: string,
+): boolean {
+  return items.some((item) => item.enabled && item[key] === value);
 }
 
-export function hasEnabledNonUniques(items: FilterItem[]): boolean {
-  return items.some((item) => item.enabled && item.category !== "Uniques");
+export function hasEnabledWithoutAttribute(
+  items: FilterItem[],
+  key: keyof FilterItem,
+  value: string,
+): boolean {
+  return items.some((item) => item.enabled && item[key] !== value);
 }
 
 // internal

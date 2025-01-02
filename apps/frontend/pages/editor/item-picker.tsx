@@ -1,8 +1,8 @@
 import {
   type FilterItem,
   type FilterRule,
-  hasEnabledUniques,
-  hasEnabledNonUniques,
+  hasEnabledWithAttribute,
+  hasEnabledWithoutAttribute,
   itemIndex,
 } from "@app/lib/filter";
 import { Checkbox } from "@pkgs/ui/checkbox";
@@ -157,10 +157,14 @@ function Node(props: {
   );
 }
 
-function isUniqueBranch(node: TreeNode): boolean {
-  if (node.data?.category === "Uniques") return true;
+function isBranchWithKey(
+  node: TreeNode,
+  key: keyof FilterItem,
+  value: string,
+): boolean {
+  if (node.data?.[key] === value) return true;
   if ("children" in node && node.children) {
-    return node.children.some((child) => isUniqueBranch(child));
+    return node.children.some((child) => isBranchWithKey(child, key, value));
   }
   return false;
 }
@@ -173,15 +177,46 @@ export function ItemPicker(props: { rule: FilterRule }) {
   function toggleNode(node: TreeNode, enabled: boolean): void {
     if (node.enabled === enabled) return;
 
-    const isUnique = isUniqueBranch(node);
+    const isUnique = isBranchWithKey(node, "category", "Uniques");
+    const isPinnacleKeys = isBranchWithKey(node, "itemClass", "Pinnacle Keys");
+    const isRegularItem = !isUnique && !isPinnacleKeys;
 
     if (enabled) {
-      if (isUnique && hasEnabledNonUniques(props.rule.bases)) {
-        toast("Cannot enable uniques while non-unique items are enabled");
+      const hasEnabledUniques = hasEnabledWithAttribute(
+        props.rule.bases,
+        "category",
+        "Uniques",
+      );
+      const hasEnabledPinnacleKeys = hasEnabledWithAttribute(
+        props.rule.bases,
+        "itemClass",
+        "Pinnacle Keys",
+      );
+      const hasEnabledRegularItems =
+        props.rule.bases.length > 0 &&
+        !hasEnabledUniques &&
+        !hasEnabledPinnacleKeys;
+
+      if (isUnique && hasEnabledRegularItems) {
+        toast("Cannot enable Uniques while regular items are enabled");
         return;
       }
-      if (!isUnique && hasEnabledUniques(props.rule.bases)) {
-        toast("Cannot enable non-uniques while unique items are enabled");
+      if (isUnique && hasEnabledPinnacleKeys) {
+        toast("Cannot enable Uniques while Pinnacle Keys are enabled");
+        return;
+      }
+      if (isPinnacleKeys && hasEnabledRegularItems) {
+        toast("Cannot enable Pinnacle Keys while regular items are enabled");
+        return;
+      }
+      if (isPinnacleKeys && hasEnabledUniques) {
+        toast("Cannot enable Pinnacle Keys while Uniques are enabled");
+        return;
+      }
+      if (isRegularItem && (hasEnabledUniques || hasEnabledPinnacleKeys)) {
+        toast(
+          "Cannot enable regular items while Uniques or Pinnacle Keys are enabled",
+        );
         return;
       }
     }
