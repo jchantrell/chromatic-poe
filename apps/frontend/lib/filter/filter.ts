@@ -210,8 +210,8 @@ export class Filter {
   convertToText(rule: FilterRule): string {
     const enabledBases = rule.bases.filter((e) => e.enabled).map((e) => e.base);
 
-    const basesAreUnique = rule.bases.every((e) => e.category === "Uniques");
-    const basesArePinnacleKeys = rule.bases.every(
+    const basesAreUnique = rule.bases.some((e) => e.category === "Uniques");
+    const basesArePinnacleKeys = rule.bases.some(
       (e) => e.itemClass === "Pinnacle Keys",
     );
 
