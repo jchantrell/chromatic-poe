@@ -529,15 +529,17 @@ function ConditionToggleGroup(props: {
   key: string;
   onChange: (...rest: unknown[]) => void;
 }) {
+  let conditions = Object.entries(conditionTypes).filter(
+    ([_, value]) => value.group === props.key,
+  );
+  if (store.activeRule?.bases.some((e) => e.category === "Uniques")) {
+    conditions = conditions.filter(([key]) => key !== "rarity");
+  }
   return (
     <div class='flex flex-col gap-3 py-2'>
       <Label class='text-lg h-5 mb-1'>{props.key}</Label>
       <Separator />
-      <For
-        each={Object.entries(conditionTypes).filter(
-          ([_, value]) => value.group === props.key,
-        )}
-      >
+      <For each={conditions}>
         {([key, value]) => (
           <ConditionToggle
             label={value.label}

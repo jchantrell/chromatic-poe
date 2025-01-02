@@ -7,6 +7,8 @@ import {
   type Command,
   type Actions,
   type Conditions,
+  Operator,
+  Rarity,
   serializeActions,
   addParentRefs,
   serializeConditions,
@@ -45,7 +47,7 @@ export interface FilterItem {
   height: number;
   width: number;
   itemClass: string;
-  itemBase: string;
+  base: string;
 }
 
 export class Filter {
@@ -206,13 +208,19 @@ export class Filter {
   }
 
   convertToText(rule: FilterRule): string {
-    const enabledBases = rule.bases
-      .filter((e) => e.enabled)
-      .map((e) => e.itemBase);
+    const enabledBases = rule.bases.filter((e) => e.enabled).map((e) => e.base);
+
+    const basesAreUnique = rule.bases.every((e) => e.category === "Uniques");
+
     const conditions = { ...rule.conditions };
     if (enabledBases.length) {
-      conditions.bases = enabledBases;
+      conditions.bases = Array.from(new Set(enabledBases));
     }
+
+    if (basesAreUnique) {
+      conditions.rarity = { operator: Operator.eq, value: [Rarity.unique] };
+    }
+
     const block = this.createTextBlock(
       rule.name,
       rule.show,

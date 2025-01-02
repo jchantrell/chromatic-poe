@@ -1,8 +1,15 @@
-import { type FilterItem, type FilterRule, itemIndex } from "@app/lib/filter";
+import {
+  type FilterItem,
+  type FilterRule,
+  hasEnabledUniques,
+  hasEnabledNonUniques,
+  itemIndex,
+} from "@app/lib/filter";
 import { Checkbox } from "@pkgs/ui/checkbox";
 import { createSignal, For } from "solid-js";
 import { createMutable } from "solid-js/store";
 import { ChevronDownIcon } from "@pkgs/icons";
+import { toast } from "solid-sonner";
 
 interface BranchNode {
   name: string;
@@ -145,13 +152,41 @@ function Node(props: {
   );
 }
 
+function isUniqueBranch(node: TreeNode): boolean {
+  if (node.data?.category === "Uniques") return true;
+  if ("children" in node && node.children) {
+    return node.children.some((child) => isUniqueBranch(child));
+  }
+  return false;
+}
+
 export function ItemPicker(props: { rule: FilterRule }) {
   const itemHierarchy = createMutable(
     rollup(itemIndex.hierarchy, "Items", props.rule.bases),
   );
 
   function toggleNode(node: TreeNode, enabled: boolean): void {
+    if (node.enabled === enabled) return;
+
+    const isUnique = isUniqueBranch(node);
+
+    if (enabled) {
+      if (isUnique && hasEnabledNonUniques(props.rule.bases)) {
+        toast("Cannot enable uniques while non-unique items are enabled");
+        return;
+      }
+      if (!isUnique && hasEnabledUniques(props.rule.bases)) {
+        toast("Cannot enable non-uniques while unique items are enabled");
+        return;
+      }
+    }
+
     node.enabled = enabled;
+
+    if (isUnique && enabled) {
+      props.rule.conditions.rarity = undefined;
+    }
+
     if ("children" in node && node.children) {
       for (const child of node.children) {
         toggleNode(child, enabled);

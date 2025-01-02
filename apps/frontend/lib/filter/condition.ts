@@ -1,3 +1,5 @@
+import type { FilterItem } from "./filter";
+
 type ListCondition<T> = {
   value: T[];
 };
@@ -39,7 +41,7 @@ export type Conditions = {
 
   hasImplicitMod?: BoolCondition;
   itemLevel?: OpValueCondition<number>;
-  rarity?: OpValueCondition<Rarity>;
+  rarity?: OpListCondition<Rarity>;
   identified?: BoolCondition;
   scourged?: BoolCondition;
   fractured?: BoolCondition;
@@ -97,6 +99,14 @@ export enum Influence {
   hunter = "Hunter",
   warlord = "Warlord",
   none = "None",
+}
+
+export function hasEnabledUniques(items: FilterItem[]): boolean {
+  return items.some((item) => item.enabled && item.category === "Uniques");
+}
+
+export function hasEnabledNonUniques(items: FilterItem[]): boolean {
+  return items.some((item) => item.enabled && item.category !== "Uniques");
 }
 
 // internal
