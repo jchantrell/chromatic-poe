@@ -154,7 +154,7 @@ function transfiguredGem(bool: boolean): string {
 
 // maps
 function mapTier(op: Operator, tier: number | string): string {
-  return `MapTier ${op} "${tier}"`;
+  return `WaystoneTier ${op} "${tier}"`; // FIXME: poe1 support
 }
 function elderMap(bool: boolean): string {
   return `ElderMap ${bool}`;
