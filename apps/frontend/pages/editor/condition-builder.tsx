@@ -354,6 +354,7 @@ const conditionTypes: Partial<
     operators: true,
     defaultValue: 0,
     min: 0,
+    max: 5000,
   },
   evasion: {
     label: "Evasion",
@@ -361,6 +362,7 @@ const conditionTypes: Partial<
     group: "Armour",
     operators: true,
     defaultValue: 0,
+    max: 5000,
     min: 0,
   },
   energyShield: {
@@ -370,6 +372,7 @@ const conditionTypes: Partial<
     operators: true,
     defaultValue: 0,
     min: 0,
+    max: 5000,
   },
   ward: {
     label: "Ward",
@@ -378,6 +381,7 @@ const conditionTypes: Partial<
     operators: true,
     defaultValue: 0,
     min: 0,
+    max: 5000,
   },
 };
 
