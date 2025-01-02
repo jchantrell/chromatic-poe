@@ -64,7 +64,8 @@ function ColorPicker(props: {
               }}
             />
           </label>
-          <div class='flex items-center justify-center gap-1 w-full'>
+          <div class='flex items-center justify-center gap-1 w-full ml-1'>
+            <Label>Opacity</Label>
             <Slider
               class='w-[80px] ml-2'
               minValue={0}

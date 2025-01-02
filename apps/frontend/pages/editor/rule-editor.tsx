@@ -14,6 +14,7 @@ import { Label } from "@pkgs/ui/label";
 import BeamPicker from "@app/pages/editor/beam-picker";
 import ConditionManager from "./condition-builder";
 import { Slider, SliderFill, SliderThumb, SliderTrack } from "@pkgs/ui/slider";
+import Tooltip from "@app/components/tooltip";
 
 export default function RuleEditor() {
   if (!store.activeRule) return <></>;
@@ -48,7 +49,7 @@ export default function RuleEditor() {
       </div>
       <div class='w-full flex-col flex gap-4 justify-center items-center my-2'>
         <div class='gap-1 flex flex-col'>
-          <div class='flex flex-col gap-1.5'>
+          <div class='flex flex-col gap-2'>
             <ColorPicker label='Text' key='text' />
             <ColorPicker label='Border' key='border' />
             <ColorPicker label='Background' key='background' />
@@ -129,7 +130,13 @@ function ToggleMapIcon() {
         checked={mapIconActive()}
       />
       <div class='flex'>
-        {store.activeRule?.actions.icon?.enabled ? <MapIconPicker /> : ""}
+        {store.activeRule?.actions.icon?.enabled ? (
+          <Tooltip text='Edit Map Icon'>
+            <MapIconPicker />
+          </Tooltip>
+        ) : (
+          ""
+        )}
       </div>
     </div>
   );
@@ -162,7 +169,13 @@ function ToggleBeam() {
       </Label>
       <Checkbox id='beam' onChange={handleBeam} checked={beamActive()} />
       <div class='flex grow-0'>
-        {store.activeRule?.actions.beam?.enabled ? <BeamPicker /> : ""}
+        {store.activeRule?.actions.beam?.enabled ? (
+          <Tooltip text='Edit beam color and duration'>
+            <BeamPicker />
+          </Tooltip>
+        ) : (
+          ""
+        )}
       </div>
     </div>
   );

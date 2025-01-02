@@ -100,7 +100,7 @@ function MapIconPicker() {
             }}
           >
             {store.activeRule?.actions.icon?.enabled ? (
-              <PopoverTrigger>
+              <PopoverTrigger class=''>
                 <MinimapIcon
                   scale={PREVIEW_SCALE}
                   size={store.activeRule.actions.icon.size}
@@ -139,7 +139,7 @@ function MapIconPicker() {
             </div>
             <div class='flex flex-col w-full items-center justify-center py-1 mx-1'>
               <RadioGroup value={size()} onChange={setSize} class='flex'>
-                <For each={[IconSize.Large, IconSize.Medium, IconSize.Small]}>
+                <For each={[IconSize.Small, IconSize.Medium, IconSize.Large]}>
                   {(size) => <RadioGroupItem value={size} />}
                 </For>
               </RadioGroup>
@@ -148,7 +148,7 @@ function MapIconPicker() {
                   {(color) => {
                     return (
                       <button
-                        class='w-full rounded-lg border border-accent'
+                        class='w-full rounded-lg border border-accent hover:border-primary'
                         type='button'
                         style={{ background: color[1] }}
                         onClick={() => {
