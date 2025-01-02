@@ -28,6 +28,7 @@ import {
 import { Button } from "@pkgs/ui/button";
 import { Separator } from "@pkgs/ui/separator";
 import { excuteCmd } from "@app/lib/filter/commands";
+import { ItemPicker } from "./item-picker";
 
 const operators = [
   Operator.gte,
@@ -611,174 +612,182 @@ export default function ConditionManager() {
   }
 
   return (
-    <Dialog>
-      <div class='mx-auto p-4 '>
-        <div class='space-y-4 flex flex-col justify-center w-[300px]'>
-          <div class='flex gap-5 items-center'>
+    <div class='mx-auto p-4 '>
+      <div class='space-y-4 flex flex-col justify-center w-[400px]'>
+        <div class='flex gap-5 items-center'>
+          <Dialog>
+            <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
+              Edit Items
+            </DialogTrigger>
+            <DialogContent class='sm:max-w-[600px]'>
+              <ItemPicker rule={store.activeRule} />
+            </DialogContent>
+          </Dialog>
+          <Dialog>
             <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
               Edit Conditions
             </DialogTrigger>
-            <div class='flex items-center gap-1'>
-              <Label class='text-md font-semibold'>Show</Label>
-              <Switch
-                checked={store.activeRule?.show}
-                onChange={(checked) => {
-                  toggleRule(checked);
-                }}
-                class='flex items-center space-x-2'
-              >
-                <SwitchControl class='bg-accent'>
-                  <SwitchThumb />
-                </SwitchControl>
-              </Switch>
-            </div>
+            <DialogContent class='sm:max-w-[600px]'>
+              <DialogHeader>
+                <DialogTitle>
+                  Edit {store.activeRule?.name} Conditions
+                </DialogTitle>
+              </DialogHeader>
+              <div class='grid grid-cols-2 gap-3 py-2'>
+                <ConditionToggleGroup
+                  key='General'
+                  onChange={(key, checked) => {
+                    toggleCondition(key, checked);
+                  }}
+                />
+                <ConditionToggleGroup
+                  key='Gear'
+                  onChange={(key, checked) => {
+                    toggleCondition(key, checked);
+                  }}
+                />
+                <ConditionToggleGroup
+                  key='Armour'
+                  onChange={(key, checked) => {
+                    toggleCondition(key, checked);
+                  }}
+                />
+                <ConditionToggleGroup
+                  key='Currency'
+                  onChange={(key, checked) => {
+                    toggleCondition(key, checked);
+                  }}
+                />
+                <ConditionToggleGroup
+                  key='Gems'
+                  onChange={(key, checked) => {
+                    toggleCondition(key, checked);
+                  }}
+                />
+                <ConditionToggleGroup
+                  key='Maps'
+                  onChange={(key, checked) => {
+                    toggleCondition(key, checked);
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+          <div class='flex items-center gap-1'>
+            <Label class='text-md font-semibold'>Show</Label>
+            <Switch
+              checked={store.activeRule?.show}
+              onChange={(checked) => {
+                toggleRule(checked);
+              }}
+              class='flex items-center space-x-2'
+            >
+              <SwitchControl class='bg-accent'>
+                <SwitchThumb />
+              </SwitchControl>
+            </Switch>
           </div>
+        </div>
 
-          {Object.keys(store.activeRule?.conditions).length === 0 ? (
-            <div class='text-center py-8 text-muted-foreground'>
-              No conditions. Click "Edit Conditions" to start.
-            </div>
-          ) : (
-            <div class='space-y-4 flex flex-col items-start'>
-              <For each={Object.entries(store.activeRule?.conditions)}>
-                {([key, value]) => {
-                  const condition =
-                    conditionTypes[key as keyof typeof conditionTypes];
-                  const EXCLUDED_OPERATORS = [Operator.gte, Operator.lte];
-                  const filteredOperators = operators.filter((op) => {
-                    if (key === "sockets" && EXCLUDED_OPERATORS.includes(op)) {
-                      return false;
-                    }
-                    return true;
-                  });
-                  return (
-                    <div class='flex gap-4 items-center justify-between p-4 bg-neutral-500/50 rounded-lg'>
-                      <Label class='text-md text-nowrap'>
-                        {condition.label}
-                      </Label>
+        {Object.keys(store.activeRule?.conditions).length === 0 ? (
+          <div class='text-center py-8 text-muted-foreground'>
+            No conditions. Click "Edit Conditions" to start.
+          </div>
+        ) : (
+          <div class='space-y-4 flex flex-col items-start'>
+            <For each={Object.entries(store.activeRule?.conditions)}>
+              {([key, value]) => {
+                const condition =
+                  conditionTypes[key as keyof typeof conditionTypes];
+                const EXCLUDED_OPERATORS = [Operator.gte, Operator.lte];
+                const filteredOperators = operators.filter((op) => {
+                  if (key === "sockets" && EXCLUDED_OPERATORS.includes(op)) {
+                    return false;
+                  }
+                  return true;
+                });
+                return (
+                  <div class='flex gap-4 items-center justify-between p-4 bg-neutral-500/50 rounded-lg'>
+                    <Label class='text-md text-nowrap'>{condition.label}</Label>
 
-                      {condition.operators && (
-                        <div class='w-full'>
-                          <Select
-                            value={value.operator}
-                            onChange={(value) => {
-                              updateCondition(key, "operator", value);
-                            }}
-                            options={filteredOperators}
-                            itemComponent={(props) => (
-                              <SelectItem item={props.item}>
-                                {props.item.rawValue}
-                              </SelectItem>
-                            )}
-                          >
-                            <SelectTrigger class='w-[70px] bg-muted'>
-                              <SelectValue<string>>
-                                {(state) => state.selectedOption()}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent />
-                          </Select>
-                        </div>
-                      )}
-
-                      <div class='ml-2'>
-                        {condition.type === "slider" && (
-                          <SliderInput
-                            key={key}
-                            value={value.value}
-                            onChange={(v) => {
-                              updateCondition(key, "value", v);
-                            }}
-                          />
-                        )}
-                        {condition.type === "range" && (
-                          <RangeInput
-                            key={key}
-                            value={value.value}
-                            onChange={(v) => {
-                              updateCondition(key, "value", v);
-                            }}
-                          />
-                        )}
-                        {condition.type === "select" && (
-                          <SelectInput
-                            key={key}
-                            value={value.value}
-                            onChange={(v) => {
-                              updateCondition(key, "value", v);
-                            }}
-                          />
-                        )}
-                        {condition.type === "toggle" && (
-                          <ToggleInput
-                            key={key}
-                            value={value.value}
-                            onChange={(v) => {
-                              updateCondition(key, "value", v);
-                            }}
-                          />
-                        )}
-                        {condition.type === "checkbox" && (
-                          <CheckboxInput
-                            key={key}
-                            value={value.value}
-                            onChange={(v) => {
-                              updateCondition(key, "value", v);
-                            }}
-                          />
-                        )}
+                    {condition.operators && (
+                      <div class='w-full'>
+                        <Select
+                          value={value.operator}
+                          onChange={(value) => {
+                            updateCondition(key, "operator", value);
+                          }}
+                          options={filteredOperators}
+                          itemComponent={(props) => (
+                            <SelectItem item={props.item}>
+                              {props.item.rawValue}
+                            </SelectItem>
+                          )}
+                        >
+                          <SelectTrigger class='w-[70px] bg-muted'>
+                            <SelectValue<string>>
+                              {(state) => state.selectedOption()}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent />
+                        </Select>
                       </div>
+                    )}
+
+                    <div class='ml-2'>
+                      {condition.type === "slider" && (
+                        <SliderInput
+                          key={key}
+                          value={value.value}
+                          onChange={(v) => {
+                            updateCondition(key, "value", v);
+                          }}
+                        />
+                      )}
+                      {condition.type === "range" && (
+                        <RangeInput
+                          key={key}
+                          value={value.value}
+                          onChange={(v) => {
+                            updateCondition(key, "value", v);
+                          }}
+                        />
+                      )}
+                      {condition.type === "select" && (
+                        <SelectInput
+                          key={key}
+                          value={value.value}
+                          onChange={(v) => {
+                            updateCondition(key, "value", v);
+                          }}
+                        />
+                      )}
+                      {condition.type === "toggle" && (
+                        <ToggleInput
+                          key={key}
+                          value={value.value}
+                          onChange={(v) => {
+                            updateCondition(key, "value", v);
+                          }}
+                        />
+                      )}
+                      {condition.type === "checkbox" && (
+                        <CheckboxInput
+                          key={key}
+                          value={value.value}
+                          onChange={(v) => {
+                            updateCondition(key, "value", v);
+                          }}
+                        />
+                      )}
                     </div>
-                  );
-                }}
-              </For>
-            </div>
-          )}
-        </div>
+                  </div>
+                );
+              }}
+            </For>
+          </div>
+        )}
       </div>
-      <DialogContent class='sm:max-w-[600px]'>
-        <DialogHeader>
-          <DialogTitle>Edit {store.activeRule?.name} Conditions</DialogTitle>
-        </DialogHeader>
-        <div class='grid grid-cols-2 gap-3 py-2'>
-          <ConditionToggleGroup
-            key='General'
-            onChange={(key, checked) => {
-              toggleCondition(key, checked);
-            }}
-          />
-          <ConditionToggleGroup
-            key='Gear'
-            onChange={(key, checked) => {
-              toggleCondition(key, checked);
-            }}
-          />
-          <ConditionToggleGroup
-            key='Armour'
-            onChange={(key, checked) => {
-              toggleCondition(key, checked);
-            }}
-          />
-          <ConditionToggleGroup
-            key='Currency'
-            onChange={(key, checked) => {
-              toggleCondition(key, checked);
-            }}
-          />
-          <ConditionToggleGroup
-            key='Gems'
-            onChange={(key, checked) => {
-              toggleCondition(key, checked);
-            }}
-          />
-          <ConditionToggleGroup
-            key='Maps'
-            onChange={(key, checked) => {
-              toggleCondition(key, checked);
-            }}
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
+    </div>
   );
 }

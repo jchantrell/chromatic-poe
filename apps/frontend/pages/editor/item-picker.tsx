@@ -2,11 +2,10 @@ import {
   type FilterItem,
   type FilterRule,
   hasEnabledWithAttribute,
-  hasEnabledWithoutAttribute,
   itemIndex,
 } from "@app/lib/filter";
 import { Checkbox } from "@pkgs/ui/checkbox";
-import { createSignal, For } from "solid-js";
+import { createSignal, For, JSXElement } from "solid-js";
 import { createMutable } from "solid-js/store";
 import { ChevronDownIcon } from "@pkgs/icons";
 import { toast } from "solid-sonner";

@@ -46,7 +46,7 @@ export default function RuleEditor() {
           </div>
         </div>
       </div>
-      <div class='w-full flex-col flex gap-4 justify-center items-center mt-2'>
+      <div class='w-full flex-col flex gap-4 justify-center items-center my-2'>
         <div class='gap-1 flex flex-col'>
           <div class='flex flex-col gap-1.5'>
             <ColorPicker label='Text' key='text' />
