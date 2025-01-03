@@ -15,7 +15,7 @@ import {
   duplicateRule,
   type FilterRule,
 } from "@app/lib/filter";
-import { ChevronDownIcon } from "@pkgs/icons";
+import { ChevronDownIcon, ChevronUpIcon } from "@pkgs/icons";
 import Item from "./item";
 import { store } from "@app/store";
 import { MinimapIcon } from "./map-icon-picker";
@@ -185,15 +185,16 @@ export default function Rule(props: {
                       : "Item"}
                   </div>
                   <div
-                    class='hover:bg-muted flex items-center h-full p-1'
+                    class={`hover:bg-muted flex items-center h-11 p-1 ${!props.rule.bases.length ? "opacity-30" : ""}`}
                     onMouseDown={(e: MouseEvent) => {
                       e.stopPropagation();
+                      if (!props.rule.bases.length) return;
                       if (e.button === 0 && !e.shiftKey) {
                         return setExpanded(!expanded());
                       }
                     }}
                   >
-                    <ChevronDownIcon />
+                    {expanded() ? <ChevronUpIcon /> : <ChevronDownIcon />}
                   </div>
                 </div>
               </div>
