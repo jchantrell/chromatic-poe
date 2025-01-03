@@ -6,6 +6,8 @@ import type {
   IconSize,
   Shape,
 } from "@app/lib/filter";
+import { clone } from "@pkgs/lib/utils";
+import { ulid } from "ulid";
 
 export class Command {
   execute: (...args: unknown[]) => unknown;
@@ -147,6 +149,19 @@ export function createRule(filter: Filter, rule: FilterRule) {
   filter?.execute(
     new Command(() => {
       filter.rules.push(rule);
+    }),
+  );
+}
+
+export function duplicateRule(filter: Filter, rule: FilterRule) {
+  filter?.execute(
+    new Command(() => {
+      const index = filter.rules.findIndex((r) => r.id === rule.id);
+      if (index !== -1) {
+        const duplicatedRule = clone(rule);
+        duplicatedRule.id = ulid();
+        filter.rules.splice(index + 1, 0, duplicatedRule);
+      }
     }),
   );
 }

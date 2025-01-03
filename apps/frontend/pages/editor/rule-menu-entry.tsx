@@ -12,6 +12,7 @@ import {
   addParentRefs,
   deleteRule,
   setEntryActive,
+  duplicateRule,
   type FilterRule,
 } from "@app/lib/filter";
 import { ChevronDownIcon } from "@pkgs/icons";
@@ -50,6 +51,12 @@ export default function Rule(props: {
 
   function handleNameChange(e: Event) {
     props.rule.name = e.target.value;
+  }
+
+  function handleDuplicate(e: MouseEvent) {
+    if (store.filter) {
+      duplicateRule(store.filter, props.rule);
+    }
   }
 
   function handleActive() {
@@ -203,8 +210,8 @@ export default function Rule(props: {
                   <span>{props.rule.enabled ? "Disable" : "Enable"}</span>
                   <ContextMenuShortcut>⇧+LClick</ContextMenuShortcut>
                 </ContextMenuItem>
-                <ContextMenuItem disabled>
-                  <span>Copy</span>
+                <ContextMenuItem onMouseDown={handleDuplicate}>
+                  <span>Duplicate</span>
                 </ContextMenuItem>
                 <ContextMenuItem onMouseDown={handleDelete}>
                   <span>Delete</span>
