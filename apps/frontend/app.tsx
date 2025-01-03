@@ -44,7 +44,9 @@ function Link(props: {
       size='icon'
       disabled={props.disabled}
     >
-      <a href={props.href}>{props.children}</a>
+      <a class='size-full flex items-center justify-center' href={props.href}>
+        {props.children}
+      </a>
     </Button>
   );
 }
