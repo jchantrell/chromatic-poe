@@ -19,8 +19,11 @@ import {
 } from "@pkgs/ui/context-menu";
 import { notify } from "@pkgs/ui/sonner";
 import { toast } from "solid-sonner";
-import { useColorMode } from "@kobalte/core";
 import { store, setFilter, removeFilter } from "@app/store";
+import Setup from "./initial-setup";
+import { BASE_URL } from "@app/app";
+import Background from "@app/components/background";
+import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
 
 export function CreateFilter() {
   const [name, setName] = createSignal("Chromatic");
@@ -66,37 +69,22 @@ export function CreateFilter() {
               type='text'
             />
           </TextField>
-          <div class='flex items-center gap-4'>
-            <div class='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+          <div class='flex items-center gap-2'>
+            <div class='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mr-2'>
               PoE Version
             </div>
-            <fieldset class='flex gap-2'>
-              <div>
-                <input
-                  type='radio'
-                  id='1'
-                  name='version'
-                  value='1'
-                  class='mr-1'
-                  disabled={true}
-                  onChange={() => setVersion(1)}
-                />
-                <label for='1'>1</label>
-              </div>
-              <div>
-                <input
-                  type='radio'
-                  id='2'
-                  name='version'
-                  value='2'
-                  checked
-                  class='mr-1'
-                  onChange={() => setVersion(2)}
-                  disabled={true}
-                />
-                <label for='2'>2</label>
-              </div>
-            </fieldset>
+            <div class='text-md font-semibold'>1</div>
+            <Switch
+              checked={version() === 2}
+              onChange={(version) => {
+                toast("Only PoE 2 is supported at the moment.");
+              }}
+            >
+              <SwitchControl class='bg-neutral-300 data-[checked]:bg-neutral-300'>
+                <SwitchThumb />
+              </SwitchControl>
+            </Switch>
+            <div class='text-md font-semibold'>2</div>
           </div>
           <Button
             class='text-center cursor-pointer grid  max-w-sm rounded-lg items-center border p-0'
@@ -222,20 +210,22 @@ function ExistingFilter(props: { filter: Filter }) {
       </Dialog>
       <ContextMenu>
         <ContextMenuTrigger class='w-full'>
-          <Button
-            class='flex text-left justify-between w-full rounded-t-lg p-0'
-            onClick={() => setFilter(props.filter)}
-            variant='secondary'
-          >
-            <div class='ml-2'>
-              <div class='text-primary'>
-                {name()} - PoE {props.filter.version}
+          <a href={`${BASE_URL}edit`}>
+            <Button
+              class='flex text-left justify-between w-full rounded-t-lg p-0'
+              onClick={() => setFilter(props.filter)}
+              variant='secondary'
+            >
+              <div class='ml-2'>
+                <div class='text-primary'>
+                  {name()} - PoE {props.filter.version}
+                </div>
+                <div class='text-xs text-muted-foreground'>
+                  {timeSinceUpdate()}
+                </div>
               </div>
-              <div class='text-xs text-muted-foreground'>
-                {timeSinceUpdate()}
-              </div>
-            </div>
-          </Button>
+            </Button>
+          </a>
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem onSelect={() => setNameDialogOpen(true)}>
@@ -265,20 +255,23 @@ function ExistingFilter(props: { filter: Filter }) {
   );
 }
 export default function LoadScreen() {
-  const { colorMode } = useColorMode();
-
   return (
-    <div
-      class={`size-full flex items-center justify-center relative bg-cover ${colorMode() === "dark" ? "bg-[url('/static/bg-dark.jpg')]" : "bg-[url('/static/bg-light.jpg')]"}`}
-    >
-      <div class='bg-neutral-900/70 border-neutral-900/70 text-foreground w-full max-w-sm rounded-lg border p-4 grid gap-2 items-center z-0'>
-        <CreateFilter />
-        <ul class='max-w-sm rounded-lg grid gap-2 items-center'>
-          <For each={store.filters}>
-            {(filter) => <ExistingFilter filter={filter} />}
-          </For>
-        </ul>
-      </div>
-    </div>
+    <>
+      {!store.initialised && <Setup />}
+      {store.initialised && (
+        <Background>
+          <div class='flex justify-center items-center size-full'>
+            <div class='bg-neutral-900/70 border-neutral-900/70 text-foreground w-full max-w-sm rounded-lg border p-4 grid gap-2 items-center z-0'>
+              <CreateFilter />
+              <ul class='max-w-sm rounded-lg grid gap-2 items-center'>
+                <For each={store.filters}>
+                  {(filter) => <ExistingFilter filter={filter} />}
+                </For>
+              </ul>
+            </div>
+          </div>
+        </Background>
+      )}
+    </>
   );
 }

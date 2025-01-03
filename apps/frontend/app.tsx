@@ -9,14 +9,15 @@ import { Button } from "@pkgs/ui/button";
 import {
   AudioIcon,
   DownloadIcon,
+  EditIcon,
   ExitIcon,
   HouseIcon,
   MinimiseIcon,
   SaveIcon,
 } from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
-import { createSignal, onMount } from "solid-js";
-import { setActiveRule, setFilter, store } from "./store";
+import { createSignal, type JSXElement, onMount } from "solid-js";
+import { store } from "./store";
 import { Toaster } from "@pkgs/ui/sonner";
 import { Settings } from "./components/settings";
 import { Route, Router } from "@solidjs/router";
@@ -24,9 +25,29 @@ import chromatic from "./lib/config";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import Tooltip from "./components/tooltip";
 import { SAVE_KEY, WRITE_KEY } from "@app/constants";
+import SoundManager from "./pages/sound";
+import LoadScreen from "./pages/editor/load-screen";
+import Background from "./components/background";
 
 export const BASE_URL = import.meta.env.BASE_URL;
 export const storageManager = createLocalStorageManager("theme");
+
+function Link(props: {
+  href: string;
+  children: JSXElement;
+  disabled?: boolean;
+}) {
+  return (
+    <Button
+      class='h-14 w-14'
+      variant='ghost'
+      size='icon'
+      disabled={props.disabled}
+    >
+      <a href={props.href}>{props.children}</a>
+    </Button>
+  );
+}
 
 function SideBar() {
   return (
@@ -38,30 +59,21 @@ function SideBar() {
         <Avatar class='w-14 h-14 cursor-pointer'>
           <AvatarImage src='https://web.poecdn.com/gen/image/WzAsMSx7ImlkIjo2MjYsInNpemUiOiJhdmF0YXIifV0/71ec2c3cb4/Path_of_Exile_Gallery_Image.jpg' />
         </Avatar>
-        <a href={BASE_URL}>
-          <Button
-            variant='ghost'
-            size='icon'
-            class='h-14 w-14'
-            onMouseDown={() => {
-              setActiveRule(null);
-              setFilter(null);
-            }}
-          >
+        <Tooltip text='Home'>
+          <Link href={BASE_URL}>
             <HouseIcon />
-          </Button>
-        </a>
-        <a href={BASE_URL}>
-          <Button
-            variant='ghost'
-            size='icon'
-            class='h-14 w-14'
-            disabled
-            onMouseDown={() => null}
-          >
+          </Link>
+        </Tooltip>
+        <Tooltip text='Edit Active Filter'>
+          <Link href={`${BASE_URL}edit`} disabled={!store.filter}>
+            <EditIcon />
+          </Link>
+        </Tooltip>
+        <Tooltip text='Manage Sounds'>
+          <Link href={`${BASE_URL}sound`} disabled={true}>
             <AudioIcon />
-          </Button>
-        </a>
+          </Link>
+        </Tooltip>
       </div>
       <div class='flex flex-col'>
         <Settings />
@@ -136,7 +148,22 @@ function Main() {
       onContextMenu={(e) => e.preventDefault()}
     >
       <Router>
-        <Route path={BASE_URL} component={() => <Editor />} />
+        <Route path={BASE_URL} component={() => <LoadScreen />} />
+        <Route
+          path={`${BASE_URL}edit`}
+          component={() =>
+            store.filter ? (
+              <Editor />
+            ) : (
+              <Background>
+                <div class='size-full flex  justify-center items-center'>
+                  No filter loaded.
+                </div>
+              </Background>
+            )
+          }
+        />
+        <Route path={`${BASE_URL}sound`} component={() => <SoundManager />} />
       </Router>
     </main>
   );

@@ -3,8 +3,6 @@ import { Resizable, ResizableHandle, ResizablePanel } from "@pkgs/ui/resizable";
 import { useColorMode } from "@kobalte/core";
 import { input } from "@app/lib/input";
 import { store } from "@app/store";
-import LoadScreen from "./load-screen";
-import Setup from "./initial-setup";
 import RuleEditor from "./rule-editor";
 import Rules from "./rule-container";
 import Preview from "./preview";
@@ -53,8 +51,6 @@ export default function Editor() {
   });
   return (
     <>
-      {!store.initialised && <Setup />}
-      {store.initialised && store.filter === null && <LoadScreen />}
       {store.initialised && store.filter !== null && (
         <Resizable orientation='horizontal'>
           <ResizablePanel class='flex flex-col'>

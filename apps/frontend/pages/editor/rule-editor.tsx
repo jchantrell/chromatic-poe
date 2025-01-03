@@ -54,6 +54,7 @@ export default function RuleEditor() {
             <ColorPicker label='Border' key='border' />
             <ColorPicker label='Background' key='background' />
             <LabelSize />
+            <SoundPicker />
             <ToggleMapIcon />
             <ToggleBeam />
           </div>
@@ -179,4 +180,8 @@ function ToggleBeam() {
       </div>
     </div>
   );
+}
+
+function SoundPicker() {
+  return <div>SoundPicker</div>;
 }
