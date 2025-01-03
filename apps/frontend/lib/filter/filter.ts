@@ -175,7 +175,7 @@ export class Filter {
       const path = `${chromatic.config.poeDirectory}${sep()}${this.name}.filter`;
       await chromatic.fileSystem.writeFile(path, this.serialize());
       setTimeout(async () => {
-        await invoke("reload_filter");
+        await invoke("reload");
       }, 250);
       toast("Wrote filter to PoE directory.");
     }
