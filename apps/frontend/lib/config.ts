@@ -1,11 +1,13 @@
 import { getVersion } from "@tauri-apps/api/app";
-import { documentDir, appConfigDir } from "@tauri-apps/api/path";
+import { documentDir, appConfigDir, sep } from "@tauri-apps/api/path";
 import { Filter } from "@app/lib/filter";
 import { WebStorage, DesktopStorage } from "@app/lib/storage";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { store, setInitialised, setLocale } from "@app/store";
-import { alphabeticalSort } from "@pkgs/lib/utils";
+import { alphabeticalSort, validJson } from "@pkgs/lib/utils";
 import { locale } from "@tauri-apps/plugin-os";
+import { openPath } from "@tauri-apps/plugin-opener";
+import defaultFilterSounds from "@pkgs/data/poe2/sounds.json";
 
 function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
   try {
@@ -28,7 +30,7 @@ class Chromatic {
   tauriWindow?: ReturnType<typeof getCurrentWindow> | null;
 
   configPath!: string;
-  imagePath = "images";
+  soundPath = "sounds";
   filterPath = "filters";
   configFile = "config.json";
 
@@ -81,7 +83,7 @@ class Chromatic {
       await this.writeConfig(defaultConfig);
     }
 
-    if (this.config.poeDirectory) {
+    if (this.config?.poeDirectory) {
       setInitialised(true);
       setLocale(await locale());
     }
@@ -91,19 +93,28 @@ class Chromatic {
     if (this.fileSystem.runtime !== "desktop") return;
     await this.fileSystem.upsertDirectory(`${this.configPath}`);
     await this.fileSystem.upsertDirectory(
-      `${this.configPath}/${this.imagePath}`,
+      `${this.configPath}${sep()}${this.filterPath}`,
     );
-    await this.fileSystem.upsertDirectory(
-      `${this.configPath}/${this.filterPath}`,
-    );
+    if (this.config?.poeDirectory) {
+      await this.fileSystem.upsertDirectory(
+        `${this.config.poeDirectory}${sep()}${this.soundPath}`,
+      );
+    }
   }
 
   async parseConfig(raw: string): Promise<ChromaticConfiguration> {
+    if (!validJson(raw)) {
+      console.log("Config seems corrupted. Replacing with current default");
+      const defaultConfig = await this.defaultConfig();
+      await this.writeConfig(defaultConfig);
+      return defaultConfig;
+    }
+
     const config = JSON.parse(raw);
 
     if (!config.version) {
       console.log(
-        "Configuration file seems corrupted. Replacing with current default",
+        "Config seems corrupted. Replacing with current default",
         config,
       );
 
@@ -177,7 +188,7 @@ class Chromatic {
 
   async writeConfig(config: ChromaticConfiguration) {
     const path = `${this.configPath}/${this.configFile}`; // TODO:
-    await this.fileSystem.writeFile(path, JSON.stringify(config));
+    await this.fileSystem.writeFile(path, "text", JSON.stringify(config));
     console.log(`Successfully wrote config to ${path}`, config);
     this.config = config;
   }
@@ -198,15 +209,22 @@ class Chromatic {
     };
   }
 
+  windowsPoeDirectory(docPath: string) {
+    return `${docPath}\\Documents\\My Games\\Path of Exile 2`;
+  }
+  linuxPoeDirectory(docPath: string) {
+    return `${docPath}/.steam/root/steamapps/compatdata/238960/pfx/drive_c/users/steamuser/My Documents/My Games/Path of Exile 2`;
+  }
+
   async getAssumedPoeDirectory(os: string): Promise<string | null> {
     if (os === "windows") {
       const docPath = await documentDir();
-      return `${docPath}\\My Games\\Path of Exile 2`;
+      return this.windowsPoeDirectory(docPath);
     }
 
     if (os === "linux") {
       const docPath = await documentDir();
-      return `${docPath}/.steam/root/steamapps/compatdata/238960/pfx/drive_c/users/steamuser/My Documents/My Games/Path of Exile 2`;
+      return this.linuxPoeDirectory(docPath);
     }
 
     return null;
@@ -228,22 +246,101 @@ class Chromatic {
   async getAllFilters() {
     const files = [];
     if (this.runtime === "web") {
-      files.push(...(await this.fileSystem.getAllFiles(this.filterPath)));
+      files.push(
+        ...(await this.fileSystem.getAllFiles(this.filterPath, "text")),
+      );
     }
     if (this.runtime === "desktop") {
-      files.push(
-        ...(await this.fileSystem.getAllFiles(
-          `${this.configPath}/${this.filterPath}`,
-        )),
+      const filters = await this.fileSystem.getAllFiles(
+        `${this.configPath}/${this.filterPath}`,
+        "text",
       );
+      files.push(...filters);
     }
 
     for (const file of files) {
-      const props = JSON.parse(file);
+      const props = JSON.parse(file.data);
       props.lastUpdated = new Date(props.lastUpdated);
       new Filter(props);
     }
     store.filters.sort(alphabeticalSort((filter) => filter.name));
+  }
+
+  async getDefaultSounds() {
+    // Helper function to extract number from start of string
+    function getLeadingNumber(str: string) {
+      const match = str.match(/^\d+/);
+      return match ? Number.parseInt(match[0]) : Number.POSITIVE_INFINITY;
+    }
+
+    return [...defaultFilterSounds].sort((a, b) => {
+      // First compare by leading numbers
+      const numA = getLeadingNumber(a.name);
+      const numB = getLeadingNumber(b.name);
+      if (numA !== numB) return numA - numB;
+
+      // If numbers are equal or non-existent, sort alphabetically
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  async getSounds() {
+    const sounds = [];
+    if (this.runtime === "desktop") {
+      const rawSounds = await this.fileSystem.getAllFiles(
+        `${this.config.poeDirectory}${sep()}${this.soundPath}`,
+        "binary",
+      );
+      for (const sound of rawSounds) {
+        if (
+          sound.name.endsWith(".wav") ||
+          sound.name.endsWith(".mp3") ||
+          sound.name.endsWith(".ogg")
+        ) {
+          const blob = new Blob([sound.data], { type: "audio/wav" });
+          sounds.push({ name: sound.name, data: blob });
+        }
+      }
+    }
+    if (this.runtime === "web") {
+      const cachedSounds = await this.fileSystem.getAllFiles(
+        this.soundPath,
+        "text",
+      );
+      sounds.push(...JSON.parse(cachedSounds[0].data));
+    }
+    return sounds;
+  }
+
+  async uploadSounds(files: File[]) {
+    if (this.runtime === "desktop") {
+      await this.fileSystem.upsertDirectory(
+        `${this.config.poeDirectory}${sep()}${this.soundPath}`,
+      );
+      const path = `${this.config.poeDirectory}${sep()}${this.soundPath}`;
+      for (const file of files) {
+        this.fileSystem.writeFile(
+          `${path}/${file.name}`,
+          "binary",
+          await file.arrayBuffer(),
+        );
+      }
+    }
+    if (this.runtime === "web") {
+      this.fileSystem.writeFile(
+        this.soundPath,
+        "text",
+        JSON.stringify(
+          files.map((file) => ({ name: file.name, data: file.data })),
+        ),
+      );
+    }
+  }
+
+  async openFileExplorer(path: string) {
+    if (this.runtime === "desktop") {
+      await openPath(path);
+    }
   }
 }
 

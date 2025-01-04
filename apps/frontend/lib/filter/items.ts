@@ -33,8 +33,6 @@ class ItemIndex {
       recursivelySetKeys(hierarchy, path, item);
     }
 
-    console.log(hierarchy);
-
     this.hierarchy = hierarchy;
     this.searchIndex = new Fuse(items, options);
   }

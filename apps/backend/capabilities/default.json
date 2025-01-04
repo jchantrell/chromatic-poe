@@ -15,6 +15,10 @@
     "fs:default",
     "dialog:default",
     {
+      "identifier": "opener:allow-open-path",
+      "allow": [{ "path": "$HOME/**" }]
+    },
+    {
       "identifier": "fs:read-all",
       "allow": [
         {
@@ -59,6 +63,7 @@
           "path": "$APPCONFIG/filters/**"
         }
       ]
-    }
+    },
+    "opener:default"
   ]
 }

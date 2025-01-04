@@ -25,6 +25,7 @@ import { extractMinimapIcons } from "./minimap";
 import { FileLoader } from "./loader";
 import { BundleIndex } from "./bundle";
 import { exportFiles } from "./file";
+import { extractSounds } from "./sound";
 
 export type Config = {
   patch: string;
@@ -35,7 +36,6 @@ export type Config = {
 export type Item = {
   name: string;
   category: string;
-  subCategory: string;
   class: string;
   type: string;
   art: string;
@@ -795,11 +795,11 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
       }
     }
 
-    await exportFiles(
-      [...extraFiles, ...allItems.map((item) => item.art)],
-      path.join(process.cwd(), "packages/assets/poe2/images"),
-      this.loader,
-    );
+    // await exportFiles(
+    //   [...extraFiles, ...allItems.map((item) => item.art)],
+    //   path.join(process.cwd(), "packages/assets/poe2/images"),
+    //   this.loader,
+    // );
 
     for (const item of allItems) {
       const replacedFilepath = `poe2/images/${item.art.replaceAll("/", "@").replace("dds", "png")}`;
@@ -825,6 +825,9 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
       JSON.stringify(allItems, null, " "),
     );
     extractMinimapIcons(minimapIcons, "./packages/assets/poe2/minimap.json");
+
+    console.log("Writing sounds file...");
+    extractSounds("./packages/data/poe2/sounds.json");
   }
 
   async queryWiki(

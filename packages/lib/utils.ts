@@ -10,6 +10,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function validJson(json: string) {
+  try {
+    JSON.parse(json);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 export function clone<T extends object>(object: T): T {
   return JSON.parse(stringifyJSON(object));
 }

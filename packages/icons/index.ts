@@ -17,3 +17,4 @@ export * from "./chevron-down";
 export * from "./volume";
 export * from "./save";
 export * from "./download";
+export * from "./refresh";

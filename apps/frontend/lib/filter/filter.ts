@@ -165,6 +165,7 @@ export class Filter {
     const path = chromatic.getFiltersPath(this);
     await chromatic.fileSystem.writeFile(
       path,
+      "text",
       stringifyJSON({ ...this, lastUpdated: new Date().toISOString() }),
     );
     toast("Saved filter");
@@ -173,7 +174,7 @@ export class Filter {
   async writeFile() {
     if (chromatic.fileSystem.runtime === "desktop") {
       const path = `${chromatic.config.poeDirectory}${sep()}${this.name}.filter`;
-      await chromatic.fileSystem.writeFile(path, this.serialize());
+      await chromatic.fileSystem.writeFile(path, "text", this.serialize());
       setTimeout(async () => {
         await invoke("reload");
       }, 250);

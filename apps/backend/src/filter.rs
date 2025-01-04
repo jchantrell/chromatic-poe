@@ -1,10 +1,12 @@
 #[cfg(windows)]
-use std::{ptr, mem};
+use std::{mem, ptr};
 #[cfg(windows)]
 use winapi::shared::windef::HWND;
 #[cfg(windows)]
 use winapi::um::winuser::{
-     CloseClipboard, EmptyClipboard, FindWindowA, OpenClipboard, SendInput, SetClipboardData, SetForegroundWindow, CF_TEXT, INPUT, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, VK_CONTROL, VK_ESCAPE, VK_MENU, VK_RETURN, VK_TAB, VK_UP 
+    CloseClipboard, EmptyClipboard, FindWindowA, OpenClipboard, SendInput, SetClipboardData,
+    SetForegroundWindow, CF_TEXT, INPUT, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, VK_CONTROL,
+    VK_ESCAPE, VK_MENU, VK_RETURN, VK_TAB, VK_UP,
 };
 
 #[cfg(windows)]
@@ -44,11 +46,7 @@ fn set_clipboard_text(text: &str) -> bool {
         }
         let locked_mem = winapi::um::winbase::GlobalLock(handle) as *mut u8;
         if !locked_mem.is_null() {
-            ptr::copy_nonoverlapping(
-                text_bytes.as_ptr(),
-                locked_mem,
-                text_bytes.len(),
-            );
+            ptr::copy_nonoverlapping(text_bytes.as_ptr(), locked_mem, text_bytes.len());
             *locked_mem.add(text_bytes.len()) = 0;
             winapi::um::winbase::GlobalUnlock(handle);
         }
@@ -66,10 +64,12 @@ fn send_chat_command(text: &str, tabBack: bool) {
     }
     let mut inputs = Vec::new();
 
-
     // enter (open chat)
     inputs.push(create_keyboard_input(VK_RETURN.try_into().unwrap(), 0));
-    inputs.push(create_keyboard_input(VK_RETURN.try_into().unwrap(), KEYEVENTF_KEYUP));
+    inputs.push(create_keyboard_input(
+        VK_RETURN.try_into().unwrap(),
+        KEYEVENTF_KEYUP,
+    ));
 
     // press ctrl
     inputs.push(create_keyboard_input(VK_CONTROL.try_into().unwrap(), 0));
@@ -83,30 +83,53 @@ fn send_chat_command(text: &str, tabBack: bool) {
     inputs.push(create_keyboard_input(0x56, KEYEVENTF_KEYUP));
 
     // release ctrl
-    inputs.push(create_keyboard_input(VK_CONTROL.try_into().unwrap(), KEYEVENTF_KEYUP));
+    inputs.push(create_keyboard_input(
+        VK_CONTROL.try_into().unwrap(),
+        KEYEVENTF_KEYUP,
+    ));
 
     // enter (send command)
     inputs.push(create_keyboard_input(VK_RETURN.try_into().unwrap(), 0));
-    inputs.push(create_keyboard_input(VK_RETURN.try_into().unwrap(), KEYEVENTF_KEYUP));
+    inputs.push(create_keyboard_input(
+        VK_RETURN.try_into().unwrap(),
+        KEYEVENTF_KEYUP,
+    ));
 
     // restore the last chat state (enter, up, up, esc)
     inputs.push(create_keyboard_input(VK_RETURN.try_into().unwrap(), 0));
-    inputs.push(create_keyboard_input(VK_RETURN.try_into().unwrap(), KEYEVENTF_KEYUP));
+    inputs.push(create_keyboard_input(
+        VK_RETURN.try_into().unwrap(),
+        KEYEVENTF_KEYUP,
+    ));
     inputs.push(create_keyboard_input(VK_UP.try_into().unwrap(), 0));
-    inputs.push(create_keyboard_input(VK_UP.try_into().unwrap(), KEYEVENTF_KEYUP));
+    inputs.push(create_keyboard_input(
+        VK_UP.try_into().unwrap(),
+        KEYEVENTF_KEYUP,
+    ));
     inputs.push(create_keyboard_input(VK_UP.try_into().unwrap(), 0));
-    inputs.push(create_keyboard_input(VK_UP.try_into().unwrap(), KEYEVENTF_KEYUP));
+    inputs.push(create_keyboard_input(
+        VK_UP.try_into().unwrap(),
+        KEYEVENTF_KEYUP,
+    ));
     inputs.push(create_keyboard_input(VK_ESCAPE.try_into().unwrap(), 0));
-    inputs.push(create_keyboard_input(VK_ESCAPE.try_into().unwrap(), KEYEVENTF_KEYUP));
+    inputs.push(create_keyboard_input(
+        VK_ESCAPE.try_into().unwrap(),
+        KEYEVENTF_KEYUP,
+    ));
 
     // tab back to last pane
     if tabBack {
         inputs.push(create_keyboard_input(VK_MENU.try_into().unwrap(), 0));
         inputs.push(create_keyboard_input(VK_TAB.try_into().unwrap(), 0));
-        inputs.push(create_keyboard_input(VK_TAB.try_into().unwrap(), KEYEVENTF_KEYUP));
-        inputs.push(create_keyboard_input(VK_MENU.try_into().unwrap(), KEYEVENTF_KEYUP));
+        inputs.push(create_keyboard_input(
+            VK_TAB.try_into().unwrap(),
+            KEYEVENTF_KEYUP,
+        ));
+        inputs.push(create_keyboard_input(
+            VK_MENU.try_into().unwrap(),
+            KEYEVENTF_KEYUP,
+        ));
     }
-
 
     unsafe {
         SendInput(

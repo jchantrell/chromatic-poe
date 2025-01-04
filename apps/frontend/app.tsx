@@ -32,6 +32,8 @@ import Background from "./components/background";
 export const BASE_URL = import.meta.env.BASE_URL;
 export const storageManager = createLocalStorageManager("theme");
 
+const ZOOM_LEVELS = [0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5];
+
 function Link(props: {
   href: string;
   children: JSXElement;
@@ -72,7 +74,7 @@ function SideBar() {
           </Link>
         </Tooltip>
         <Tooltip text='Manage Sounds'>
-          <Link href={`${BASE_URL}sound`} disabled={true}>
+          <Link href={`${BASE_URL}sound`}>
             <AudioIcon />
           </Link>
         </Tooltip>
@@ -176,21 +178,20 @@ function App() {
     await chromatic.init();
     await chromatic.getAllFilters();
   });
-  const zoomLevels = [0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5];
   const [zoom, setZoom] = createSignal(4);
 
   document.addEventListener("wheel", async (event) => {
     if (event.ctrlKey) {
       const view = getCurrentWebview();
-      if (event.deltaY > 0 && zoomLevels[zoom() - 1]) {
+      if (event.deltaY > 0 && ZOOM_LEVELS[zoom() - 1]) {
         setZoom(zoom() - 1);
-      } else if (event.deltaY < 0 && zoomLevels[zoom() + 1]) {
+      } else if (event.deltaY < 0 && ZOOM_LEVELS[zoom() + 1]) {
         setZoom(zoom() + 1);
       } else {
         return;
       }
 
-      return view.setZoom(zoomLevels[zoom()]);
+      return view.setZoom(ZOOM_LEVELS[zoom()]);
     }
   });
 

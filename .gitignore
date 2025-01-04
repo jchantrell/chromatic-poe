@@ -12,3 +12,5 @@ packages/assets/poe1/minimap.json
 packages/assets/poe2/minimap.json
 packages/assets/poe1/images
 packages/assets/poe2/images
+packages/data/poe1/sounds.json
+packages/data/poe2/sounds.json

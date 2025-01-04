@@ -399,12 +399,12 @@ function SliderInput(props: {
       getValueLabel={(params) => {
         return `${params.values[0]}`;
       }}
-      class='space-y-1 w-[150px]'
+      class='space-y-3 w-[150px]'
     >
       <SliderValueLabel />
       <div class='flex w-[150px]'>
         <SliderTrack>
-          <SliderThumb class='border border-neutral-400' />
+          <SliderThumb class='border border-2 border-primary bg-secondary' />
         </SliderTrack>
       </div>
     </Slider>

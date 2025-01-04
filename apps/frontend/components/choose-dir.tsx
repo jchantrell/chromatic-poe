@@ -56,7 +56,7 @@ export function ChooseDirectory<T extends ValidComponent = "div">(
 
     const currentPlatform = platform();
 
-    if (chromatic.config.poeDirectory) {
+    if (chromatic?.config?.poeDirectory) {
       return setDirectory(chromatic.config.poeDirectory);
     }
 
