@@ -15,6 +15,7 @@ import { createSignal } from "solid-js";
 import Tooltip from "@app/components/tooltip";
 import { Separator } from "@pkgs/ui/separator";
 import { refreshSounds, setSounds, store } from "@app/store";
+import { BASE_URL } from "@app/app";
 
 export function SoundPlayer(props: {
   sound: Sound | null;
@@ -46,7 +47,7 @@ export function SoundPlayer(props: {
       return URL.createObjectURL(sound.data);
     }
     if (sound?.path) {
-      return `/${sound.path}`;
+      return `${BASE_URL}${sound.path}`;
     }
     return "";
   }

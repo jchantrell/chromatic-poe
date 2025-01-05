@@ -17,7 +17,7 @@ import {
 } from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
 import { createSignal, type JSXElement, onMount } from "solid-js";
-import { store } from "./store";
+import { refreshSounds, store } from "./store";
 import { Toaster } from "@pkgs/ui/sonner";
 import { Settings } from "./components/settings";
 import { Route, Router } from "@solidjs/router";
@@ -177,6 +177,7 @@ function App() {
   onMount(async () => {
     await chromatic.init();
     await chromatic.getAllFilters();
+    await refreshSounds();
   });
   const [zoom, setZoom] = createSignal(4);
 

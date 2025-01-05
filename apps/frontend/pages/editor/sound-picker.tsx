@@ -16,7 +16,7 @@ import {
   ComboboxSection,
   ComboboxTrigger,
 } from "@pkgs/ui/combo-box";
-import { chromatic, type Sound } from "@app/lib/config";
+import type { Sound } from "@app/lib/config";
 import { createStore } from "solid-js/store";
 import { SoundPlayer } from "../sound";
 
@@ -107,7 +107,7 @@ export default function SoundPicker() {
       }
     }),
   );
-  createEffect(() => {
+  createEffect(async () => {
     if (store.activeRule) {
       const path = findSound(store.activeRule.actions?.sound?.path);
       if (path) {
@@ -122,10 +122,7 @@ export default function SoundPicker() {
   });
 
   onMount(async () => {
-    if (chromatic.runtime === "desktop") {
-      refreshSounds();
-    }
-
+    await refreshSounds();
     setSounds([
       {
         label: "Custom",

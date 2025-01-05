@@ -59,8 +59,22 @@ export async function refreshSounds() {
     toast.error("Cannot find sounds folder. Does it exist?");
     return;
   }
+  const updatedSounds = [];
+  for (const sound of cachedSounds) {
+    const exists = store.sounds.find((e) => e.id === sound.id);
+    if (exists && exists.type === "cached") {
+      updatedSounds.push(sound);
+      continue;
+    }
+    if (!exists) {
+      updatedSounds.push(sound);
+    }
+  }
+
   setSounds(
-    cachedSounds.sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    [...store.sounds.filter((s) => s.type !== "cached"), ...updatedSounds].sort(
+      (a, b) => a.displayName.localeCompare(b.displayName),
+    ),
   );
   store.defaultSounds = await chromatic.getDefaultSounds();
 }
