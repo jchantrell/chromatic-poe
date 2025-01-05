@@ -165,28 +165,28 @@ function ToggleDropSound() {
       <Label class='w-[94px]' for='dropSound'>
         Drop Sound
       </Label>
-      <Checkbox
-        id='dropSound'
-        onChange={handleActive}
-        checked={dropSoundActive()}
-      />
+      <Tooltip text='Enable/Disable Native Drop Sound'>
+        <Checkbox
+          id='dropSound'
+          onChange={handleActive}
+          checked={dropSoundActive()}
+        />
+      </Tooltip>
       <div class='flex grow-0'>
         {store.activeRule?.actions.dropSound?.enabled ? (
-          <Tooltip text='Enable/Disable Drop Sound'>
-            <div class='flex items-center gap-1'>
-              <Switch
-                checked={store.activeRule?.actions.dropSound?.toggle}
-                onChange={(checked) => {
-                  handleDropSound(checked);
-                }}
-                class='flex items-center space-x-2'
-              >
-                <SwitchControl class='bg-accent'>
-                  <SwitchThumb />
-                </SwitchControl>
-              </Switch>
-            </div>
-          </Tooltip>
+          <div class='flex items-center gap-1'>
+            <Switch
+              checked={store.activeRule?.actions.dropSound?.toggle}
+              onChange={(checked) => {
+                handleDropSound(checked);
+              }}
+              class='flex items-center space-x-2'
+            >
+              <SwitchControl class='bg-accent'>
+                <SwitchThumb />
+              </SwitchControl>
+            </Switch>
+          </div>
         ) : (
           ""
         )}
@@ -199,11 +199,11 @@ export default function RuleEditor() {
   if (!store.activeRule) return <></>;
 
   return (
-    <div class='size-full p-10 overflow-y-auto flex flex-col items-center relative'>
-      <div>
+    <div class='size-full p-10 overflow-y-auto overflow-x-hidden flex flex-col items-center'>
+      <div class='rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[expanded]:bg-accent data-[expanded]:text-muted-foreground'>
         <button
           type='button'
-          class='absolute top-1 left-1 p-1 flex items-center justify-center w-6 h-6'
+          class='absolute top-1 left-1 p-1 flex items-center justify-center w-6 h-6 bg-muted rounded-full text-center'
           onMouseDown={() => {
             store.activeRule = null;
           }}
@@ -237,22 +237,26 @@ export default function RuleEditor() {
           </div>
         </div>
       </div>
-      <div class='w-full  flex-col flex gap-4 justify-center items-center my-2'>
-        <div class='gap-1 flex flex-col'>
-          <div class='flex flex-col gap-2 min-w-[350px]'>
-            <ColorPicker label='Text' key='text' />
-            <ColorPicker label='Border' key='border' />
-            <ColorPicker label='Background' key='background' />
-            <LabelSize />
-            <ToggleMapIcon />
-            <ToggleBeam />
-            <ToggleDropSound />
-            <SoundPicker />
+      <div class='flex gap-4'>
+        <div class='w-full flex-col flex gap-4 justify-center items-center my-2'>
+          <div class='gap-1 flex flex-col'>
+            <div class='flex flex-col gap-2 min-w-[350px]'>
+              <ColorPicker label='Text' key='text' />
+              <ColorPicker label='Border' key='border' />
+              <ColorPicker label='Background' key='background' />
+              <LabelSize />
+              <ToggleMapIcon />
+              <ToggleBeam />
+              <ToggleDropSound />
+              <SoundPicker />
+            </div>
           </div>
         </div>
+        {/* <div class='border border-muted p-1 whitespace-pre bg-muted/50 w-full overflow-y-auto max-w-[400px] max-h-[250px]'>
+          {store.filter?.convertToText(store.activeRule)}
+        </div> */}
       </div>
       <ConditionManager />
-      {store.filter?.convertToText(store.activeRule)}
     </div>
   );
 }

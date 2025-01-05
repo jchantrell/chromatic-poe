@@ -55,7 +55,7 @@ export default function Editor() {
           <ResizableHandle class='bg-primary-foreground' />
           <ResizablePanel class='overflow-y-auto'>
             <div
-              class={`bg-no-repeat bg-center bg-cover size-full ${
+              class={`bg-no-repeat bg-center bg-cover size-full relative ${
                 colorMode() === "dark"
                   ? "bg-[url('/static/bg-dark.jpg')]"
                   : "bg-[url('/static/bg-light.jpg')]"

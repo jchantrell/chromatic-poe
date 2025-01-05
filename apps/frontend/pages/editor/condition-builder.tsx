@@ -616,8 +616,8 @@ export default function ConditionManager() {
   }
 
   return (
-    <div class='mx-auto p-4 '>
-      <div class='space-y-4 flex flex-col justify-center w-[400px]'>
+    <div class='mx-auto p-4 h-full'>
+      <div class='space-y-4 flex flex-col size-full max-w-[500px]'>
         <div class='flex gap-5 items-center'>
           <Dialog>
             <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
@@ -699,7 +699,7 @@ export default function ConditionManager() {
             No conditions. Click "Edit Conditions" to start.
           </div>
         ) : (
-          <div class='space-y-4 flex flex-col items-start'>
+          <div class='space-y-4 flex flex-col items-start overflow-y-auto h-full'>
             <For each={Object.entries(store.activeRule?.conditions)}>
               {([key, value]) => {
                 const condition =

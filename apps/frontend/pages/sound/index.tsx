@@ -1,5 +1,5 @@
 import Background from "@app/components/background";
-import { createEffect, For, on, onMount } from "solid-js";
+import { createEffect, For, onMount } from "solid-js";
 import { RefreshIcon, TrashIcon, VolumeIcon } from "@pkgs/icons";
 import chromatic, { type Sound } from "@app/lib/config";
 import { platform } from "@tauri-apps/plugin-os";
@@ -183,13 +183,6 @@ export default function SoundManager() {
     await chromatic.init();
     await refreshSounds();
     setInit(true);
-
-    for (const sound of store.defaultSounds) {
-      console.log(sound);
-    }
-    for (const sound of store.sounds) {
-      console.log(sound);
-    }
   });
 
   return (
@@ -197,8 +190,9 @@ export default function SoundManager() {
       <div class='flex flex-col items-center size-full p-10'>
         <div class='text-wrap flex flex-col items-center justify-center'>
           <div>
-            Chromatic looks for sound files in the "sounds" folder next to your
-            filter files.
+            Chromatic looks for sound files{" "}
+            {chromatic.runtime === "desktop" ? "(wav, mp3, ogg) " : ""}
+            in the "sounds" folder next to your filter files.
           </div>
         </div>
         <div class='text-neutral-400 italic text-wrap flex flex-col items-center'>
