@@ -795,11 +795,11 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
       }
     }
 
-    // await exportFiles(
-    //   [...extraFiles, ...allItems.map((item) => item.art)],
-    //   path.join(process.cwd(), "packages/assets/poe2/images"),
-    //   this.loader,
-    // );
+    await exportFiles(
+      [...extraFiles, ...allItems.map((item) => item.art)],
+      path.join(process.cwd(), "packages/assets/poe2/images"),
+      this.loader,
+    );
 
     for (const item of allItems) {
       const replacedFilepath = `poe2/images/${item.art.replaceAll("/", "@").replace("dds", "png")}`;
