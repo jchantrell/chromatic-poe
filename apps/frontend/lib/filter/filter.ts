@@ -18,6 +18,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { sep } from "@tauri-apps/api/path";
 import { toast } from "solid-sonner";
 
+const WRITE_TIMEOUT = 1000;
+
 export enum Block {
   show = "Show",
   hide = "Hide",
@@ -58,6 +60,8 @@ export class Filter {
 
   undoStack: Operation[][] = [];
   redoStack: Operation[][] = [];
+
+  private lastWriteTime = 0;
 
   constructor(params: {
     name: string;
@@ -174,6 +178,12 @@ export class Filter {
   }
 
   async writeFile() {
+    const now = Date.now();
+    if (now - this.lastWriteTime < WRITE_TIMEOUT) {
+      return;
+    }
+    this.lastWriteTime = now;
+
     if (chromatic.fileSystem.runtime === "desktop") {
       const path = `${chromatic.config.poeDirectory}${sep()}${this.name}.filter`;
       await chromatic.fileSystem.writeFile(path, "text", this.serialize());
