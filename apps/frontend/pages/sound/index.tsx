@@ -1,8 +1,7 @@
 import Background from "@app/components/background";
-import { createStore } from "solid-js/store";
-import { For, onMount } from "solid-js";
+import { createEffect, For, on, onMount } from "solid-js";
 import { RefreshIcon, TrashIcon, VolumeIcon } from "@pkgs/icons";
-import chromatic from "@app/lib/config";
+import chromatic, { type Sound } from "@app/lib/config";
 import { platform } from "@tauri-apps/plugin-os";
 import {
   Slider,
@@ -15,72 +14,98 @@ import {
 import { createSignal } from "solid-js";
 import Tooltip from "@app/components/tooltip";
 import { Separator } from "@pkgs/ui/separator";
-import { to } from "@pkgs/lib/utils";
-import { toast } from "solid-sonner";
+import { refreshSounds, setSounds, store } from "@app/store";
 
-function SoundFile(props: {
-  sound: { name: string; data?: Blob; type?: string; path?: string } | File;
+export function SoundPlayer(props: {
+  sound: Sound | null;
   volume: number;
-  handleRemove?: (name: string) => void;
+  size: number;
+  highlight?: boolean;
+  id?: string | null;
 }) {
   let audioRef: HTMLAudioElement | undefined;
+  const [source, setSource] = createSignal(getSource(props.sound));
   const validAudio =
-    props.sound instanceof File ||
+    props.sound?.data instanceof File ||
     props.sound?.data instanceof Blob ||
-    props.sound?.path;
+    props.sound?.type === "default";
 
   async function handlePlay() {
     if (audioRef) {
-      audioRef.pause();
       audioRef.currentTime = 0;
       audioRef.volume = props.volume;
       await audioRef.play();
     }
   }
 
-  function getSource() {
-    if (props.sound instanceof File) {
-      return URL.createObjectURL(props.sound);
+  function getSource(sound: Sound | null) {
+    if (sound?.data instanceof File) {
+      return URL.createObjectURL(sound.data);
     }
-    if (props.sound?.path) {
-      return `/${props.sound.path}`;
+    if (sound?.data instanceof Blob) {
+      return URL.createObjectURL(sound.data);
     }
-    if (props.sound?.data) {
-      return URL.createObjectURL(props.sound.data);
+    if (sound?.path) {
+      return `/${sound.path}`;
     }
     return "";
   }
 
+  createEffect(() => {
+    setSource(getSource(props.sound));
+    if (audioRef) {
+      audioRef.src = source();
+    }
+  });
+
+  return (
+    <div class='flex items-center h-full'>
+      <Tooltip text='Play Sound'>
+        <button
+          onClick={async () => await handlePlay()}
+          type='button'
+          title={`Play Sound ${props.sound?.id}`}
+          class={`p-2 ${props.highlight ? "hover:bg-primary/10" : ""} w-${props.size} h-${props.size} ${
+            validAudio ? "" : "text-primary/25"
+          }`}
+          disabled={!validAudio}
+        >
+          <VolumeIcon />
+        </button>
+      </Tooltip>
+      {validAudio && (
+        <audio ref={audioRef}>
+          <track kind='captions' />
+          <source
+            src={source()}
+            type={`audio/${props.sound?.path?.split(".")[1]}` || "audio/wav"}
+          />
+        </audio>
+      )}
+    </div>
+  );
+}
+
+function SoundFile(props: {
+  sound: Sound;
+  volume: number;
+  handleRemove?: (name: string) => void;
+}) {
   return (
     <div class='flex gap-2 justify-between bg-muted border border-accent rounded-md h-10'>
       <div class='flex h-full items-center gap-2'>
-        <div class='flex items-center h-full'>
-          <Tooltip text='Play Sound'>
-            <button
-              onClick={async () => await handlePlay()}
-              type='button'
-              title='Play Sound'
-              class={`p-2 hover:bg-primary/10 h-12 ${
-                validAudio ? "" : "text-primary/25"
-              }`}
-              disabled={!validAudio}
-            >
-              <VolumeIcon />
-            </button>
-          </Tooltip>
-          {validAudio && (
-            <audio ref={audioRef}>
-              <track kind='captions' />
-              <source src={getSource()} type={props.sound.type} />
-            </audio>
-          )}
-        </div>
-        <div class='flex items-center'>{props.sound.name.split(".")[0]}</div>
+        <SoundPlayer
+          sound={props.sound}
+          volume={props.volume}
+          size={10}
+          highlight={true}
+        />
+        <div class='flex items-center'>{props.sound.displayName}</div>
       </div>
       {chromatic.runtime === "web" && props.handleRemove && (
         <div class='flex items-center h-full'>
           <button
-            onClick={() => props.handleRemove?.(props.sound.name)}
+            onClick={() => props.handleRemove?.(props.sound.id)}
             type='button'
             class='p-2 hover:bg-primary/10 h-full'
             title='Remove'
@@ -94,41 +119,53 @@ function SoundFile(props: {
 }
 
 export default function SoundManager() {
-  const [sounds, setSounds] = createStore<File[]>([]);
-  const [defaultSounds, setDefaultSounds] = createSignal<
-    { name: string; path: string }[]
-  >([]);
   const [volume, setVolume] = createSignal(50);
   const [init, setInit] = createSignal(false);
 
   function handleUpload(e: Event) {
     if (e.target instanceof HTMLInputElement && e.target.files) {
       const files = e.target.files;
-      const newSounds: File[] = [];
+      const newSounds: Sound[] = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const exists = sounds.find((sound) => sound.name === file.name);
+        const exists = store.sounds.find((sound) => sound.id === file.name);
         if (!exists && file.type.startsWith("audio")) {
-          newSounds.push(file);
+          newSounds.push({
+            displayName: file.name,
+            id: file.name,
+            path: `sounds/${file.name}`,
+            data: new Blob([file]),
+            type: "custom",
+          });
+          continue;
         }
-        if (exists && !(exists instanceof File)) {
-          setSounds(sounds.indexOf(exists), file);
+        if (exists && !(exists?.data instanceof File)) {
+          setSounds(
+            store.sounds.map((sound) =>
+              sound.id === exists.id
+                ? { ...sound, data: new Blob([file]), type: "custom" }
+                : sound,
+            ),
+          );
         }
       }
-      setSounds((prev) =>
-        [...prev, ...newSounds].sort((a, b) => a.name.localeCompare(b.name)),
+
+      setSounds(
+        [...store.sounds, ...newSounds].sort((a, b) =>
+          a.displayName.localeCompare(b.displayName),
+        ),
       );
     }
 
     if (chromatic.runtime === "web") {
-      chromatic.uploadSounds(sounds);
+      chromatic.uploadSounds(store.sounds);
     }
   }
 
-  function handleRemove(name: string) {
-    setSounds((prev) => prev.filter((sound) => sound.name !== name));
+  function handleRemove(id: string) {
+    setSounds(store.sounds.filter((sound) => sound.id !== id));
     if (chromatic.runtime === "web") {
-      chromatic.uploadSounds(sounds);
+      chromatic.uploadSounds(store.sounds);
     }
   }
 
@@ -142,21 +179,17 @@ export default function SoundManager() {
     }
   }
 
-  async function refreshSounds() {
-    console.log("Refreshing sounds...");
-    const [err, cachedSounds] = await to(chromatic.getSounds());
-    if (err) {
-      toast.error("Cannot find sounds folder. Does it exist?");
-      return;
-    }
-    setSounds(cachedSounds.sort((a, b) => a.name.localeCompare(b.name)));
-  }
-
   onMount(async () => {
     await chromatic.init();
-    setDefaultSounds(await chromatic.getDefaultSounds());
     await refreshSounds();
     setInit(true);
+
+    for (const sound of store.defaultSounds) {
+      console.log(sound);
+    }
+    for (const sound of store.sounds) {
+      console.log(sound);
+    }
   });
 
   return (
@@ -236,18 +269,18 @@ export default function SoundManager() {
               </Slider>
             </div>
           </div>
-          <Separator class='my-3 border-neutral-600' />
+          <Separator class='my-3 border-neutral-500' />
           <div class='flex flex-col size-full overflow-y-auto mb-20'>
             <div class='text-lg font-bold'>Custom</div>
             <div class='w-full flex justify-center'>
               {!init() && <span class='text-center'>Loading...</span>}
-              {init() && !sounds.length && (
+              {init() && !store.sounds.length && (
                 <span class='text-center'>No sounds uploaded.</span>
               )}
             </div>
             <div class='flex flex-col size-full'>
               <div class='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 mt-2 auto-rows-max w-full mb-5'>
-                <For each={sounds}>
+                <For each={store.sounds}>
                   {(sound) => (
                     <SoundFile
                       sound={sound}
@@ -259,7 +292,7 @@ export default function SoundManager() {
               </div>
               <div class='text-lg font-bold'>Default</div>
               <div class='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 mt-2 auto-rows-min size-full max-h-72'>
-                <For each={defaultSounds()}>
+                <For each={store.defaultSounds}>
                   {(sound) => (
                     <SoundFile sound={sound} volume={volume() * 0.01} />
                   )}

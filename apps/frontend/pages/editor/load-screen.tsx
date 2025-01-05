@@ -37,7 +37,6 @@ export function CreateFilter() {
     }
     const filter = await generateFilter(name(), version());
     await filter.save();
-    setFilter(filter);
     setDialogOpen(false);
   }
 

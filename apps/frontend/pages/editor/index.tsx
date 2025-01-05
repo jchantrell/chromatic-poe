@@ -42,10 +42,6 @@ export default function Editor() {
         if (key === WRITE_KEY && event.ctrl && pressed) {
           return store.filter?.writeFile();
         }
-
-        if (key === ESCAPE_KEY) {
-          store.activeRule = null;
-        }
       },
     );
   });

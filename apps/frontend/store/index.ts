@@ -1,5 +1,8 @@
+import { chromatic, type Sound } from "@app/lib/config";
 import type { Filter, FilterRule } from "@app/lib/filter";
+import { to } from "@pkgs/lib/utils";
 import { createMutable } from "solid-js/store";
+import { toast } from "solid-sonner";
 
 interface Store {
   activeRule: FilterRule | null;
@@ -7,6 +10,8 @@ interface Store {
   filters: Filter[];
   initialised: boolean;
   locale: null | string;
+  sounds: Sound[];
+  defaultSounds: Sound[];
 }
 
 export const store = createMutable<Store>({
@@ -15,6 +20,8 @@ export const store = createMutable<Store>({
   filters: [],
   initialised: false,
   locale: null,
+  sounds: [],
+  defaultSounds: [],
 });
 
 export function removeFilter(filter: Filter) {
@@ -39,4 +46,22 @@ export function setInitialised(state: boolean) {
 
 export function setLocale(locale: string | null) {
   store.locale = locale;
+}
+
+export async function setSounds(sounds: Sound[]) {
+  store.sounds = sounds;
+}
+
+export async function refreshSounds() {
+  console.log("Refreshing sounds...");
+  const [err, cachedSounds] = await to(chromatic.getSounds());
+  console.log(err, cachedSounds);
+  if (err) {
+    toast.error("Cannot find sounds folder. Does it exist?");
+    return;
+  }
+  setSounds(
+    cachedSounds.sort((a, b) => a.displayName.localeCompare(b.displayName)),
+  );
+  store.defaultSounds = await chromatic.getDefaultSounds();
 }

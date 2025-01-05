@@ -64,7 +64,7 @@ export class WebStorage implements FileSystem {
     type: "text" | "binary",
     data: string | ArrayBuffer,
   ) {
-    console.log("Writing file", path, data);
+    console.log("Writing file", path);
     const split = path.split("/");
     const files = localStorage.getItem(split[0]);
     const updatedFiles = JSON.parse(files ?? "{}");

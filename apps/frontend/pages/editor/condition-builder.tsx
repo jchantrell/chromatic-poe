@@ -693,7 +693,8 @@ export default function ConditionManager() {
           </div>
         </div>
 
-        {Object.keys(store.activeRule?.conditions).length === 0 ? (
+        {store.activeRule &&
+        Object.keys(store.activeRule.conditions).length === 0 ? (
           <div class='text-center py-8 text-muted-foreground'>
             No conditions. Click "Edit Conditions" to start.
           </div>

@@ -4,6 +4,8 @@ import {
   Color,
   IconSize,
   setBeamEnabled,
+  setDropSoundEnabled,
+  setDropSoundToggle,
   setMapIconEnabled,
   Shape,
 } from "@app/lib/filter";
@@ -15,55 +17,9 @@ import BeamPicker from "@app/pages/editor/beam-picker";
 import ConditionManager from "./condition-builder";
 import { Slider, SliderFill, SliderThumb, SliderTrack } from "@pkgs/ui/slider";
 import Tooltip from "@app/components/tooltip";
-
-export default function RuleEditor() {
-  if (!store.activeRule) return <></>;
-
-  return (
-    <div class='size-full p-10 overflow-y-auto flex flex-col items-center'>
-      <div class='flex h-10'>
-        <div class='flex gap-1 w-full items-center justify-center'>
-          <div
-            class='flex w-full text-nowrap items-center justify-center border-[1.5px] min-w-fit max-h-fit px-2 mb-2'
-            style={{
-              color: `rgba(${store.activeRule.actions.text?.r ?? 0}, ${store.activeRule.actions.text?.g ?? 0}, ${store.activeRule.actions.text?.b ?? 0}, ${(store.activeRule.actions.text?.a ?? 255) / 255})`,
-              "border-color": `rgba(${store.activeRule.actions.border?.r ?? 0}, ${store.activeRule.actions.border?.g ?? 0}, ${store.activeRule.actions.border?.b ?? 0}, ${(store.activeRule.actions.border?.a ?? 255) / 255})`,
-              "background-color": `rgba(${store.activeRule.actions.background?.r ?? 0}, ${store.activeRule.actions.background?.g ?? 0}, ${store.activeRule.actions.background?.b ?? 0}, ${(store.activeRule.actions.background?.a ?? 255) / 255})`,
-              "max-width": `${(store.activeRule.actions.fontSize || 32) * 6}px`,
-              "font-size": `${(store.activeRule.actions.fontSize || 32) / 1.5}px`,
-            }}
-          >
-            {store.activeRule.bases.length
-              ? store.activeRule.bases
-                  .filter((base) => base.enabled)
-                  .reduce(
-                    (a, b) => {
-                      return a.name.length <= b.name.length ? a : b;
-                    },
-                    store.activeRule.bases.find((base) => base.enabled) ||
-                      store.activeRule.bases[0],
-                  ).name
-              : "Item"}
-          </div>
-        </div>
-      </div>
-      <div class='w-full flex-col flex gap-4 justify-center items-center my-2'>
-        <div class='gap-1 flex flex-col'>
-          <div class='flex flex-col gap-2'>
-            <ColorPicker label='Text' key='text' />
-            <ColorPicker label='Border' key='border' />
-            <ColorPicker label='Background' key='background' />
-            <LabelSize />
-            <SoundPicker />
-            <ToggleMapIcon />
-            <ToggleBeam />
-          </div>
-        </div>
-      </div>
-      <ConditionManager />
-    </div>
-  );
-}
+import { CloseIcon } from "@pkgs/icons";
+import SoundPicker from "./sound-picker";
+import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
 
 function LabelSize() {
   const [size, setSize] = createSignal(32);
@@ -79,9 +35,9 @@ function LabelSize() {
   });
 
   return (
-    <div class='flex items-center gap-1.5'>
+    <div class='flex items-center gap-1.5 h-6'>
       <Label class='w-[87px]'>Size</Label>
-      {size()}
+      <div class='w-5'>{size()}</div>
       <Slider
         class='w-[80px] ml-2'
         minValue={1}
@@ -120,7 +76,7 @@ function ToggleMapIcon() {
   });
 
   return (
-    <div class='flex text-nowrap items-center h-8'>
+    <div class='flex text-nowrap items-center h-6'>
       <Label class='w-[94px]' for='icon'>
         Map Icon
       </Label>
@@ -164,7 +120,7 @@ function ToggleBeam() {
   });
 
   return (
-    <div class='flex text-nowrap items-center h-2'>
+    <div class='flex text-nowrap items-center h-6'>
       <Label class='w-[94px]' for='beam'>
         Beam
       </Label>
@@ -182,6 +138,121 @@ function ToggleBeam() {
   );
 }
 
-function SoundPicker() {
-  return <div>SoundPicker</div>;
+function ToggleDropSound() {
+  const [dropSoundActive, setDropSoundActive] = createSignal(false);
+
+  function handleActive(enabled: boolean) {
+    if (store.filter && store.activeRule?.actions.dropSound) {
+      setDropSoundEnabled(store.filter, store.activeRule, enabled);
+    }
+    if (store.activeRule && !store.activeRule?.actions.dropSound && enabled) {
+      store.activeRule.actions.dropSound = { enabled: true, toggle: true };
+    }
+  }
+
+  function handleDropSound(enabled: boolean) {
+    if (store.filter && store.activeRule?.actions.dropSound) {
+      setDropSoundToggle(store.filter, store.activeRule, enabled);
+    }
+  }
+
+  createEffect(() => {
+    setDropSoundActive(store.activeRule?.actions.dropSound?.enabled || false);
+  });
+
+  return (
+    <div class='flex text-nowrap items-center h-6'>
+      <Label class='w-[94px]' for='dropSound'>
+        Drop Sound
+      </Label>
+      <Checkbox
+        id='dropSound'
+        onChange={handleActive}
+        checked={dropSoundActive()}
+      />
+      <div class='flex grow-0'>
+        {store.activeRule?.actions.dropSound?.enabled ? (
+          <Tooltip text='Enable/Disable Drop Sound'>
+            <div class='flex items-center gap-1'>
+              <Switch
+                checked={store.activeRule?.actions.dropSound?.toggle}
+                onChange={(checked) => {
+                  handleDropSound(checked);
+                }}
+                class='flex items-center space-x-2'
+              >
+                <SwitchControl class='bg-accent'>
+                  <SwitchThumb />
+                </SwitchControl>
+              </Switch>
+            </div>
+          </Tooltip>
+        ) : (
+          ""
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function RuleEditor() {
+  if (!store.activeRule) return <></>;
+
+  return (
+    <div class='size-full p-10 overflow-y-auto flex flex-col items-center relative'>
+      <div>
+        <button
+          type='button'
+          class='absolute top-1 left-1 p-1 flex items-center justify-center w-6 h-6'
+          onMouseDown={() => {
+            store.activeRule = null;
+          }}
+        >
+          <CloseIcon />
+        </button>
+      </div>
+      <div class='flex h-10'>
+        <div class='flex gap-1 w-full items-center justify-center'>
+          <div
+            class='flex w-full text-nowrap items-center justify-center border-[1.5px] min-w-fit max-h-fit px-2 mb-2'
+            style={{
+              color: `rgba(${store.activeRule.actions.text?.r ?? 0}, ${store.activeRule.actions.text?.g ?? 0}, ${store.activeRule.actions.text?.b ?? 0}, ${(store.activeRule.actions.text?.a ?? 255) / 255})`,
+              "border-color": `rgba(${store.activeRule.actions.border?.r ?? 0}, ${store.activeRule.actions.border?.g ?? 0}, ${store.activeRule.actions.border?.b ?? 0}, ${(store.activeRule.actions.border?.a ?? 255) / 255})`,
+              "background-color": `rgba(${store.activeRule.actions.background?.r ?? 0}, ${store.activeRule.actions.background?.g ?? 0}, ${store.activeRule.actions.background?.b ?? 0}, ${(store.activeRule.actions.background?.a ?? 255) / 255})`,
+              "max-width": `${(store.activeRule.actions.fontSize || 32) * 6}px`,
+              "font-size": `${(store.activeRule.actions.fontSize || 32) / 1.5}px`,
+            }}
+          >
+            {store.activeRule.bases.length
+              ? store.activeRule.bases
+                  .filter((base) => base.enabled)
+                  .reduce(
+                    (a, b) => {
+                      return a.name.length <= b.name.length ? a : b;
+                    },
+                    store.activeRule.bases.find((base) => base.enabled) ||
+                      store.activeRule.bases[0],
+                  ).name
+              : "Item"}
+          </div>
+        </div>
+      </div>
+      <div class='w-full  flex-col flex gap-4 justify-center items-center my-2'>
+        <div class='gap-1 flex flex-col'>
+          <div class='flex flex-col gap-2 min-w-[350px]'>
+            <ColorPicker label='Text' key='text' />
+            <ColorPicker label='Border' key='border' />
+            <ColorPicker label='Background' key='background' />
+            <LabelSize />
+            <ToggleMapIcon />
+            <ToggleBeam />
+            <ToggleDropSound />
+            <SoundPicker />
+          </div>
+        </div>
+      </div>
+      <ConditionManager />
+      {store.filter?.convertToText(store.activeRule)}
+    </div>
+  );
 }

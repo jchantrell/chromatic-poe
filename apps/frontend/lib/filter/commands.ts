@@ -50,6 +50,97 @@ export function setBeamEnabled(
   );
 }
 
+export function setSoundEnabled(
+  filter: Filter,
+  rule: FilterRule,
+  enabled: boolean,
+) {
+  filter.execute(
+    new Command(() => {
+      if (!rule.actions.sound) {
+        rule.actions.sound = {
+          enabled: enabled,
+          path: { value: "1", type: "default" },
+          volume: 100,
+        };
+      }
+      if (rule.actions.sound) {
+        rule.actions.sound.enabled = enabled;
+      }
+    }),
+  );
+}
+
+export function setDropSoundEnabled(
+  filter: Filter,
+  rule: FilterRule,
+  enabled: boolean,
+) {
+  filter.execute(
+    new Command(() => {
+      if (rule.actions.dropSound) {
+        rule.actions.dropSound.enabled = enabled;
+      }
+    }),
+  );
+}
+
+export function setDropSoundToggle(
+  filter: Filter,
+  rule: FilterRule,
+  enabled: boolean,
+) {
+  filter.execute(
+    new Command(() => {
+      if (rule.actions.dropSound) {
+        rule.actions.dropSound.toggle = enabled;
+      }
+    }),
+  );
+}
+
+export function setSoundPath(
+  filter: Filter,
+  rule: FilterRule,
+  path: { value: string; type: "custom" | "default" },
+) {
+  filter.execute(
+    new Command(() => {
+      if (!rule.actions.sound) {
+        rule.actions.sound = {
+          enabled: true,
+          path: { value: "1", type: "default" },
+          volume: 100,
+        };
+      }
+      if (rule.actions.sound) {
+        rule.actions.sound.path = path;
+      }
+    }),
+  );
+}
+
+export function setSoundVolume(
+  filter: Filter,
+  rule: FilterRule,
+  volume: number,
+) {
+  filter.execute(
+    new Command(() => {
+      if (!rule.actions.sound) {
+        rule.actions.sound = {
+          enabled: true,
+          path: { value: "1", type: "default" },
+          volume: 100,
+        };
+      }
+      if (rule.actions.sound) {
+        rule.actions.sound.volume = volume;
+      }
+    }),
+  );
+}
+
 export function setMapIconSize(
   filter: Filter,
   rule: FilterRule,

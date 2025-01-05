@@ -5,7 +5,9 @@ const SOUND_PATH = "./packages/assets/static/sounds";
 
 export function extractSounds(filePath: string) {
   const sounds = fs.readdirSync(SOUND_PATH).map((file) => ({
-    name: file.replace("AlertSound", "").replace("Sh", ""),
+    displayName: file.replace("AlertSound", "").split(".")[0].replace("Sh", ""),
+    id: file.replace("AlertSound", "").split(".")[0],
+    type: "default",
     path: path.join("static/sounds", file),
   }));
   fs.writeFileSync(filePath, JSON.stringify(sounds, null, " "));

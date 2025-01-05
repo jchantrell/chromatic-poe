@@ -6,10 +6,14 @@ export type Actions = {
   text?: RgbColor;
   border?: RgbColor;
   background?: RgbColor;
-  dropSound?: boolean;
+  dropSound?: { enabled: boolean; toggle: boolean };
   icon?: { size: IconSize; shape: Shape; color: Color; enabled: boolean };
   beam?: { temp: boolean; color: Color; enabled: boolean };
-  sound?: string;
+  sound?: {
+    path: { value: string; type: "custom" | "default" };
+    volume: number;
+    enabled: boolean;
+  };
 };
 
 export enum IconSize {
@@ -87,8 +91,16 @@ export function playAlertSound(
 export function dropSound(enable: boolean) {
   return enable ? "EnableDropSound" : "DisableDropSound";
 }
-export function customAlertSound(filePath: string, allowMissingFile: boolean) {
-  return `CustomAlertSound${allowMissingFile ? "Optional" : ""} ${filePath}`;
+export function alertSound(
+  filePath: string,
+  type: "custom" | "default" | "cached",
+  allowMissingFile: boolean,
+  volume: number,
+) {
+  if (type === "custom" || type === "cached") {
+    return `CustomAlertSound${allowMissingFile ? "Optional" : ""} "${filePath}" ${volume}`;
+  }
+  return `PlayAlertSound ${filePath} ${volume}`;
 }
 export function minimapIcon(size: IconSize, color: Color, shape: Shape) {
   return `MinimapIcon ${getIconSize(size)} ${color} ${shape}`;
@@ -117,11 +129,18 @@ export function serializeActions(actions: Actions) {
       minimapIcon(actions.icon.size, actions.icon.color, actions.icon.shape),
     );
   }
-  if (actions.dropSound) {
-    strs.push(dropSound(actions.dropSound));
+  if (actions.dropSound?.enabled) {
+    strs.push(dropSound(actions.dropSound.toggle));
   }
-  if (actions.sound) {
-    strs.push(customAlertSound(actions.sound, false));
+  if (actions.sound?.enabled && actions.sound.path.value) {
+    strs.push(
+      alertSound(
+        actions.sound.path.value,
+        actions.sound.path.type,
+        false,
+        actions.sound.volume,
+      ),
+    );
   }
   if (actions.beam?.enabled) {
     strs.push(playEffect(actions.beam.color, actions.beam.temp));

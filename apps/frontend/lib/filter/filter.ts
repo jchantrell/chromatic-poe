@@ -155,9 +155,11 @@ export class Filter {
 
   async deleteFile() {
     const configPath = chromatic.getFiltersPath(this);
-    const filterPath = `${chromatic.config.poeDirectory}${sep()}${this.name}.filter`;
     await chromatic.fileSystem.deleteFile(configPath);
-    await chromatic.fileSystem.deleteFile(filterPath);
+    if (chromatic.fileSystem.runtime === "desktop") {
+      const filterPath = `${chromatic.config?.poeDirectory}${sep()}${this.name}.filter`;
+      await chromatic.fileSystem.deleteFile(filterPath);
+    }
     toast("Deleted filter.");
   }
 

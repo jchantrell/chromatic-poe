@@ -18,6 +18,36 @@ function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
   }
 }
 
+export interface BlobSound {
+  displayName: string;
+  id: string;
+  path: string;
+  type: "custom";
+  data: Blob;
+}
+export interface FileSound {
+  displayName: string;
+  id: string;
+  path: string;
+  type: "custom";
+  data: File;
+}
+export interface CachedSound {
+  displayName: string;
+  id: string;
+  path: string;
+  type: "cached";
+  data: null;
+}
+export interface DefaultSound {
+  displayName: string;
+  id: string;
+  path: string;
+  type: "default";
+  data: null;
+}
+export type Sound = BlobSound | FileSound | CachedSound | DefaultSound;
+
 interface ChromaticConfiguration {
   version: string;
   poeDirectory: string | null;
@@ -266,26 +296,33 @@ class Chromatic {
     store.filters.sort(alphabeticalSort((filter) => filter.name));
   }
 
-  async getDefaultSounds() {
+  async getDefaultSounds(): Promise<Sound[]> {
     // Helper function to extract number from start of string
     function getLeadingNumber(str: string) {
       const match = str.match(/^\d+/);
       return match ? Number.parseInt(match[0]) : Number.POSITIVE_INFINITY;
     }
 
-    return [...defaultFilterSounds].sort((a, b) => {
-      // First compare by leading numbers
-      const numA = getLeadingNumber(a.name);
-      const numB = getLeadingNumber(b.name);
-      if (numA !== numB) return numA - numB;
+    return [...defaultFilterSounds]
+      .sort((a, b) => {
+        // First compare by leading numbers
+        const numA = getLeadingNumber(a.displayName);
+        const numB = getLeadingNumber(b.displayName);
+        if (numA !== numB) return numA - numB;
 
-      // If numbers are equal or non-existent, sort alphabetically
-      return a.name.localeCompare(b.name);
-    });
+        // If numbers are equal or non-existent, sort alphabetically
+        return a.displayName.localeCompare(b.displayName);
+      })
+      .map((sound) => ({
+        displayName: sound.displayName,
+        id: sound.id,
+        path: sound.path,
+        type: "default",
+      }));
   }
 
-  async getSounds() {
-    const sounds = [];
+  async getSounds(): Promise<Sound[]> {
+    const sounds: Sound[] = [];
     if (this.runtime === "desktop") {
       const rawSounds = await this.fileSystem.getAllFiles(
         `${this.config.poeDirectory}${sep()}${this.soundPath}`,
@@ -298,7 +335,13 @@ class Chromatic {
           sound.name.endsWith(".ogg")
         ) {
           const blob = new Blob([sound.data], { type: "audio/wav" });
-          sounds.push({ name: sound.name, data: blob });
+          sounds.push({
+            displayName: sound.name.split(".")[0],
+            id: sound.name,
+            path: `sounds/${sound.name}`,
+            data: blob,
+            type: "custom",
+          });
         }
       }
     }
@@ -307,31 +350,32 @@ class Chromatic {
         this.soundPath,
         "text",
       );
-      sounds.push(...JSON.parse(cachedSounds[0].data));
+      if (cachedSounds.length) {
+        sounds.push(
+          ...JSON.parse(cachedSounds[0].data).map((sound: Sound) => ({
+            displayName: sound.displayName,
+            id: sound.id,
+            path: sound.path,
+            type: "cached",
+          })),
+        );
+      }
     }
     return sounds;
   }
 
-  async uploadSounds(files: File[]) {
-    if (this.runtime === "desktop") {
-      await this.fileSystem.upsertDirectory(
-        `${this.config.poeDirectory}${sep()}${this.soundPath}`,
-      );
-      const path = `${this.config.poeDirectory}${sep()}${this.soundPath}`;
-      for (const file of files) {
-        this.fileSystem.writeFile(
-          `${path}/${file.name}`,
-          "binary",
-          await file.arrayBuffer(),
-        );
-      }
-    }
+  async uploadSounds(files: Sound[]) {
     if (this.runtime === "web") {
       this.fileSystem.writeFile(
         this.soundPath,
         "text",
         JSON.stringify(
-          files.map((file) => ({ name: file.name, data: file.data })),
+          files.map((file) => ({
+            displayName: file.displayName,
+            id: file.id,
+            path: file.path,
+            type: "cached",
+          })),
         ),
       );
     }
