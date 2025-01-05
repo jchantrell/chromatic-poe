@@ -34,7 +34,7 @@ export default function SoundPicker() {
     store.activeRule?.actions.sound?.volume || 100,
   );
   const [path, setPath] = createSignal<Sound | null>(
-    findSoundByName(store.activeRule?.actions.sound?.path.value || "1"),
+    findSound(store.activeRule?.actions.sound?.path) || null,
   );
 
   const [sound, setSound] = createSignal<Sound | null>(null);
@@ -59,10 +59,15 @@ export default function SoundPicker() {
     }
   }
 
-  function findSoundByName(path: {
-    value: string;
-    type: "custom" | "default" | "cached";
-  }): Sound | undefined {
+  function findSound(
+    path:
+      | {
+          value: string;
+          path: string;
+          type: "custom" | "default" | "cached";
+        }
+      | undefined,
+  ): Sound | undefined {
     if (!path) {
       return undefined;
     }
@@ -88,6 +93,7 @@ export default function SoundPicker() {
       if (store.filter && store.activeRule && path()?.path && path()?.type) {
         setSoundPath(store.filter, store.activeRule, {
           value: path()?.id,
+          path: path()?.path,
           type: path()?.type,
         });
         setSoundRef();
@@ -103,7 +109,7 @@ export default function SoundPicker() {
   );
   createEffect(() => {
     if (store.activeRule) {
-      const path = findSoundByName(store.activeRule.actions.sound?.path);
+      const path = findSound(store.activeRule.actions?.sound?.path);
       if (path) {
         setPath(path);
       } else {

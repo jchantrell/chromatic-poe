@@ -1,5 +1,6 @@
 import type { IntRange } from "@pkgs/lib/types";
 import type { RgbColor } from "@pkgs/ui/color-picker";
+import { action } from "@solidjs/router";
 
 export type Actions = {
   fontSize?: IntRange<1, 45>;
@@ -10,7 +11,7 @@ export type Actions = {
   icon?: { size: IconSize; shape: Shape; color: Color; enabled: boolean };
   beam?: { temp: boolean; color: Color; enabled: boolean };
   sound?: {
-    path: { value: string; type: "custom" | "default" };
+    path: { value: string; path: string; type: "custom" | "default" };
     volume: number;
     enabled: boolean;
   };
@@ -132,10 +133,15 @@ export function serializeActions(actions: Actions) {
   if (actions.dropSound?.enabled) {
     strs.push(dropSound(actions.dropSound.toggle));
   }
-  if (actions.sound?.enabled && actions.sound.path.value) {
+  const validSound =
+    actions.sound?.path.type === "default" ||
+    (actions.sound?.path.type === "custom" && actions.sound.path.path !== "");
+  if (actions.sound?.enabled && validSound) {
     strs.push(
       alertSound(
-        actions.sound.path.value,
+        actions.sound.path.type === "default"
+          ? actions.sound.path.value
+          : actions.sound.path.path,
         actions.sound.path.type,
         false,
         actions.sound.volume,

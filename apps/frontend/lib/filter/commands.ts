@@ -102,14 +102,14 @@ export function setDropSoundToggle(
 export function setSoundPath(
   filter: Filter,
   rule: FilterRule,
-  path: { value: string; type: "custom" | "default" },
+  path: { value: string; path: string; type: "custom" | "default" },
 ) {
   filter.execute(
     new Command(() => {
       if (!rule.actions.sound) {
         rule.actions.sound = {
           enabled: true,
-          path: { value: "1", type: "default" },
+          path: { value: "1", path: "", type: "default" },
           volume: 100,
         };
       }
