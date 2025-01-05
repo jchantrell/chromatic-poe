@@ -29,6 +29,7 @@ import { Button } from "@pkgs/ui/button";
 import { Separator } from "@pkgs/ui/separator";
 import { excuteCmd } from "@app/lib/filter/commands";
 import { ItemPicker } from "./item-picker";
+import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
 
 const operators = [
   Operator.gte,
@@ -108,7 +109,7 @@ const conditionTypes: Partial<
     operators: true,
     defaultValue: 0,
     min: 0,
-    max: 30,
+    max: 100,
   },
 
   // Stack properties
@@ -119,6 +120,7 @@ const conditionTypes: Partial<
     operators: true,
     defaultValue: 1,
     min: 1,
+    max: 50000,
   },
 
   // Gem specific
@@ -146,7 +148,7 @@ const conditionTypes: Partial<
     operators: true,
     defaultValue: 1,
     min: 1,
-    max: 16,
+    max: 17,
   },
   // elderMap: {
   //   label: "Elder Map",
@@ -401,7 +403,14 @@ function SliderInput(props: {
       }}
       class='space-y-3 w-[150px]'
     >
-      <SliderValueLabel />
+      <TextField>
+        <TextFieldInput
+          type='number'
+          class='text-center'
+          value={props.value}
+          onInput={(v) => props.onChange(v.target.value)}
+        />
+      </TextField>
       <div class='flex w-[150px]'>
         <SliderTrack>
           <SliderThumb class='border border-2 border-primary bg-secondary' />
@@ -430,7 +439,14 @@ function RangeInput(props: {
       onChange={(v) => props.onChange(v)}
       class='space-y-1 w-[150px]'
     >
-      <SliderValueLabel />
+      <TextField>
+        <TextFieldInput
+          type='number'
+          class='text-center'
+          value={props.value}
+          onInput={(v) => props.onChange(v.target.value)}
+        />
+      </TextField>
       <div class='flex w-full'>
         <SliderTrack>
           <SliderFill />
