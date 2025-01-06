@@ -1,4 +1,4 @@
-import { createEffect, createSignal, on, onMount } from "solid-js";
+import { createEffect, createMemo, createSignal, on, onMount } from "solid-js";
 import { refreshSounds, store } from "@app/store";
 import { setSoundEnabled, setSoundPath, setSoundVolume } from "@app/lib/filter";
 import { Checkbox } from "@pkgs/ui/checkbox";
@@ -81,34 +81,53 @@ export default function SoundPicker() {
       });
   }
 
-  createEffect(
+  createMemo(
     on(active, () => {
-      if (store.filter && store.activeRule) {
+      if (
+        store.activeRule?.actions?.sound &&
+        store.activeRule.actions.sound.enabled !== active()
+      ) {
         setSoundEnabled(store.filter, store.activeRule, active());
       }
     }),
   );
-  createEffect(
+
+  createMemo(
     on(path, () => {
-      if (store.filter && store.activeRule && path()?.path && path()?.type) {
+      if (
+        store.activeRule?.actions?.sound?.path &&
+        path()?.path &&
+        path()?.type &&
+        store.activeRule.actions.sound.path.value !== path()?.id
+      ) {
         setSoundPath(store.filter, store.activeRule, {
           value: path()?.id,
           path: path()?.path,
           type: path()?.type,
         });
-        setSoundRef();
       }
+      setSoundRef();
     }),
   );
-  createEffect(
+  createMemo(
     on(volume, () => {
-      if (store.filter && store.activeRule) {
+      if (
+        store.activeRule?.actions?.sound?.path &&
+        store.activeRule.actions.sound.volume !== volume()
+      ) {
         setSoundVolume(store.filter, store.activeRule, volume());
       }
     }),
   );
-  createEffect(async () => {
-    if (store.activeRule) {
+
+  createMemo(async () => {
+    if (!store.activeRule?.actions?.sound?.enabled) {
+      setPath(null);
+      setActive(false);
+      setVolume(100);
+      return;
+    }
+    if (store.activeRule?.actions.sound.enabled) {
       const path = findSound(store.activeRule.actions?.sound?.path);
       if (path) {
         setPath(path);
@@ -117,7 +136,6 @@ export default function SoundPicker() {
       }
       setActive(store.activeRule.actions.sound?.enabled || false);
       setVolume(store.activeRule.actions.sound?.volume || 100);
-      setSoundRef();
     }
   });
 
