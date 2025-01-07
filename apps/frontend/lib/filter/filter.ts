@@ -7,11 +7,11 @@ import {
   type Command,
   type Actions,
   type Conditions,
-  Operator,
-  Rarity,
   serializeActions,
   addParentRefs,
   serializeConditions,
+  importFilter as convertRules,
+  itemIndex,
 } from ".";
 import { createMutable, modifyMutable, reconcile } from "solid-js/store";
 import { invoke } from "@tauri-apps/api/core";
@@ -29,32 +29,36 @@ export enum Block {
 export interface FilterRule {
   id: ReturnType<typeof ulid>;
   name: string;
-  icon: string | null;
   show: boolean;
   enabled: boolean;
   conditions: Conditions;
   actions: Actions;
   bases: FilterItem[];
+  continue: boolean;
 }
 
 export interface FilterItem {
   name: string;
-  art: string;
   enabled: boolean;
-  parent?: FilterRule;
+  base: string;
   category: string;
+}
+
+export interface Item extends FilterItem {
+  itemClass: string;
+  art: string;
+  parent?: FilterRule;
   class: string;
   type: string;
   score: number;
   height: number;
   width: number;
-  itemClass: string;
-  base: string;
 }
 
 export class Filter {
   name: string;
-  version: number;
+  chromaticVersion: string;
+  poeVersion: number;
   lastUpdated: Date;
   rules: FilterRule[];
 
@@ -65,14 +69,16 @@ export class Filter {
 
   constructor(params: {
     name: string;
-    version: number;
+    chromaticVersion: string;
+    poeVersion: number;
     lastUpdated: Date;
     rules: FilterRule[];
     undoStack?: Operation[][];
     redoStack?: Operation[][];
   }) {
     this.name = params.name;
-    this.version = params.version;
+    this.chromaticVersion = params.chromaticVersion;
+    this.poeVersion = params.poeVersion;
     this.lastUpdated = params.lastUpdated;
     this.rules = params.rules;
 
@@ -112,9 +118,7 @@ export class Filter {
 
   diff(prevState: FilterRule[], nextState: FilterRule[]) {
     return compare(nextState, prevState).filter(
-      (change) =>
-        !change.path.endsWith("isDndShadowItem") &&
-        !change.path.endsWith("parent"),
+      (change) => !change.path.endsWith("parent"),
     );
   }
 
@@ -169,11 +173,11 @@ export class Filter {
 
   async save() {
     const path = chromatic.getFiltersPath(this);
-    await chromatic.fileSystem.writeFile(
-      path,
-      "text",
-      stringifyJSON({ ...this, lastUpdated: new Date().toISOString() }),
-    );
+    const filter = stringifyJSON({
+      ...this,
+      lastUpdated: new Date().toISOString(),
+    });
+    await chromatic.fileSystem.writeFile(path, "text", filter);
     toast("Saved filter");
   }
 
@@ -223,9 +227,10 @@ export class Filter {
   convertToText(rule: FilterRule): string {
     const enabledBases = rule.bases.filter((e) => e.enabled).map((e) => e.base);
 
-    const basesAreUnique = rule.bases.some((e) => e.category === "Uniques");
+    // pinnacle key bases are not filterable
     const basesArePinnacleKeys = rule.bases.some(
-      (e) => e.itemClass === "Pinnacle Keys",
+      (e) =>
+        itemIndex.itemTable[e.category][e.name].itemClass === "Pinnacle Keys",
     );
 
     const conditions = { ...rule.conditions };
@@ -233,27 +238,19 @@ export class Filter {
       conditions.bases = Array.from(new Set(enabledBases));
     }
 
-    if (basesArePinnacleKeys) {
-      conditions.classes = { operator: Operator.eq, value: ["Pinnacle Keys"] };
-    }
-
-    if (basesAreUnique) {
-      conditions.rarity = { operator: Operator.eq, value: [Rarity.unique] };
-    }
-
-    const block = this.createTextBlock(
+    return this.createTextBlock(
       rule.name,
       rule.show,
+      rule.continue,
       rule.actions,
       conditions,
     );
-
-    return block;
   }
 
   createTextBlock(
     description: string,
     show: boolean,
+    continueStmt: boolean,
     actions: Actions,
     conditions: Conditions,
   ) {
@@ -266,18 +263,24 @@ export class Filter {
       .map((action) => `  ${action}${eol}`)
       .join("");
 
-    return `# ${description}${eol}${block}${eol}${conditionText}${actionText}${eol}`;
+    return `# ${description}${eol}${block}${eol}${conditionText}${actionText}${continueStmt ? "  Continue" : ""}${eol}`;
   }
 }
 
 export async function generateFilter(
   name: string,
   poeVersion: number,
+  raw?: string,
 ): Promise<Filter> {
+  let rules: FilterRule[] = [];
+  if (raw) {
+    rules = await convertRules(raw);
+  }
   return new Filter({
     name,
-    version: poeVersion,
+    chromaticVersion: chromatic.config.version,
+    poeVersion,
     lastUpdated: new Date(),
-    rules: [],
+    rules,
   });
 }

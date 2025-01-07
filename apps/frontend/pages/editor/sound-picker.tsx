@@ -1,6 +1,11 @@
-import { createEffect, createMemo, createSignal, on, onMount } from "solid-js";
+import { createMemo, createSignal, on, onMount } from "solid-js";
 import { refreshSounds, store } from "@app/store";
-import { setSoundEnabled, setSoundPath, setSoundVolume } from "@app/lib/filter";
+import {
+  type Filter,
+  setSoundEnabled,
+  setSoundPath,
+  setSoundVolume,
+} from "@app/lib/filter";
 import { Checkbox } from "@pkgs/ui/checkbox";
 import { Label } from "@pkgs/ui/label";
 import { Slider, SliderFill, SliderThumb, SliderTrack } from "@pkgs/ui/slider";
@@ -18,7 +23,7 @@ import {
 } from "@pkgs/ui/combo-box";
 import type { Sound } from "@app/lib/config";
 import { createStore } from "solid-js/store";
-import { SoundPlayer } from "../sound";
+import SoundPlayer from "@app/components/sound-player";
 
 interface Category {
   label: string;
@@ -26,6 +31,9 @@ interface Category {
 }
 
 export default function SoundPicker() {
+  if (!store.activeRule || !store.filter) {
+    return <></>;
+  }
   const [sounds, setSounds] = createStore<Category[]>([]);
   const [active, setActive] = createSignal(
     store.activeRule?.actions.sound?.enabled || false,
@@ -87,7 +95,7 @@ export default function SoundPicker() {
         store.activeRule?.actions?.sound &&
         store.activeRule.actions.sound.enabled !== active()
       ) {
-        setSoundEnabled(store.filter, store.activeRule, active());
+        setSoundEnabled(store.filter as Filter, store.activeRule, active());
       }
     }),
   );
@@ -95,15 +103,15 @@ export default function SoundPicker() {
   createMemo(
     on(path, () => {
       if (
-        store.activeRule?.actions?.sound?.path &&
+        store.activeRule?.actions &&
         path()?.path &&
         path()?.type &&
-        store.activeRule.actions.sound.path.value !== path()?.id
+        path()?.id
       ) {
-        setSoundPath(store.filter, store.activeRule, {
-          value: path()?.id,
-          path: path()?.path,
-          type: path()?.type,
+        setSoundPath(store.filter as Filter, store.activeRule, {
+          value: path()?.id as string,
+          path: path()?.path as string,
+          type: path()?.type as "custom" | "default",
         });
       }
       setSoundRef();
@@ -115,7 +123,7 @@ export default function SoundPicker() {
         store.activeRule?.actions?.sound?.path &&
         store.activeRule.actions.sound.volume !== volume()
       ) {
-        setSoundVolume(store.filter, store.activeRule, volume());
+        setSoundVolume(store.filter as Filter, store.activeRule, volume());
       }
     }),
   );

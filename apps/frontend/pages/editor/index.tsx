@@ -5,14 +5,8 @@ import { input } from "@app/lib/input";
 import { store } from "@app/store";
 import RuleEditor from "./rule-editor";
 import Rules from "./rule-container";
-import Preview from "./preview";
-import {
-  ESCAPE_KEY,
-  REDO_KEY,
-  SAVE_KEY,
-  UNDO_KEY,
-  WRITE_KEY,
-} from "@app/constants";
+import Preview from "./filter-preview";
+import { REDO_KEY, SAVE_KEY, UNDO_KEY, WRITE_KEY } from "@app/constants";
 
 export default function Editor() {
   const { colorMode } = useColorMode();
@@ -53,7 +47,7 @@ export default function Editor() {
             <Rules />
           </ResizablePanel>
           <ResizableHandle class='bg-primary-foreground' />
-          <ResizablePanel class='overflow-y-auto'>
+          <ResizablePanel>
             <div
               class={`bg-no-repeat bg-center bg-cover size-full relative ${
                 colorMode() === "dark"

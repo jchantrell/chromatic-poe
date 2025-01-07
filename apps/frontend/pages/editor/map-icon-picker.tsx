@@ -114,7 +114,7 @@ function MapIconPicker() {
           </div>
         </div>
         <PopoverContent
-          class='w-fit flex flex-col items-center p-1'
+          class='w-fit flex flex-col items-center p-1 bg-neutral-900 border-accent'
           onMouseLeave={() => setOpen(false)}
         >
           <div class='flex max-w-[200px]'>

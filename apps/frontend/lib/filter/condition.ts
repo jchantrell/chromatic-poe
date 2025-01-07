@@ -1,4 +1,5 @@
 import type { FilterItem } from "./filter";
+import { itemIndex } from "./items";
 
 type ListCondition<T> = {
   value: T[];
@@ -76,19 +77,21 @@ export type Conditions = {
 };
 
 export enum Operator {
-  eq = "==",
-  neq = "!",
-  lt = "<",
-  lte = "<=",
-  gt = ">",
-  gte = ">=",
+  EXACT = "==",
+  EQ = "=",
+  NEQ = "!",
+  NEQ2 = "!=",
+  LT = "<",
+  LTE = "<=",
+  GT = ">",
+  GTE = ">=",
 }
 
 export enum Rarity {
-  normal = "Normal",
-  magic = "Magic",
-  rare = "Rare",
-  unique = "Unique",
+  NORMAL = "Normal",
+  MAGIC = "Magic",
+  RARE = "Rare",
+  UNIQUE = "Unique",
 }
 
 export enum Influence {
@@ -121,7 +124,8 @@ export function hasEnabledWithoutAttribute(
 function baseType(op: Operator, bases: string[]): string {
   return `BaseType ${op} ${bases.map((e) => `"${e}"`).join(" ")}`;
 }
-function className(op: Operator, classNames: string[]): string {
+function className(op: Operator, classNames: string[]): string | null {
+  if (!classNames.length) return null;
   return `Class ${op} ${classNames.map((entry) => `"${entry}"`).join(" ")}`;
 }
 
@@ -297,11 +301,14 @@ export function serializeConditions(conditions: Conditions) {
   const strs = [];
 
   if (conditions.bases) {
-    strs.push(baseType(Operator.eq, conditions.bases));
+    strs.push(baseType(Operator.EXACT, conditions.bases));
   }
 
   if (conditions.classes) {
-    strs.push(className(conditions.classes.operator, conditions.classes.value));
+    const condition = className(Operator.EXACT, conditions.classes.value);
+    if (condition) {
+      strs.push(condition);
+    }
   }
   if (conditions.height) {
     strs.push(height(conditions.height.operator, conditions.height.value));
@@ -418,7 +425,7 @@ export function serializeConditions(conditions: Conditions) {
     );
   }
   if (conditions.rarity) {
-    const condition = rarity(Operator.eq, conditions.rarity.value);
+    const condition = rarity(Operator.EXACT, conditions.rarity.value);
     if (condition) {
       strs.push(condition);
     }
@@ -468,3 +475,352 @@ export function serializeConditions(conditions: Conditions) {
 
   return strs;
 }
+
+export const conditionTypes: Partial<
+  Record<
+    keyof Conditions,
+    {
+      label: string;
+      type: string;
+      group: string;
+      operators: boolean;
+      defaultValue: Conditions[keyof Conditions]["value"];
+      min?: number;
+      max?: number;
+      options?: string[];
+    }
+  >
+> = {
+  classes: {
+    label: "Class",
+    type: "toggle",
+    group: "General",
+    operators: false,
+    defaultValue: [],
+    options: itemIndex.classes,
+  },
+  height: {
+    label: "Height",
+    type: "slider",
+    group: "General",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 4,
+  },
+  width: {
+    label: "Width",
+    type: "slider",
+    group: "General",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 4,
+  },
+
+  areaLevel: {
+    label: "Area Level",
+    type: "slider",
+    group: "General",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 100,
+  },
+  dropLevel: {
+    label: "Drop Level",
+    type: "slider",
+    group: "General",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 100,
+  },
+  itemLevel: {
+    label: "Item Level",
+    type: "slider",
+    group: "General",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 100,
+  },
+  quality: {
+    label: "Quality",
+    type: "slider",
+    group: "General",
+    operators: true,
+    defaultValue: 0,
+    min: 0,
+    max: 100,
+  },
+
+  stackSize: {
+    label: "Stack Size",
+    type: "slider",
+    group: "Currency",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 50000,
+  },
+
+  gemLevel: {
+    label: "Gem Level",
+    type: "slider",
+    group: "Gems",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 21,
+  },
+  // transfiguredGem: {
+  //   label: "Transfigured Gem",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+
+  mapTier: {
+    label: "Map Tier",
+    type: "slider",
+    group: "Maps",
+    operators: true,
+    defaultValue: 1,
+    min: 1,
+    max: 17,
+  },
+  // elderMap: {
+  //   label: "Elder Map",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  // shapedMap: {
+  //   label: "Shaped Map",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  // blightedMap: {
+  //   label: "Blighted Map",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  // uberBlightedMap: {
+  //   label: "Uber Blighted Map",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+
+  hasImplicitMod: {
+    label: "Has Implicit Mod",
+    type: "checkbox",
+    group: "Gear",
+    operators: false,
+    defaultValue: false,
+  },
+  rarity: {
+    label: "Rarity",
+    type: "toggle",
+    group: "General",
+    operators: false,
+    defaultValue: [],
+    options: Object.values(Rarity),
+  },
+  identified: {
+    label: "Identified",
+    type: "checkbox",
+    group: "General",
+    operators: false,
+    defaultValue: false,
+  },
+  // scourged: {
+  //   label: "Scourged",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  // fractured: {
+  //   label: "Fractured",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  mirrored: {
+    label: "Mirrored",
+    type: "checkbox",
+    group: "Gear",
+    operators: false,
+    defaultValue: false,
+  },
+  corrupted: {
+    label: "Corrupted",
+    type: "checkbox",
+    group: "Gear",
+    operators: false,
+    defaultValue: false,
+  },
+  enchanted: {
+    label: "Enchanted",
+    type: "checkbox",
+    group: "Gear",
+    operators: false,
+    defaultValue: false,
+  },
+  // synthesised: {
+  //   label: "Synthesised",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  // replica: {
+  //   label: "Replica",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+  // crucibleTree: {
+  //   label: "Has Crucible Tree",
+  //   type: "checkbox",
+  //   operators: false,
+  //   defaultValue: false,
+  // },
+
+  // Mods and enchantments
+  // corruptedMods: {
+  //   label: "Corrupted Mods",
+  //   type: "slider",
+  //   operators: true,
+  //   defaultValue: 0,
+  //   min: 0,
+  // },
+  // hasExplicitMod: {
+  //   label: "Explicit Mods",
+  //   type: "text-list",
+  //   operators: false,
+  //   defaultValue: [],
+  // },
+  // hasEnchantment: {
+  //   label: "Enchantments",
+  //   type: "text-list",
+  //   operators: false,
+  //   defaultValue: [],
+  // },
+  // archnemesisMod: {
+  //   label: "Archnemesis Mods",
+  //   type: "text-list",
+  //   operators: false,
+  //   defaultValue: [],
+  // },
+
+  // // Cluster jewel specific
+  // enchantmentPassiveNode: {
+  //   label: "Passive Node",
+  //   type: "text-list",
+  //   operators: false,
+  //   defaultValue: [],
+  // },
+  // enchantmentPassiveNum: {
+  //   label: "slider of Passives",
+  //   type: "slider",
+  //   operators: true,
+  //   defaultValue: 1,
+  //   min: 1,
+  // },
+
+  // Influence
+  // hasSearingExarchImplicit: {
+  //   label: "Searing Exarch Implicit",
+  //   type: "slider",
+  //   operators: true,
+  //   defaultValue: 0,
+  //   min: 0,
+  // },
+  // hasEaterOfWorldsImplicit: {
+  //   label: "Eater of Worlds Implicit",
+  //   type: "slider",
+  //   operators: true,
+  //   defaultValue: 0,
+  //   min: 0,
+  // },
+  // hasInfluence: {
+  //   label: "Influence",
+  //   type: "toggle",
+  //   operators: false,
+  //   defaultValue: [],
+  //   options: Object.values(Influence),
+  // },
+
+  // linkedSockets: {
+  //   label: "Linked Sockets",
+  //   type: "slider",
+  //   operators: true,
+  //   defaultValue: 0,
+  //   min: 0,
+  //   max: 6,
+  // },
+  sockets: {
+    label: "Sockets",
+    type: "slider",
+    group: "Gear",
+    operators: true,
+    defaultValue: 0,
+    min: 0,
+    max: 3,
+  },
+  // socketGroup: {
+  //   label: "Socket Group",
+  //   type: "text",
+  //   operators: true,
+  //   defaultValue: "",
+  // },
+
+  // Defense stats
+  // defencePercentile: {
+  //   label: "Defence Percentile",
+  //   type: "slider",
+  //   operators: true,
+  //   defaultValue: 0,
+  //   min: 0,
+  //   max: 100,
+  // },
+  armour: {
+    label: "Armour",
+    type: "slider",
+    group: "Armour",
+    operators: true,
+    defaultValue: 0,
+    min: 0,
+    max: 5000,
+  },
+  evasion: {
+    label: "Evasion",
+    type: "slider",
+    group: "Armour",
+    operators: true,
+    defaultValue: 0,
+    max: 5000,
+    min: 0,
+  },
+  energyShield: {
+    label: "Energy Shield",
+    type: "slider",
+    group: "Armour",
+    operators: true,
+    defaultValue: 0,
+    min: 0,
+    max: 5000,
+  },
+  ward: {
+    label: "Ward",
+    type: "slider",
+    group: "Armour",
+    operators: true,
+    defaultValue: 0,
+    min: 0,
+    max: 5000,
+  },
+};

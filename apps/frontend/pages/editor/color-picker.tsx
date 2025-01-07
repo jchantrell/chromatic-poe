@@ -1,42 +1,73 @@
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, onMount } from "solid-js";
 import { store } from "@app/store";
 import { setColor } from "@app/lib/filter";
-import tinycolor from "tinycolor2";
-import { Slider, SliderFill, SliderThumb, SliderTrack } from "@pkgs/ui/slider";
 import { Label } from "@pkgs/ui/label";
+import jscolor from "@eastdesire/jscolor";
 
 function ColorPicker(props: {
   label: string;
   key: "text" | "background" | "border";
 }) {
-  const [rgb, setRgb] = createSignal(
-    store.activeRule?.actions[props.key] ?? { r: 0, g: 0, b: 0, a: 1 },
-  );
+  let pickerRef: HTMLButtonElement;
+  let picker: typeof jscolor;
 
-  function handleInput(type: "rgb" | "alpha", value: string) {
+  function handleInput() {
     if (!store.filter || !store.activeRule) return;
 
-    if (type === "rgb") {
-      const color = tinycolor(value).toRgb();
-      setColor(store.filter, store.activeRule, props.key, {
-        r: color.r,
-        g: color.g,
-        b: color.b,
-        a: rgb()?.a ?? 255,
-      });
-    }
-    if (type === "alpha") {
-      setColor(store.filter, store.activeRule, props.key, {
-        ...rgb(),
-        a: Number.parseInt(value),
-      });
+    // this is evil but it's the only way i found to make this lib work
+    const { r, g, b, a } = this.channels;
+    setColor(store.filter, store.activeRule, props.key, {
+      r,
+      g,
+      b,
+      a: a * 255,
+    });
+  }
+
+  function updateColor() {
+    const { r, g, b, a } = store.activeRule?.actions[props.key] ?? {
+      r: 0,
+      g: 0,
+      b: 0,
+      a: 240,
+    };
+    if (picker) {
+      picker.fromRGBA(r, g, b, a / 255);
     }
   }
 
   createEffect(() => {
-    setRgb(
-      store.activeRule?.actions[props.key] ?? { r: 0, g: 0, b: 0, a: 255 },
-    );
+    if (store.activeRule?.actions[props.key]) {
+      updateColor();
+    }
+  });
+
+  onMount(() => {
+    jscolor.presets.default = {
+      ...jscolor.presets.dark,
+      position: "right",
+      borderColor: "#000000",
+      previewPosition: "right",
+      previewSize: 40,
+      shadow: false,
+      width: 150,
+      alpha: true,
+      onInput: handleInput,
+      palette: [
+        "#ffffff",
+        "#000000",
+        "#870014",
+        "#ec1c23",
+        "#ff7e26",
+        "#fef100",
+        "#22b14b",
+        "#00a1e7",
+        "#3f47cc",
+        "#a349a4",
+      ],
+    };
+    picker = new jscolor(pickerRef);
+    updateColor();
   });
 
   return (
@@ -44,42 +75,9 @@ function ColorPicker(props: {
       <div class='flex w-full gap-1 items-center'>
         <Label class='w-20'>{props.label}</Label>
         <div class='flex items-center gap-1'>
-          <input
-            id={`${props.label}-color-picker`}
-            onInput={(v) => {
-              handleInput("rgb", v.target.value);
-            }}
-            type='color'
-            class='opacity-0 w-0 h-0'
-            value={`#${tinycolor(rgb()).toHex()}`}
-          />
-          <label
-            class='flex w-full items-center gap-1'
-            for={`${props.label}-color-picker`}
-          >
-            <div
-              class='h-5 w-6 rounded-md border border-accent'
-              style={{
-                "background-color": `rgba(${rgb()?.r ?? 0}, ${rgb()?.g ?? 0}, ${rgb()?.b ?? 0}, 1)`,
-              }}
-            />
-          </label>
-          <div class='flex items-center justify-center gap-1 w-full ml-1'>
-            <Label>Opacity</Label>
-            <Slider
-              class='w-[80px] ml-2'
-              minValue={0}
-              maxValue={255}
-              step={1}
-              value={[rgb()?.a ?? 255]}
-              onChange={(v) => handleInput("alpha", v[0].toString())}
-            >
-              <SliderTrack class='bg-accent'>
-                <SliderFill class='bg-neutral-400' />
-                <SliderThumb class='size-4' />
-              </SliderTrack>
-            </Slider>
-          </div>
+          <input class='rounded-sm w-10 h-5' ref={pickerRef} type='button'>
+            ast
+          </input>
         </div>
       </div>
     </div>

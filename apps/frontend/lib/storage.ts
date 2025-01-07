@@ -54,35 +54,22 @@ export class WebStorage implements FileSystem {
   async renameFile(oldPath: string, newPath: string): Promise<void> {
     return;
   }
-  async exists(path: string) {
-    const split = path.split("/");
-    const filters = localStorage.getItem(split[0]);
-    return false;
+  async exists(path: string): Promise<boolean> {
+    console.log("Checking for file", path);
+    const item = localStorage.getItem(path);
+    return item !== null ? true : false;
   }
-  async writeFile(
-    path: string,
-    type: "text" | "binary",
-    data: string | ArrayBuffer,
-  ) {
+
+  async writeFile(path: string, type: "text" | "binary", data: string) {
     console.log("Writing file", path);
-    const split = path.split("/");
-    const files = localStorage.getItem(split[0]);
-    const updatedFiles = JSON.parse(files ?? "{}");
-    updatedFiles[split[1]] = data;
-    localStorage.setItem(split[0], JSON.stringify(updatedFiles));
+    localStorage.setItem(path, data);
   }
   async deleteFile(path: string) {
-    const split = path.split("/");
-    const files = localStorage.getItem(split[0]);
-    const filters = JSON.parse(files ?? "{}");
-    filters[split[1]] = undefined;
-    localStorage.setItem(split[0], JSON.stringify(filters));
+    console.log("Deleting file", path);
+    localStorage.removeItem(path);
   }
   async readFile(path: string): Promise<string> {
-    const split = path.split("/");
-    const files = localStorage.getItem(split[0]);
-    const filters = JSON.parse(files ?? "{}");
-    return filters[split[1]];
+    return localStorage.getItem(path) ?? "";
   }
   async getAllFiles<T extends "text" | "binary">(
     path: string,
@@ -93,12 +80,28 @@ export class WebStorage implements FileSystem {
       data: T extends "text" ? string : Uint8Array;
     }[]
   > {
-    const files = localStorage.getItem(path);
-    const filters = JSON.parse(files ?? "{}");
-    return Object.entries(filters).map(([key, value]) => ({
-      name: key,
-      data: value as T extends "text" ? string : Uint8Array,
-    }));
+    const files = [];
+    for (const key in localStorage) {
+      // migrate legacy format, remove at some point in the future
+      if (key === "filters") {
+        const legacyFilters = JSON.parse(localStorage.getItem(key) ?? "{}");
+        for (const filter in legacyFilters) {
+          if (!localStorage.getItem(`filters/${filter}`)) {
+            localStorage.setItem(`filters/${filter}`, legacyFilters[filter]);
+            files.push({
+              name: `filters/${filter}`,
+              data: legacyFilters[filter],
+            });
+          }
+        }
+        localStorage.removeItem(key);
+      }
+
+      if (key.startsWith(path) && localStorage.getItem(key)) {
+        files.push({ name: key, data: localStorage.getItem(key) });
+      }
+    }
+    return files;
   }
 }
 

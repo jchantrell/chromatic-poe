@@ -1,4 +1,4 @@
-import EventEmitter from "@pkgs/lib/eventEmitter";
+import EventEmitter from "@app/lib/eventEmitter";
 
 class Input extends EventEmitter {
   constructor() {

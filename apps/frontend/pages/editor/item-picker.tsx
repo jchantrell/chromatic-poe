@@ -1,9 +1,10 @@
 import {
-  excuteCmd,
+  type Item,
   type FilterItem,
   type FilterRule,
-  hasEnabledWithAttribute,
   itemIndex,
+  Operator,
+  Rarity,
 } from "@app/lib/filter";
 import { Checkbox } from "@pkgs/ui/checkbox";
 import { createSignal, For } from "solid-js";
@@ -24,16 +25,16 @@ interface LeafNode {
   enabled: boolean;
   parent?: BranchNode;
   children?: never;
-  data: FilterItem;
+  data: Item;
 }
 
 type TreeNode = BranchNode | LeafNode;
 
 type NestedData = {
-  [key: string]: NestedData | FilterItem;
+  [key: string]: NestedData | Item;
 };
 
-function isLeafNode(obj: object): obj is FilterItem {
+function isLeafNode(obj: object): obj is Item {
   return "name" in obj && "category" in obj;
 }
 
@@ -46,7 +47,8 @@ function updateParentState(node: TreeNode) {
 }
 
 function getIcon(node: TreeNode) {
-  if (node.data) return node.data.art;
+  if (node.data)
+    return itemIndex.itemTable[node.data.category][node.data.name].art;
   return getIcon(node.children[0]);
 }
 
@@ -132,13 +134,23 @@ function Node(props: {
               class='mr-1 h-6 max-w-full pointer-events-none'
               alt={`${props.node.data?.name} icon`}
               src={
-                "data" in props.node
-                  ? props.node.data?.art
+                "data" in props.node && props.node?.data
+                  ? itemIndex.itemTable[props.node.data.category][
+                      props.node.data?.name
+                    ].art
                   : getIcon(props.node)
               }
             />
           </figure>
-          <span>{props.node.name}</span>
+          <span>
+            {props.node.name}
+            {props.node.data?.category === "Uniques" && (
+              <span class='ml-1 text-xs text-neutral-400'>
+                {" "}
+                {props.node.data?.base}
+              </span>
+            )}
+          </span>
         </div>
       </div>
 
@@ -157,18 +169,6 @@ function Node(props: {
   );
 }
 
-function isBranchWithKey(
-  node: TreeNode,
-  key: keyof FilterItem,
-  value: string,
-): boolean {
-  if (node.data?.[key] === value) return true;
-  if ("children" in node && node.children) {
-    return node.children.some((child) => isBranchWithKey(child, key, value));
-  }
-  return false;
-}
-
 export function ItemPicker(props: { rule: FilterRule }) {
   const itemHierarchy = createMutable(
     rollup(itemIndex.hierarchy, "Items", props.rule.bases),
@@ -177,62 +177,7 @@ export function ItemPicker(props: { rule: FilterRule }) {
   function toggleNode(node: TreeNode, enabled: boolean): void {
     if (node.enabled === enabled) return;
 
-    const isUnique = isBranchWithKey(node, "category", "Uniques");
-    const isPinnacleKeys = isBranchWithKey(node, "itemClass", "Pinnacle Keys");
-    const isRegularItem = !isUnique && !isPinnacleKeys;
-
-    if (!enabled && isPinnacleKeys) {
-      props.rule.conditions.classes = undefined;
-    }
-    if (!enabled && isUnique) {
-      props.rule.conditions.rarity = undefined;
-    }
-
-    if (enabled) {
-      const hasEnabledUniques = hasEnabledWithAttribute(
-        props.rule.bases,
-        "category",
-        "Uniques",
-      );
-      const hasEnabledPinnacleKeys = hasEnabledWithAttribute(
-        props.rule.bases,
-        "itemClass",
-        "Pinnacle Keys",
-      );
-      const hasEnabledRegularItems =
-        props.rule.bases.length > 0 &&
-        !hasEnabledUniques &&
-        !hasEnabledPinnacleKeys;
-
-      if (isUnique && hasEnabledRegularItems) {
-        toast("Cannot enable Uniques while regular items are enabled");
-        return;
-      }
-      if (isUnique && hasEnabledPinnacleKeys) {
-        toast("Cannot enable Uniques while Pinnacle Keys are enabled");
-        return;
-      }
-      if (isPinnacleKeys && hasEnabledRegularItems) {
-        toast("Cannot enable Pinnacle Keys while regular items are enabled");
-        return;
-      }
-      if (isPinnacleKeys && hasEnabledUniques) {
-        toast("Cannot enable Pinnacle Keys while Uniques are enabled");
-        return;
-      }
-      if (isRegularItem && (hasEnabledUniques || hasEnabledPinnacleKeys)) {
-        toast(
-          "Cannot enable regular items while Uniques or Pinnacle Keys are enabled",
-        );
-        return;
-      }
-    }
-
     node.enabled = enabled;
-
-    if (isUnique && enabled) {
-      props.rule.conditions.rarity = undefined;
-    }
 
     if ("children" in node && node.children) {
       for (const child of node.children) {
@@ -244,12 +189,55 @@ export function ItemPicker(props: { rule: FilterRule }) {
       updateParentState(node);
     }
 
-    if ("data" in node) {
+    if ("data" in node && node.data) {
+      if (node.data.category === "Uniques") {
+        if (
+          enabled &&
+          !props.rule.conditions.rarity?.value.includes(Rarity.UNIQUE)
+        ) {
+          toast.info("Adding 'Unique' rarity condition to rule.", {
+            description:
+              "Uniques are filtered by base type (the small grey text next to the unique's name) so a rarity condition of 'Unique' is required to separate them from other rarities.",
+            duration: 10000,
+          });
+          props.rule.conditions.rarity = {
+            operator: Operator.EXACT,
+            value: [Rarity.UNIQUE],
+          };
+        }
+        if (!enabled) {
+          // TODO: check if rarity condition still needs to exist
+        }
+      }
+      if (node.data.itemClass === "Pinnacle Keys") {
+        if (
+          enabled &&
+          !props.rule.conditions.classes?.value.includes("Pinnacle Keys")
+        ) {
+          toast.info("Adding 'Pinnacle Keys' class condition to rule.", {
+            description:
+              "Pinnacle Keys are not filterable by base type and must be filtered by class.",
+          });
+          props.rule.conditions.classes = {
+            operator: Operator.EXACT,
+            value: ["Pinnacle Keys"],
+          };
+        }
+        if (!enabled) {
+          // TODO: check if classes condition still needs to exist
+        }
+      }
+
       const ruleHasBase = props.rule.bases.some(
         (base) => base.name === node.name,
       );
       if (!ruleHasBase && enabled) {
-        props.rule.bases.push({ ...node.data, enabled });
+        props.rule.bases.push({
+          name: node.data.name,
+          base: node.data.base,
+          category: node.data.category,
+          enabled,
+        });
       }
 
       if (ruleHasBase && !enabled) {

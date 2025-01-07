@@ -2,6 +2,11 @@
 
 Chromatic is a [SolidJS](https://www.solidjs.com/) application made with [Tauri](https://tauri.app/) that utilises Path of Exile's dat files at build time to supply (most) of the needed data.
 
+Requirements (based on WSL & Linux):
+- Node 20+
+- pnpm 8+
+- Rust 1.70+
+
 ## Frontend with SolidJS
 
 > Located in `apps/frontend`

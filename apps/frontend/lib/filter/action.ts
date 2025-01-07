@@ -1,9 +1,15 @@
-import type { IntRange } from "@pkgs/lib/types";
-import type { RgbColor } from "@pkgs/ui/color-picker";
-import { action } from "@solidjs/router";
+import { isDefined } from "@pkgs/lib/utils";
+
+export type RgbColor = { r: number; g: number; b: number; a: number };
+
+export const DEFAULT_STYLE = {
+  text: { r: 255, g: 255, b: 255, a: 240 },
+  border: { r: 19, g: 14, b: 6, a: 0 },
+  background: { r: 19, g: 14, b: 6, a: 240 },
+};
 
 export type Actions = {
-  fontSize?: IntRange<1, 45>;
+  fontSize?: number;
   text?: RgbColor;
   border?: RgbColor;
   background?: RgbColor;
@@ -70,21 +76,24 @@ function getIconSize(size: IconSize) {
   return 2;
 }
 
+function round(value: number) {
+  return Math.round(value);
+}
 export function setBorderColor(color: RgbColor) {
-  return `SetBorderColor ${color.r} ${color.g} ${color.b} ${color.a}`;
+  return `SetBorderColor ${round(color.r)} ${round(color.g)} ${round(color.b)}${isDefined(color.a) ? ` ${Math.floor(color.a / 255)}` : ""}`;
 }
 export function setTextColor(color: RgbColor) {
-  return `SetTextColor ${color.r} ${color.g} ${color.b} ${color.a}`;
+  return `SetTextColor ${round(color.r)} ${round(color.g)} ${round(color.b)}${isDefined(color.a) ? ` ${Math.floor(color.a / 255)}` : ""}`;
 }
 export function setBackgroundColor(color: RgbColor) {
-  return `SetBackgroundColor ${color.r} ${color.g} ${color.b} ${color.a}`;
+  return `SetBackgroundColor ${round(color.r)} ${round(color.g)} ${round(color.b)}${isDefined(color.a) ? ` ${Math.floor(color.a / 255)}` : ""}`;
 }
-export function setFontSize(size: IntRange<1, 45>) {
+export function setFontSize(size: number) {
   return `SetFontSize ${size}`;
 }
 export function playAlertSound(
-  id: IntRange<1, 16>,
-  volume: IntRange<0, 300>,
+  id: number,
+  volume: number,
   positional?: boolean,
 ) {
   return `${positional ? "PlayAlertSoundPositional" : "PlayAlertSound"} ${id} ${volume}`;
@@ -133,9 +142,9 @@ export function serializeActions(actions: Actions) {
   if (actions.dropSound?.enabled) {
     strs.push(dropSound(actions.dropSound.toggle));
   }
-  const validSound =
-    actions.sound?.path.type === "default" ||
-    (actions.sound?.path.type === "custom" && actions.sound.path.path !== "");
+
+  const validSound = actions.sound?.path.value !== "";
+
   if (actions.sound?.enabled && validSound) {
     strs.push(
       alertSound(

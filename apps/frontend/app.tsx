@@ -17,17 +17,17 @@ import {
 } from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
 import { createSignal, type JSXElement, onMount } from "solid-js";
-import { refreshSounds, store } from "./store";
 import { Toaster } from "@pkgs/ui/sonner";
-import { Settings } from "./components/settings";
 import { Route, Router } from "@solidjs/router";
-import chromatic from "./lib/config";
+import chromatic from "@app/lib/config";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
-import Tooltip from "./components/tooltip";
+import { refreshSounds, store } from "@app/store";
 import { SAVE_KEY, WRITE_KEY } from "@app/constants";
-import SoundManager from "./pages/sound";
-import LoadScreen from "./pages/editor/load-screen";
-import Background from "./components/background";
+import { Settings } from "@app/components/settings";
+import Tooltip from "@app/components/tooltip";
+import SoundManager from "@app/pages/sound";
+import LoadScreen from "@app/pages/load-screen";
+import Background from "@app/components/background";
 
 export const BASE_URL = import.meta.env.BASE_URL;
 export const storageManager = createLocalStorageManager("theme");
@@ -89,14 +89,14 @@ function SideBar() {
 function TopBar() {
   return (
     <nav
-      class='w-full flex justify-between items-center'
+      class='w-full flex justify-between items-center h-14'
       data-tauri-drag-region
     >
       <div class='flex items-center gap-2'>
         {store.filter ? (
           <>
             <div class='ml-2 font-semibold text-xl mr-4'>
-              {store.filter?.name} (PoE {store.filter.version})
+              {store.filter?.name} (PoE {store.filter.poeVersion})
             </div>
             <Tooltip text={`Save (Ctrl + ${SAVE_KEY.toUpperCase()})`}>
               <Button
@@ -124,22 +124,26 @@ function TopBar() {
         ) : null}
       </div>
       <div class='flex'>
-        <Button
-          variant='ghost'
-          size='icon'
-          class='h-14 rounded-none'
-          onMouseUp={() => chromatic.minimize()}
-        >
-          <MinimiseIcon />
-        </Button>
-        <Button
-          variant='ghost'
-          size='icon'
-          class='h-14 rounded-none'
-          onMouseUp={() => chromatic.close()}
-        >
-          <ExitIcon />
-        </Button>
+        {chromatic.runtime === "desktop" && (
+          <>
+            <Button
+              variant='ghost'
+              size='icon'
+              class='h-14 rounded-none'
+              onMouseUp={() => chromatic.minimize()}
+            >
+              <MinimiseIcon />
+            </Button>
+            <Button
+              variant='ghost'
+              size='icon'
+              class='h-14 rounded-none'
+              onMouseUp={() => chromatic.close()}
+            >
+              <ExitIcon />
+            </Button>
+          </>
+        )}
       </div>
     </nav>
   );

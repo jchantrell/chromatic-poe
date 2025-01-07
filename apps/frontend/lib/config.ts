@@ -50,7 +50,7 @@ export type Sound = BlobSound | FileSound | CachedSound | DefaultSound;
 
 interface ChromaticConfiguration {
   version: string;
-  poeDirectory: string | null;
+  poeDirectory?: string | null;
 }
 
 class Chromatic {
@@ -84,26 +84,24 @@ class Chromatic {
       return;
     }
 
-    if (this.runtime === "web") {
-      setInitialised(true);
-      return;
+    this.configPath =
+      this.runtime === "desktop" ? await appConfigDir() : "config";
+
+    if (this.runtime === "desktop") {
+      await this.bootstrap();
     }
 
-    this.configPath = await appConfigDir();
+    const fullConfigPath =
+      this.runtime === "desktop"
+        ? `${this.configPath}/${this.configFile}`
+        : this.configPath;
 
-    await this.bootstrap();
-
-    const configExists = await this.fileSystem.exists(
-      `${this.configPath}/${this.configFile}`,
-    );
+    const configExists = await this.fileSystem.exists(fullConfigPath);
 
     if (configExists) {
       console.log("Config exists. Reading file...");
-      const raw = await this.fileSystem.readFile(
-        `${this.configPath}/${this.configFile}`,
-      );
+      const raw = await this.fileSystem.readFile(fullConfigPath);
       console.log("Raw config", raw);
-
       this.config = await this.parseConfig(raw);
     }
 
@@ -111,6 +109,11 @@ class Chromatic {
       console.log("Config does not exist. Creating with defaults...");
       const defaultConfig = await this.defaultConfig();
       await this.writeConfig(defaultConfig);
+    }
+
+    if (this.runtime === "web") {
+      setInitialised(true);
+      return;
     }
 
     if (this.config?.poeDirectory) {
@@ -159,7 +162,7 @@ class Chromatic {
 
     const configSemVer = config.version.split(".");
 
-    const version = await getVersion();
+    const version = await this.getVersion();
     const semVer = version.split(".");
 
     if (
@@ -217,7 +220,7 @@ class Chromatic {
   }
 
   async writeConfig(config: ChromaticConfiguration) {
-    const path = `${this.configPath}/${this.configFile}`; // TODO:
+    const path = `${this.configPath}`;
     await this.fileSystem.writeFile(path, "text", JSON.stringify(config));
     console.log(`Successfully wrote config to ${path}`, config);
     this.config = config;
@@ -232,11 +235,20 @@ class Chromatic {
     return this.defaultConfig();
   }
 
-  async defaultConfig() {
-    return {
-      version: await getVersion(),
-      poeDirectory: null,
+  async getVersion(): Promise<string> {
+    return this.runtime === "desktop"
+      ? await getVersion()
+      : import.meta.env.CHROMATIC_VERSION;
+  }
+
+  async defaultConfig(): Promise<ChromaticConfiguration> {
+    const config: ChromaticConfiguration = {
+      version: await this.getVersion(),
     };
+    if (this.runtime === "desktop") {
+      config.poeDirectory = null;
+    }
+    return config;
   }
 
   windowsPoeDirectory(docPath: string) {
@@ -268,31 +280,35 @@ class Chromatic {
 
   getFiltersPath(filter: Filter, newName?: string) {
     if (this.runtime === "web") {
-      return `${this.filterPath}/${newName ? newName : filter.name}`;
+      return `filters/${newName ? newName : filter.name}`;
     }
     return `${this.configPath}/${this.filterPath}/${newName ? newName : filter.name}.json`;
   }
 
   async getAllFilters() {
-    const files = [];
     if (this.runtime === "web") {
-      files.push(
-        ...(await this.fileSystem.getAllFiles(this.filterPath, "text")),
+      const filters = await this.fileSystem.getAllFiles(
+        this.filterPath,
+        "text",
       );
+      for (const file of filters) {
+        const props = JSON.parse(file.data);
+        props.lastUpdated = new Date(props.lastUpdated);
+        new Filter(props);
+      }
     }
     if (this.runtime === "desktop") {
       const filters = await this.fileSystem.getAllFiles(
         `${this.configPath}/${this.filterPath}`,
         "text",
       );
-      files.push(...filters);
+      for (const file of filters) {
+        const props = JSON.parse(file.data);
+        props.lastUpdated = new Date(props.lastUpdated);
+        new Filter(props);
+      }
     }
 
-    for (const file of files) {
-      const props = JSON.parse(file.data);
-      props.lastUpdated = new Date(props.lastUpdated);
-      new Filter(props);
-    }
     store.filters.sort(alphabeticalSort((filter) => filter.name));
   }
 
@@ -318,6 +334,7 @@ class Chromatic {
         id: sound.id,
         path: sound.path,
         type: "default",
+        data: null,
       }));
   }
 

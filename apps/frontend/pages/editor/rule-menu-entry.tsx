@@ -50,7 +50,9 @@ export default function Rule(props: {
   }
 
   function handleNameChange(e: Event) {
-    props.rule.name = e.target.value;
+    if (e.target instanceof HTMLInputElement) {
+      props.rule.name = e.target.value;
+    }
   }
 
   function handleDuplicate(e: MouseEvent) {
@@ -124,7 +126,7 @@ export default function Rule(props: {
           <ContextMenu>
             <ContextMenuTrigger>
               <div
-                class={`h-12 flex min-w-max border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer items-center justify-between select-none ${getBorderColor(active(), hovered())}`}
+                class={`h-12 w-full flex border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer items-center justify-between select-none ${getBorderColor(active(), hovered())}`}
                 onMouseOut={() => setHovered(false)}
                 onMouseOver={() => setHovered(true)}
                 onFocus={() => null}
@@ -132,9 +134,9 @@ export default function Rule(props: {
                 onMouseDown={onMouseDown}
                 ref={previewRef}
               >
-                <div class='m-1 flex items-center min-w-max'>
-                  <div class='text-xl p-1 flex'>
-                    <div class='w-16'>
+                <div class='m-1 flex items-center w-full'>
+                  <div class='text-xl p-1 flex w-full items-center'>
+                    <div class='w-16 flex items-center mr-1'>
                       {props.rule.show ? (
                         <Badge variant='success'>Show</Badge>
                       ) : (
@@ -142,16 +144,16 @@ export default function Rule(props: {
                       )}
                     </div>
                     <input
-                      class={`bg-primary-foreground outline-none border-none ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"}`}
+                      class={`flex pb-1 w-full bg-primary-foreground outline-none border-none ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"}`}
                       type='text'
                       value={props.rule.name}
                       onChange={handleNameChange}
                     />
                   </div>
                 </div>
-                <div class='flex items-center'>
+                <div class='flex items-center max-w-min'>
                   <div
-                    class='flex text-nowrap p-1 px-4 w-full items-center justify-center border border-1 mr-1'
+                    class='flex text-nowrap p-1 px-4 items-center justify-center border border-1 mr-1'
                     style={{
                       display:
                         previewWidth() >= MIN_PREVIEW_WIDTH ? "flex" : "none",

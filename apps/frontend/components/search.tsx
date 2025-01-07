@@ -3,6 +3,7 @@ import type { FuseResult } from "fuse.js";
 import { createEffect, createSignal, For } from "solid-js";
 
 interface Index {
+  art: { [key: string]: string };
   search<T>(...args: unknown[]): FuseResult<T>;
 }
 
@@ -27,7 +28,7 @@ export default function Search(props: { index: Index }) {
                   <img
                     class='mr-1 h-8 max-w-full pointer-events-none'
                     alt={`${item.name} icon`}
-                    src={item.art}
+                    src={props.index.art[item.name]}
                   />
                 </figure>
                 <div>{item.name}</div>

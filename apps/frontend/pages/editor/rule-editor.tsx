@@ -21,8 +21,6 @@ import { CloseIcon } from "@pkgs/icons";
 import SoundPicker from "./sound-picker";
 import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
 
-const DEBUG = false;
-
 function LabelSize() {
   const [size, setSize] = createSignal(32);
 
@@ -213,54 +211,48 @@ export default function RuleEditor() {
           <CloseIcon />
         </button>
       </div>
-      <div class='flex h-10'>
-        <div class='flex gap-1 w-full items-center justify-center'>
-          <div
-            class='flex w-full text-nowrap items-center justify-center border-[1.5px] min-w-fit max-h-fit px-2 mb-2'
-            style={{
-              color: `rgba(${store.activeRule.actions.text?.r ?? 0}, ${store.activeRule.actions.text?.g ?? 0}, ${store.activeRule.actions.text?.b ?? 0}, ${(store.activeRule.actions.text?.a ?? 255) / 255})`,
-              "border-color": `rgba(${store.activeRule.actions.border?.r ?? 0}, ${store.activeRule.actions.border?.g ?? 0}, ${store.activeRule.actions.border?.b ?? 0}, ${(store.activeRule.actions.border?.a ?? 255) / 255})`,
-              "background-color": `rgba(${store.activeRule.actions.background?.r ?? 0}, ${store.activeRule.actions.background?.g ?? 0}, ${store.activeRule.actions.background?.b ?? 0}, ${(store.activeRule.actions.background?.a ?? 255) / 255})`,
-              "max-width": `${(store.activeRule.actions.fontSize || 32) * 6}px`,
-              "font-size": `${(store.activeRule.actions.fontSize || 32) / 1.5}px`,
-            }}
-          >
-            {store.activeRule.bases.length
-              ? store.activeRule.bases
-                  .filter((base) => base.enabled)
-                  .reduce(
-                    (a, b) => {
-                      return a.name.length <= b.name.length ? a : b;
-                    },
-                    store.activeRule.bases.find((base) => base.enabled) ||
-                      store.activeRule.bases[0],
-                  ).name
-              : "Item"}
-          </div>
+      <div class='flex h-24 items-center justify-center'>
+        <div
+          class='flex w-full text-nowrap items-center justify-center border-[1.5px] min-w-fit max-h-fit px-3 mb-2'
+          style={{
+            color: `rgba(${store.activeRule.actions.text?.r ?? 0}, ${store.activeRule.actions.text?.g ?? 0}, ${store.activeRule.actions.text?.b ?? 0}, ${(store.activeRule.actions.text?.a ?? 255) / 255})`,
+            "border-color": `rgba(${store.activeRule.actions.border?.r ?? 0}, ${store.activeRule.actions.border?.g ?? 0}, ${store.activeRule.actions.border?.b ?? 0}, ${(store.activeRule.actions.border?.a ?? 255) / 255})`,
+            "background-color": `rgba(${store.activeRule.actions.background?.r ?? 0}, ${store.activeRule.actions.background?.g ?? 0}, ${store.activeRule.actions.background?.b ?? 0}, ${(store.activeRule.actions.background?.a ?? 255) / 255})`,
+            "max-width": `${(store.activeRule.actions.fontSize || 32) * 6}px`,
+            "font-size": `${(store.activeRule.actions.fontSize || 32) / 1.5}px`,
+          }}
+        >
+          {store.activeRule.bases.length
+            ? store.activeRule.bases
+                .filter((base) => base.enabled)
+                .reduce(
+                  (a, b) => {
+                    return a.name.length <= b.name.length ? a : b;
+                  },
+                  store.activeRule.bases.find((base) => base.enabled) ||
+                    store.activeRule.bases[0],
+                ).name
+            : "Item"}
         </div>
       </div>
-      <div class='flex gap-4'>
-        <div class='w-full flex-col flex gap-4 justify-center items-center my-2'>
-          <div class='gap-1 flex flex-col'>
-            <div class='flex flex-col gap-2 min-w-[350px]'>
-              <ColorPicker label='Text' key='text' />
-              <ColorPicker label='Border' key='border' />
-              <ColorPicker label='Background' key='background' />
-              <LabelSize />
-              <ToggleMapIcon />
-              <ToggleBeam />
-              <ToggleDropSound />
-              <SoundPicker />
-            </div>
+      <div class='flex gap-4 min-w-[400px]'>
+        <div class='flex-col flex gap-4 justify-center items-center'>
+          <div class='gap-2 flex flex-col'>
+            <ColorPicker label='Text' key='text' />
+            <ColorPicker label='Border' key='border' />
+            <ColorPicker label='Background' key='background' />
+            <LabelSize />
+            <ToggleMapIcon />
+            <ToggleBeam />
+            <ToggleDropSound />
+            <SoundPicker />
           </div>
         </div>
-        {DEBUG && (
-          <div class='border border-muted p-1 whitespace-pre bg-muted/50 w-full overflow-y-auto max-w-[400px] max-h-[250px]'>
-            {store.filter?.convertToText(store.activeRule)}
-          </div>
-        )}
+        <div class='border border-muted p-1 text-sm text-wrap whitespace-pre bg-muted/70 overflow-x-none overflow-y-auto max-h-[250px]'>
+          {store.filter?.convertToText(store.activeRule)}
+        </div>
       </div>
-      <ConditionManager />
+      <ConditionManager rule={store.activeRule} />
     </div>
   );
 }

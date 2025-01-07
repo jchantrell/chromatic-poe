@@ -8,6 +8,8 @@ type Hierarchy = { [key: string]: Item | Hierarchy };
 class ItemIndex {
   searchIndex: Fuse<Item>;
   hierarchy: Hierarchy;
+  classes: string[];
+  itemTable: { [key: string]: { [key: string]: Item } };
 
   constructor() {
     const options = {
@@ -20,8 +22,22 @@ class ItemIndex {
     };
 
     const hierarchy: Hierarchy = {};
+    const itemTable: { [key: string]: { [key: string]: Item } } = {};
+    const classes = new Set<string>();
 
     for (const item of items) {
+      // lookup table
+      if (!itemTable[item.category]) {
+        itemTable[item.category] = {};
+      }
+      itemTable[item.category][item.name] = item;
+
+      // classes
+      if (item.itemClass && item.itemClass !== "") {
+        classes.add(item.itemClass);
+      }
+
+      // hierarchy
       let path = [item.category, item.class];
       if (item.type) path.push(item.type);
 
@@ -33,7 +49,15 @@ class ItemIndex {
       recursivelySetKeys(hierarchy, path, item);
     }
 
+    // extra classes
+    const extraClasses = ["Vault Keys", "Quest Items"];
+    for (const extraClass of extraClasses) {
+      classes.add(extraClass);
+    }
+
     this.hierarchy = hierarchy;
+    this.itemTable = itemTable;
+    this.classes = Array.from(classes);
     this.searchIndex = new Fuse(items, options);
   }
 

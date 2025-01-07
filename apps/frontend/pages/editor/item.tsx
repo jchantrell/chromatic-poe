@@ -9,6 +9,7 @@ import {
 import { store } from "@app/store";
 import { setEntryActive, type FilterItem } from "@app/lib/filter";
 import type { Setter } from "solid-js";
+import { itemIndex } from "@app/lib/filter";
 
 export function Visual(props: { item: FilterItem; class?: string }) {
   return (
@@ -25,10 +26,15 @@ export function Visual(props: { item: FilterItem; class?: string }) {
         <img
           class='mr-1 h-8 max-w-full pointer-events-none'
           alt={`${props.item.name} icon`}
-          src={props.item.art}
+          src={itemIndex.itemTable[props.item.category][props.item.name].art}
         />
       </figure>
-      <div class='pointer-events-none text-lg'>{props.item.name}</div>
+      <div class='pointer-events-none text-lg'>
+        {props.item.name}
+        {props.item.category === "Uniques" && (
+          <span class='ml-1 text-xs text-neutral-400'> {props.item.base}</span>
+        )}
+      </div>
     </div>
   );
 }

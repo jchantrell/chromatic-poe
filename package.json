@@ -17,6 +17,7 @@
   "license": "MIT",
   "dependencies": {
     "@corvu/resizable": "^0.2.3",
+    "@eastdesire/jscolor": "^2.5.2",
     "@kobalte/core": "^0.13.7",
     "@solid-primitives/deep": "^0.2.10",
     "@solidjs/router": "^0.14.10",

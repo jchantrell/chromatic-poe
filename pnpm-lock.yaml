@@ -11,6 +11,9 @@ importers:
       '@corvu/resizable':
         specifier: ^0.2.3
         version: 0.2.3(solid-js@1.9.3)
+      '@eastdesire/jscolor':
+        specifier: ^2.5.2
+        version: 2.5.2
       '@kobalte/core':
         specifier: ^0.13.7
         version: 0.13.7(solid-js@1.9.3)
@@ -241,6 +244,9 @@ packages:
     resolution: {integrity: sha512-Ox2kYyxy7NoXdKWdHeDEjZxClwzO4SKM8plAaVwmAJPxHMqA0rLOoAsa+hBDwRLpctf+ZRnAd/ykguuJidnaTA==}
     peerDependencies:
       solid-js: ^1.8
+
+  '@eastdesire/jscolor@2.5.2':
+    resolution: {integrity: sha512-WPldVg9Z0tXDOROpbeLslv0Uj/CPgou+6GVMPZs2T+nKOkeBHYVZNfugixBhGzYWKWUumTzmTkLgnCVWlNwl2w==}
 
   '@emnapi/runtime@1.3.1':
     resolution: {integrity: sha512-kEBmG8KyqtxJZv+ygbEim+KCGtIq1fC22Ms3S4ziXmYKm8uyoLX0MHONVKwp+9opg390VaKRNt4a7A9NwmpNhw==}
@@ -2565,6 +2571,8 @@ snapshots:
     dependencies:
       '@floating-ui/dom': 1.6.12
       solid-js: 1.9.3
+
+  '@eastdesire/jscolor@2.5.2': {}
 
   '@emnapi/runtime@1.3.1':
     dependencies:

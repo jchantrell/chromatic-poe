@@ -1,6 +1,7 @@
 import path from "node:path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
+import packageJson from "./package.json";
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -14,6 +15,9 @@ export default defineConfig(async ({ mode }) => {
         "@app": path.resolve(__dirname, "./apps/frontend"),
         "@pkgs": path.resolve(__dirname, "./packages"),
       },
+    },
+    define: {
+      "import.meta.env.CHROMATIC_VERSION": JSON.stringify(packageJson.version),
     },
     clearScreen: false,
     server: {
