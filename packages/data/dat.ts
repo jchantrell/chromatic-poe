@@ -345,6 +345,8 @@ class,
   THEN 'Strength/Dexterity'
   WHEN armour != 0 AND energyShield != 0
   THEN 'Strength/Intelligence'
+  WHEN evasion != 0 AND energyShield != 0
+  THEN 'Dexterity/Intelligence'
   WHEN armour != 0
   THEN 'Strength'
   WHEN evasion != 0
