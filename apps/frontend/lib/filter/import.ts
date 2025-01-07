@@ -1,15 +1,8 @@
-import { type FilterRule, type FilterItem, DEFAULT_STYLE } from ".";
-import {
-  Operator,
-  type Conditions,
-  type Actions,
-  IconSize,
-  Shape,
-  Color,
-} from ".";
+import { type Conditions, Operator } from "./condition";
+import { type Actions, IconSize, Shape, Color, DEFAULT_STYLE } from "./action";
 import { ulid } from "ulid";
 import items from "@pkgs/data/poe2/items.json";
-import { clone } from "@pkgs/lib/utils";
+import { clone, camelCase } from "@pkgs/lib/utils";
 
 interface ParsedFilterAction {
   type: string;
@@ -41,6 +34,8 @@ const VALID_OPERATORS = [
   Operator.GTE,
 ] as const;
 
+const LIST_KEYS = ["Rarity"];
+
 function parseCondition(condition: string): ParsedFilterCondition {
   const [contentPart] = condition.split("#").map((part) => part.trim());
   const parts = contentPart.trim().split(/\s+/);
@@ -50,8 +45,8 @@ function parseCondition(condition: string): ParsedFilterCondition {
     ? parseValue(parts.slice(2).join(" "))
     : parseValue(parts.slice(1).join(" "));
 
-  if (!Array.isArray(value) && ["Rarity"].includes(parts[0])) {
-    value = value.split(" ");
+  if (LIST_KEYS.includes(parts[0])) {
+    value = value[0].split(" ");
   }
 
   return {
@@ -134,7 +129,6 @@ export function parseExistingFilter(content: string): ParsedFilterRule[] {
         type: contentPart as "Show" | "Hide" | "Minimal",
         conditions: [],
         actions: [],
-        // If we have sections, use section name, otherwise use regular comments
         comment: hasFoundFirstSection
           ? currentSection
           : currentComment || commentPart,
@@ -167,14 +161,6 @@ export function parseExistingFilter(content: string): ParsedFilterRule[] {
   }
 
   return rules;
-}
-
-function camelCase(str: string) {
-  return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) =>
-      index === 0 ? word.toLowerCase() : word.toUpperCase(),
-    )
-    .replace(/\s+/g, "");
 }
 
 export async function importFilter(raw: string) {

@@ -21,6 +21,8 @@ import { CloseIcon } from "@pkgs/icons";
 import SoundPicker from "./sound-picker";
 import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
 
+const DEBUG = false;
+
 function LabelSize() {
   const [size, setSize] = createSignal(32);
 
@@ -248,9 +250,11 @@ export default function RuleEditor() {
             <SoundPicker />
           </div>
         </div>
-        <div class='border border-muted p-1 text-sm text-wrap whitespace-pre bg-muted/70 overflow-x-none overflow-y-auto max-h-[250px]'>
-          {store.filter?.convertToText(store.activeRule)}
-        </div>
+        {DEBUG && (
+          <div class='border border-muted p-1 text-sm text-wrap whitespace-pre bg-muted/70 overflow-x-none overflow-y-auto max-h-[250px] max-w-[250px]'>
+            {store.filter?.convertToText(store.activeRule)}
+          </div>
+        )}
       </div>
       <ConditionManager rule={store.activeRule} />
     </div>

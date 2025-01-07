@@ -12,6 +12,27 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { sep } from "@tauri-apps/api/path";
 import { eol } from "@tauri-apps/plugin-os";
+import chromatic from "./config";
+import type { Filter } from "./filter";
+
+async function migrateLegacyFilter(filter: Filter) {
+  filter.poeVersion = 2;
+  filter.chromaticVersion = await chromatic.getVersion();
+  delete filter.version;
+  for (const rule of filter.rules) {
+    rule.continue = false;
+    for (let i = 0; i < rule.bases.length; i++) {
+      rule.bases[i] = {
+        name: rule.bases[i].name,
+        category: rule.bases[i].category,
+        base: rule.bases[i].base,
+        enabled: rule.bases[i].enabled,
+      };
+    }
+  }
+
+  return filter;
+}
 
 export interface FileSystem {
   runtime: "desktop" | "web";
@@ -71,6 +92,29 @@ export class WebStorage implements FileSystem {
   async readFile(path: string): Promise<string> {
     return localStorage.getItem(path) ?? "";
   }
+
+  async migrateLegacyFilters() {
+    const files = [];
+    const legacyFilters = JSON.parse(localStorage.getItem("filters") ?? "{}");
+    for (const filter in legacyFilters) {
+      if (!localStorage.getItem(`filters/${filter}`)) {
+        const updatedFilter = await migrateLegacyFilter(
+          JSON.parse(legacyFilters[filter]),
+        );
+        localStorage.setItem(
+          `filters/${filter}`,
+          JSON.stringify(updatedFilter),
+        );
+        files.push({
+          name: `filters/${filter}`,
+          data: JSON.stringify(updatedFilter),
+        });
+      }
+    }
+    localStorage.removeItem("filters");
+    return files;
+  }
+
   async getAllFiles<T extends "text" | "binary">(
     path: string,
     type: T,
@@ -84,20 +128,10 @@ export class WebStorage implements FileSystem {
     for (const key in localStorage) {
       // migrate legacy format, remove at some point in the future
       if (key === "filters") {
-        const legacyFilters = JSON.parse(localStorage.getItem(key) ?? "{}");
-        for (const filter in legacyFilters) {
-          if (!localStorage.getItem(`filters/${filter}`)) {
-            localStorage.setItem(`filters/${filter}`, legacyFilters[filter]);
-            files.push({
-              name: `filters/${filter}`,
-              data: legacyFilters[filter],
-            });
-          }
-        }
-        localStorage.removeItem(key);
+        files.push(...(await this.migrateLegacyFilters()));
       }
 
-      if (key.startsWith(path) && localStorage.getItem(key)) {
+      if (key.startsWith(`${path}/`) && localStorage.getItem(key)) {
         files.push({ name: key, data: localStorage.getItem(key) });
       }
     }
@@ -172,6 +206,26 @@ export class DesktopStorage implements FileSystem {
       if (record.isFile) {
         const bytes = await readFile(`${path}/${record.name}`);
         if (type === "text") {
+          const text = this.decoder.decode(bytes);
+
+          // migrate legacy format, remove at some point in the future
+          if (path.endsWith("/filters")) {
+            const filter = JSON.parse(text);
+            if (filter.version) {
+              const updatedFilter = await migrateLegacyFilter(filter);
+              await this.writeFile(
+                `${path}/${record.name}`,
+                "text",
+                JSON.stringify(updatedFilter),
+              );
+              files.push({
+                name: record.name,
+                data: JSON.stringify(updatedFilter),
+              });
+              continue;
+            }
+          }
+
           files.push({ name: record.name, data: this.decoder.decode(bytes) });
         }
         if (type === "binary") {

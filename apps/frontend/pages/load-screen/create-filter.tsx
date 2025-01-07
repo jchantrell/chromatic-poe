@@ -88,7 +88,7 @@ export default function CreateFilter() {
             </Switch>
             <div class='text-md font-semibold'>2</div>
           </div>
-          <div class='flex items-center gap-2'>
+          {/* <div class='flex items-center gap-2'>
             <div class='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mr-2'>
               Template
             </div>
@@ -110,7 +110,7 @@ export default function CreateFilter() {
                 }}
               </For>
             </ToggleGroup>
-          </div>
+          </div> */}
           <Button
             class='text-center cursor-pointer grid  max-w-sm rounded-lg items-center border p-0'
             type='submit'

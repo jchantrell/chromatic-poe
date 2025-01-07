@@ -80,13 +80,14 @@ function round(value: number) {
   return Math.round(value);
 }
 export function setBorderColor(color: RgbColor) {
-  return `SetBorderColor ${round(color.r)} ${round(color.g)} ${round(color.b)}${isDefined(color.a) ? ` ${Math.floor(color.a / 255)}` : ""}`;
+  console.log(color);
+  return `SetBorderColor ${round(color.r)} ${round(color.g)} ${round(color.b)}${isDefined(color.a) ? ` ${Math.floor(color.a)}` : ""}`;
 }
 export function setTextColor(color: RgbColor) {
-  return `SetTextColor ${round(color.r)} ${round(color.g)} ${round(color.b)}${isDefined(color.a) ? ` ${Math.floor(color.a / 255)}` : ""}`;
+  return `SetTextColor ${round(color.r)} ${round(color.g)} ${round(color.b)}${isDefined(color.a) ? ` ${Math.floor(color.a)}` : ""}`;
 }
 export function setBackgroundColor(color: RgbColor) {
-  return `SetBackgroundColor ${round(color.r)} ${round(color.g)} ${round(color.b)}${isDefined(color.a) ? ` ${Math.floor(color.a / 255)}` : ""}`;
+  return `SetBackgroundColor ${round(color.r)} ${round(color.g)} ${round(color.b)}${isDefined(color.a) ? ` ${Math.floor(color.a)}` : ""}`;
 }
 export function setFontSize(size: number) {
   return `SetFontSize ${size}`;
