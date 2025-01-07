@@ -1,5 +1,5 @@
 {
-  "patch": "4.1.0.11.2",
+  "patch": "latest",
   "translations": ["English"],
   "tables": [
     {
@@ -47,8 +47,14 @@
       "name": "CurrencyExchangeCategories",
       "columns": ["Id", "Name"]
     },
-    { "name": "ItemClassCategories", "columns": ["Id", "Text"] },
-    { "name": "ItemVisualIdentity", "columns": ["Id", "DDSFile", "AOFile"] },
+    {
+      "name": "ItemClassCategories",
+      "columns": ["Id", "Text"]
+    },
+    {
+      "name": "ItemVisualIdentity",
+      "columns": ["Id", "DDSFile", "AOFile"]
+    },
     {
       "name": "UniqueStashTypes",
       "columns": [
