@@ -94,16 +94,27 @@ export class Filter {
     this.lastUpdated = date;
   }
 
+  setName(name: string) {
+    this.name = name;
+  }
+
   async updateName(newName: string) {
     const oldPath = chromatic.getFiltersPath(this);
     const newPath = chromatic.getFiltersPath(this, newName);
     await chromatic.fileSystem.renameFile(oldPath, newPath);
-    this.name = newName;
-    await this.writeFile();
+    this.setName(newName);
+    await this.save();
   }
 
-  copy(): Filter {
-    return new Filter(clone(this));
+  copy(newName: string): Filter {
+    const newFilter = clone(this);
+    const filter = new Filter({
+      ...newFilter,
+      lastUpdated: new Date(),
+      name: newName,
+    });
+    filter.save();
+    return filter;
   }
 
   execute(command: Command) {
@@ -166,19 +177,22 @@ export class Filter {
     await chromatic.fileSystem.deleteFile(configPath);
     if (chromatic.fileSystem.runtime === "desktop") {
       const filterPath = `${chromatic.config?.poeDirectory}${sep()}${this.name}.filter`;
-      await chromatic.fileSystem.deleteFile(filterPath);
+      if (await chromatic.fileSystem.exists(filterPath)) {
+        await chromatic.fileSystem.deleteFile(filterPath);
+      }
     }
     toast("Deleted filter.");
   }
 
   async save() {
     const path = chromatic.getFiltersPath(this);
+    this.setLastUpdated(new Date());
     const filter = stringifyJSON({
       ...this,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: this.lastUpdated.toISOString(),
     });
     await chromatic.fileSystem.writeFile(path, "text", filter);
-    toast("Saved filter");
+    toast("Saved filter.");
   }
 
   async writeFile() {

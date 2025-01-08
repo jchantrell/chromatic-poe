@@ -220,7 +220,7 @@ class Chromatic {
   }
 
   async writeConfig(config: ChromaticConfiguration) {
-    const path = `${this.configPath}`;
+    const path = `${this.configPath}${this.runtime === "desktop" ? sep() : ""}${this.configFile}`;
     await this.fileSystem.writeFile(path, "text", JSON.stringify(config));
     console.log(`Successfully wrote config to ${path}`, config);
     this.config = config;
@@ -231,7 +231,8 @@ class Chromatic {
     currSemVer: string[],
     prevSemVer: string[],
   ) {
-    console.log("Not implemented", { config, currSemVer, prevSemVer });
+    // not implemented
+    console.log("Upgrade config", { config, currSemVer, prevSemVer });
     return this.defaultConfig();
   }
 
@@ -285,28 +286,35 @@ class Chromatic {
     return `${this.configPath}/${this.filterPath}/${newName ? newName : filter.name}.json`;
   }
 
-  async getAllFilters() {
-    if (this.runtime === "web") {
-      const filters = await this.fileSystem.getAllFiles(
-        this.filterPath,
-        "text",
-      );
-      for (const file of filters) {
-        const props = JSON.parse(file.data);
-        props.lastUpdated = new Date(props.lastUpdated);
-        new Filter(props);
-      }
+  async migrateFilterVersion(rawFilter: Filter): Promise<Filter> {
+    const chromaticVersion = await this.getVersion();
+    console.log("Checking for filter version upgrades", { rawFilter });
+    // not implemented yet, just updating the version for now
+    if (rawFilter.chromaticVersion !== chromaticVersion) {
+      rawFilter.chromaticVersion = chromaticVersion;
     }
-    if (this.runtime === "desktop") {
-      const filters = await this.fileSystem.getAllFiles(
-        `${this.configPath}/${this.filterPath}`,
-        "text",
-      );
-      for (const file of filters) {
-        const props = JSON.parse(file.data);
-        props.lastUpdated = new Date(props.lastUpdated);
-        new Filter(props);
-      }
+    this.fileSystem.writeFile(
+      this.getFiltersPath(rawFilter),
+      "text",
+      JSON.stringify(rawFilter),
+    );
+    return rawFilter;
+  }
+
+  async getAllFilters() {
+    const filters =
+      this.runtime === "desktop"
+        ? await this.fileSystem.getAllFiles(
+            `${this.configPath}/${this.filterPath}`,
+            "text",
+          )
+        : await this.fileSystem.getAllFiles(this.filterPath, "text");
+
+    for (const file of filters) {
+      const props = JSON.parse(file.data);
+      props.lastUpdated = new Date(props.lastUpdated);
+      const valid = await this.migrateFilterVersion(props);
+      new Filter(valid);
     }
 
     store.filters.sort(alphabeticalSort((filter) => filter.name));

@@ -53,6 +53,9 @@ export async function setSounds(sounds: Sound[]) {
 }
 
 export async function refreshSounds() {
+  if (!store.initialised) {
+    return;
+  }
   console.log("Refreshing sounds...");
   const [err, cachedSounds] = await to(chromatic.getSounds());
   if (err) {

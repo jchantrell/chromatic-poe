@@ -51,9 +51,7 @@ export default function ExistingFilter(props: { filter: Filter }) {
     }
 
     setCopyDialogOpen(false);
-    const filter = props.filter.copy();
-    filter.updateName(copyName());
-    await filter.save();
+    const filter = props.filter.copy(copyName());
   }
 
   async function updateFilterName() {

@@ -73,7 +73,11 @@ export class WebStorage implements FileSystem {
     return "";
   }
   async renameFile(oldPath: string, newPath: string): Promise<void> {
-    return;
+    const item = localStorage.getItem(oldPath);
+    if (item) {
+      localStorage.setItem(newPath, item);
+      localStorage.removeItem(oldPath);
+    }
   }
   async exists(path: string): Promise<boolean> {
     console.log("Checking for file", path);
