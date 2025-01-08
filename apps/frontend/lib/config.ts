@@ -411,6 +411,23 @@ class Chromatic {
       await openPath(path);
     }
   }
+
+  async listImportableFilters(version: number) {
+    if (this.runtime === "web") return;
+
+    if (!this.config.poeDirectory) return;
+
+    const files = await this.fileSystem.getAllFiles(
+      this.config.poeDirectory,
+      "text",
+    );
+
+    return files.filter(
+      (file) =>
+        file.name.endsWith(".filter") &&
+        !store.filters.some((filter) => filter.name === file.name),
+    );
+  }
 }
 
 export const chromatic = new Chromatic();

@@ -176,7 +176,7 @@ export class Filter {
     const configPath = chromatic.getFiltersPath(this);
     await chromatic.fileSystem.deleteFile(configPath);
     if (chromatic.fileSystem.runtime === "desktop") {
-      const filterPath = `${chromatic.config?.poeDirectory}${sep()}${this.name}.filter`;
+      const filterPath = `${chromatic.config?.poeDirectory}${sep()}${this.name}.chromatic.filter`;
       if (await chromatic.fileSystem.exists(filterPath)) {
         await chromatic.fileSystem.deleteFile(filterPath);
       }
@@ -203,7 +203,7 @@ export class Filter {
     this.lastWriteTime = now;
 
     if (chromatic.fileSystem.runtime === "desktop") {
-      const path = `${chromatic.config.poeDirectory}${sep()}${this.name}.filter`;
+      const path = `${chromatic.config.poeDirectory}${sep()}${this.name}.chromatic.filter`;
       await chromatic.fileSystem.writeFile(path, "text", this.serialize());
       setTimeout(async () => {
         await invoke("reload");
@@ -212,7 +212,7 @@ export class Filter {
     }
 
     if (chromatic.fileSystem.runtime === "web") {
-      const filename = `${this.name}.filter`;
+      const filename = `${this.name}.chromatic.filter`;
       const blob = new Blob([this.serialize()], { type: "text" });
       if (window.navigator.msSaveOrOpenBlob) {
         window.navigator.msSaveBlob(blob, filename);

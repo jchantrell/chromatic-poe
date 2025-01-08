@@ -149,9 +149,10 @@ export class WebStorage implements FileSystem {
       // migrate legacy format, remove at some point in the future
       if (key === "filters") {
         files.push(...(await this.migrateLegacyFilters()));
+        continue;
       }
 
-      if (key.startsWith(`${path}/`) && localStorage.getItem(key)) {
+      if (key.startsWith(path) && localStorage.getItem(key)) {
         files.push({ name: key, data: localStorage.getItem(key) });
       }
     }

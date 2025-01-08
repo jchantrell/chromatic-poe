@@ -9,7 +9,7 @@ export default function Tooltip(props: { children: JSXElement; text: string }) {
   return (
     <Primitive>
       <TooltipTrigger>{props.children}</TooltipTrigger>
-      <TooltipContent>
+      <TooltipContent class='bg-neutral-900 border border-accent'>
         <p>{props.text}</p>
       </TooltipContent>
     </Primitive>

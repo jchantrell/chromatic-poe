@@ -111,7 +111,6 @@ export default function SoundManager() {
   }
 
   onMount(async () => {
-    await chromatic.init();
     await refreshSounds();
     setInit(true);
   });

@@ -4,8 +4,6 @@ import { setColor } from "@app/lib/filter";
 import { Label } from "@pkgs/ui/label";
 import jscolor from "@eastdesire/jscolor";
 import { toast } from "solid-sonner";
-import { Button } from "@pkgs/ui/button";
-import { CopyIcon } from "@pkgs/icons";
 import Tooltip from "@app/components/tooltip";
 
 function ColorPicker(props: {
@@ -86,7 +84,7 @@ function ColorPicker(props: {
     <div class='w-fit flex items-center flex-col'>
       <div class='flex w-full gap-1 items-center'>
         <Label class='w-20'>{props.label}</Label>
-        <Tooltip text='Accepts HEX(A)and RGB(A) values'>
+        <Tooltip text='Accepts HEX and RGBA values'>
           <div class='flex items-center gap-1'>
             <input
               class='rounded-sm w-36 h-5 bg-muted border border-accent p-1'

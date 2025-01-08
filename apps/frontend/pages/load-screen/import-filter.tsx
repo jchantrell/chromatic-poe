@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal, For, onMount } from "solid-js";
 import { generateFilter } from "@app/lib/filter";
 import { Button } from "@pkgs/ui/button";
 import {
@@ -13,12 +13,17 @@ import { toast } from "solid-sonner";
 import { store } from "@app/store";
 import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
 import chromatic from "@app/lib/config";
+import { ToggleGroup, ToggleGroupItem } from "@pkgs/ui/toggle-group";
 
 export default function ImportFilter() {
   const [name, setName] = createSignal("Chromatic");
   const [raw, setRaw] = createSignal("");
   const [dialogOpen, setDialogOpen] = createSignal(false);
   const [version, setVersion] = createSignal(2);
+  const [selectedFilter, setSelectedFilter] = createSignal<string | null>(null);
+  const [importableFilters, setImportableFilters] = createSignal<
+    { name: string; data: string }[]
+  >([]);
 
   async function createFilter() {
     if (raw() === "") {
@@ -57,9 +62,21 @@ export default function ImportFilter() {
     }
   }
 
+  function handleExistingFilter(filter: { name: string; data: string }) {
+    setRaw(filter.data);
+    setName(filter.name.replace(".filter", ""));
+  }
+
   function handleVersion(version: number) {
     toast("Only PoE 2 is supported at the moment.");
   }
+
+  onMount(async () => {
+    const filters = await chromatic.listImportableFilters(version());
+    if (filters) {
+      setImportableFilters(filters);
+    }
+  });
 
   return (
     <Dialog open={dialogOpen()} onOpenChange={setDialogOpen}>
@@ -71,7 +88,9 @@ export default function ImportFilter() {
       </DialogTrigger>
       <DialogContent class='sm:max-w-[400px] p-4 bg-primary-foreground select-none'>
         <DialogHeader>
-          <DialogTitle>Import Filter</DialogTitle>
+          <DialogTitle class='flex items-center gap-2'>
+            Import Filter (Experimental)
+          </DialogTitle>
         </DialogHeader>
         <div class='grid gap-4 py-4'>
           <TextField class='flex items-center gap-4' onChange={setName}>
@@ -100,31 +119,66 @@ export default function ImportFilter() {
             <div class='text-md font-semibold'>2</div>
           </div>
 
-          <div class='flex items-center w-full'>
-            {chromatic.runtime === "web" && (
-              <input
-                type='file'
-                id='file'
-                class='hidden'
-                accept='.filter'
-                onChange={handleUpload}
-              />
-            )}
-            <div class='flex w-full'>
-              <label
-                for='file'
-                class='inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-neutral-700-foreground bg-neutral-700 hover:bg-neutral-700/90 w-20'
-              >
-                Upload
-              </label>
-              <div class='ml-2 flex justify-center items-center text-muted-foreground'>
-                {raw() === ""
-                  ? "No filter uploaded"
-                  : "Filter seems valid. You can import now."}
+          {chromatic.runtime === "web" && (
+            <>
+              <div class='flex items-center w-full'>
+                <input
+                  type='file'
+                  id='file'
+                  class='hidden'
+                  accept='.filter'
+                  onChange={handleUpload}
+                />
+                <div class='flex w-full'>
+                  <label
+                    for='file'
+                    class='inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-primary bg-neutral-700 hover:bg-neutral-700/90 w-20'
+                  >
+                    Upload
+                  </label>
+                  <div class='ml-2 flex justify-center items-center text-muted-foreground'>
+                    {raw() === ""
+                      ? "No filter uploaded."
+                      : "Filter seems valid."}
+                  </div>
+                </div>
               </div>
+              <Button onClick={createFilter}>Import</Button>
+            </>
+          )}
+          {chromatic.runtime === "desktop" && (
+            <div class='w-full flex flex-col gap-2'>
+              <div>
+                {!importableFilters().length && (
+                  <div class='text-muted-foreground'>
+                    No importable filters found.
+                  </div>
+                )}
+                <div class='flex flex-wrap gap-1'>
+                  <ToggleGroup
+                    onChange={(v) => setSelectedFilter(v)}
+                    value={selectedFilter()}
+                    class='flex flex-wrap'
+                  >
+                    <For each={importableFilters()}>
+                      {(filter) => {
+                        return (
+                          <ToggleGroupItem
+                            class='data-[pressed]:bg-neutral-700 bg-neutral-700/25 border border-accent'
+                            value={filter.name}
+                            onClick={() => handleExistingFilter(filter)}
+                          >
+                            {filter.name.replace(".filter", "")}
+                          </ToggleGroupItem>
+                        );
+                      }}
+                    </For>
+                  </ToggleGroup>
+                </div>
+              </div>
+              <Button onClick={createFilter}>Import</Button>
             </div>
-          </div>
-          <Button onClick={createFilter}>Import</Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
