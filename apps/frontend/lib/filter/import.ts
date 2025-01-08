@@ -194,6 +194,19 @@ export async function importFilter(raw: string) {
     for (const condition of otherConditions) {
       const { property, operator, value } = condition;
 
+      // skip these conditions for now as mod filtering isnt supported yet
+      if (property === "HasEnchantment") {
+        continue;
+      }
+
+      if (property === "HasExplicitMod") {
+        continue;
+      }
+
+      if (property === "SocketGroup") {
+        continue;
+      }
+
       if (property === "WaystoneTier") {
         conditions.mapTier = {
           operator,
