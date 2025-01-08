@@ -13,7 +13,8 @@ import {
 import { sep } from "@tauri-apps/api/path";
 import { eol } from "@tauri-apps/plugin-os";
 import chromatic from "./config";
-import type { Filter } from "./filter";
+import { Operator, Rarity, type Filter } from "./filter";
+import { toast } from "solid-sonner";
 
 async function migrateLegacyFilter(filter: Filter) {
   filter.poeVersion = 2;
@@ -28,8 +29,23 @@ async function migrateLegacyFilter(filter: Filter) {
         base: rule.bases[i].base,
         enabled: rule.bases[i].enabled,
       };
+      if (rule.bases.some((base) => base.category === "Uniques")) {
+        rule.conditions.rarity = {
+          operator: Operator.EXACT,
+          value: [Rarity.UNIQUE],
+        };
+      }
+      if (rule.bases.some((base) => base.category === "Pinnacle")) {
+        rule.conditions.classes = {
+          operator: Operator.EXACT,
+          value: ["Pinnacle Keys"],
+        };
+      }
     }
   }
+  toast.info(
+    "Migrated filter format. If your rules contain Pinnacle Keys or Uniques please review them for applied changes.",
+  );
 
   return filter;
 }
