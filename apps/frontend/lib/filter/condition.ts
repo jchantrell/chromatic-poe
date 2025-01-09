@@ -11,7 +11,7 @@ type OpListCondition<T> = {
 };
 
 type OpValueCondition<T> = {
-  operator: Operator;
+  operator?: Operator;
   value: T | string;
 };
 
@@ -130,32 +130,32 @@ function className(op: Operator, classNames: string[]): string | null {
 }
 
 // general
-function height(op: Operator, height: number | string): string {
-  return `Height ${op} ${height}`;
+function height(op: Operator | undefined, height: number | string): string {
+  return `Height ${op ? `${op} ` : ""}${height}`;
 }
-function width(op: Operator, width: number | string): string {
-  return `Width ${op} ${width}`;
+function width(op: Operator | undefined, width: number | string): string {
+  return `Width ${op ? `${op} ` : ""}${width}`;
 }
-function areaLevel(op: Operator, lvl: number | string): string {
-  return `AreaLevel ${op} ${lvl}`;
+function areaLevel(op: Operator | undefined, lvl: number | string): string {
+  return `AreaLevel ${op ? `${op} ` : ""}${lvl}`;
 }
-function dropLevel(op: Operator, lvl: number | string): string {
-  return `DropLevel ${op} ${lvl}`;
+function dropLevel(op: Operator | undefined, lvl: number | string): string {
+  return `DropLevel ${op ? `${op} ` : ""}${lvl}`;
 }
 
 // stackables
-function stackSize(op: Operator, size: number | string): string {
-  return `StackSize ${op} ${size}`;
+function stackSize(op: Operator | undefined, size: number | string): string {
+  return `StackSize ${op ? `${op} ` : ""}${size}`;
 }
 
 // quality (gear, gems, maps)
-function quality(op: Operator, qual: number | string): string {
-  return `Quality ${op} ${qual}`;
+function quality(op: Operator | undefined, qual: number | string): string {
+  return `Quality ${op ? `${op} ` : ""}${qual}`;
 }
 
 // gems
-function gemLevel(op: Operator, lvl: number | string): string {
-  return `GemLevel ${op} ${lvl}`;
+function gemLevel(op: Operator | undefined, lvl: number | string): string {
+  return `GemLevel ${op ? `${op} ` : ""}${lvl}`;
 }
 function alternateQuality(bool: boolean): string {
   return `AlternateQuality ${bool}`;
@@ -165,8 +165,8 @@ function transfiguredGem(bool: boolean): string {
 }
 
 // maps
-function mapTier(op: Operator, tier: number | string): string {
-  return `WaystoneTier ${op} "${tier}"`; // FIXME: poe1 support
+function mapTier(op: Operator | undefined, tier: number | string): string {
+  return `WaystoneTier ${op ? `${op} ` : ""}${tier}`; // FIXME: poe1 support
 }
 function elderMap(bool: boolean): string {
   return `ElderMap ${bool}`;
@@ -182,8 +182,8 @@ function uberBlightedMap(bool: boolean): string {
 }
 
 // gear & maps (general)
-function itemLevel(op: Operator, lvl: number | string): string {
-  return `ItemLevel ${op} ${lvl}`;
+function itemLevel(op: Operator | undefined, lvl: number | string): string {
+  return `ItemLevel ${op ? `${op} ` : ""}${lvl}`;
 }
 function rarity(op: Operator, rarity: Rarity[]): string | null {
   if (rarity.length === 0) return null;
@@ -204,8 +204,11 @@ function fractured(bool: boolean): string {
 function corrupted(bool: boolean): string {
   return `Corrupted ${bool}`;
 }
-function corruptedMods(op: Operator, number: number | string): string {
-  return `CorruptedMods ${op} ${number}`;
+function corruptedMods(
+  op: Operator | undefined,
+  number: number | string,
+): string {
+  return `CorruptedMods ${op ? `${op} ` : ""}${number}`;
 }
 function mirrored(bool: boolean): string {
   return `Mirrored ${bool}`;
@@ -228,19 +231,22 @@ function socketGroup(op: Operator, groupString: string): string {
   return `SocketGroup ${op} ${groupString}`;
 }
 function sockets(
-  op: Operator,
+  op: Operator | undefined,
   amount: number | string,
   groupString?: string,
 ): string {
-  return `Sockets ${op} ${amount}${groupString ? ` ${groupString}` : ""}`;
+  return `Sockets ${op ? `${op} ` : ""}${amount}${groupString ? ` ${groupString}` : ""}`;
 }
 
 // gear (clusters)
 function enchantmentPassiveNode(enchantments: string[]): string {
   return `EnchantmentPassiveNode ${enchantments.map((entry) => `"${entry}"`).join(" ")}`;
 }
-function enchantmentPassiveNum(op: Operator, number: number | string): string {
-  return `EnchantmentPassiveNum ${op} ${number}`;
+function enchantmentPassiveNum(
+  op: Operator | undefined,
+  number: number | string,
+): string {
+  return `EnchantmentPassiveNum ${op ? `${op} ` : ""}${number}`;
 }
 
 // gear (weapons)
@@ -249,20 +255,26 @@ function crucibleTree(bool: boolean): string {
 }
 
 // gear (armour)
-function baseDefencePercentile(op: Operator, value: number | string): string {
-  return `BaseDefencePercentile ${op} ${value}`;
+function baseDefencePercentile(
+  op: Operator | undefined,
+  value: number | string,
+): string {
+  return `BaseDefencePercentile ${op ? `${op} ` : ""}${value}`;
 }
-function baseArmour(op: Operator, value: number | string): string {
-  return `BaseArmour ${op} ${value}`;
+function baseArmour(op: Operator | undefined, value: number | string): string {
+  return `BaseArmour ${op ? `${op} ` : ""}${value}`;
 }
-function baseEnergyShield(op: Operator, value: number | string): string {
-  return `BaseEnergyShield ${op} ${value}`;
+function baseEnergyShield(
+  op: Operator | undefined,
+  value: number | string,
+): string {
+  return `BaseEnergyShield ${op ? `${op} ` : ""}${value}`;
 }
-function baseEvasion(op: Operator, value: number | string): string {
-  return `BaseEvasion ${op} ${value}`;
+function baseEvasion(op: Operator | undefined, value: number | string): string {
+  return `BaseEvasion ${op ? `${op} ` : ""}${value}`;
 }
-function baseWard(op: Operator, value: number | string): string {
-  return `BaseWard ${op} ${value}`;
+function baseWard(op: Operator | undefined, value: number | string): string {
+  return `BaseWard ${op ? `${op} ` : ""}${value}`;
 }
 
 // gear (influence)
@@ -270,16 +282,16 @@ function hasInfluence(influence: Influence[]): string {
   return `HasInfluence ${influence.map((entry) => `"${entry}"`).join(" ")}`;
 }
 function hasSearingExarchImplicit(
-  op: Operator,
+  op: Operator | undefined,
   amount: number | string,
 ): string {
-  return `HasSearingExarchImplicit ${op} ${amount}`;
+  return `HasSearingExarchImplicit ${op ? `${op} ` : ""}${amount}`;
 }
 function hasEaterOfWorldsImplicit(
-  op: Operator,
+  op: Operator | undefined,
   amount: number | string,
 ): string {
-  return `HasEaterOfWorldsImplicit ${op} ${amount}`;
+  return `HasEaterOfWorldsImplicit ${op ? `${op} ` : ""}${amount}`;
 }
 
 // gear (synth)
@@ -309,38 +321,6 @@ export function serializeConditions(conditions: Conditions) {
     if (condition) {
       strs.push(condition);
     }
-  }
-  if (conditions.height) {
-    strs.push(height(conditions.height.operator, conditions.height.value));
-  }
-  if (conditions.width) {
-    strs.push(width(conditions.width.operator, conditions.width.value));
-  }
-  if (conditions.areaLevel) {
-    strs.push(
-      areaLevel(conditions.areaLevel.operator, conditions.areaLevel.value),
-    );
-  }
-  if (conditions.dropLevel) {
-    strs.push(
-      dropLevel(conditions.dropLevel.operator, conditions.dropLevel.value),
-    );
-  }
-  if (conditions.stackSize) {
-    strs.push(
-      stackSize(conditions.stackSize.operator, conditions.stackSize.value),
-    );
-  }
-  if (conditions.quality) {
-    strs.push(quality(conditions.quality.operator, conditions.quality.value));
-  }
-  if (conditions.gemLevel) {
-    strs.push(
-      gemLevel(conditions.gemLevel.operator, conditions.gemLevel.value),
-    );
-  }
-  if (conditions.mapTier) {
-    strs.push(mapTier(conditions.mapTier.operator, conditions.mapTier.value));
   }
   if (conditions.transfiguredGem) {
     strs.push(transfiguredGem(conditions.transfiguredGem.value));
@@ -424,23 +404,37 @@ export function serializeConditions(conditions: Conditions) {
       ),
     );
   }
-  if (conditions.rarity) {
-    const condition = rarity(Operator.EXACT, conditions.rarity.value);
-    if (condition) {
-      strs.push(condition);
-    }
+  if (conditions.height) {
+    strs.push(height(conditions.height.operator, conditions.height.value));
   }
-  if (conditions.hasExplicitMod) {
-    strs.push(hasExplicitMod(conditions.hasExplicitMod.value));
+  if (conditions.width) {
+    strs.push(width(conditions.width.operator, conditions.width.value));
   }
-  if (conditions.enchanted) {
-    strs.push(anyEnchantment(conditions.enchanted.value));
+  if (conditions.areaLevel) {
+    strs.push(
+      areaLevel(conditions.areaLevel.operator, conditions.areaLevel.value),
+    );
   }
-  if (conditions.archnemesisMod) {
-    strs.push(archnemesisMod(conditions.archnemesisMod.value));
+  if (conditions.dropLevel) {
+    strs.push(
+      dropLevel(conditions.dropLevel.operator, conditions.dropLevel.value),
+    );
   }
-  if (conditions.enchantmentPassiveNode) {
-    strs.push(enchantmentPassiveNode(conditions.enchantmentPassiveNode.value));
+  if (conditions.stackSize) {
+    strs.push(
+      stackSize(conditions.stackSize.operator, conditions.stackSize.value),
+    );
+  }
+  if (conditions.quality) {
+    strs.push(quality(conditions.quality.operator, conditions.quality.value));
+  }
+  if (conditions.gemLevel) {
+    strs.push(
+      gemLevel(conditions.gemLevel.operator, conditions.gemLevel.value),
+    );
+  }
+  if (conditions.mapTier) {
+    strs.push(mapTier(conditions.mapTier.operator, conditions.mapTier.value));
   }
   if (conditions.enchantmentPassiveNum) {
     strs.push(
@@ -466,11 +460,29 @@ export function serializeConditions(conditions: Conditions) {
       ),
     );
   }
-  if (conditions.hasInfluence) {
-    strs.push(hasInfluence(conditions.hasInfluence.value));
-  }
   if (conditions.sockets) {
     strs.push(sockets(conditions.sockets.operator, conditions.sockets.value));
+  }
+  if (conditions.rarity) {
+    const condition = rarity(Operator.EXACT, conditions.rarity.value);
+    if (condition) {
+      strs.push(condition);
+    }
+  }
+  if (conditions.hasExplicitMod) {
+    strs.push(hasExplicitMod(conditions.hasExplicitMod.value));
+  }
+  if (conditions.enchanted) {
+    strs.push(anyEnchantment(conditions.enchanted.value));
+  }
+  if (conditions.archnemesisMod) {
+    strs.push(archnemesisMod(conditions.archnemesisMod.value));
+  }
+  if (conditions.enchantmentPassiveNode) {
+    strs.push(enchantmentPassiveNode(conditions.enchantmentPassiveNode.value));
+  }
+  if (conditions.hasInfluence) {
+    strs.push(hasInfluence(conditions.hasInfluence.value));
   }
 
   return strs;

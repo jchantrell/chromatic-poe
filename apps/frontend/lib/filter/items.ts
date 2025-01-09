@@ -1,4 +1,4 @@
-import Fuse, { type FuseResult } from "fuse.js";
+import Fuse, { type FuseResult, type FuseSearchOptions } from "fuse.js";
 import items from "@pkgs/data/poe2/items.json";
 import { recursivelySetKeys } from "@pkgs/lib/utils";
 
@@ -50,7 +50,7 @@ class ItemIndex {
     }
 
     // extra classes
-    const extraClasses = ["Vault Keys", "Quest Items"];
+    const extraClasses = ["Vault Keys", "Quest Items", "Misc Map Items"];
     for (const extraClass of extraClasses) {
       classes.add(extraClass);
     }
@@ -61,7 +61,9 @@ class ItemIndex {
     this.searchIndex = new Fuse(items, options);
   }
 
-  search(args: { [key: string]: string }): FuseResult<Item>[] {
+  search(
+    args: Parameters<typeof this.searchIndex.search>[0],
+  ): FuseResult<Item>[] {
     return this.searchIndex.search(args);
   }
 }

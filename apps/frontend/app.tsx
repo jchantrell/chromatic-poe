@@ -89,13 +89,13 @@ function SideBar() {
 function TopBar() {
   return (
     <nav
-      class='w-full flex justify-between items-center h-14'
+      class='w-full flex justify-between items-center h-12'
       data-tauri-drag-region
     >
       <div class='flex items-center gap-2'>
         {store.filter ? (
           <>
-            <div class='ml-2 font-semibold text-xl mr-4'>
+            <div class='ml-2 font-semibold text-xl mr-4 flex '>
               {store.filter?.name} (PoE {store.filter.poeVersion})
             </div>
             <Tooltip text={`Save (Ctrl + ${SAVE_KEY.toUpperCase()})`}>

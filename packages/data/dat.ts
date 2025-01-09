@@ -511,6 +511,19 @@ WHERE exchangeCategory IN ('Essences', 'Currency', 'Runes')
 
 UNION ALL
 
+-- Special cased currency
+SELECT DISTINCT
+name,
+'Currency' AS category,
+'Common' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name IN ('Albino Rhoa Feather')
+
+UNION ALL
+
 -- Expedition
 SELECT DISTINCT
 name,
@@ -588,6 +601,18 @@ WHERE class = 'Relics'
 
 UNION ALL
 
+SELECT DISTINCT
+name,
+'Trial of the Sekhemas' AS category,
+'Keys' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name IN ('Gold Key', 'Silver Key', 'Bronze Key')
+
+UNION ALL
+
 -- Ritual
 SELECT DISTINCT
 name,
@@ -653,6 +678,19 @@ price AS score,
 ${extraFields}
 FROM ITEMS
 WHERE exchangeSubcategory IN ('Pinnacle Fragments')
+
+UNION ALL
+
+-- Vault Keys
+SELECT DISTINCT
+name,
+'Currency' AS category,
+'Vault Keys' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Vault Keys'
 `)
 
       .all();

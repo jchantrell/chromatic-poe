@@ -2,7 +2,10 @@ import { type Conditions, Operator } from "./condition";
 import { type Actions, IconSize, Shape, Color, DEFAULT_STYLE } from "./action";
 import { ulid } from "ulid";
 import items from "@pkgs/data/poe2/items.json";
+import { itemIndex } from "./items";
 import { clone, camelCase } from "@pkgs/lib/utils";
+import type { FilterRule, FilterItem } from "./filter";
+import { toast } from "solid-sonner";
 
 interface ParsedFilterAction {
   type: string;
@@ -34,7 +37,38 @@ const VALID_OPERATORS = [
   Operator.GTE,
 ] as const;
 
-const LIST_KEYS = ["Rarity"];
+function containsExactWord(text: string, searchWord: string): boolean {
+  const regex = new RegExp(`\\b${searchWord}\\b`, "i");
+  return regex.test(text);
+}
+
+function baseExists(name: string) {
+  return items.find((item) => item.base.toLowerCase() === name.toLowerCase());
+}
+
+function getClasses(value: number | string | boolean | string[]) {
+  if (Array.isArray(value) && value.includes("Jewel")) {
+    return replaceClass("Jewel", ["Jewels"], value);
+  }
+  if (Array.isArray(value) && value.includes("Currency")) {
+    return replaceClass("Currency", ["Stackable Currency"], value);
+  }
+  if (Array.isArray(value) && value.includes("Flasks")) {
+    return replaceClass("Flasks", ["Life Flasks", "Mana Flasks"], value);
+  }
+
+  return value;
+}
+
+function replaceClass(
+  classToRemove: string,
+  classesToAdd: string[],
+  value: string[],
+) {
+  const filtered = value.filter((v) => v !== classToRemove);
+  filtered.push(...classesToAdd);
+  return filtered;
+}
 
 function parseCondition(condition: string): ParsedFilterCondition {
   const [contentPart] = condition.split("#").map((part) => part.trim());
@@ -45,7 +79,7 @@ function parseCondition(condition: string): ParsedFilterCondition {
     ? parseValue(parts.slice(2).join(" "))
     : parseValue(parts.slice(1).join(" "));
 
-  if (LIST_KEYS.includes(parts[0])) {
+  if (["Rarity"].includes(parts[0]) && Array.isArray(value)) {
     value = value[0].split(" ");
   }
 
@@ -55,6 +89,7 @@ function parseCondition(condition: string): ParsedFilterCondition {
     value,
   };
 }
+
 function parseAction(action: string): ParsedFilterAction {
   const parts = action.trim().split(/\s+/);
   return {
@@ -66,40 +101,38 @@ function parseAction(action: string): ParsedFilterAction {
 }
 
 function parseValue(value: string): string | number | boolean | string[] {
-  value = value.replace(/^["']|["']$/g, "");
+  const parsedValue = value.replace(/^["']|["']$/g, "");
 
-  if (value === "True" || value === "False") {
-    return value === "True";
+  if (parsedValue === "True" || parsedValue === "False") {
+    return parsedValue === "True";
   }
 
-  if (!Number.isNaN(Number(value))) {
-    return Number(value);
+  if (!Number.isNaN(Number(parsedValue))) {
+    return Number(parsedValue);
   }
 
-  return value.split('" "').map((v) => v.replace(/"/g, ""));
+  return parsedValue.split('" "').map((v) => v.replace(/"/g, ""));
 }
 
 export function parseExistingFilter(content: string): ParsedFilterRule[] {
   const rules: ParsedFilterRule[] = [];
-  let currentRule: ParsedFilterRule | null = null;
-  let currentComment: string | undefined;
-  let currentSection: string | undefined;
-  let hasFoundFirstSection = false; // Track if we've found any section headers
+  let rule: ParsedFilterRule | null = null;
+  let comment: string | undefined;
+  let section: string | undefined;
+  let foundFirstSection = false;
 
   const lines = content.split("\n").map((line) => line.trim());
 
   for (const line of lines) {
     if (!line) continue;
-
-    if (line.startsWith("#====")) {
+    if (line.startsWith("#====") || line.startsWith("#----")) {
       continue;
     }
 
-    // looking for section headers
-    const sectionMatch = line.match(/^#\s*\[\[(\d+)\]\]\s*(.+)$/);
+    const sectionMatch = line.match(/^#\s*\[{1,2}(\d+)\]{1,2}\s*(.+)$/);
     if (sectionMatch) {
-      currentSection = `[${sectionMatch[1]}] ${sectionMatch[2]}`;
-      hasFoundFirstSection = true;
+      section = `[${sectionMatch[1]}] ${sectionMatch[2]}`;
+      foundFirstSection = true;
       continue;
     }
 
@@ -110,54 +143,52 @@ export function parseExistingFilter(content: string): ParsedFilterRule[] {
       ) {
         continue;
       }
-      if (!hasFoundFirstSection || currentSection) {
-        currentComment = line.slice(1).trim();
+      if (!foundFirstSection || section) {
+        comment = line.slice(1).trim();
       }
       continue;
     }
 
-    const [contentPart, commentPart] = line
-      .split("#")
-      .map((part) => part.trim());
+    const [key, commentPart] = line.split("#").map((part) => part.trim());
 
-    if (/^(Show|Hide|Minimal)$/.test(contentPart)) {
-      if (currentRule) {
-        rules.push(currentRule);
+    if (/^(Show|Hide|Minimal)$/.test(key)) {
+      if (rule) {
+        rules.push(rule);
       }
 
-      currentRule = {
-        type: contentPart as "Show" | "Hide" | "Minimal",
+      rule = {
+        type: key as "Show" | "Hide" | "Minimal",
         conditions: [],
         actions: [],
-        comment: hasFoundFirstSection
-          ? currentSection
-          : currentComment || commentPart,
+        comment: foundFirstSection ? section : comment || commentPart,
         continue: false,
       };
-      currentComment = undefined;
+      comment = undefined;
       continue;
     }
 
-    if (currentRule && contentPart) {
-      if (contentPart === "Continue") {
-        currentRule.continue = true;
-      } else if (
-        contentPart.startsWith("Set") ||
-        contentPart.startsWith("Play") ||
-        contentPart.startsWith("MinimapIcon") ||
-        contentPart.startsWith("DisableDropSound") ||
-        contentPart.startsWith("EnableDropSound") ||
-        contentPart.startsWith("CustomAlertSound")
-      ) {
-        currentRule.actions.push(parseAction(contentPart));
-      } else {
-        currentRule.conditions.push(parseCondition(contentPart));
+    if (rule && key) {
+      if (key === "Continue") {
+        rule.continue = true;
+        continue;
       }
+      if (
+        key.startsWith("Set") ||
+        key.startsWith("Play") ||
+        key.startsWith("MinimapIcon") ||
+        key.startsWith("DisableDropSound") ||
+        key.startsWith("EnableDropSound") ||
+        key.startsWith("CustomAlertSound")
+      ) {
+        rule.actions.push(parseAction(key));
+        continue;
+      }
+      rule.conditions.push(parseCondition(key));
     }
   }
 
-  if (currentRule) {
-    rules.push(currentRule);
+  if (rule) {
+    rules.push(rule);
   }
 
   return rules;
@@ -165,7 +196,6 @@ export function parseExistingFilter(content: string): ParsedFilterRule[] {
 
 export async function importFilter(raw: string) {
   const rules = parseExistingFilter(raw);
-
   const convertedRules: FilterRule[] = [];
 
   for (const rule of rules) {
@@ -179,10 +209,38 @@ export async function importFilter(raw: string) {
     for (const condition of baseTypeConditions) {
       const bases = condition.value;
       if (typeof bases === "string") {
-        basesToAdd.add(bases);
-      } else if (Array.isArray(bases)) {
+        // exact match
+        if (baseExists(bases)) {
+          basesToAdd.add(bases);
+          continue;
+        }
+        // fuzzy match
+        const fuzzy = itemIndex.search({
+          $and: [{ name: `'${bases.trim()}` }],
+        });
+        for (const result of fuzzy) {
+          if (containsExactWord(result.item.name, bases)) {
+            basesToAdd.add(result.item.name);
+          }
+        }
+      }
+
+      if (Array.isArray(bases)) {
         for (const base of bases) {
-          basesToAdd.add(base);
+          // exact match
+          if (baseExists(base)) {
+            basesToAdd.add(base);
+            continue;
+          }
+          // fuzzy match
+          const fuzzy = itemIndex.search({
+            $and: [{ name: `'${base.trim()}` }],
+          });
+          for (const result of fuzzy) {
+            if (containsExactWord(result.item.name, base)) {
+              basesToAdd.add(result.item.name);
+            }
+          }
         }
       }
     }
@@ -198,12 +256,26 @@ export async function importFilter(raw: string) {
       if (property === "HasEnchantment") {
         continue;
       }
-
       if (property === "HasExplicitMod") {
         continue;
       }
-
       if (property === "SocketGroup") {
+        continue;
+      }
+      if (property === "Class") {
+        conditions.classes = {
+          operator,
+          value: getClasses(value),
+        };
+
+        continue;
+      }
+
+      if (property === "AnyEnchantment") {
+        conditions.enchanted = {
+          operator,
+          value,
+        };
         continue;
       }
 
@@ -241,30 +313,30 @@ export async function importFilter(raw: string) {
     for (const action of rule.actions) {
       if (action.type === "SetTextColor") {
         actions.text = {
-          r: action.params[0],
-          g: action.params[1],
-          b: action.params[2],
-          a: action.params[3],
+          r: Number(action.params[0]),
+          g: Number(action.params[1]),
+          b: Number(action.params[2]),
+          a: action.params[3] ? Number(action.params[3]) : 240,
         };
       }
       if (action.type === "SetBackgroundColor") {
         actions.background = {
-          r: action.params[0],
-          g: action.params[1],
-          b: action.params[2],
-          a: action.params[3],
+          r: Number(action.params[0]),
+          g: Number(action.params[1]),
+          b: Number(action.params[2]),
+          a: action.params[3] ? Number(action.params[3]) : 240,
         };
       }
       if (action.type === "SetBorderColor") {
         actions.border = {
-          r: action.params[0],
-          g: action.params[1],
-          b: action.params[2],
-          a: action.params[3],
+          r: Number(action.params[0]),
+          g: Number(action.params[1]),
+          b: Number(action.params[2]),
+          a: action.params[3] ? Number(action.params[3]) : 240,
         };
       }
       if (action.type === "SetFontSize") {
-        actions.fontSize = action.params[0];
+        actions.fontSize = Number(action.params[0]);
       }
       if (action.type === "MinimapIcon") {
         const size = action.params[0];
@@ -343,7 +415,7 @@ export async function importFilter(raw: string) {
 
     const convertedRule: FilterRule = {
       id: ulid(),
-      name: rule.comment ?? "Imported rule",
+      name: rule.comment ?? "",
       show: rule.type === "Show",
       enabled: true,
       conditions: conditions,
