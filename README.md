@@ -1,5 +1,8 @@
 # ![Chromatic PoE](./apps/backend/icons/Square44x44Logo.png) Chromatic PoE 
 
+[![](https://user-images.githubusercontent.com/4292308/153364874-dde23599-278c-4350-8d86-dadbc4b978b3.svg)](https://somsubhra.github.io/github-release-stats/?username=jchantrell&repository=chromatic-poe)
+[![](https://user-images.githubusercontent.com/4292308/153364565-7a545d26-e617-4a33-a919-ff90d8feda3d.svg)](https://discord.gg/vYCrRq9aeU)
+
 > [!IMPORTANT]
 > Chromatic PoE is currently in a pre-release state. It is usable but not feature complete.
 
