@@ -113,11 +113,11 @@ export default function ConditionManager(props: { rule: FilterRule }) {
     <div class='mx-auto p-4 h-full'>
       <div class='space-y-4 flex flex-col size-full max-w-[650px]'>
         <div class='flex gap-5 items-center'>
-          <Dialog defaultOpen>
+          <Dialog>
             <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
               Edit Items
             </DialogTrigger>
-            <DialogContent class='sm:max-w-[600px]'>
+            <DialogContent class='sm:max-w-[600px] overflow-y-hidden'>
               <ItemPicker rule={props.rule} />
             </DialogContent>
           </Dialog>
