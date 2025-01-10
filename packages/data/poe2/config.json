@@ -1,5 +1,5 @@
 {
-  "patch": "latest",
+  "patch": "4.1.0.12.4",
   "translations": ["English"],
   "tables": [
     {
@@ -123,6 +123,27 @@
     {
       "name": "CurrencyItems",
       "columns": ["BaseItemType", "StackSize"]
+    },
+    {
+      "name": "Mods",
+      "columns": [
+        "Id",
+        "Level",
+        "Name",
+        "Stat1",
+        "Stat2",
+        "Stat3",
+        "Stat4",
+        "Domain",
+        "Stat1Value",
+        "Stat2Value",
+        "Stat3Value",
+        "Stat4Value"
+      ]
+    },
+    {
+      "name": "GoldModPrices",
+      "columns": ["Mod", "Value", "Tags", "SpawnWeight"]
     }
   ]
 }
