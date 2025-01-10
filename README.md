@@ -1,6 +1,6 @@
 # ![Chromatic PoE](./apps/backend/icons/Square44x44Logo.png) Chromatic PoE 
 
-[![](https://user-images.githubusercontent.com/4292308/153364874-dde23599-278c-4350-8d86-dadbc4b978b3.svg)](https://somsubhra.github.io/github-release-stats/?username=jchantrell&repository=chromatic-poe)
+[![](https://img.shields.io/github/downloads/jchantrell/chromatic-poe/total?label=Downloads)](https://github.com/jchantrell/chromatic-poe/releases)
 [![](https://user-images.githubusercontent.com/4292308/153364565-7a545d26-e617-4a33-a919-ff90d8feda3d.svg)](https://discord.gg/vYCrRq9aeU)
 
 > [!IMPORTANT]
