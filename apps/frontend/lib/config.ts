@@ -220,7 +220,7 @@ class Chromatic {
   }
 
   async writeConfig(config: ChromaticConfiguration) {
-    const path = `${this.configPath}${this.runtime === "desktop" ? sep() : ""}${this.configFile}`;
+    const path = `${this.configPath}${this.runtime === "desktop" ? `${sep()}${this.configFile}` : ""}`;
     await this.fileSystem.writeFile(path, "text", JSON.stringify(config));
     console.log(`Successfully wrote config to ${path}`, config);
     this.config = config;
@@ -375,6 +375,10 @@ class Chromatic {
         this.soundPath,
         "text",
       );
+      // handle the legacy format
+      if (cachedSounds[0]?.data.includes("undefined")) {
+        return [];
+      }
       if (cachedSounds.length) {
         sounds.push(
           ...JSON.parse(cachedSounds[0].data).map((sound: Sound) => ({

@@ -60,6 +60,8 @@ export async function refreshSounds() {
   const [err, cachedSounds] = await to(chromatic.getSounds());
   if (err) {
     toast.error("Cannot find sounds folder. Does it exist?");
+    setSounds([]);
+    store.defaultSounds = await chromatic.getDefaultSounds();
     return;
   }
   const updatedSounds = [];
