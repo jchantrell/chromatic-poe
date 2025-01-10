@@ -1,4 +1,4 @@
-import Fuse, { type FuseResult, type FuseSearchOptions } from "fuse.js";
+import Fuse, { type FuseResult } from "fuse.js";
 import items from "@pkgs/data/poe2/items.json";
 import { recursivelySetKeys } from "@pkgs/lib/utils";
 
@@ -10,6 +10,7 @@ class ItemIndex {
   hierarchy: Hierarchy;
   classes: string[];
   itemTable: { [key: string]: { [key: string]: Item } };
+  items = items;
 
   constructor() {
     const options = {
@@ -21,7 +22,6 @@ class ItemIndex {
       threshold: 0.6,
     };
 
-    const hierarchy: Hierarchy = {};
     const itemTable: { [key: string]: { [key: string]: Item } } = {};
     const classes = new Set<string>();
 
@@ -36,7 +36,23 @@ class ItemIndex {
       if (item.itemClass && item.itemClass !== "") {
         classes.add(item.itemClass);
       }
+    }
 
+    // extra classes
+    const extraClasses = ["Vault Keys", "Quest Items", "Misc Map Items"];
+    for (const extraClass of extraClasses) {
+      classes.add(extraClass);
+    }
+
+    this.hierarchy = this.generateHierarchy(this.items);
+    this.itemTable = itemTable;
+    this.classes = Array.from(classes);
+    this.searchIndex = new Fuse(items, options);
+  }
+
+  generateHierarchy(items: Item[]) {
+    const hierarchy: Hierarchy = {};
+    for (const item of items) {
       // hierarchy
       let path = [item.category, item.class];
       if (item.type) path.push(item.type);
@@ -48,22 +64,15 @@ class ItemIndex {
       path.push(item.name);
       recursivelySetKeys(hierarchy, path, item);
     }
-
-    // extra classes
-    const extraClasses = ["Vault Keys", "Quest Items", "Misc Map Items"];
-    for (const extraClass of extraClasses) {
-      classes.add(extraClass);
-    }
-
-    this.hierarchy = hierarchy;
-    this.itemTable = itemTable;
-    this.classes = Array.from(classes);
-    this.searchIndex = new Fuse(items, options);
+    return hierarchy;
   }
 
   search(
     args: Parameters<typeof this.searchIndex.search>[0],
   ): FuseResult<Item>[] {
+    if (!args || (typeof args === "string" && !args.length)) {
+      return this.searchIndex.search({ name: "!1234567890" });
+    }
     return this.searchIndex.search(args);
   }
 }

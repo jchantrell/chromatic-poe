@@ -7,10 +7,13 @@ import {
   Rarity,
 } from "@app/lib/filter";
 import { Checkbox } from "@pkgs/ui/checkbox";
-import { createSignal, For } from "solid-js";
+import { batch, createEffect, createMemo, createSignal, For } from "solid-js";
 import { createMutable } from "solid-js/store";
 import { ChevronDownIcon } from "@pkgs/icons";
 import { toast } from "solid-sonner";
+import type { FuseResult } from "fuse.js";
+import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
+import { on } from "solid-js";
 
 interface BranchNode {
   name: string;
@@ -170,9 +173,10 @@ function Node(props: {
 }
 
 export function ItemPicker(props: { rule: FilterRule }) {
-  const itemHierarchy = createMutable(
-    rollup(itemIndex.hierarchy, "Items", props.rule.bases),
-  );
+  const [searchTerm, setSearchTerm] = createSignal("");
+  const itemHierarchy = createMutable({
+    hierarchy: rollup(itemIndex.hierarchy, "Items", props.rule.bases),
+  });
 
   function toggleNode(node: TreeNode, enabled: boolean): void {
     if (node.enabled === enabled) return;
@@ -261,12 +265,30 @@ export function ItemPicker(props: { rule: FilterRule }) {
   }
 
   function handleToggle(node: TreeNode, enabled: boolean) {
-    updateNode(itemHierarchy, node, enabled);
+    updateNode(itemHierarchy.hierarchy, node, enabled);
   }
+
+  createEffect(
+    on(searchTerm, () => {
+      const results = itemIndex.search(
+        searchTerm() !== "" ? `'${searchTerm()}` : "",
+      );
+      itemHierarchy.hierarchy = rollup(
+        itemIndex.generateHierarchy(results.map((result) => result.item)),
+        "Items",
+        props.rule.bases,
+      );
+    }),
+  );
 
   return (
     <div class='grid py-2'>
-      <For each={itemHierarchy.children}>
+      <div class='py-2'>
+        <TextField value={searchTerm()} onChange={setSearchTerm}>
+          <TextFieldInput type='text' placeholder='Search for items...' />
+        </TextField>
+      </div>
+      <For each={itemHierarchy.hierarchy.children}>
         {(item) => <Node node={item} level={0} onToggle={handleToggle} />}
       </For>
     </div>

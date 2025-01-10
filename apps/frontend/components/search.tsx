@@ -1,13 +1,16 @@
 import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
 import type { FuseResult } from "fuse.js";
-import { createEffect, createSignal, For } from "solid-js";
+import { createEffect, createSignal, For, type JSXElement } from "solid-js";
 
-interface Index {
-  art: { [key: string]: string };
+export interface Index {
   search<T>(...args: unknown[]): FuseResult<T>;
 }
 
-export default function Search(props: { index: Index }) {
+export default function Search(props: {
+  index: Index;
+  placeholder?: string;
+  child: (...args: unknown[]) => JSXElement;
+}) {
   const [searchTerm, setSearchTerm] = createSignal("");
   const [searchResults, setSearchResults] = createSignal<FuseResult<unknown>>();
 
@@ -16,24 +19,15 @@ export default function Search(props: { index: Index }) {
   });
   return (
     <>
-      <TextField value={searchTerm()} onChange={setSearchTerm}>
-        <TextFieldInput type='text' />
-      </TextField>
+      <div>
+        <TextField value={searchTerm()} onChange={setSearchTerm}>
+          <TextFieldInput type='text' placeholder={props.placeholder ?? ""} />
+        </TextField>
+      </div>
       <ul>
-        <For each={searchResults()}>
+        <For each={searchResults() ?? []}>
           {({ item }) => {
-            return (
-              <div class='flex p-1'>
-                <figure class='max-w-lg'>
-                  <img
-                    class='mr-1 h-8 max-w-full pointer-events-none'
-                    alt={`${item.name} icon`}
-                    src={props.index.art[item.name]}
-                  />
-                </figure>
-                <div>{item.name}</div>
-              </div>
-            );
+            return props.child({ item });
           }}
         </For>
       </ul>
