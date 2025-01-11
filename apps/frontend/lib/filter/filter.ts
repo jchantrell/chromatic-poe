@@ -17,6 +17,7 @@ import { createMutable, modifyMutable, reconcile } from "solid-js/store";
 import { invoke } from "@tauri-apps/api/core";
 import { sep } from "@tauri-apps/api/path";
 import { toast } from "solid-sonner";
+import MinimalTemplate from "@pkgs/assets/poe2/templates/minimal.json";
 
 const WRITE_TIMEOUT = 1000;
 
@@ -280,20 +281,39 @@ export class Filter {
   }
 }
 
+export enum Template {
+  BLANK = "Blank",
+  MINIMAL = "Minimal",
+}
+
 export async function generateFilter(
   name: string,
   poeVersion: number,
+  template: Template,
   raw?: string,
 ): Promise<Filter> {
   let rules: FilterRule[] = [];
-  if (raw) {
-    rules = await convertRules(raw);
+
+  if (template === Template.MINIMAL) {
+    return new Filter({
+      name,
+      chromaticVersion: chromatic.config.version,
+      poeVersion,
+      lastUpdated: new Date(),
+      rules: MinimalTemplate.rules as FilterRule[],
+    });
   }
-  return new Filter({
-    name,
-    chromaticVersion: chromatic.config.version,
-    poeVersion,
-    lastUpdated: new Date(),
-    rules,
-  });
+
+  if (template === Template.BLANK) {
+    if (raw) {
+      rules = await convertRules(raw);
+    }
+    return new Filter({
+      name,
+      chromaticVersion: chromatic.config.version,
+      poeVersion,
+      lastUpdated: new Date(),
+      rules,
+    });
+  }
 }

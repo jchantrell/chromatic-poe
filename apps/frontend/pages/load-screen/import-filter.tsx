@@ -1,5 +1,5 @@
 import { createSignal, For, onMount } from "solid-js";
-import { generateFilter } from "@app/lib/filter";
+import { generateFilter, Template } from "@app/lib/filter";
 import { Button } from "@pkgs/ui/button";
 import {
   Dialog,
@@ -38,7 +38,12 @@ export default function ImportFilter() {
       toast(`Filter with name ${name()} already exists.`);
       return;
     }
-    const filter = await generateFilter(name(), version(), raw());
+    const filter = await generateFilter(
+      name(),
+      version(),
+      Template.BLANK,
+      raw(),
+    );
     await filter.save();
     setDialogOpen(false);
   }

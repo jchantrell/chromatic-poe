@@ -1,5 +1,5 @@
 import { createSignal, For } from "solid-js";
-import { generateFilter } from "@app/lib/filter";
+import { generateFilter, Template } from "@app/lib/filter";
 import { Button } from "@pkgs/ui/button";
 import {
   Dialog,
@@ -13,11 +13,6 @@ import { toast } from "solid-sonner";
 import { store } from "@app/store";
 import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@pkgs/ui/toggle-group";
-
-enum Template {
-  BLANK = "Blank",
-  SIMPLE = "Simple",
-}
 
 export default function CreateFilter() {
   const [name, setName] = createSignal("Chromatic");
@@ -34,7 +29,7 @@ export default function CreateFilter() {
       toast(`Filter with name ${name()} already exists.`);
       return;
     }
-    const filter = await generateFilter(name(), version());
+    const filter = await generateFilter(name(), version(), template());
     await filter.save();
     setDialogOpen(false);
   }
@@ -88,7 +83,7 @@ export default function CreateFilter() {
             </Switch>
             <div class='text-md font-semibold'>2</div>
           </div>
-          {/* <div class='flex items-center gap-2'>
+          <div class='flex items-center gap-2'>
             <div class='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mr-2'>
               Template
             </div>
@@ -110,7 +105,7 @@ export default function CreateFilter() {
                 }}
               </For>
             </ToggleGroup>
-          </div> */}
+          </div>
           <Button
             class='text-center cursor-pointer grid  max-w-sm rounded-lg items-center border p-0'
             type='submit'
