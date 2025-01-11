@@ -14,8 +14,32 @@ import { ChooseDirectory } from "./choose-dir";
 import { Checkbox } from "@pkgs/ui/checkbox";
 import { Label } from "@pkgs/ui/label";
 import chromatic from "@app/lib/config";
+import { createSignal, onMount } from "solid-js";
+import { checkForUpdate, relaunchApp } from "@app/lib/update";
+import { to } from "@pkgs/lib/utils";
+import { toast } from "solid-sonner";
 
 export function Settings() {
+  const [version, setVersion] = createSignal("0.0.0");
+  const [restartNow, setRestartNow] = createSignal(false);
+
+  async function handleUpdate() {
+    console.log("Checking for updates...");
+    const [err, success] = await to(checkForUpdate());
+    if (err) {
+      toast.error("Failed to check for updates.", {
+        description: err as unknown as string,
+      });
+    }
+    if (success) {
+      setRestartNow(true);
+    }
+  }
+
+  onMount(async () => {
+    setVersion(await chromatic.getVersion());
+  });
+
   return (
     <Dialog>
       <DialogTrigger variant='ghost' as={Button<"button">}>
@@ -48,6 +72,26 @@ export function Settings() {
             <TextFieldLabel class='text-right'>Theme</TextFieldLabel>
             <Theme />
           </TextField>
+        </div>
+        <Separator />
+        <div class='grid py-4 flex items-center justify-center'>
+          <div class='flex items-center gap-1 pb-1'>
+            <Label>Current Version</Label>
+            {version()}
+          </div>
+          {chromatic.runtime === "desktop" ? (
+            <div class='flex items-center justify-center'>
+              {!restartNow() ? (
+                <Button variant='secondary' onClick={handleUpdate}>
+                  Check for Updates
+                </Button>
+              ) : (
+                <Button variant='secondary' onClick={relaunchApp}>
+                  Restart Now
+                </Button>
+              )}
+            </div>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
