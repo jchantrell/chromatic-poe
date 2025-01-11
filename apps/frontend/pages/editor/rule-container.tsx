@@ -49,8 +49,7 @@ const ruleIndex = new RuleIndex();
 
 export default function Rules() {
   const [searchTerm, setSearchTerm] = createSignal("");
-  const [searchResults, setSearchResults] =
-    createSignal<FuseResult<FilterRule>>();
+  const [searchResults, setSearchResults] = createSignal<string[]>();
   function onDragEnd({ draggable, droppable }: DragEvent) {
     if (draggable && droppable && store.filter) {
       moveRule(store.filter, String(draggable.id), String(droppable.id));
@@ -59,7 +58,9 @@ export default function Rules() {
 
   createEffect(() => {
     ruleIndex.setRules(store.filter?.rules ?? []);
-    setSearchResults(ruleIndex.search(`${searchTerm()}`));
+    setSearchResults(
+      ruleIndex.search(`${searchTerm()}`).map((result) => result.item.id),
+    );
   });
 
   return (
@@ -75,9 +76,15 @@ export default function Rules() {
             </TextField>
           </div>
           <ul>
-            <For each={searchResults() ?? []}>
-              {({ item }) => {
-                return <Rule rule={item} />;
+            <For
+              each={
+                store.filter?.rules.filter((rule) =>
+                  searchResults()?.includes(rule.id),
+                ) ?? []
+              }
+            >
+              {(rule) => {
+                return <Rule rule={rule} />;
               }}
             </For>
           </ul>
@@ -93,32 +100,3 @@ export default function Rules() {
     </DragDropProvider>
   );
 }
-
-// export default function Search(props: {
-//   index: Index;
-//   placeholder?: string;
-//   child: (...args: unknown[]) => JSXElement;
-// }) {
-//   const [searchTerm, setSearchTerm] = createSignal("");
-//   const [searchResults, setSearchResults] = createSignal<FuseResult<unknown>>();
-
-//   createEffect(() => {
-//     setSearchResults(props.index.search(`${searchTerm()}`));
-//   });
-//   return (
-//     <>
-//       <div>
-//         <TextField value={searchTerm()} onChange={setSearchTerm}>
-//           <TextFieldInput type='text' placeholder={props.placeholder ?? ""} />
-//         </TextField>
-//       </div>
-//       <ul>
-//         <For each={searchResults() ?? []}>
-//           {({ item }) => {
-//             return props.child({ item });
-//           }}
-//         </For>
-//       </ul>
-//     </>
-//   );
-// }
