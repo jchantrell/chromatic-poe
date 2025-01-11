@@ -25,17 +25,13 @@ export function Settings() {
 
   async function handleUpdate() {
     console.log("Checking for updates...");
-    const [err, update] = await to(checkForUpdate());
+    const [err, updated] = await to(checkForUpdate());
     if (err) {
       toast.error("Failed to check for updates.", {
         description: err as unknown as string,
       });
     }
-    if (!update) {
-      toast.info("Already up to date.");
-    }
-    if (update) {
-      toast.info("Updated to the latest version.");
+    if (updated) {
       setRestartNow(true);
     }
   }
