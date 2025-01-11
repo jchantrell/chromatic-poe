@@ -56,7 +56,7 @@ export function Settings() {
             <Label aria-disabled={true} class='text-right'>
               Autosave
             </Label>
-            <Checkbox disabled checked={false} />
+            <Checkbox disabled checked={true} />
           </TextField>
         </div>
         <Separator />

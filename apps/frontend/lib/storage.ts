@@ -15,6 +15,7 @@ import { eol } from "@tauri-apps/plugin-os";
 import chromatic from "./config";
 import { Operator, Rarity, type Filter } from "./filter";
 import { toast } from "solid-sonner";
+import { store } from "@app/store";
 
 async function migrateLegacyFilter(filter: Filter) {
   filter.poeVersion = 2;
@@ -48,6 +49,12 @@ async function migrateLegacyFilter(filter: Filter) {
   );
 
   return filter;
+}
+
+export async function autosave() {
+  if (store.filter) {
+    await store.filter.save();
+  }
 }
 
 export interface FileSystem {

@@ -30,6 +30,7 @@ import LoadScreen from "@app/pages/load-screen";
 import Background from "@app/components/background";
 import { checkForUpdate, updateApplication } from "@app/lib/update";
 import { toast } from "solid-sonner";
+import { autosave } from "./lib/storage";
 
 export const BASE_URL = import.meta.env.BASE_URL;
 export const storageManager = createLocalStorageManager("theme");
@@ -185,6 +186,7 @@ function App() {
     await chromatic.getAllFilters();
     await refreshSounds();
     await checkForUpdate();
+    setInterval(autosave, 15000);
   });
   const [zoom, setZoom] = createSignal(4);
 
