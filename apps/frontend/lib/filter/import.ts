@@ -5,7 +5,6 @@ import items from "@pkgs/data/poe2/items.json";
 import { itemIndex } from "./items";
 import { clone, camelCase } from "@pkgs/lib/utils";
 import type { FilterRule, FilterItem } from "./filter";
-import { toast } from "solid-sonner";
 
 interface ParsedFilterAction {
   type: string;
@@ -415,7 +414,7 @@ export async function importFilter(raw: string) {
 
     const convertedRule: FilterRule = {
       id: ulid(),
-      name: rule.comment ?? "",
+      name: rule.comment ?? "Imported",
       show: rule.type === "Show",
       enabled: true,
       conditions: conditions,
