@@ -7,6 +7,7 @@ import RuleEditor from "./rule-editor";
 import Rules from "./rule-container";
 import Preview from "./filter-preview";
 import { REDO_KEY, SAVE_KEY, UNDO_KEY, WRITE_KEY } from "@app/constants";
+import { toast } from "solid-sonner";
 
 export default function Editor() {
   const { colorMode } = useColorMode();
@@ -30,6 +31,7 @@ export default function Editor() {
         }
 
         if (key === SAVE_KEY && event.ctrl && pressed) {
+          toast("Saving filter...");
           return store.filter?.save();
         }
 
