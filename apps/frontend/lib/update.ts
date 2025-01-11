@@ -44,6 +44,11 @@ export async function checkForUpdate(): Promise<void> {
       },
     });
   }
+  if (!update) {
+    toast.info("Up to date.", {
+      id: toastId,
+    });
+  }
 }
 
 export async function updateApplication(): Promise<boolean> {
@@ -94,9 +99,6 @@ export async function updateApplication(): Promise<boolean> {
           break;
       }
     });
-  }
-  if (!update) {
-    toast.info("Already up to date.");
   }
   return updated;
 }

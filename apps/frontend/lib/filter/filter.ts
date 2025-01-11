@@ -192,7 +192,6 @@ export class Filter {
       lastUpdated: this.lastUpdated.toISOString(),
     });
     await chromatic.fileSystem.writeFile(path, "text", filter);
-    toast("Saved filter.");
   }
 
   async writeFile() {
