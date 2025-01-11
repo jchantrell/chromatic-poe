@@ -57,7 +57,7 @@ export async function updateApplication(): Promise<boolean> {
   let updated = false;
   if (update) {
     const toastId = toast.info(
-      `Found update from ${timeSince(new Date(update.date?.split(" ")[0]))}...`,
+      `Found update from ${timeSince(new Date(update.date?.split(" ")[0]))}.`,
       {
         description: `Updating to ${update.version}...`,
       },

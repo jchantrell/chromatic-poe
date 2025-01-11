@@ -106,6 +106,7 @@ function TopBar() {
                 variant='ghost'
                 size='icon'
                 onMouseUp={() => {
+                  toast("Saving filter...");
                   store.filter?.save();
                 }}
               >
