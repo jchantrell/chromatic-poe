@@ -12,6 +12,7 @@ interface Store {
   locale: null | string;
   sounds: Sound[];
   defaultSounds: Sound[];
+  appNeedsRestart: boolean;
 }
 
 export const store = createMutable<Store>({
@@ -22,6 +23,7 @@ export const store = createMutable<Store>({
   locale: null,
   sounds: [],
   defaultSounds: [],
+  appNeedsRestart: false,
 });
 
 export function removeFilter(filter: Filter) {

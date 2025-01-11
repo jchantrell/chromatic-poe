@@ -15,24 +15,20 @@ import { Checkbox } from "@pkgs/ui/checkbox";
 import { Label } from "@pkgs/ui/label";
 import chromatic from "@app/lib/config";
 import { createSignal, onMount } from "solid-js";
-import { checkForUpdate, relaunchApp } from "@app/lib/update";
+import { relaunchApp, checkForUpdate } from "@app/lib/update";
 import { to } from "@pkgs/lib/utils";
 import { toast } from "solid-sonner";
+import { store } from "@app/store";
 
 export function Settings() {
   const [version, setVersion] = createSignal("0.0.0");
-  const [restartNow, setRestartNow] = createSignal(false);
 
   async function handleUpdate() {
-    console.log("Checking for updates...");
-    const [err, updated] = await to(checkForUpdate());
+    const [err] = await to(checkForUpdate());
     if (err) {
       toast.error("Failed to check for updates.", {
         description: err as unknown as string,
       });
-    }
-    if (updated) {
-      setRestartNow(true);
     }
   }
 
@@ -81,7 +77,7 @@ export function Settings() {
           </div>
           {chromatic.runtime === "desktop" ? (
             <div class='flex items-center justify-center'>
-              {!restartNow() ? (
+              {!store.appNeedsRestart ? (
                 <Button variant='secondary' onClick={handleUpdate}>
                   Check for Updates
                 </Button>

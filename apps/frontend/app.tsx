@@ -28,6 +28,8 @@ import Tooltip from "@app/components/tooltip";
 import SoundManager from "@app/pages/sound";
 import LoadScreen from "@app/pages/load-screen";
 import Background from "@app/components/background";
+import { checkForUpdate, updateApplication } from "@app/lib/update";
+import { toast } from "solid-sonner";
 
 export const BASE_URL = import.meta.env.BASE_URL;
 export const storageManager = createLocalStorageManager("theme");
@@ -182,6 +184,7 @@ function App() {
     await chromatic.init();
     await chromatic.getAllFilters();
     await refreshSounds();
+    await checkForUpdate();
   });
   const [zoom, setZoom] = createSignal(4);
 

@@ -1,6 +1,9 @@
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { toast } from "solid-sonner";
+import { store } from "@app/store";
+import chromatic from "@app/lib/config";
+import { timeSince } from "@pkgs/lib/utils";
 
 function formatBytes(bytes: number, decimals = 2) {
   if (!+bytes) return "0 Bytes";
@@ -23,15 +26,37 @@ function formatBytes(bytes: number, decimals = 2) {
 
   return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
-
-export async function checkForUpdate(): Promise<boolean> {
+export async function checkForUpdate(): Promise<void> {
+  if (chromatic.runtime === "web") return;
+  const toastId = toast.info("Checking for updates...");
   const update = await check();
-  const toastId = toast("Checking for update...");
+  if (update) {
+    toast.info("Update available.", {
+      id: toastId,
+      action: {
+        label: "Download",
+        onClick: async () => {
+          const updated = await updateApplication();
+          if (updated) {
+            store.appNeedsRestart = true;
+          }
+        },
+      },
+    });
+  }
+}
+
+export async function updateApplication(): Promise<boolean> {
+  if (chromatic.runtime === "web") return false;
+  const update = await check();
   let updated = false;
   if (update) {
-    toast.info(`Found update ${update.version} from ${update.date}...`, {
-      id: toastId,
-    });
+    const toastId = toast.info(
+      `Found update from ${timeSince(new Date(update.date?.split(" ")[0]))}...`,
+      {
+        description: `Updating to ${update.version}...`,
+      },
+    );
     let downloaded = 0;
     let contentLength = 0;
 
@@ -65,14 +90,13 @@ export async function checkForUpdate(): Promise<boolean> {
             },
           });
           updated = true;
+
           break;
       }
     });
   }
   if (!update) {
-    toast.info("Already up to date.", {
-      id: toastId,
-    });
+    toast.info("Already up to date.");
   }
   return updated;
 }
