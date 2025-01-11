@@ -1,6 +1,6 @@
 import Rule from "./rule-menu-entry";
 import CreateRule from "./create-rule";
-import { createEffect } from "solid-js";
+import { createEffect, createSignal, For } from "solid-js";
 import { store } from "@app/store";
 import {
   DragDropProvider,
@@ -13,6 +13,7 @@ import {
 import { type FilterRule, moveRule } from "@app/lib/filter";
 import Search, { type Index } from "@app/components/search";
 import Fuse, { type FuseResult } from "fuse.js";
+import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
 
 class RuleIndex implements Index {
   searchIndex!: Fuse<FilterRule>;
@@ -47,6 +48,9 @@ class RuleIndex implements Index {
 const ruleIndex = new RuleIndex();
 
 export default function Rules() {
+  const [searchTerm, setSearchTerm] = createSignal("");
+  const [searchResults, setSearchResults] =
+    createSignal<FuseResult<FilterRule>>();
   function onDragEnd({ draggable, droppable }: DragEvent) {
     if (draggable && droppable && store.filter) {
       moveRule(store.filter, String(draggable.id), String(droppable.id));
@@ -55,6 +59,7 @@ export default function Rules() {
 
   createEffect(() => {
     ruleIndex.setRules(store.filter?.rules ?? []);
+    setSearchResults(ruleIndex.search(`${searchTerm()}`));
   });
 
   return (
@@ -64,11 +69,18 @@ export default function Rules() {
         <SortableProvider
           ids={store.filter?.rules.map((rule) => rule.id) ?? []}
         >
-          <Search
-            index={ruleIndex}
-            placeholder='Search for rules...'
-            child={({ item }) => <Rule rule={item} />}
-          />
+          <div>
+            <TextField value={searchTerm()} onChange={setSearchTerm}>
+              <TextFieldInput type='text' placeholder={"Search for rules..."} />
+            </TextField>
+          </div>
+          <ul>
+            <For each={searchResults() ?? []}>
+              {({ item }) => {
+                return <Rule rule={item} />;
+              }}
+            </For>
+          </ul>
         </SortableProvider>
         <CreateRule />
       </div>
@@ -81,3 +93,32 @@ export default function Rules() {
     </DragDropProvider>
   );
 }
+
+// export default function Search(props: {
+//   index: Index;
+//   placeholder?: string;
+//   child: (...args: unknown[]) => JSXElement;
+// }) {
+//   const [searchTerm, setSearchTerm] = createSignal("");
+//   const [searchResults, setSearchResults] = createSignal<FuseResult<unknown>>();
+
+//   createEffect(() => {
+//     setSearchResults(props.index.search(`${searchTerm()}`));
+//   });
+//   return (
+//     <>
+//       <div>
+//         <TextField value={searchTerm()} onChange={setSearchTerm}>
+//           <TextFieldInput type='text' placeholder={props.placeholder ?? ""} />
+//         </TextField>
+//       </div>
+//       <ul>
+//         <For each={searchResults() ?? []}>
+//           {({ item }) => {
+//             return props.child({ item });
+//           }}
+//         </For>
+//       </ul>
+//     </>
+//   );
+// }
