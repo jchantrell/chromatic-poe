@@ -282,13 +282,13 @@ export function ItemPicker(props: { rule: FilterRule }) {
   );
 
   return (
-    <div class='p-2 overflow-y-hidden'>
+    <div class='p-2'>
       <div class='py-2'>
         <TextField value={searchTerm()} onChange={setSearchTerm}>
           <TextFieldInput type='text' placeholder='Search for items...' />
         </TextField>
       </div>
-      <div class='h-[400px] overflow-y-auto'>
+      <div>
         <For each={itemHierarchy.hierarchy.children}>
           {(item) => <Node node={item} level={0} onToggle={handleToggle} />}
         </For>
