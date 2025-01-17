@@ -715,11 +715,24 @@ LEFT JOIN ${Tables.WORDS}
 ON ${Tables.UNIQUE_STASH_LAYOUT}.WordsKey = ${Tables.WORDS}.${PK}
 LEFT JOIN ${Tables.VISUALS}
 ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
-WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolve Cold', 'Sekhema''s Resolve Lightning', 'The Wailing Wall')
+WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolve Cold', 'Sekhema''s Resolve Lightning', 'The Wailing Wall', 'The Road Warrior', 'The Immortan')
 `)
       .all();
 
     const uniqueOverrides = [
+      {
+        name: "The Road Warrior",
+        category: "Uniques",
+        class: "Body Armour",
+        type: null,
+        score: 0,
+        height: null,
+        width: null,
+        gemFx: null,
+        itemClass: "Body Armour",
+        art: "Art/2DItems/Armours/BodyArmours/Uniques/TheRoadWarrior.dds",
+        base: "Raider Plate",
+      },
       {
         name: "The Wailing Wall",
         category: "Uniques",
@@ -729,7 +742,7 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
         height: null,
         width: null,
         gemFx: null,
-        itemClass: "Shield",
+        itemClass: "Shields",
         art: "Art/2DItems/Offhand/Shields/Uniques/TheWailingWall.dds",
         base: "Effigial Tower Shield",
       },
@@ -844,6 +857,10 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
     for (const item of allItems) {
       const replacedFilepath = `poe2/images/${item.art.replaceAll("/", "@").replace("dds", "png")}`;
       item.art = replacedFilepath;
+
+      if (item.class === "Shield") {
+        item.class = "Shields";
+      }
 
       if (item.class === "Skill Gems") {
         const effectIds = JSON.parse(item.gemFx);
