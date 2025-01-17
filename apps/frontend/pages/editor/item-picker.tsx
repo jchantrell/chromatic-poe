@@ -288,7 +288,7 @@ export function ItemPicker(props: { rule: FilterRule }) {
           <TextFieldInput type='text' placeholder='Search for items...' />
         </TextField>
       </div>
-      <div>
+      <div class='overflow-y-auto h-[50vh]'>
         <For each={itemHierarchy.hierarchy.children}>
           {(item) => <Node node={item} level={0} onToggle={handleToggle} />}
         </For>
