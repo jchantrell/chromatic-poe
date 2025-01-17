@@ -66,7 +66,7 @@ export default function Rules() {
   return (
     <DragDropProvider onDragEnd={onDragEnd} collisionDetector={closestCenter}>
       <DragDropSensors />
-      <div class='p-1 flex flex-col gap-2 overflow-y-auto'>
+      <div class='p-1 flex flex-col gap-1 overflow-y-auto'>
         <SortableProvider
           ids={store.filter?.rules.map((rule) => rule.id) ?? []}
         >

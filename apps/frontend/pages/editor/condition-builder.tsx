@@ -1,4 +1,4 @@
-import { For } from "solid-js";
+import { createEffect, For } from "solid-js";
 import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
 import {
   Select,
@@ -10,8 +10,11 @@ import {
 import {
   type Conditions,
   type FilterRule,
-  conditionTypes,
+  ConditionGroup,
+  ConditionKey,
   Operator,
+  conditionTypes,
+  createCondition,
 } from "@app/lib/filter";
 import { store } from "@app/store";
 import { Label } from "@pkgs/ui/label";
@@ -28,14 +31,15 @@ import { ItemPicker } from "./item-picker";
 import Tooltip from "@app/components/tooltip";
 import {
   CheckboxInput,
-  RangeInput,
   SelectInput,
   SliderInput,
   ToggleInput,
   ConditionToggleGroup,
 } from "./condition-inputs";
+import { TrashIcon } from "@pkgs/icons";
 
 const operators = [
+  Operator.NONE,
   Operator.GTE,
   Operator.LTE,
   Operator.EXACT,
@@ -44,48 +48,44 @@ const operators = [
 ];
 
 export default function ConditionManager(props: { rule: FilterRule }) {
-  function addCondition(condition: keyof Conditions) {
+  function addCondition(condition: ConditionKey) {
     if (store.filter) {
       excuteCmd(store.filter, () => {
-        const newCondition: Conditions[keyof Conditions] = {
-          value: conditionTypes[condition]?.defaultValue,
-        };
-        if (conditionTypes[condition]?.operators) {
-          newCondition.operator = Operator.EXACT;
-        }
-        props.rule.conditions[condition] = newCondition;
+        props.rule.conditions.push(createCondition(condition));
       });
     }
   }
 
-  function updateCondition<T extends keyof Conditions>(
-    condition: T,
-    key: keyof Conditions[T],
-    value: Conditions[keyof Conditions],
+  function updateCondition<K extends keyof Conditions>(
+    index: number,
+    key: K,
+    value: Conditions[K],
   ) {
     if (store.filter) {
       excuteCmd(store.filter, () => {
-        props.rule.conditions[condition][key] = value;
+        props.rule.conditions[index][key] = value;
       });
     }
   }
 
-  function removeCondition(condition: keyof Conditions) {
-    if (store.filter && condition in props.rule.conditions) {
+  function removeCondition<T extends Conditions>(condition: T) {
+    if (store.filter) {
       excuteCmd(store.filter, () => {
-        delete props.rule.conditions[condition];
+        props.rule.conditions = props.rule.conditions.filter(
+          (c) => c !== condition,
+        );
       });
     }
   }
 
-  function toggleCondition(key: keyof Conditions, checked: boolean) {
+  function toggleCondition(key: ConditionKey, checked: boolean) {
     if (store.filter) {
       excuteCmd(store.filter, () => {
         if (checked) {
-          addCondition(key as keyof Conditions);
+          addCondition(key);
         }
         if (!checked) {
-          removeCondition(key as keyof Conditions);
+          removeCondition(key);
         }
       });
     }
@@ -131,38 +131,50 @@ export default function ConditionManager(props: { rule: FilterRule }) {
               </DialogHeader>
               <div class='grid grid-cols-2 gap-3 py-2'>
                 <ConditionToggleGroup
-                  key='General'
-                  onChange={(key: keyof Conditions, checked: boolean) => {
+                  key={ConditionGroup.GENERAL}
+                  onChange={(key: ConditionKey, checked: boolean) => {
                     toggleCondition(key, checked);
                   }}
                 />
                 <ConditionToggleGroup
-                  key='Gear'
-                  onChange={(key, checked) => {
+                  key={ConditionGroup.GEAR}
+                  onChange={(key: ConditionKey, checked: boolean) => {
                     toggleCondition(key, checked);
                   }}
                 />
                 <ConditionToggleGroup
-                  key='Armour'
-                  onChange={(key, checked) => {
+                  key={ConditionGroup.ARMOUR}
+                  onChange={(key: ConditionKey, checked: boolean) => {
                     toggleCondition(key, checked);
                   }}
                 />
                 <ConditionToggleGroup
-                  key='Currency'
-                  onChange={(key, checked) => {
+                  key={ConditionGroup.GEMS}
+                  onChange={(key: ConditionKey, checked: boolean) => {
                     toggleCondition(key, checked);
                   }}
                 />
                 <ConditionToggleGroup
-                  key='Gems'
-                  onChange={(key, checked) => {
+                  key={ConditionGroup.MAPS}
+                  onChange={(key: ConditionKey, checked: boolean) => {
                     toggleCondition(key, checked);
                   }}
                 />
                 <ConditionToggleGroup
-                  key='Maps'
-                  onChange={(key, checked) => {
+                  key={ConditionGroup.ARMOUR}
+                  onChange={(key: ConditionKey, checked: boolean) => {
+                    toggleCondition(key, checked);
+                  }}
+                />
+                <ConditionToggleGroup
+                  key={ConditionGroup.SOCKETS}
+                  onChange={(key: ConditionKey, checked: boolean) => {
+                    toggleCondition(key, checked);
+                  }}
+                />
+                <ConditionToggleGroup
+                  key={ConditionGroup.MODS}
+                  onChange={(key: ConditionKey, checked: boolean) => {
                     toggleCondition(key, checked);
                   }}
                 />
@@ -205,19 +217,21 @@ export default function ConditionManager(props: { rule: FilterRule }) {
           </div>
         </div>
 
-        {props.rule && Object.keys(props.rule.conditions).length === 0 ? (
+        {props.rule && !props.rule.conditions.length ? (
           <div class='text-center py-8 text-muted-foreground'>
             No conditions. Click "Edit Conditions" to start.
           </div>
         ) : (
           <div class='space-y-4 flex flex-col items-start overflow-y-auto h-full'>
-            <For each={Object.entries(props.rule?.conditions)}>
-              {([key, value]) => {
-                const condition =
-                  conditionTypes[key as keyof typeof conditionTypes];
+            <For each={props.rule.conditions}>
+              {(condition, index) => {
+                const conditionType = conditionTypes[condition.key];
                 const EXCLUDED_OPERATORS = [Operator.GTE, Operator.LTE];
                 const filteredOperators = operators.filter((op) => {
-                  if (key === "sockets" && EXCLUDED_OPERATORS.includes(op)) {
+                  if (
+                    condition.key === ConditionKey.SOCKETS &&
+                    EXCLUDED_OPERATORS.includes(op)
+                  ) {
                     return false;
                   }
                   return true;
@@ -225,14 +239,16 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                 if (!condition) return <></>;
                 return (
                   <div class='flex gap-4 items-center justify-between p-4 bg-neutral-500/50 rounded-lg'>
-                    <Label class='text-md text-nowrap'>{condition.label}</Label>
+                    <Label class='text-md text-nowrap'>
+                      {conditionType.label}
+                    </Label>
 
-                    {condition.operators && (
+                    {"operator" in condition && condition.operator && (
                       <div class='w-full'>
                         <Select
-                          value={value.operator}
+                          value={condition.operator}
                           onChange={(value) => {
-                            updateCondition(key, "operator", value);
+                            updateCondition(index(), "operator", value);
                           }}
                           options={filteredOperators}
                           itemComponent={(props) => (
@@ -252,52 +268,49 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                     )}
 
                     <div class='ml-2'>
-                      {condition.type === "slider" && (
+                      {conditionType.type === "slider" && (
                         <SliderInput
-                          key={key}
-                          value={value.value}
+                          key={condition.key}
+                          value={condition.value}
                           onChange={(v) => {
-                            updateCondition(key, "value", v);
+                            updateCondition(index(), "value", v);
                           }}
                         />
                       )}
-                      {condition.type === "range" && (
-                        <RangeInput
-                          key={key}
-                          value={value.value}
-                          onChange={(v) => {
-                            updateCondition(key, "value", v);
-                          }}
-                        />
-                      )}
-                      {condition.type === "select" && (
+                      {conditionType.type === "select" && (
                         <SelectInput
-                          key={key}
-                          value={value.value}
+                          key={condition.key}
+                          value={condition.value}
                           onChange={(v) => {
-                            updateCondition(key, "value", v);
+                            updateCondition(index(), "value", v);
                           }}
                         />
                       )}
-                      {condition.type === "toggle" && (
+                      {conditionType.type === "toggle" && (
                         <ToggleInput
-                          key={key}
-                          value={value.value}
+                          key={condition.key}
+                          value={condition.value}
                           onChange={(v) => {
-                            updateCondition(key, "value", v);
+                            updateCondition(index(), "value", v);
                           }}
                         />
                       )}
-                      {condition.type === "checkbox" && (
+                      {conditionType.type === "checkbox" && (
                         <CheckboxInput
-                          key={key}
-                          value={value.value}
+                          key={condition.key}
+                          value={condition.value}
                           onChange={(v) => {
-                            updateCondition(key, "value", v);
+                            updateCondition(index(), "value", v);
                           }}
                         />
                       )}
                     </div>
+                    <Button
+                      variant='secondary'
+                      onMouseDown={() => removeCondition(condition)}
+                    >
+                      <TrashIcon />
+                    </Button>
                   </div>
                 );
               }}

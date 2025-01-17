@@ -15,10 +15,9 @@ function CreateRule() {
       id: ulid(),
       name: "New rule",
       show: true,
-      icon: null,
       enabled: true,
       bases: [],
-      conditions: {},
+      conditions: [],
       actions: clone(DEFAULT_STYLE),
       continue: false,
     };

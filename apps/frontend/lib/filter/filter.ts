@@ -7,11 +7,13 @@ import {
   type Command,
   type Actions,
   type Conditions,
+  BaseTypeCondition,
   serializeActions,
   addParentRefs,
   serializeConditions,
   importFilter as convertRules,
   itemIndex,
+  convertRawToConditions,
 } from ".";
 import { createMutable, modifyMutable, reconcile } from "solid-js/store";
 import { invoke } from "@tauri-apps/api/core";
@@ -32,7 +34,7 @@ export interface FilterRule {
   name: string;
   show: boolean;
   enabled: boolean;
-  conditions: Conditions;
+  conditions: Conditions[];
   actions: Actions;
   bases: FilterItem[];
   continue: boolean;
@@ -81,7 +83,10 @@ export class Filter {
     this.chromaticVersion = params.chromaticVersion;
     this.poeVersion = params.poeVersion;
     this.lastUpdated = params.lastUpdated;
-    this.rules = params.rules;
+    this.rules = params.rules.map((rule) => ({
+      ...rule,
+      conditions: convertRawToConditions(rule.conditions),
+    }));
 
     if (params.undoStack) this.undoStack = params.undoStack;
     if (params.redoStack) this.redoStack = params.redoStack;
@@ -247,9 +252,9 @@ export class Filter {
         itemIndex.itemTable[e.category][e.name].itemClass === "Pinnacle Keys",
     );
 
-    const conditions = { ...rule.conditions };
+    const conditions = [...rule.conditions];
     if (enabledBases.length && !basesArePinnacleKeys) {
-      conditions.bases = Array.from(new Set(enabledBases));
+      conditions.push(new BaseTypeCondition(Array.from(new Set(enabledBases))));
     }
 
     return this.createTextBlock(
@@ -266,7 +271,7 @@ export class Filter {
     show: boolean,
     continueStmt: boolean,
     actions: Actions,
-    conditions: Conditions,
+    conditions: Conditions[],
   ) {
     const eol = chromatic.fileSystem.eol();
     const block = show ? Block.show : Block.hide;
@@ -304,16 +309,14 @@ export async function generateFilter(
     });
   }
 
-  if (template === Template.BLANK) {
-    if (raw) {
-      rules = await convertRules(raw);
-    }
-    return new Filter({
-      name,
-      chromaticVersion: chromatic.config.version,
-      poeVersion,
-      lastUpdated: new Date(),
-      rules,
-    });
+  if (raw) {
+    rules = await convertRules(raw);
   }
+  return new Filter({
+    name,
+    chromaticVersion: chromatic.config.version,
+    poeVersion,
+    lastUpdated: new Date(),
+    rules,
+  });
 }

@@ -288,16 +288,20 @@ class Chromatic {
 
   async migrateFilterVersion(rawFilter: Filter): Promise<Filter> {
     const chromaticVersion = await this.getVersion();
+    let needsWrite = false;
     console.log("Checking for filter version upgrades", { rawFilter });
     // not implemented yet, just updating the version for now
     if (rawFilter.chromaticVersion !== chromaticVersion) {
       rawFilter.chromaticVersion = chromaticVersion;
+      needsWrite = true;
     }
-    this.fileSystem.writeFile(
-      this.getFiltersPath(rawFilter),
-      "text",
-      JSON.stringify(rawFilter),
-    );
+    if (needsWrite) {
+      this.fileSystem.writeFile(
+        this.getFiltersPath(rawFilter),
+        "text",
+        JSON.stringify(rawFilter),
+      );
+    }
     return rawFilter;
   }
 

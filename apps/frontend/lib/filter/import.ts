@@ -46,6 +46,9 @@ function baseExists(name: string) {
 }
 
 function getClasses(value: number | string | boolean | string[]) {
+  if (Array.isArray(value) && value.includes("Logbook")) {
+    return replaceClass("Logbook", ["Expedition Logbooks"], value);
+  }
   if (Array.isArray(value) && value.includes("Jewel")) {
     return replaceClass("Jewel", ["Jewels"], value);
   }
@@ -245,8 +248,57 @@ export async function importFilter(raw: string) {
     }
 
     const otherConditions = rule.conditions.filter(
-      (condition) => !["BaseType"].includes(condition.property),
+      (condition) =>
+        !["BaseType", "WaystoneTier", "MapTier", "ItemLevel"].includes(
+          condition.property,
+        ),
     );
+
+    const mapTierConditions = rule.conditions.filter((condition) =>
+      ["WaystoneTier", "MapTier"].includes(condition.property),
+    );
+
+    const mapTiers: number[] = [];
+    for (const condition of mapTierConditions) {
+      mapTiers.push(condition.value as number);
+    }
+
+    if (mapTiers.length === 1) {
+      conditions.mapTier = {
+        operator: Operator.EXACT,
+        value: [mapTiers[0], mapTiers[0]],
+      };
+    }
+    if (mapTiers.length === 2) {
+      conditions.mapTier = {
+        operator: Operator.EXACT,
+        value: [mapTiers[0], mapTiers[1]],
+      };
+    }
+
+    const itemLevelConditions = rule.conditions.filter((condition) =>
+      ["ItemLevel"].includes(condition.property),
+    );
+
+    const itemLevels: number[] = [];
+    for (const condition of itemLevelConditions) {
+      itemLevels.push(condition.value as number);
+    }
+
+    if (itemLevels.length === 1) {
+      conditions.itemLevel = {
+        operator: Operator.EXACT,
+        value: [itemLevels[0], itemLevels[0]],
+      };
+      console.log(conditions.itemLevel);
+    }
+    if (itemLevels.length === 2) {
+      conditions.itemLevel = {
+        operator: Operator.EXACT,
+        value: [itemLevels[0], itemLevels[1]],
+      };
+      console.log(conditions.itemLevel);
+    }
 
     for (const condition of otherConditions) {
       const { property, operator, value } = condition;
@@ -271,15 +323,7 @@ export async function importFilter(raw: string) {
       }
 
       if (property === "AnyEnchantment") {
-        conditions.enchanted = {
-          operator,
-          value,
-        };
-        continue;
-      }
-
-      if (property === "WaystoneTier") {
-        conditions.mapTier = {
+        conditions.anyEnchantment = {
           operator,
           value,
         };

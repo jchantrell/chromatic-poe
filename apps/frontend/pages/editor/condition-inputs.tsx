@@ -1,5 +1,5 @@
 import { For } from "solid-js";
-import { Slider, SliderFill, SliderThumb, SliderTrack } from "@pkgs/ui/slider";
+import { Slider, SliderThumb, SliderTrack } from "@pkgs/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@pkgs/ui/toggle-group";
 import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
 import {
@@ -36,50 +36,12 @@ export function SliderInput(props: {
           type='number'
           class='text-center'
           value={props.value}
-          onInput={(v) => props.onChange(v.target.value)}
+          onInput={(v) => props.onChange(Number(v.target.value))}
         />
       </TextField>
       <div class='flex w-[150px]'>
         <SliderTrack>
           <SliderThumb class='border border-2 border-primary bg-secondary' />
-        </SliderTrack>
-      </div>
-    </Slider>
-  );
-}
-
-export function RangeInput(props: {
-  value: number;
-  key: (typeof conditionTypes)[keyof typeof conditionTypes];
-  onChange: (...rest: unknown[]) => void;
-}) {
-  return (
-    <Slider
-      value={[props.value]}
-      minValue={conditionTypes[props.key].min}
-      maxValue={conditionTypes[props.key].max}
-      getValueLabel={(params) => {
-        if (params.values[0] === params.values[1]) {
-          return `${params.values[0]}`;
-        }
-        return `${params.values[0]} - ${params.values[1]}`;
-      }}
-      onChange={(v) => props.onChange(v)}
-      class='space-y-1 w-[150px]'
-    >
-      <TextField>
-        <TextFieldInput
-          type='number'
-          class='text-center'
-          value={props.value}
-          onInput={(v) => props.onChange(v.target.value)}
-        />
-      </TextField>
-      <div class='flex w-full'>
-        <SliderTrack>
-          <SliderFill />
-          <SliderThumb />
-          <SliderThumb />
         </SliderTrack>
       </div>
     </Slider>
