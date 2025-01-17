@@ -20,3 +20,10 @@ See [DEVELOPING.md](./DEVELOPING.md)
 
 ## Assets
 I do not own any of the assets utilised in this project. In most cases they are taken from Path of Exile's game files or website dynamically and belong to Grinding Gear Games as a result. If you are the owner of an asset used in this application and wish for it to be removed, please reach out to me via my Github email.
+
+## Acknowledgements
+- [Path of Exile](https://www.pathofexile.com/) & [Path of Exile 2](https://www.pathofexile2.com/)
+- [SnosMe](https://github.com/SnosMe) for inspiration and all of the work on their [dat viewer and library](https://github.com/SnosMe/poe-dat-viewer) and [schema](https://github.com/poe-tool-dev/dat-schema)
+- [NeverSink](https://github.com/NeverSinkDev) and their [FilterBlade](https://www.filterblade.xyz/) project for inspiration
+- [Path of Exile Discord & tooldev channel](https://discord.gg/pathofexile) community 💚
+- [PoE Wiki](https://www.poewiki.net/) & [PoE 2 Wiki](https://www.poe2wiki.net/)
