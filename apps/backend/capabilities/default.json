@@ -40,9 +40,6 @@
           "path": "$APPCONFIG/config.json"
         },
         {
-          "path": "$APPCONFIG/images/*"
-        },
-        {
           "path": "$APPCONFIG/filters/**"
         }
       ]
@@ -61,9 +58,6 @@
         },
         {
           "path": "$APPCONFIG/config.json"
-        },
-        {
-          "path": "$APPCONFIG/images/*"
         },
         {
           "path": "$APPCONFIG/filters/**"
