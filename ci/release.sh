@@ -25,7 +25,7 @@ export GIT_CLIFF_TEMPLATE="\
 	{% endfor %}"
 
 # sign git tag
-changelog=$(cargo run -- --config examples/detailed.toml --unreleased --strip all)
+changelog=$(pnpm git-cliff --config cliff.toml --unreleased --strip all)
 git -c user.signingkey="/home/joel/.ssh/id_ed25519" \
 	tag -s -a "$1" -m "Release $1" -m "$changelog"
 git tag -v "$1"
