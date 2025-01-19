@@ -1227,7 +1227,6 @@ export function createCondition<
   K extends ConditionKeys,
   I extends Instance<ConditionConstructors[K]>,
 >(kind: K, ...args: ConstructorParameters<ConditionConstructors[K]>): I {
-  console.log(kind, args);
   return new conditionConstructors[kind](...args);
 }
 
