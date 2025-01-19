@@ -7,11 +7,10 @@ import {
   Rarity,
 } from "@app/lib/filter";
 import { Checkbox } from "@pkgs/ui/checkbox";
-import { batch, createEffect, createMemo, createSignal, For } from "solid-js";
+import { createEffect, createSignal, For } from "solid-js";
 import { createMutable } from "solid-js/store";
 import { ChevronDownIcon } from "@pkgs/icons";
 import { toast } from "solid-sonner";
-import type { FuseResult } from "fuse.js";
 import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
 import { on } from "solid-js";
 

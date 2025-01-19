@@ -9,14 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@pkgs/ui/select";
-import { type Conditions, conditionTypes } from "@app/lib/filter";
-import { store } from "@app/store";
-import { Label } from "@pkgs/ui/label";
-import { Separator } from "@pkgs/ui/separator";
+import { type ConditionKey, conditionTypes } from "@app/lib/filter";
 import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
 
+type FilteredConditionKey = Exclude<ConditionKey, ConditionKey.BASE_TYPE>;
+
 export function SliderInput(props: {
-  key: (typeof conditionTypes)[keyof typeof conditionTypes];
+  key: FilteredConditionKey;
   value: number;
   onChange: (...rest: unknown[]) => void;
 }) {
@@ -50,7 +49,7 @@ export function SliderInput(props: {
 
 export function SelectInput(props: {
   value: number;
-  key: (typeof conditionTypes)[keyof typeof conditionTypes];
+  key: FilteredConditionKey;
   onChange: (...rest: unknown[]) => void;
 }) {
   return (
@@ -62,7 +61,10 @@ export function SelectInput(props: {
         <SelectItem item={props.item}>{props.item.rawValue}</SelectItem>
       )}
     >
-      <SelectTrigger aria-label={props.key.label} class='w-[180px]'>
+      <SelectTrigger
+        aria-label={conditionTypes[props.key].label}
+        class='w-[180px]'
+      >
         <SelectValue<string>>{(state) => state.selectedOption()}</SelectValue>
       </SelectTrigger>
       <SelectContent />
@@ -71,8 +73,8 @@ export function SelectInput(props: {
 }
 
 export function ToggleInput(props: {
-  value: number;
-  key: (typeof conditionTypes)[keyof typeof conditionTypes];
+  value: string[];
+  key: FilteredConditionKey;
   onChange: (...rest: unknown[]) => void;
 }) {
   return (
@@ -102,7 +104,7 @@ export function ToggleInput(props: {
 
 export function CheckboxInput(props: {
   value: boolean;
-  key: (typeof conditionTypes)[keyof typeof conditionTypes];
+  key: FilteredConditionKey;
   onChange: (...rest: unknown[]) => void;
 }) {
   return (
@@ -115,50 +117,5 @@ export function CheckboxInput(props: {
         <SwitchThumb />
       </SwitchControl>
     </Switch>
-  );
-}
-
-function ConditionToggle(props: {
-  label: string;
-  key: keyof Conditions;
-  onChange: (key: keyof Conditions, checked: boolean) => void;
-}) {
-  return (
-    <div class='flex items-center gap-2'>
-      <input
-        type='checkbox'
-        id='icon'
-        class='size-5'
-        checked={store.activeRule?.conditions[props.key as keyof Conditions]}
-        onInput={(v) => props.onChange(props.key, v.target.checked)}
-      />
-      <Label>{props.label}</Label>
-    </div>
-  );
-}
-
-export function ConditionToggleGroup(props: {
-  key: string;
-  onChange: (key: keyof Conditions, checked: boolean) => void;
-}) {
-  const conditions = Object.entries(conditionTypes).filter(
-    ([_, value]) => value.group === props.key,
-  );
-  return (
-    <div class='flex flex-col gap-3 py-2'>
-      <Label class='text-lg h-5 mb-1'>{props.key}</Label>
-      <Separator />
-      <For each={conditions}>
-        {([key, value]) => (
-          <ConditionToggle
-            label={value.label}
-            key={key as keyof Conditions}
-            onChange={(key, checked) => {
-              props.onChange(key, checked);
-            }}
-          />
-        )}
-      </For>
-    </div>
   );
 }

@@ -1,5 +1,6 @@
 import { createMutable } from "solid-js/store";
 import { itemIndex } from "./items";
+import Fuse, { type FuseResult } from "fuse.js";
 
 export enum ConditionType {
   VALUE = "value",
@@ -137,18 +138,25 @@ export enum ConditionInputType {
   CHECKBOX = "checkbox",
 }
 
-export const conditionTypes: {
-  [key in Exclude<ConditionKey, ConditionKey.BASE_TYPE>]: {
-    label: string;
-    description: string;
-    group: ConditionGroup;
-    type: ConditionInputType;
-    defaultValue: Extract<Conditions, { key: key }>["value"];
-    min?: number;
-    max?: number;
-    options?: string[];
-  };
-} = {
+type BaseConditionValue = {
+  label: string;
+  description: string;
+  group: ConditionGroup;
+};
+
+type ConditionValues<K extends ConditionKey> = BaseConditionValue & {
+  type: ConditionInputType;
+  defaultValue: Extract<Conditions, { key: K }>["value"];
+  min?: number;
+  max?: number;
+  options?: string[];
+};
+
+type AllConditionTypes = {
+  [key in Exclude<ConditionKey, ConditionKey.BASE_TYPE>]: ConditionValues<key>;
+};
+
+export const conditionTypes: AllConditionTypes = {
   [ConditionKey.HEIGHT]: {
     label: "Height",
     description: "The height of the item in inventory slots",
@@ -1217,6 +1225,7 @@ const conditionConstructors = verifyConstructors({
 type ConditionConstructors = typeof conditionConstructors;
 type Instance<T extends Function> = T["prototype"];
 type ConditionKeys = keyof ConditionConstructors;
+
 export type Conditions = Exclude<
   Instance<ConditionConstructors[keyof ConditionConstructors]>,
   { key: ConditionKey.BASE_TYPE }
@@ -1245,3 +1254,40 @@ export function serializeConditions(conditions: Conditions[]) {
   }
   return strs;
 }
+
+export type SearchableCondition = BaseConditionValue & {
+  key: ConditionKey;
+  options?: string[];
+};
+
+class ConditionIndex {
+  searchIndex!: Fuse<SearchableCondition>;
+
+  constructor() {
+    this.setConditions([]);
+  }
+
+  setConditions(conditions: SearchableCondition[]) {
+    const options = {
+      keys: ["label", "group", "description", "options"],
+      useExtendedSearch: true,
+      ignoreFieldNorm: true,
+      minMatchCharLength: 1,
+      distance: 160,
+      threshold: 0.6,
+    };
+    this.searchIndex = new Fuse(conditions, options);
+  }
+
+  search(
+    args: Parameters<typeof this.searchIndex.search>[0],
+  ): FuseResult<SearchableCondition>[] {
+    // handle empty search
+    if (!args || (typeof args === "string" && !args.length)) {
+      return this.searchIndex.search({ label: "!1234567890" });
+    }
+    return this.searchIndex.search(`'${args}`);
+  }
+}
+
+export const conditionIndex = new ConditionIndex();

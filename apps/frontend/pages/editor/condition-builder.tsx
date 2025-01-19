@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For } from "solid-js";
+import { createEffect, createSignal, For, onMount } from "solid-js";
 import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
 import {
   Select,
@@ -10,12 +10,14 @@ import {
 import {
   type Conditions,
   type FilterRule,
-  ConditionGroup,
+  type SearchableCondition,
+  type ConditionGroup,
   ConditionKey,
   Operator,
   conditionGroupColors,
   conditionTypes,
   createCondition,
+  conditionIndex,
 } from "@app/lib/filter";
 import { store } from "@app/store";
 import { Label } from "@pkgs/ui/label";
@@ -35,7 +37,6 @@ import {
   SelectInput,
   SliderInput,
   ToggleInput,
-  ConditionToggleGroup,
 } from "./condition-inputs";
 import { PlusIcon, TrashIcon } from "@pkgs/icons";
 import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
@@ -52,6 +53,12 @@ const operators = [
 
 export default function ConditionManager(props: { rule: FilterRule }) {
   const [searchTerm, setSearchTerm] = createSignal("");
+  const [filteredConditions, setFilteredConditions] = createSignal<
+    SearchableCondition[]
+  >([]);
+  const [filteredConditionGroups, setFilteredConditionGroups] = createSignal<
+    ConditionGroup[]
+  >([]);
 
   function addCondition(condition: ConditionKey) {
     if (store.filter) {
@@ -61,14 +68,14 @@ export default function ConditionManager(props: { rule: FilterRule }) {
     }
   }
 
-  function updateCondition<K extends keyof Conditions>(
-    index: number,
+  function updateCondition<T extends Conditions, K extends keyof T>(
+    condition: T,
     key: K,
-    value: Conditions[K],
+    value: T[K],
   ) {
     if (store.filter) {
       excuteCmd(store.filter, () => {
-        props.rule.conditions[index][key] = value;
+        condition[key] = value;
       });
     }
   }
@@ -106,6 +113,33 @@ export default function ConditionManager(props: { rule: FilterRule }) {
     return count ? `(${count})` : "";
   }
 
+  createEffect(() => {
+    setFilteredConditions(
+      conditionIndex.search(searchTerm()).map((result) => result.item),
+    );
+  });
+
+  createEffect(() => {
+    setFilteredConditionGroups(
+      Array.from(
+        new Set(filteredConditions().map((condition) => condition.group)),
+      ),
+    );
+  });
+
+  onMount(() => {
+    conditionIndex.setConditions(
+      Object.entries(conditionTypes).map(([key, value]) => ({
+        key: key as ConditionKey,
+        ...value,
+      })),
+    );
+
+    setFilteredConditions(
+      conditionIndex.search(`${searchTerm()}`).map((result) => result.item),
+    );
+  });
+
   return (
     <div class='mx-auto p-4 h-full'>
       <div class='space-y-4 flex flex-col size-full max-w-[650px]'>
@@ -135,46 +169,57 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                 </TextField>
               </div>
               <div class='overflow-y-auto h-[50vh]'>
-                <For each={Object.values(ConditionGroup)}>
-                  {(group) => (
-                    <div class='flex flex-col gap-1 mb-2'>
-                      <Label
-                        class={`text-md h-4 mb-1 ${conditionGroupColors[group]}`}
-                      >
-                        {group}
-                      </Label>
-                      <Separator />
-                      <For
-                        each={Object.entries(conditionTypes).filter(
-                          ([_, value]) => value.group === group,
-                        )}
-                      >
-                        {([key, value]) => (
-                          <div class='flex gap-2 items-center'>
-                            <Button
-                              onClick={() => addCondition(key as ConditionKey)}
-                              size='sm'
-                              variant='secondary'
-                            >
-                              <PlusIcon />
-                            </Button>
-                            <div class='flex flex-col'>
-                              <span class='text-md'>
-                                {value.label}
-                                <span class='text-sm text-accent-foreground'>
-                                  {" "}
-                                  {getConditionCount(key as ConditionKey)}
+                <For each={filteredConditionGroups()}>
+                  {(group) => {
+                    if (
+                      !filteredConditions().some(
+                        (condition) => condition.group === group,
+                      )
+                    ) {
+                      return <></>;
+                    }
+                    return (
+                      <div class='flex flex-col gap-1 mb-2'>
+                        <Label
+                          class={`text-md h-4 mb-1 ${conditionGroupColors[group]}`}
+                        >
+                          {group}
+                        </Label>
+                        <Separator />
+                        <For
+                          each={filteredConditions().filter(
+                            (condition) => condition.group === group,
+                          )}
+                        >
+                          {(condition) => (
+                            <div class='flex gap-2 items-center ml-1'>
+                              <Button
+                                onClick={() =>
+                                  addCondition(condition.key as ConditionKey)
+                                }
+                                size='sm'
+                                variant='secondary'
+                              >
+                                <PlusIcon />
+                              </Button>
+                              <div class='flex flex-col'>
+                                <span class='text-md'>
+                                  {condition.label}
+                                  <span class='text-sm text-accent-foreground'>
+                                    {" "}
+                                    {getConditionCount(condition.key)}
+                                  </span>
                                 </span>
-                              </span>
-                              <span class='text-xs text-muted-foreground'>
-                                {value.description}
-                              </span>
+                                <span class='text-xs text-muted-foreground'>
+                                  {condition.description}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </For>
-                    </div>
-                  )}
+                          )}
+                        </For>
+                      </div>
+                    );
+                  }}
                 </For>
               </div>
             </DialogContent>
@@ -222,7 +267,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
         ) : (
           <div class='space-y-4 flex flex-col items-start overflow-y-auto h-full'>
             <For each={props.rule.conditions}>
-              {(condition, index) => {
+              {(condition) => {
                 const conditionType = conditionTypes[condition.key];
                 const EXCLUDED_OPERATORS = [Operator.GTE, Operator.LTE];
                 const filteredOperators = operators.filter((op) => {
@@ -246,7 +291,9 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                         <Select
                           value={condition.operator}
                           onChange={(value) => {
-                            updateCondition(index(), "operator", value);
+                            if (value) {
+                              updateCondition(condition, "operator", value);
+                            }
                           }}
                           options={filteredOperators}
                           itemComponent={(props) => (
@@ -271,7 +318,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                           key={condition.key}
                           value={condition.value}
                           onChange={(v) => {
-                            updateCondition(index(), "value", v);
+                            updateCondition(condition, "value", v);
                           }}
                         />
                       )}
@@ -280,7 +327,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                           key={condition.key}
                           value={condition.value}
                           onChange={(v) => {
-                            updateCondition(index(), "value", v);
+                            updateCondition(condition, "value", v);
                           }}
                         />
                       )}
@@ -289,7 +336,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                           key={condition.key}
                           value={condition.value}
                           onChange={(v) => {
-                            updateCondition(index(), "value", v);
+                            updateCondition(condition, "value", v);
                           }}
                         />
                       )}
@@ -298,7 +345,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                           key={condition.key}
                           value={condition.value}
                           onChange={(v) => {
-                            updateCondition(index(), "value", v);
+                            updateCondition(condition, "value", v);
                           }}
                         />
                       )}
