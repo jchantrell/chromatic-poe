@@ -1,6 +1,11 @@
 import { getVersion } from "@tauri-apps/api/app";
 import { documentDir, appConfigDir, sep } from "@tauri-apps/api/path";
-import { Filter } from "@app/lib/filter";
+import {
+  ConditionKey,
+  Conditions,
+  createCondition,
+  Filter,
+} from "@app/lib/filter";
 import { WebStorage, DesktopStorage } from "@app/lib/storage";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { store, setInitialised, setLocale } from "@app/store";
@@ -47,6 +52,12 @@ export interface DefaultSound {
   data: null;
 }
 export type Sound = BlobSound | FileSound | CachedSound | DefaultSound;
+
+type SemVer = {
+  major: number;
+  minor: number;
+  patch: number;
+};
 
 interface ChromaticConfiguration {
   version: string;
@@ -160,17 +171,12 @@ class Chromatic {
       `Loaded version ${config.version} file. Validating and checking for necessary updates...`,
     );
 
-    const configSemVer = config.version.split(".");
+    const configSemVer = this.semVer(config.version);
 
     const version = await this.getVersion();
-    const semVer = version.split(".");
+    const semVer = this.semVer(version);
 
-    if (
-      !configSemVer[0] ||
-      !configSemVer[1] ||
-      !configSemVer[2] ||
-      configSemVer.length > 3
-    ) {
+    if (!configSemVer) {
       console.log(
         "Configuration file version seems corrupted. Replacing with current default",
         config,
@@ -181,7 +187,7 @@ class Chromatic {
       return defaultConfig;
     }
 
-    if (configSemVer[0] < semVer[0]) {
+    if (configSemVer.major < semVer.major) {
       console.log("Configuration is from prior major version. Updating...", {
         current: version,
         config: config.version,
@@ -191,7 +197,10 @@ class Chromatic {
       return updated;
     }
 
-    if (configSemVer[0] === semVer[0] && configSemVer[1] < semVer[1]) {
+    if (
+      configSemVer.major === semVer.major &&
+      configSemVer.minor < semVer.minor
+    ) {
       console.log("Configuration is from prior minor version. Updating...", {
         current: version,
         config: config.version,
@@ -202,9 +211,9 @@ class Chromatic {
     }
 
     if (
-      configSemVer[0] === semVer[0] &&
-      configSemVer[1] === semVer[1] &&
-      configSemVer[2] < semVer[2]
+      configSemVer.major === semVer.major &&
+      configSemVer.minor === semVer.minor &&
+      configSemVer.patch < semVer.patch
     ) {
       console.log("Configuration is from prior patch version. Updating...", {
         current: version,
@@ -228,12 +237,21 @@ class Chromatic {
 
   async migrateConfig(
     config: ChromaticConfiguration,
-    currSemVer: string[],
-    prevSemVer: string[],
+    currSemVer: SemVer,
+    prevSemVer: SemVer,
   ) {
     // not implemented
     console.log("Upgrade config", { config, currSemVer, prevSemVer });
     return this.defaultConfig();
+  }
+
+  semVer(version: string): SemVer {
+    const nums = version.split(".").map((v) => Number.parseInt(v));
+    return {
+      major: nums[0],
+      minor: nums[1],
+      patch: nums[2],
+    };
   }
 
   async getVersion(): Promise<string> {
@@ -290,12 +308,32 @@ class Chromatic {
     const chromaticVersion = await this.getVersion();
     let needsWrite = false;
     console.log("Checking for filter version upgrades", { rawFilter });
-    // not implemented yet, just updating the version for now
-    if (rawFilter.chromaticVersion !== chromaticVersion) {
-      rawFilter.chromaticVersion = chromaticVersion;
+    const filterSemVer = this.semVer(rawFilter.chromaticVersion);
+
+    // before 0.4.4 conditions were a hashtable
+    if (
+      filterSemVer.major === 0 &&
+      filterSemVer.minor <= 4 &&
+      filterSemVer.patch < 4
+    ) {
+      for (const rule of rawFilter.rules) {
+        const updatedConditions = [];
+        const legacyConditions = Object.entries(rule.conditions);
+        for (const [key, value] of legacyConditions) {
+          const condition = createCondition(key as ConditionKey, value);
+          updatedConditions.push(condition);
+        }
+        rule.conditions = updatedConditions as Conditions[];
+      }
       needsWrite = true;
     }
+
+    if (rawFilter.chromaticVersion !== chromaticVersion) {
+      needsWrite = true;
+    }
+
     if (needsWrite) {
+      rawFilter.chromaticVersion = chromaticVersion;
       this.fileSystem.writeFile(
         this.getFiltersPath(rawFilter),
         "text",

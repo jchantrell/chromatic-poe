@@ -1,4 +1,4 @@
-import { createEffect, For } from "solid-js";
+import { createEffect, createSignal, For } from "solid-js";
 import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
 import {
   Select,
@@ -13,6 +13,7 @@ import {
   ConditionGroup,
   ConditionKey,
   Operator,
+  conditionGroupColors,
   conditionTypes,
   createCondition,
 } from "@app/lib/filter";
@@ -36,7 +37,9 @@ import {
   ToggleInput,
   ConditionToggleGroup,
 } from "./condition-inputs";
-import { TrashIcon } from "@pkgs/icons";
+import { PlusIcon, TrashIcon } from "@pkgs/icons";
+import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
+import { Separator } from "@pkgs/ui/separator";
 
 const operators = [
   Operator.NONE,
@@ -48,6 +51,8 @@ const operators = [
 ];
 
 export default function ConditionManager(props: { rule: FilterRule }) {
+  const [searchTerm, setSearchTerm] = createSignal("");
+
   function addCondition(condition: ConditionKey) {
     if (store.filter) {
       excuteCmd(store.filter, () => {
@@ -78,20 +83,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
     }
   }
 
-  function toggleCondition(key: ConditionKey, checked: boolean) {
-    if (store.filter) {
-      excuteCmd(store.filter, () => {
-        if (checked) {
-          addCondition(key);
-        }
-        if (!checked) {
-          removeCondition(key);
-        }
-      });
-    }
-  }
-
-  function toggleRule(checked: boolean) {
+  function toggleHidden(checked: boolean) {
     if (store.filter && props.rule) {
       excuteCmd(store.filter, () => {
         props.rule.show = checked;
@@ -109,6 +101,11 @@ export default function ConditionManager(props: { rule: FilterRule }) {
     }
   }
 
+  function getConditionCount(key: ConditionKey) {
+    const count = props.rule.conditions.filter((c) => c.key === key).length;
+    return count ? `(${count})` : "";
+  }
+
   return (
     <div class='mx-auto p-4 h-full'>
       <div class='space-y-4 flex flex-col size-full max-w-[650px]'>
@@ -123,61 +120,62 @@ export default function ConditionManager(props: { rule: FilterRule }) {
           </Dialog>
           <Dialog>
             <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
-              Edit Conditions
+              Add Conditions
             </DialogTrigger>
             <DialogContent class='sm:max-w-[600px]'>
               <DialogHeader>
-                <DialogTitle>Edit {props.rule?.name} Conditions</DialogTitle>
+                <DialogTitle>Add Conditions to {props.rule?.name}</DialogTitle>
               </DialogHeader>
-              <div class='grid grid-cols-2 gap-3 py-2'>
-                <ConditionToggleGroup
-                  key={ConditionGroup.GENERAL}
-                  onChange={(key: ConditionKey, checked: boolean) => {
-                    toggleCondition(key, checked);
-                  }}
-                />
-                <ConditionToggleGroup
-                  key={ConditionGroup.GEAR}
-                  onChange={(key: ConditionKey, checked: boolean) => {
-                    toggleCondition(key, checked);
-                  }}
-                />
-                <ConditionToggleGroup
-                  key={ConditionGroup.ARMOUR}
-                  onChange={(key: ConditionKey, checked: boolean) => {
-                    toggleCondition(key, checked);
-                  }}
-                />
-                <ConditionToggleGroup
-                  key={ConditionGroup.GEMS}
-                  onChange={(key: ConditionKey, checked: boolean) => {
-                    toggleCondition(key, checked);
-                  }}
-                />
-                <ConditionToggleGroup
-                  key={ConditionGroup.MAPS}
-                  onChange={(key: ConditionKey, checked: boolean) => {
-                    toggleCondition(key, checked);
-                  }}
-                />
-                <ConditionToggleGroup
-                  key={ConditionGroup.ARMOUR}
-                  onChange={(key: ConditionKey, checked: boolean) => {
-                    toggleCondition(key, checked);
-                  }}
-                />
-                <ConditionToggleGroup
-                  key={ConditionGroup.SOCKETS}
-                  onChange={(key: ConditionKey, checked: boolean) => {
-                    toggleCondition(key, checked);
-                  }}
-                />
-                <ConditionToggleGroup
-                  key={ConditionGroup.MODS}
-                  onChange={(key: ConditionKey, checked: boolean) => {
-                    toggleCondition(key, checked);
-                  }}
-                />
+              <div class='py-2'>
+                <TextField value={searchTerm()} onChange={setSearchTerm}>
+                  <TextFieldInput
+                    type='text'
+                    placeholder='Search for conditions...'
+                  />
+                </TextField>
+              </div>
+              <div class='overflow-y-auto h-[50vh]'>
+                <For each={Object.values(ConditionGroup)}>
+                  {(group) => (
+                    <div class='flex flex-col gap-1 mb-2'>
+                      <Label
+                        class={`text-md h-4 mb-1 ${conditionGroupColors[group]}`}
+                      >
+                        {group}
+                      </Label>
+                      <Separator />
+                      <For
+                        each={Object.entries(conditionTypes).filter(
+                          ([_, value]) => value.group === group,
+                        )}
+                      >
+                        {([key, value]) => (
+                          <div class='flex gap-2 items-center'>
+                            <Button
+                              onClick={() => addCondition(key as ConditionKey)}
+                              size='sm'
+                              variant='secondary'
+                            >
+                              <PlusIcon />
+                            </Button>
+                            <div class='flex flex-col'>
+                              <span class='text-md'>
+                                {value.label}
+                                <span class='text-sm text-accent-foreground'>
+                                  {" "}
+                                  {getConditionCount(key as ConditionKey)}
+                                </span>
+                              </span>
+                              <span class='text-xs text-muted-foreground'>
+                                {value.description}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </For>
+                    </div>
+                  )}
+                </For>
               </div>
             </DialogContent>
           </Dialog>
@@ -188,7 +186,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                 <Switch
                   checked={props.rule?.show}
                   onChange={(checked) => {
-                    toggleRule(checked);
+                    toggleHidden(checked);
                   }}
                   class='flex items-center space-x-2'
                 >
@@ -286,7 +284,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                           }}
                         />
                       )}
-                      {conditionType.type === "toggle" && (
+                      {conditionType.type === "text-list" && (
                         <ToggleInput
                           key={condition.key}
                           value={condition.value}

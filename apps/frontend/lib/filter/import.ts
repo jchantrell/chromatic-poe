@@ -1,4 +1,9 @@
-import { type Conditions, Operator } from "./condition";
+import {
+  ConditionKey,
+  type Conditions,
+  createCondition,
+  Operator,
+} from "./condition";
 import { type Actions, IconSize, Shape, Color, DEFAULT_STYLE } from "./action";
 import { ulid } from "ulid";
 import items from "@pkgs/data/poe2/items.json";
@@ -202,7 +207,7 @@ export async function importFilter(raw: string) {
 
   for (const rule of rules) {
     const basesToAdd = new Set<string>();
-    const conditions: Conditions = {};
+    const conditions: Conditions[] = [];
 
     const baseTypeConditions = rule.conditions.filter(
       (condition) => condition.property === "BaseType",
@@ -248,57 +253,8 @@ export async function importFilter(raw: string) {
     }
 
     const otherConditions = rule.conditions.filter(
-      (condition) =>
-        !["BaseType", "WaystoneTier", "MapTier", "ItemLevel"].includes(
-          condition.property,
-        ),
+      (condition) => !["BaseType"].includes(condition.property),
     );
-
-    const mapTierConditions = rule.conditions.filter((condition) =>
-      ["WaystoneTier", "MapTier"].includes(condition.property),
-    );
-
-    const mapTiers: number[] = [];
-    for (const condition of mapTierConditions) {
-      mapTiers.push(condition.value as number);
-    }
-
-    if (mapTiers.length === 1) {
-      conditions.mapTier = {
-        operator: Operator.EXACT,
-        value: [mapTiers[0], mapTiers[0]],
-      };
-    }
-    if (mapTiers.length === 2) {
-      conditions.mapTier = {
-        operator: Operator.EXACT,
-        value: [mapTiers[0], mapTiers[1]],
-      };
-    }
-
-    const itemLevelConditions = rule.conditions.filter((condition) =>
-      ["ItemLevel"].includes(condition.property),
-    );
-
-    const itemLevels: number[] = [];
-    for (const condition of itemLevelConditions) {
-      itemLevels.push(condition.value as number);
-    }
-
-    if (itemLevels.length === 1) {
-      conditions.itemLevel = {
-        operator: Operator.EXACT,
-        value: [itemLevels[0], itemLevels[0]],
-      };
-      console.log(conditions.itemLevel);
-    }
-    if (itemLevels.length === 2) {
-      conditions.itemLevel = {
-        operator: Operator.EXACT,
-        value: [itemLevels[0], itemLevels[1]],
-      };
-      console.log(conditions.itemLevel);
-    }
 
     for (const condition of otherConditions) {
       const { property, operator, value } = condition;
@@ -314,26 +270,40 @@ export async function importFilter(raw: string) {
         continue;
       }
       if (property === "Class") {
-        conditions.classes = {
-          operator,
-          value: getClasses(value),
-        };
-
+        const classes = getClasses(value) as string[];
+        console.log(classes);
+        conditions.push(
+          createCondition(ConditionKey.CLASSES, {
+            value: classes,
+          }),
+        );
+        continue;
+      }
+      if (property === "WaystoneTier") {
+        conditions.push(
+          createCondition(ConditionKey.MAP_TIER, {
+            operator,
+            value: Number(value),
+          }),
+        );
         continue;
       }
 
       if (property === "AnyEnchantment") {
-        conditions.anyEnchantment = {
-          operator,
-          value,
-        };
+        conditions.push(
+          createCondition(ConditionKey.ANY_ENCHANTMENT, {
+            value: value === "true",
+          }),
+        );
         continue;
       }
 
-      conditions[camelCase(property)] = {
-        operator,
-        value,
-      };
+      conditions.push(
+        createCondition(camelCase(property) as ConditionKey, {
+          operator,
+          value,
+        }),
+      );
     }
 
     const itemBases: FilterItem[] = [];

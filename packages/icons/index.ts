@@ -19,3 +19,4 @@ export * from "./save";
 export * from "./download";
 export * from "./refresh";
 export * from "./close";
+export * from "./plus";

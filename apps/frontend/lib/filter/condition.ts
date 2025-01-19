@@ -118,6 +118,17 @@ export enum ConditionGroup {
   CLUSTERS = "Clusters",
 }
 
+export const conditionGroupColors = {
+  [ConditionGroup.GENERAL]: "text-blue-500",
+  [ConditionGroup.GEAR]: "text-green-500",
+  [ConditionGroup.GEMS]: "text-yellow-500",
+  [ConditionGroup.MAPS]: "text-purple-500",
+  [ConditionGroup.ARMOUR]: "text-red-500",
+  [ConditionGroup.SOCKETS]: "text-pink-500",
+  [ConditionGroup.MODS]: "text-orange-500",
+  [ConditionGroup.CLUSTERS]: "text-teal-500",
+} as const;
+
 export enum ConditionInputType {
   SLIDER = "slider",
   SELECT = "select",
@@ -129,6 +140,7 @@ export enum ConditionInputType {
 export const conditionTypes: {
   [key in Exclude<ConditionKey, ConditionKey.BASE_TYPE>]: {
     label: string;
+    description: string;
     group: ConditionGroup;
     type: ConditionInputType;
     defaultValue: Extract<Conditions, { key: key }>["value"];
@@ -139,6 +151,7 @@ export const conditionTypes: {
 } = {
   [ConditionKey.HEIGHT]: {
     label: "Height",
+    description: "The height of the item in inventory slots",
     group: ConditionGroup.GENERAL,
     type: ConditionInputType.SLIDER,
     defaultValue: 1,
@@ -147,6 +160,7 @@ export const conditionTypes: {
   },
   [ConditionKey.WIDTH]: {
     label: "Width",
+    description: "The width of the item in inventory slots",
     group: ConditionGroup.GENERAL,
     type: ConditionInputType.SLIDER,
     defaultValue: 1,
@@ -155,6 +169,7 @@ export const conditionTypes: {
   },
   [ConditionKey.ITEM_LEVEL]: {
     label: "Item Level",
+    description: "The item level of the item (hold alt to see in game)",
     group: ConditionGroup.GENERAL,
     type: ConditionInputType.SLIDER,
     defaultValue: 1,
@@ -163,6 +178,7 @@ export const conditionTypes: {
   },
   [ConditionKey.QUALITY]: {
     label: "Quality",
+    description: "The quality of the item (gear, flasks, etc)",
     group: ConditionGroup.GENERAL,
     type: ConditionInputType.SLIDER,
     defaultValue: 0,
@@ -171,32 +187,37 @@ export const conditionTypes: {
   },
   [ConditionKey.CLASSES]: {
     label: "Class",
+    description: "The internal class of the item",
     group: ConditionGroup.GENERAL,
-    type: ConditionInputType.CHECKBOX,
+    type: ConditionInputType.TEXT_LIST,
     defaultValue: [],
     options: itemIndex.classes,
   },
   [ConditionKey.RARITY]: {
     label: "Rarity",
+    description: "Normal, Magic, Rare and Unique",
     group: ConditionGroup.GENERAL,
-    type: ConditionInputType.CHECKBOX,
+    type: ConditionInputType.TEXT_LIST,
     defaultValue: [],
     options: Object.values(Rarity),
   },
   [ConditionKey.IDENTIFIED]: {
     label: "Identified",
+    description: "Whether the item is identified",
     group: ConditionGroup.GEAR,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.CORRUPTED]: {
     label: "Corrupted",
+    description: "Whether the item is corrupted",
     group: ConditionGroup.GEAR,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.STACK_SIZE]: {
     label: "Stack Size",
+    description: "The number of items in the stack",
     group: ConditionGroup.GENERAL,
     type: ConditionInputType.SLIDER,
     defaultValue: 1,
@@ -205,6 +226,7 @@ export const conditionTypes: {
   },
   [ConditionKey.GEM_LEVEL]: {
     label: "Gem Level",
+    description: "The level of the gem",
     group: ConditionGroup.GEMS,
     type: ConditionInputType.SLIDER,
     defaultValue: 1,
@@ -213,6 +235,7 @@ export const conditionTypes: {
   },
   [ConditionKey.MAP_TIER]: {
     label: "Map Tier",
+    description: "The tier of the map",
     group: ConditionGroup.MAPS,
     type: ConditionInputType.SLIDER,
     defaultValue: 1,
@@ -221,6 +244,7 @@ export const conditionTypes: {
   },
   [ConditionKey.DROP_LEVEL]: {
     label: "Drop Level",
+    description: "The level the item starts dropping at",
     group: ConditionGroup.GENERAL,
     type: ConditionInputType.SLIDER,
     defaultValue: 1,
@@ -229,6 +253,7 @@ export const conditionTypes: {
   },
   [ConditionKey.AREA_LEVEL]: {
     label: "Area Level",
+    description: "The level of the area the item is dropped in",
     group: ConditionGroup.GENERAL,
     type: ConditionInputType.SLIDER,
     defaultValue: 1,
@@ -237,30 +262,35 @@ export const conditionTypes: {
   },
   [ConditionKey.ELDER_MAP]: {
     label: "Elder Map",
+    description: "Whether the item is an elder map",
     group: ConditionGroup.MAPS,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.SHAPED_MAP]: {
     label: "Shaped Map",
+    description: "Whether the item is a shaped map",
     group: ConditionGroup.MAPS,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.BLIGHTED_MAP]: {
     label: "Blighted Map",
+    description: "Whether the item is a blighted map",
     group: ConditionGroup.MAPS,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.UBER_BLIGHTED_MAP]: {
     label: "Uber Blighted Map",
+    description: "Whether the item is an uber blighted map",
     group: ConditionGroup.MAPS,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.BASE_DEFENCE_PERCENTILE]: {
     label: "Defence Percentile",
+    description: "The item's defence percentile",
     group: ConditionGroup.ARMOUR,
     type: ConditionInputType.SLIDER,
     defaultValue: 0,
@@ -269,6 +299,7 @@ export const conditionTypes: {
   },
   [ConditionKey.BASE_ARMOUR]: {
     label: "Armour",
+    description: "The item's armour",
     group: ConditionGroup.ARMOUR,
     type: ConditionInputType.SLIDER,
     defaultValue: 0,
@@ -277,6 +308,7 @@ export const conditionTypes: {
   },
   [ConditionKey.BASE_EVASION]: {
     label: "Evasion",
+    description: "The item's evasion",
     group: ConditionGroup.ARMOUR,
     type: ConditionInputType.SLIDER,
     defaultValue: 0,
@@ -285,6 +317,7 @@ export const conditionTypes: {
   },
   [ConditionKey.BASE_ENERGY_SHIELD]: {
     label: "Energy Shield",
+    description: "The item's energy shield",
     group: ConditionGroup.ARMOUR,
     type: ConditionInputType.SLIDER,
     defaultValue: 0,
@@ -293,6 +326,7 @@ export const conditionTypes: {
   },
   [ConditionKey.BASE_WARD]: {
     label: "Ward",
+    description: "The item's ward",
     group: ConditionGroup.ARMOUR,
     type: ConditionInputType.SLIDER,
     defaultValue: 0,
@@ -301,6 +335,7 @@ export const conditionTypes: {
   },
   [ConditionKey.INFLUENCE]: {
     label: "Influence",
+    description: "The influences the item has (Shaper, Elder, Crusader, etc)",
     group: ConditionGroup.GEAR,
     type: ConditionInputType.TEXT_LIST,
     defaultValue: [],
@@ -308,6 +343,7 @@ export const conditionTypes: {
   },
   [ConditionKey.SEARING_EXARCH_IMPLICIT]: {
     label: "Searing Exarch Implicits",
+    description: "The amount of Searing Exarch Implicits the item has",
     group: ConditionGroup.GEAR,
     type: ConditionInputType.SLIDER,
     defaultValue: 0,
@@ -316,6 +352,7 @@ export const conditionTypes: {
   },
   [ConditionKey.EATER_IMPLICIT]: {
     label: "Eater of Worlds Implicits",
+    description: "The amount of Eater of Worlds Implicits the item has",
     group: ConditionGroup.GEAR,
     type: ConditionInputType.SLIDER,
     defaultValue: 0,
@@ -324,6 +361,7 @@ export const conditionTypes: {
   },
   [ConditionKey.LINKED_SOCKETS]: {
     label: "Linked Sockets",
+    description: "The amount of linked sockets the item has",
     group: ConditionGroup.SOCKETS,
     type: ConditionInputType.SLIDER,
     defaultValue: 0,
@@ -332,6 +370,7 @@ export const conditionTypes: {
   },
   [ConditionKey.SOCKETS]: {
     label: "Sockets",
+    description: "The amount of sockets the item has",
     group: ConditionGroup.SOCKETS,
     type: ConditionInputType.SLIDER,
     defaultValue: 0,
@@ -340,84 +379,99 @@ export const conditionTypes: {
   },
   [ConditionKey.SOCKET_GROUP]: {
     label: "Socket Group",
+    description: "The group of sockets the item has (RGBA)",
     group: ConditionGroup.SOCKETS,
     type: ConditionInputType.TEXT,
     defaultValue: "",
   },
   [ConditionKey.EXPLICIT_MOD]: {
     label: "Explicit Mods",
+    description:
+      "A list of explicit mods the item has (e.g. Tyrannical, Flaring, Tempered)",
     group: ConditionGroup.MODS,
     type: ConditionInputType.TEXT_LIST,
     defaultValue: [],
   },
   [ConditionKey.HAS_IMPLICIT_MOD]: {
     label: "Has Implicit Mod",
+    description: "Whether the item has an implicit mod",
     group: ConditionGroup.MODS,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.ENCHANTMENT]: {
     label: "Enchantments",
+    description: `A list of enchantments the item has (e.g. "Enchantment Bane Damage 2")`,
     group: ConditionGroup.MODS,
     type: ConditionInputType.TEXT_LIST,
     defaultValue: [],
   },
   [ConditionKey.ANY_ENCHANTMENT]: {
     label: "Enchanted",
+    description: "Whether the item has any enchantments",
     group: ConditionGroup.MODS,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.SYNTHESISED]: {
     label: "Synthesised",
+    description: "Whether the item is synthesised",
     group: ConditionGroup.GEAR,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.REPLICA]: {
     label: "Replica",
+    description: "Whether the item is a replica unique",
     group: ConditionGroup.GEAR,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.MIRRORED]: {
     label: "Mirrored",
+    description: "Whether the item is mirrored",
     group: ConditionGroup.GEAR,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.FRACTURED]: {
     label: "Fractured",
+    description: "Whether the item is fractured",
     group: ConditionGroup.GEAR,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.SCOURGED]: {
     label: "Scourged",
+    description: "Whether the item is scourged",
     group: ConditionGroup.GEAR,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.CRUCIBLE_TREE]: {
     label: "Crucible Tree",
+    description: "Whether the item has a Crucible Tree",
     group: ConditionGroup.GEAR,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.ARCHNEMESIS_MOD]: {
     label: "Archnemesis Mods",
+    description: "A list of Archnemesis mods the item has (e.g. 'Toxic')",
     group: ConditionGroup.MODS,
     type: ConditionInputType.TEXT_LIST,
     defaultValue: [],
   },
   [ConditionKey.TRANSFIGURED_GEM]: {
     label: "Transfigured Gem",
+    description: "Whether the item is a transfigured gem",
     group: ConditionGroup.GEMS,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
   },
   [ConditionKey.CORRUPTED_MODS]: {
     label: "Corrupted Mods",
+    description: "The amount of corrupted mods the item has",
     group: ConditionGroup.MODS,
     type: ConditionInputType.SLIDER,
     defaultValue: 0,
@@ -426,6 +480,7 @@ export const conditionTypes: {
   },
   [ConditionKey.ENCHANTMENT_PASSIVE_NODE]: {
     label: "Enchantment Passive Nodes",
+    description: `A list of Enchantment Passive Nodes the item has (e.g. "Damage over Time")`,
     group: ConditionGroup.CLUSTERS,
     type: ConditionInputType.TEXT_LIST,
     defaultValue: [],
@@ -433,6 +488,8 @@ export const conditionTypes: {
   },
   [ConditionKey.ENCHANTMENT_PASSIVE_NUM]: {
     label: "Enchantment Passive Count",
+    description:
+      "The amount of Enchantment Passive Nodes the item has (e.g. 12 passive cluster)",
     group: ConditionGroup.CLUSTERS,
     type: ConditionInputType.SLIDER,
     defaultValue: 0,
@@ -1165,10 +1222,12 @@ export type Conditions = Exclude<
   { key: ConditionKey.BASE_TYPE }
 >;
 
+// [key in Exclude<ConditionKey, ConditionKey.BASE_TYPE>]: {
 export function createCondition<
   K extends ConditionKeys,
   I extends Instance<ConditionConstructors[K]>,
 >(kind: K, ...args: ConstructorParameters<ConditionConstructors[K]>): I {
+  console.log(kind, args);
   return new conditionConstructors[kind](...args);
 }
 
