@@ -254,7 +254,9 @@ export class Filter {
 
     const conditions = [...rule.conditions];
     if (enabledBases.length && !basesArePinnacleKeys) {
-      conditions.push(new BaseTypeCondition(Array.from(new Set(enabledBases))));
+      conditions.push(
+        new BaseTypeCondition({ value: Array.from(new Set(enabledBases)) }),
+      );
     }
 
     return this.createTextBlock(
