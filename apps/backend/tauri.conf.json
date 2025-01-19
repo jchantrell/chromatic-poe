@@ -1,6 +1,5 @@
 {
   "productName": "Chromatic",
-  "version": "0.4.3",
   "identifier": "chromatic",
   "mainBinaryName": "chromatic",
   "build": {
