@@ -6,9 +6,8 @@
   "scripts": {
     "test": "vitest",
     "dev": "tauri dev",
-    "build:all": "tauri build; tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc",
+    "build": "tauri build",
     "build:windows": "tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc",
-    "build:linux": "tauri build",
     "build:gh-pages": "vite build --mode gh-pages",
     "tauri": "tauri",
     "icon": "tauri icon packages/assets/static/tainted-chromatic-icon.png",
@@ -37,6 +36,7 @@
     "d3": "^7.9.0",
     "fast-json-patch": "^3.1.1",
     "fuse.js": "^7.0.0",
+    "git-cliff": "^2.7.0",
     "lodash-es": "^4.17.21",
     "microdiff": "^1.4.0",
     "pathofexile-dat": "^14.0.0",

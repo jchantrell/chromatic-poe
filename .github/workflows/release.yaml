@@ -1,10 +1,9 @@
-name: 'Publish'
+name: 'Release'
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
+    tags:
+      - "v*.*.*"
 
 defaults:
   run:
@@ -15,6 +14,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  generate-changelog:
+    name: Generate changelog
+    runs-on: ubuntu-22.04
+    outputs:
+      release_body: ${{ steps.git-cliff.outputs.content }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Generate a changelog
+        uses: orhun/git-cliff-action@v3
+        id: git-cliff
+        with:
+          config: cliff.toml
+          args: -vv --latest --no-exec --github-repo ${{ github.repository }}
+
   build:
     permissions:
       contents: write
@@ -32,6 +48,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -83,7 +101,7 @@ jobs:
         with:
           tagName: chromatic-poe-v__VERSION__
           releaseName: 'Chromatic PoE v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
+          releaseBody: "${{ needs.generate-changelog.outputs.release_body }}"
           releaseDraft: true
           prerelease: false
           includeUpdaterJson: true
