@@ -32,6 +32,7 @@ jobs:
           args: -vv --latest --no-exec --github-repo ${{ github.repository }}
 
   build:
+    needs: generate-changelog
     permissions:
       contents: write
       pages: write
