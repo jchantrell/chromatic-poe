@@ -71,6 +71,9 @@ importers:
       fuse.js:
         specifier: ^7.0.0
         version: 7.0.0
+      git-cliff:
+        specifier: ^2.7.0
+        version: 2.7.0
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
@@ -1445,6 +1448,10 @@ packages:
   estree-walker@3.0.3:
     resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
 
+  execa@8.0.1:
+    resolution: {integrity: sha512-VyhnebXciFV2DESc+p6B+y0LjSm0krU4OgJN44qFAhBY0TJ+1V61tYD2+wHusZ6F9n5K+vl8k0sTy7PEfV4qpg==}
+    engines: {node: '>=16.17'}
+
   expand-template@2.0.3:
     resolution: {integrity: sha512-XYfuKMvj4O35f/pOXLObndIRvyQ+/+6AhODh+OKWj9S9498pHHn/IMszH+gt0fBCRWMNfk1ZSp5x3AifmnI2vg==}
     engines: {node: '>=6'}
@@ -1512,6 +1519,45 @@ packages:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
     engines: {node: '>=6.9.0'}
 
+  get-stream@8.0.1:
+    resolution: {integrity: sha512-VaUJspBffn/LMCJVoMvSAdmscJyS1auj5Zulnn5UoYcY531UWmdwhRWkcGKnGU93m5HSXP9LP2usOryrBtQowA==}
+    engines: {node: '>=16'}
+
+  git-cliff-darwin-arm64@2.7.0:
+    resolution: {integrity: sha512-8D6Zxk9onts9r16yzuJEUq4ixGMJYvUI47GujUbs3ifsXB7x8SCOX7QCwmylRkZKnRC95fZ3jwi+gy95SwVaPQ==}
+    cpu: [arm64]
+    os: [darwin]
+
+  git-cliff-darwin-x64@2.7.0:
+    resolution: {integrity: sha512-CkADqy5hif6P6rrTIWkkSkrsQzbcTv1kr5dAIpRq9SkjWVpRHQftouhNyB2qfNe0SH73R9N9oCIocIA1bSnVeQ==}
+    cpu: [x64]
+    os: [darwin]
+
+  git-cliff-linux-arm64@2.7.0:
+    resolution: {integrity: sha512-kuJz+hL+nDqmK2E3/uahufdAHKjn76F0rv/oZpaQgUSmdE8vy9x1J28YSoXTlXIr0BfuzZjxCKrrfr8b7wU/Xw==}
+    cpu: [arm64]
+    os: [linux]
+
+  git-cliff-linux-x64@2.7.0:
+    resolution: {integrity: sha512-0qHHPEsAo9HQZpifM9wdnjot90yB7C+LIHSFfGhkTsmzr/Daxnekt0um6mb3yEA7YuFnE9+c8mvLDoXlgJ5eaA==}
+    cpu: [x64]
+    os: [linux]
+
+  git-cliff-windows-arm64@2.7.0:
+    resolution: {integrity: sha512-uq5qGuWkO6YCEGg9nDk3butX0F80hfICsBh6LWicL9bfpyfEzdSbuv4AS1hJ2jTIjqRMOP2NRSii4pM9bqjfsw==}
+    cpu: [arm64]
+    os: [win32]
+
+  git-cliff-windows-x64@2.7.0:
+    resolution: {integrity: sha512-WOoKrlYvRMaWcEdQZD1I+Pg+W6yjztxzUkid7qqyum6J2e21kfw8asL5gDnTX9rZAKu+MV29/zG7RdFqKD2qsA==}
+    cpu: [x64]
+    os: [win32]
+
+  git-cliff@2.7.0:
+    resolution: {integrity: sha512-gO4rb3VCAvzv+vWPPspxSCAeDAQbvknYioO43Wb+Dn0MWFC3zc89uwkxx36yAmCa7qui9TL2E3vSz6j9GbbzqA==}
+    engines: {node: '>=18.19 || >=20.6 || >=21'}
+    hasBin: true
+
   github-from-package@0.0.0:
     resolution: {integrity: sha512-SyHy3T1v2NUXn29OsWdxmK6RwHD+vkj3v8en8AOBZ1wBQ/hCAQ5bAQTD02kW4W9tUp/3Qh6J8r9EvntiyCmOOw==}
 
@@ -1570,6 +1616,10 @@ packages:
   https-proxy-agent@7.0.5:
     resolution: {integrity: sha512-1e4Wqeblerz+tMKPIq2EMGiiWW1dIjZOksyHWSUm1rmuvw/how9hBHZ38lAGj5ID4Ik6EdkOw7NmWPy6LAwalw==}
     engines: {node: '>= 14'}
+
+  human-signals@5.0.0:
+    resolution: {integrity: sha512-AXcZb6vzzrFAUE61HnN4mpLqd/cSIwNQjtNWR0euPm6y0iqx3G4gOXaIDdtdDwZmhwe82LA6+zinmW4UBWVePQ==}
+    engines: {node: '>=16.17.0'}
 
   humanize-ms@1.2.1:
     resolution: {integrity: sha512-Fl70vYtsAFb/C06PTS9dZBo7ihau+Tu/DNCk/OyHhea07S+aeMWpFFkUaXRa8fI+ScZbEI8dfSxwY7gxZ9SAVQ==}
@@ -1642,6 +1692,10 @@ packages:
 
   is-potential-custom-element-name@1.0.1:
     resolution: {integrity: sha512-bCYeRA2rVibKZd+s2625gGnGF/t7DSqDs4dP7CrLA1m7jKWz6pps0LpYLJN8Q64HtmPKJ1hrN3nzPNKFEKOUiQ==}
+
+  is-stream@3.0.0:
+    resolution: {integrity: sha512-LnQR4bZ9IADDRSkvpqMGvt/tEJWclzklNgSw48V5EAaAeDd6qGvN8ei6k5p0tvxSR171VmGyHuTiAOfxAbr8kA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   is-what@4.1.16:
     resolution: {integrity: sha512-ZhMwEosbFJkA0YhFnNDgTM4ZxDRsS6HqTo7qsZM08fehyRYIYa0yHu5R6mgo1n/8MgaPBXiPimPD77baVFYg+A==}
@@ -1720,6 +1774,9 @@ packages:
     resolution: {integrity: sha512-eRtbOb1N5iyH0tkQDAoQ4Ipsp/5qSR79Dzrz8hEPxRX10RWWR/iQXdoKmBSRCThY1Fh5EhISDtpSc93fpxUniQ==}
     engines: {node: '>=12.13'}
 
+  merge-stream@2.0.0:
+    resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
+
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
@@ -1738,6 +1795,10 @@ packages:
   mime-types@2.1.35:
     resolution: {integrity: sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==}
     engines: {node: '>= 0.6'}
+
+  mimic-fn@4.0.0:
+    resolution: {integrity: sha512-vqiC06CuhBTUdZH+RYl8sFrL096vA45Ok5ISO6sE/Mr1jRbGH4Csnhi8f3wKVl7x8mO4Au7Ir9D3Oyv1VYMFJw==}
+    engines: {node: '>=12'}
 
   mimic-response@3.1.0:
     resolution: {integrity: sha512-z0yWI+4FDrrweS8Zmt4Ej5HdJmky15+L2e6Wgn3+iK5fWzb6T3fhNFq2+MeTRb064c6Wr4N/wv0DzQTjNzHNGQ==}
@@ -1843,6 +1904,10 @@ packages:
     resolution: {integrity: sha512-bdok/XvKII3nUpklnV6P2hxtMNrCboOjAcyBuQnWEhO665FwrSNRxU+AqpsyvO6LgGYPspN+lu5CLtw4jPRKNA==}
     engines: {node: '>=0.10.0'}
 
+  npm-run-path@5.3.0:
+    resolution: {integrity: sha512-ppwTtiJZq0O/ai0z7yfudtBpWIoxM8yE6nHi1X47eFR2EWORqfbu6CnPlNsjeN683eT0qG6H/Pyf9fCcvjnnnQ==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
   npmlog@6.0.2:
     resolution: {integrity: sha512-/vBvz5Jfr9dT/aFWd0FIRf+T/Q2WBsLENygUaFUqstqsycmZAP/t5BvFJTK0viFmSUxiUKTUplWy5vt+rvKIxg==}
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
@@ -1861,6 +1926,10 @@ packages:
 
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
+
+  onetime@6.0.0:
+    resolution: {integrity: sha512-1FlR+gjXK7X+AsAHso35MnyN5KqGwJRi/31ft6x0M194ht7S+rWAvd7PHss9xSKMzE0asv1pyIHaJYq+BbacAQ==}
+    engines: {node: '>=12'}
 
   ooz-wasm@2.0.0:
     resolution: {integrity: sha512-Ewk+Vga2m9niFGV5qT+4EKfBnFEQSQfnTdOWSlnQcpDB2OAdk7TpRHfKqxLSLhDKRjKjw9R+sGlOreWW8ABR0A==}
@@ -1882,6 +1951,10 @@ packages:
   path-key@3.1.1:
     resolution: {integrity: sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q==}
     engines: {node: '>=8'}
+
+  path-key@4.0.0:
+    resolution: {integrity: sha512-haREypq7xkM7ErfgIyA0z+Bj4AGKlMSdlQE2jvJo6huWD1EdkKYV+G/T4nq0YEF2vgTT8kqMFKo1uHn950r4SQ==}
+    engines: {node: '>=12'}
 
   path-parse@1.0.7:
     resolution: {integrity: sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==}
@@ -2175,6 +2248,10 @@ packages:
 
   strip-ansi@7.1.0:
     resolution: {integrity: sha512-iq6eVVI64nQQTRYq2KtEg2d2uU7LElhTJwsH4YzIHZshxlgZms/wIc4VoDQTlG/IvVIrBKG06CrZnp0qv7hkcQ==}
+    engines: {node: '>=12'}
+
+  strip-final-newline@3.0.0:
+    resolution: {integrity: sha512-dOESqjYr96iWYylGObzd39EuNTa5VJxyvVAEm5Jnh7KGo75V43Hk1odPQkNDyXNmUR6k+gEiDVXnjB8HJ3crXw==}
     engines: {node: '>=12'}
 
   strip-json-comments@2.0.1:
@@ -3759,6 +3836,18 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.6
 
+  execa@8.0.1:
+    dependencies:
+      cross-spawn: 7.0.3
+      get-stream: 8.0.1
+      human-signals: 5.0.0
+      is-stream: 3.0.0
+      merge-stream: 2.0.0
+      npm-run-path: 5.3.0
+      onetime: 6.0.0
+      signal-exit: 4.1.0
+      strip-final-newline: 3.0.0
+
   expand-template@2.0.3: {}
 
   expect-type@1.1.0: {}
@@ -3825,6 +3914,37 @@ snapshots:
     optional: true
 
   gensync@1.0.0-beta.2: {}
+
+  get-stream@8.0.1: {}
+
+  git-cliff-darwin-arm64@2.7.0:
+    optional: true
+
+  git-cliff-darwin-x64@2.7.0:
+    optional: true
+
+  git-cliff-linux-arm64@2.7.0:
+    optional: true
+
+  git-cliff-linux-x64@2.7.0:
+    optional: true
+
+  git-cliff-windows-arm64@2.7.0:
+    optional: true
+
+  git-cliff-windows-x64@2.7.0:
+    optional: true
+
+  git-cliff@2.7.0:
+    dependencies:
+      execa: 8.0.1
+    optionalDependencies:
+      git-cliff-darwin-arm64: 2.7.0
+      git-cliff-darwin-x64: 2.7.0
+      git-cliff-linux-arm64: 2.7.0
+      git-cliff-linux-x64: 2.7.0
+      git-cliff-windows-arm64: 2.7.0
+      git-cliff-windows-x64: 2.7.0
 
   github-from-package@0.0.0: {}
 
@@ -3907,6 +4027,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  human-signals@5.0.0: {}
+
   humanize-ms@1.2.1:
     dependencies:
       ms: 2.1.3
@@ -3969,6 +4091,8 @@ snapshots:
   is-number@7.0.0: {}
 
   is-potential-custom-element-name@1.0.1: {}
+
+  is-stream@3.0.0: {}
 
   is-what@4.1.16: {}
 
@@ -4071,6 +4195,8 @@ snapshots:
     dependencies:
       is-what: 4.1.16
 
+  merge-stream@2.0.0: {}
+
   merge2@1.4.1: {}
 
   microdiff@1.4.0: {}
@@ -4085,6 +4211,8 @@ snapshots:
   mime-types@2.1.35:
     dependencies:
       mime-db: 1.52.0
+
+  mimic-fn@4.0.0: {}
 
   mimic-response@3.1.0: {}
 
@@ -4194,6 +4322,10 @@ snapshots:
 
   normalize-range@0.1.2: {}
 
+  npm-run-path@5.3.0:
+    dependencies:
+      path-key: 4.0.0
+
   npmlog@6.0.2:
     dependencies:
       are-we-there-yet: 3.0.1
@@ -4212,6 +4344,10 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
+  onetime@6.0.0:
+    dependencies:
+      mimic-fn: 4.0.0
+
   ooz-wasm@2.0.0: {}
 
   p-map@4.0.0:
@@ -4229,6 +4365,8 @@ snapshots:
     optional: true
 
   path-key@3.1.1: {}
+
+  path-key@4.0.0: {}
 
   path-parse@1.0.7: {}
 
@@ -4567,6 +4705,8 @@ snapshots:
   strip-ansi@7.1.0:
     dependencies:
       ansi-regex: 6.1.0
+
+  strip-final-newline@3.0.0: {}
 
   strip-json-comments@2.0.1: {}
 
