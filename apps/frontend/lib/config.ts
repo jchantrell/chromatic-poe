@@ -255,7 +255,6 @@ class Chromatic {
   }
 
   async getVersion(): Promise<string> {
-    return "0.4.4";
     return this.runtime === "desktop"
       ? await getVersion()
       : import.meta.env.CHROMATIC_VERSION;
