@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.4.6](https://github.com/jchantrell/chromatic-poe/compare/v0.4.5..v0.4.6) - 2025-01-20
+
+### ⚙️ Miscellaneous Tasks
+
+- Sync release version tags - ([4e19314](https://github.com/jchantrell/chromatic-poe/commit/4e1931459e3c986b7ebb115b2177340b1411d81d))
+
+
 ## [0.4.5](https://github.com/jchantrell/chromatic-poe/compare/v0.4.4..v0.4.5) - 2025-01-20
 
 ### ⛰️  Features
@@ -146,6 +153,7 @@ See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all ver
 - *(dat)* Add default filter sounds to src - ([2457a1f](https://github.com/jchantrell/chromatic-poe/commit/2457a1f1b1443b9220522417ed223ccfc523989c))
 - *(editor)* Update minimal template - ([ae12de2](https://github.com/jchantrell/chromatic-poe/commit/ae12de23b095ade7ce777e7d4f08661f59e3cca7))
 - *(editor)* Delete redundant file - ([e9ca16c](https://github.com/jchantrell/chromatic-poe/commit/e9ca16c11d2718e70331c88c4260d90b693faf14))
+- *(release)* V0.4.5 - ([65d4849](https://github.com/jchantrell/chromatic-poe/commit/65d48498151a16223e17aadeb2ad985c7ee1ab3e))
 - *(release)* V0.4.4 - ([3b793f4](https://github.com/jchantrell/chromatic-poe/commit/3b793f4542570ae91b51ac10eb78801639c62e4a))
 - Remove unnecessary debug logs - ([ed6f14a](https://github.com/jchantrell/chromatic-poe/commit/ed6f14a4bc388e6b85550f58e66d1982dc4d5ba3))
 - Add remainder of changelog - ([ccb7cd1](https://github.com/jchantrell/chromatic-poe/commit/ccb7cd1996eb34906a0aac6267d2fab0c2ea6408))
