@@ -1,5 +1,5 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
-## [0.4.4] - 2025-01-19
+## [0.4.4] - 2025-01-20
 
 ### ⛰️  Features
 
@@ -37,6 +37,7 @@ See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all ver
 
 ### 🐛 Bug Fixes
 
+- *(backend)* Clean up build warnings - ([650f846](https://github.com/jchantrell/chromatic-poe/commit/650f8460ea7a7c7ed6adcd8fba7b66bc883ec83c))
 - *(ci)* Github action angry about pnpm version - ([fb2c0e1](https://github.com/jchantrell/chromatic-poe/commit/fb2c0e149ce9f14feebfd0f0162a475027445806))
 - *(ci)* Simplify steps and fix syntax - ([dcbe05f](https://github.com/jchantrell/chromatic-poe/commit/dcbe05fccb4bd07cfbaccaf1a689ff3d1bc07f64))
 - *(ci)* Invalid workflow syntax - ([27b1338](https://github.com/jchantrell/chromatic-poe/commit/27b1338d6dbde1e9299881595a06a86f8e45187b))
@@ -145,6 +146,8 @@ See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all ver
 - *(dat)* Add default filter sounds to src - ([2457a1f](https://github.com/jchantrell/chromatic-poe/commit/2457a1f1b1443b9220522417ed223ccfc523989c))
 - *(editor)* Update minimal template - ([ae12de2](https://github.com/jchantrell/chromatic-poe/commit/ae12de23b095ade7ce777e7d4f08661f59e3cca7))
 - *(editor)* Delete redundant file - ([e9ca16c](https://github.com/jchantrell/chromatic-poe/commit/e9ca16c11d2718e70331c88c4260d90b693faf14))
+- *(release)* V0.4.4 - ([3b793f4](https://github.com/jchantrell/chromatic-poe/commit/3b793f4542570ae91b51ac10eb78801639c62e4a))
+- Add missing job dependency - ([19a1b09](https://github.com/jchantrell/chromatic-poe/commit/19a1b09a571a5b3f8c53054bb7de0c64ef8cae02))
 - Fix release script - ([4e450ba](https://github.com/jchantrell/chromatic-poe/commit/4e450ba22697bfc834a45e8d4d48c41d6d78167a))
 - Remove debug logs - ([68aae3a](https://github.com/jchantrell/chromatic-poe/commit/68aae3afd0b5fa04ed94a08bf8e89a53102cdb48))
 - Add base changelog file - ([5134300](https://github.com/jchantrell/chromatic-poe/commit/51343003b96bf40953a97f2fca2b31737a1bfe29))
