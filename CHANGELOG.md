@@ -1,5 +1,5 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
-## [0.4.4] - 2025-01-20
+## [0.4.5](https://github.com/jchantrell/chromatic-poe/compare/v0.4.4..v0.4.5) - 2025-01-20
 
 ### ⛰️  Features
 
@@ -147,6 +147,8 @@ See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all ver
 - *(editor)* Update minimal template - ([ae12de2](https://github.com/jchantrell/chromatic-poe/commit/ae12de23b095ade7ce777e7d4f08661f59e3cca7))
 - *(editor)* Delete redundant file - ([e9ca16c](https://github.com/jchantrell/chromatic-poe/commit/e9ca16c11d2718e70331c88c4260d90b693faf14))
 - *(release)* V0.4.4 - ([3b793f4](https://github.com/jchantrell/chromatic-poe/commit/3b793f4542570ae91b51ac10eb78801639c62e4a))
+- Remove unnecessary debug logs - ([ed6f14a](https://github.com/jchantrell/chromatic-poe/commit/ed6f14a4bc388e6b85550f58e66d1982dc4d5ba3))
+- Add remainder of changelog - ([ccb7cd1](https://github.com/jchantrell/chromatic-poe/commit/ccb7cd1996eb34906a0aac6267d2fab0c2ea6408))
 - Add missing job dependency - ([19a1b09](https://github.com/jchantrell/chromatic-poe/commit/19a1b09a571a5b3f8c53054bb7de0c64ef8cae02))
 - Fix release script - ([4e450ba](https://github.com/jchantrell/chromatic-poe/commit/4e450ba22697bfc834a45e8d4d48c41d6d78167a))
 - Remove debug logs - ([68aae3a](https://github.com/jchantrell/chromatic-poe/commit/68aae3afd0b5fa04ed94a08bf8e89a53102cdb48))
