@@ -100,7 +100,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
         with:
-          tagName: chromatic-poe-v__VERSION__
+          tagName: v__VERSION__
           releaseName: 'Chromatic PoE v__VERSION__'
           releaseBody: "${{ needs.generate-changelog.outputs.release_body }}"
           releaseDraft: true
