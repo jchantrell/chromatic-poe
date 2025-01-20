@@ -57,7 +57,7 @@ fn set_clipboard_text(text: &str) -> bool {
 }
 
 #[cfg(windows)]
-fn send_chat_command(text: &str, tabBack: bool) {
+fn send_chat_command(text: &str, tab_back: bool) {
     if !set_clipboard_text(text) {
         println!("Failed to set clipboard text");
         return;
@@ -118,7 +118,7 @@ fn send_chat_command(text: &str, tabBack: bool) {
     ));
 
     // tab back to last pane
-    if tabBack {
+    if tab_back {
         inputs.push(create_keyboard_input(VK_MENU.try_into().unwrap(), 0));
         inputs.push(create_keyboard_input(VK_TAB.try_into().unwrap(), 0));
         inputs.push(create_keyboard_input(
