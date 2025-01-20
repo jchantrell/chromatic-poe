@@ -271,7 +271,6 @@ export async function importFilter(raw: string) {
       }
       if (property === "Class") {
         const classes = getClasses(value) as string[];
-        console.log(classes);
         conditions.push(
           createCondition(ConditionKey.CLASSES, {
             value: classes,
