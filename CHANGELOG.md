@@ -1,8 +1,23 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.4.7](https://github.com/jchantrell/chromatic-poe/compare/v0.4.6..v0.4.7) - 2025-01-27
+
+### 🐛 Bug Fixes
+
+- *(editor)* Better overflow handling in item picker - ([c4308d1](https://github.com/jchantrell/chromatic-poe/commit/c4308d1573cc40b95d261f3c263d2dea88c692ac))
+
+### 📚 Documentation
+
+- Add vitaminmoo to acknowledgements - ([51c4534](https://github.com/jchantrell/chromatic-poe/commit/51c4534d2fc4c08e47ee630eaddae44764c92027))
+
+## New Contributors ❤️
+
+* @jchantrell made their first contribution
+
 ## [0.4.6](https://github.com/jchantrell/chromatic-poe/compare/v0.4.5..v0.4.6) - 2025-01-20
 
 ### ⚙️ Miscellaneous Tasks
 
+- *(release)* V0.4.6 - ([5c62efd](https://github.com/jchantrell/chromatic-poe/commit/5c62efdbf2e24e92425624b1cd3fc991621fb42a))
 - Sync release version tags - ([4e19314](https://github.com/jchantrell/chromatic-poe/commit/4e1931459e3c986b7ebb115b2177340b1411d81d))
 
 
