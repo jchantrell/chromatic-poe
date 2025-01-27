@@ -103,7 +103,7 @@ jobs:
           tagName: v__VERSION__
           releaseName: 'Chromatic PoE v__VERSION__'
           releaseBody: "${{ needs.generate-changelog.outputs.release_body }}"
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           includeUpdaterJson: true
           updaterJsonPreferNsis: true
