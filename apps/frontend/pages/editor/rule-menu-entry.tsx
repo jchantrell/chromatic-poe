@@ -236,7 +236,7 @@ export default function Rule(props: {
               </For>
             </ul>
           </CollapsibleContent>
-          <DialogContent class='sm:max-w-[600px] overflow-y-hidden'>
+          <DialogContent class='sm:max-w-[600px] overflow-y-visible'>
             <ItemPicker rule={props.rule} />
           </DialogContent>
         </Collapsible>

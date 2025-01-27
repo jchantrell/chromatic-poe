@@ -148,7 +148,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
             <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
               Edit Items
             </DialogTrigger>
-            <DialogContent class='sm:max-w-[600px] overflow-y-hidden'>
+            <DialogContent class='sm:max-w-[600px] overflow-y-visible'>
               <ItemPicker rule={props.rule} />
             </DialogContent>
           </Dialog>
