@@ -66,7 +66,7 @@ export default function Rules() {
   return (
     <DragDropProvider onDragEnd={onDragEnd} collisionDetector={closestCenter}>
       <DragDropSensors />
-      <div class='p-1 flex flex-col gap-1 overflow-y-auto'>
+      <div class='p-1 flex flex-col gap-1 overflow-y-auto m-1'>
         <SortableProvider
           ids={store.filter?.rules.map((rule) => rule.id) ?? []}
         >
@@ -75,7 +75,7 @@ export default function Rules() {
               <TextFieldInput type='text' placeholder={"Search for rules..."} />
             </TextField>
           </div>
-          <ul>
+          <ul class='flex flex-col overflow-y-auto p-1'>
             <For
               each={
                 store.filter?.rules.filter((rule) =>
