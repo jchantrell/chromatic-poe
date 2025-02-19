@@ -903,6 +903,7 @@ class ExplicitModCondition implements ListCondition<string> {
   }
 
   serialize(): string {
+    if (!this.value.length) return "";
     return `HasExplicitMod ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
   }
 }
