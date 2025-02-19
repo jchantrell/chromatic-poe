@@ -1,16 +1,23 @@
-import { For } from "solid-js";
+import { createMemo, createSignal, For, onMount } from "solid-js";
 import { Slider, SliderThumb, SliderTrack } from "@pkgs/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@pkgs/ui/toggle-group";
 import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@pkgs/ui/select";
 import { type ConditionKey, conditionTypes } from "@app/lib/filter";
 import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
+import {
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@pkgs/ui/dialog";
+import { Dialog } from "@pkgs/ui/dialog";
+import { Button } from "@pkgs/ui/button";
+import { Separator } from "@pkgs/ui/separator";
+import type { modIndex } from "@app/lib/filter/mods";
+import { Checkbox } from "@pkgs/ui/checkbox";
+import { debounce } from "@solid-primitives/scheduled";
+import { Badge } from "@pkgs/ui/badge";
+import { CloseIcon } from "@pkgs/icons";
 
 type FilteredConditionKey = Exclude<ConditionKey, ConditionKey.BASE_TYPE>;
 
@@ -48,27 +55,148 @@ export function SliderInput(props: {
 }
 
 export function SelectInput(props: {
-  value: number;
+  value: string[];
   key: FilteredConditionKey;
+  index: typeof modIndex;
+  groupKey: string;
   onChange: (...rest: unknown[]) => void;
 }) {
+  const [searchTerm, setSearchTerm] = createSignal("");
+  const [filteredGroups, setFilteredGroups] = createSignal<unknown[]>([]);
+  const [filtered, setFiltered] = createSignal<unknown[]>([]);
+  const debouncedSetFiltered = debounce(setFiltered, 200);
+
+  function handleClick(name: string) {
+    if (!props.value.includes(name)) {
+      props.onChange([...props.value, name]);
+    } else {
+      props.onChange(props.value.filter((v) => v !== name));
+    }
+  }
+
+  createMemo(() => {
+    debouncedSetFiltered(
+      props.index
+        .search(`${searchTerm()}`)
+        .map((result) => result.item)
+        .sort((a, b) => a.type.localeCompare(b.type)),
+    );
+  });
+
+  createMemo(() => {
+    setFilteredGroups(
+      Array.from(new Set(filtered().map((entry) => entry[props.groupKey]))),
+    );
+  });
+
+  onMount(() => {
+    setFiltered(
+      props.index
+        .search(`${searchTerm()}`)
+        .map((result) => result.item)
+        .sort((a, b) => a.type.localeCompare(b.type)),
+    );
+  });
+
   return (
-    <Select
-      value={conditionTypes[props.key].defaultValue}
-      onChange={(val) => props.onChange(val)}
-      options={conditionTypes[props.key].options || []}
-      itemComponent={(props) => (
-        <SelectItem item={props.item}>{props.item.rawValue}</SelectItem>
-      )}
-    >
-      <SelectTrigger
-        aria-label={conditionTypes[props.key].label}
-        class='w-[180px]'
-      >
-        <SelectValue<string>>{(state) => state.selectedOption()}</SelectValue>
-      </SelectTrigger>
-      <SelectContent />
-    </Select>
+    <div class='grid items-center'>
+      <Dialog>
+        <DialogTrigger
+          variant='default'
+          class='text-md font-semibold'
+          as={Button<"button">}
+        >
+          Edit
+        </DialogTrigger>
+        <DialogContent class='sm:max-w-[600px] overflow-y-visible'>
+          <DialogHeader>
+            <DialogTitle>
+              Selecting {conditionTypes[props.key].label} values
+            </DialogTitle>
+          </DialogHeader>
+          <div class='py-2'>
+            <TextField value={searchTerm()} onChange={(v) => setSearchTerm(v)}>
+              <TextFieldInput
+                type='text'
+                placeholder={`Search for ${conditionTypes[props.key].label.toLowerCase()}...`}
+              />
+            </TextField>
+          </div>
+          <div class='h-[50vh] overflow-y-auto p-1'>
+            <For each={filteredGroups()}>
+              {(group) => {
+                if (
+                  !filtered().some((entry) => entry[props.groupKey] === group)
+                ) {
+                  return <></>;
+                }
+                return (
+                  <div class='flex flex-col gap-1'>
+                    <For
+                      each={filtered().filter(
+                        (entry) => entry[props.groupKey] === group,
+                      )}
+                    >
+                      {(entry) => (
+                        <div class='grid grid-cols-[150px_auto] gap-2'>
+                          <div class='flex gap-2 items-center'>
+                            <Checkbox
+                              onClick={() => {
+                                handleClick(entry.name);
+                              }}
+                              checked={props.value.includes(entry.name)}
+                            />
+                            <div>{entry.name}</div>
+                          </div>
+                          <div class='ml-1 text-xs text-neutral-400'>
+                            <For each={entry.stats}>
+                              {(statGroup, index) => (
+                                <>
+                                  <div>
+                                    {statGroup
+                                      .map((s) => s.description)
+                                      .join(" and ")}
+                                  </div>
+                                  {index() !== entry.stats.length - 1 && (
+                                    <Separator />
+                                  )}
+                                </>
+                              )}
+                            </For>
+                          </div>
+                          <div class='col-span-2'>
+                            <Separator />
+                          </div>
+                        </div>
+                      )}
+                    </For>
+                  </div>
+                );
+              }}
+            </For>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <div class='max-h-32 mt-2 items-center grid grid-cols-2 gap-1 overflow-y-auto overflow-x-hidden rounded-md'>
+        <For each={props.value}>
+          {(v) => {
+            return (
+              <div class='flex justify-between items-center bg-muted rounded-md'>
+                <Badge variant='secondary'>{v}</Badge>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  class='w-4 h-6 mr-1'
+                  onClick={() => handleClick(v)}
+                >
+                  <CloseIcon />
+                </Button>
+              </div>
+            );
+          }}
+        </For>
+      </div>
+    </div>
   );
 }
 

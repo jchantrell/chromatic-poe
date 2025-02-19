@@ -1,8 +1,8 @@
 import { getVersion } from "@tauri-apps/api/app";
 import { documentDir, appConfigDir, sep } from "@tauri-apps/api/path";
 import {
-  ConditionKey,
-  Conditions,
+  type ConditionKey,
+  type Conditions,
   createCondition,
   Filter,
 } from "@app/lib/filter";

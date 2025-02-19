@@ -38,9 +38,10 @@ import {
   SliderInput,
   ToggleInput,
 } from "./condition-inputs";
-import { PlusIcon, TrashIcon } from "@pkgs/icons";
+import { CloseIcon, PlusIcon, TrashIcon } from "@pkgs/icons";
 import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
 import { Separator } from "@pkgs/ui/separator";
+import { modIndex } from "@app/lib/filter/mods";
 
 const operators = [
   Operator.NONE,
@@ -111,6 +112,24 @@ export default function ConditionManager(props: { rule: FilterRule }) {
   function getConditionCount(key: ConditionKey) {
     const count = props.rule.conditions.filter((c) => c.key === key).length;
     return count ? `(${count})` : "";
+  }
+
+  function getIndex(key: ConditionKey) {
+    switch (key) {
+      case ConditionKey.EXPLICIT_MOD:
+        return modIndex;
+      default:
+        throw new Error("Unspported condition key");
+    }
+  }
+
+  function getGroupKey(key: ConditionKey) {
+    switch (key) {
+      case ConditionKey.EXPLICIT_MOD:
+        return "type";
+      default:
+        throw new Error("Unspported condition key");
+    }
   }
 
   createEffect(() => {
@@ -281,80 +300,85 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                 });
                 if (!condition) return <></>;
                 return (
-                  <div class='flex gap-4 items-center justify-between p-4 bg-neutral-500/50 rounded-lg'>
-                    <Label class='text-md text-nowrap'>
-                      {conditionType.label}
-                    </Label>
-
-                    {"operator" in condition && condition.operator && (
-                      <div class='w-full'>
-                        <Select
-                          value={condition.operator}
-                          onChange={(value) => {
-                            if (value) {
-                              updateCondition(condition, "operator", value);
-                            }
-                          }}
-                          options={filteredOperators}
-                          itemComponent={(props) => (
-                            <SelectItem item={props.item}>
-                              {props.item.rawValue}
-                            </SelectItem>
-                          )}
-                        >
-                          <SelectTrigger class='w-[70px] bg-muted'>
-                            <SelectValue<string>>
-                              {(state) => state.selectedOption()}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent />
-                        </Select>
+                  <div class='flex gap-4 items-center justify-between bg-neutral-600/60 rounded-lg'>
+                    <div class='flex gap-2 items-center py-2 px-4'>
+                      <Label class='text-md text-nowrap'>
+                        {conditionType.label}
+                      </Label>
+                      {"operator" in condition && condition.operator && (
+                        <div class='w-full'>
+                          <Select
+                            value={condition.operator}
+                            onChange={(value) => {
+                              if (value) {
+                                updateCondition(condition, "operator", value);
+                              }
+                            }}
+                            options={filteredOperators}
+                            itemComponent={(props) => (
+                              <SelectItem item={props.item}>
+                                {props.item.rawValue}
+                              </SelectItem>
+                            )}
+                          >
+                            <SelectTrigger class='w-[70px] bg-muted'>
+                              <SelectValue<string>>
+                                {(state) => state.selectedOption()}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent />
+                          </Select>
+                        </div>
+                      )}
+                      <div class='ml-2'>
+                        {conditionType.type === "slider" && (
+                          <SliderInput
+                            key={condition.key}
+                            value={condition.value}
+                            onChange={(v) => {
+                              updateCondition(condition, "value", v);
+                            }}
+                          />
+                        )}
+                        {conditionType.type === "select" && (
+                          <SelectInput
+                            key={condition.key}
+                            value={condition.value}
+                            index={getIndex(condition.key)}
+                            groupKey={getGroupKey(condition.key)}
+                            onChange={(v) => {
+                              updateCondition(condition, "value", v);
+                            }}
+                          />
+                        )}
+                        {conditionType.type === "text-list" && (
+                          <ToggleInput
+                            key={condition.key}
+                            value={condition.value}
+                            onChange={(v) => {
+                              updateCondition(condition, "value", v);
+                            }}
+                          />
+                        )}
+                        {conditionType.type === "checkbox" && (
+                          <CheckboxInput
+                            key={condition.key}
+                            value={condition.value}
+                            onChange={(v) => {
+                              updateCondition(condition, "value", v);
+                            }}
+                          />
+                        )}
                       </div>
-                    )}
-
-                    <div class='ml-2'>
-                      {conditionType.type === "slider" && (
-                        <SliderInput
-                          key={condition.key}
-                          value={condition.value}
-                          onChange={(v) => {
-                            updateCondition(condition, "value", v);
-                          }}
-                        />
-                      )}
-                      {conditionType.type === "select" && (
-                        <SelectInput
-                          key={condition.key}
-                          value={condition.value}
-                          onChange={(v) => {
-                            updateCondition(condition, "value", v);
-                          }}
-                        />
-                      )}
-                      {conditionType.type === "text-list" && (
-                        <ToggleInput
-                          key={condition.key}
-                          value={condition.value}
-                          onChange={(v) => {
-                            updateCondition(condition, "value", v);
-                          }}
-                        />
-                      )}
-                      {conditionType.type === "checkbox" && (
-                        <CheckboxInput
-                          key={condition.key}
-                          value={condition.value}
-                          onChange={(v) => {
-                            updateCondition(condition, "value", v);
-                          }}
-                        />
-                      )}
                     </div>
                     <Button
-                      variant='secondary'
+                      variant='ghost'
                       onMouseDown={() => removeCondition(condition)}
+                      class='h-full'
                     >
-                      <TrashIcon />
+                      <div class='h-6 w-6'>
+                        <CloseIcon />
+                      </div>
                     </Button>
                   </div>
                 );

@@ -4,6 +4,8 @@ chromatic.db
 .cache
 packages/data/poe1/items.json
 packages/data/poe2/items.json
+packages/data/poe1/mods.json
+packages/data/poe2/mods.json
 packages/data/poe1/tables
 packages/data/poe1/.cache
 packages/data/poe2/tables
@@ -14,3 +16,5 @@ packages/assets/poe1/images
 packages/assets/poe2/images
 packages/data/poe1/sounds.json
 packages/data/poe2/sounds.json
+packages/data/poe1/files
+packages/data/poe2/files

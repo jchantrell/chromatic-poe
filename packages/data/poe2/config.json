@@ -1,14 +1,23 @@
 {
-  "patch": "latest",
-  "translations": ["English"],
+  "patch": "4.1.1.5",
+  "translations": [
+    "English"
+  ],
   "tables": [
     {
       "name": "AttributeRequirements",
-      "columns": ["BaseItemType", "ReqStr", "ReqDex", "ReqInt"]
+      "columns": [
+        "BaseItemType",
+        "ReqStr",
+        "ReqDex",
+        "ReqInt"
+      ]
     },
     {
       "name": "MinimapIcons",
-      "columns": ["Id"]
+      "columns": [
+        "Id"
+      ]
     },
     {
       "name": "BaseItemTypes",
@@ -41,19 +50,34 @@
     },
     {
       "name": "CurrencyExchange",
-      "columns": ["Item", "Category", "SubCategory", "GoldPurchaseFee"]
+      "columns": [
+        "Item",
+        "Category",
+        "SubCategory",
+        "GoldPurchaseFee"
+      ]
     },
     {
       "name": "CurrencyExchangeCategories",
-      "columns": ["Id", "Name"]
+      "columns": [
+        "Id",
+        "Name"
+      ]
     },
     {
       "name": "ItemClassCategories",
-      "columns": ["Id", "Text"]
+      "columns": [
+        "Id",
+        "Text"
+      ]
     },
     {
       "name": "ItemVisualIdentity",
-      "columns": ["Id", "DDSFile", "AOFile"]
+      "columns": [
+        "Id",
+        "DDSFile",
+        "AOFile"
+      ]
     },
     {
       "name": "UniqueStashTypes",
@@ -79,19 +103,32 @@
     },
     {
       "name": "Words",
-      "columns": ["Text"]
+      "columns": [
+        "Text"
+      ]
     },
     {
       "name": "TradeMarketCategory",
-      "columns": ["Id", "Name", "StyleFlag", "Group"]
+      "columns": [
+        "Id",
+        "Name",
+        "StyleFlag",
+        "Group"
+      ]
     },
     {
       "name": "TradeMarketCategoryGroups",
-      "columns": ["Id", "Name"]
+      "columns": [
+        "Id",
+        "Name"
+      ]
     },
     {
       "name": "TradeMarketCategoryListAllClass",
-      "columns": ["TradeCategory", "ItemClass"]
+      "columns": [
+        "TradeCategory",
+        "ItemClass"
+      ]
     },
     {
       "name": "SkillGems",
@@ -106,23 +143,44 @@
     },
     {
       "name": "GemEffects",
-      "columns": ["Id", "Name", "GemTags"]
+      "columns": [
+        "Id",
+        "Name",
+        "GemTags"
+      ]
     },
     {
       "name": "GemTags",
-      "columns": ["Id", "Name"]
+      "columns": [
+        "Id",
+        "Name"
+      ]
     },
     {
       "name": "ArmourTypes",
-      "columns": ["BaseItemType", "Armour", "Evasion", "EnergyShield", "Ward"]
+      "columns": [
+        "BaseItemType",
+        "Armour",
+        "Evasion",
+        "EnergyShield",
+        "Ward"
+      ]
     },
     {
       "name": "WeaponTypes",
-      "columns": ["BaseItemType", "Speed", "DamageMin", "DamageMax"]
+      "columns": [
+        "BaseItemType",
+        "Speed",
+        "DamageMin",
+        "DamageMax"
+      ]
     },
     {
       "name": "CurrencyItems",
-      "columns": ["BaseItemType", "StackSize"]
+      "columns": [
+        "BaseItemType",
+        "StackSize"
+      ]
     },
     {
       "name": "Mods",
@@ -130,6 +188,9 @@
         "Id",
         "Level",
         "Name",
+        "GenerationType",
+        "ModType",
+        "ImplicitTags",
         "Stat1",
         "Stat2",
         "Stat3",
@@ -142,8 +203,33 @@
       ]
     },
     {
+      "name": "ModType",
+      "columns": [
+        "Name"
+      ]
+    },
+    {
       "name": "GoldModPrices",
-      "columns": ["Mod", "Value", "Tags", "SpawnWeight"]
+      "columns": [
+        "Mod",
+        "Value",
+        "Tags",
+        "SpawnWeight"
+      ]
+    },
+    {
+      "name": "Tags",
+      "columns": [
+        "Id",
+        "DisplayString"
+      ]
+    },
+    {
+      "name": "Stats",
+      "columns": [
+        "Id",
+        "Text"
+      ]
     }
   ]
 }

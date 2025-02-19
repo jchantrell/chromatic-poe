@@ -397,7 +397,7 @@ export const conditionTypes: AllConditionTypes = {
     description:
       "A list of explicit mods the item has (e.g. Tyrannical, Flaring, Tempered)",
     group: ConditionGroup.MODS,
-    type: ConditionInputType.TEXT_LIST,
+    type: ConditionInputType.SELECT,
     defaultValue: [],
   },
   [ConditionKey.HAS_IMPLICIT_MOD]: {
