@@ -12,6 +12,14 @@ echo "Installing dependencies"
 pnpm install --frozen-lockfile
 
 echo "Fetching game files from patch servers"
+
+mkdir -p packages/assets/poe1/images
+pushd packages/data/poe1
+echo "Using PoE1 version: $POE1_VERSION"
+cat config.json | jq '.patch = "'$POE1_VERSION'"' > temp.json && mv temp.json config.json
+npx pathofexile-dat
+popd
+
 mkdir -p packages/assets/poe2/images
 pushd packages/data/poe2
 echo "Using PoE2 version: $POE2_VERSION"

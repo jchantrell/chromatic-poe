@@ -1,10 +1,14 @@
 {
   "patch": "3.25.3.4",
-  "translations": ["English"],
+  "translations": [
+    "English"
+  ],
   "tables": [
     {
       "name": "MinimapIcons",
-      "columns": ["Id"]
+      "columns": [
+        "Id"
+      ]
     },
     {
       "name": "BaseItemTypes",
@@ -17,7 +21,10 @@
         "InheritsFrom",
         "TagsKeys",
         "SiteVisibility",
-        "ModDomain"
+        "ModDomain",
+        "Width",
+        "Height",
+        "DropLevel"
       ]
     },
     {
@@ -34,17 +41,45 @@
     },
     {
       "name": "CurrencyExchange",
-      "columns": ["Item", "Category", "SubCategory", "GoldPurchaseFee"]
+      "columns": [
+        "Item",
+        "Category",
+        "SubCategory",
+        "GoldPurchaseFee"
+      ]
     },
     {
       "name": "CurrencyExchangeCategories",
-      "columns": ["Id", "Name"]
+      "columns": [
+        "Id",
+        "Name"
+      ]
     },
-    { "name": "ItemClassCategories", "columns": ["Id", "Text"] },
-    { "name": "ItemVisualIdentity", "columns": ["Id", "DDSFile", "AOFile"] },
+    {
+      "name": "ItemClassCategories",
+      "columns": [
+        "Id",
+        "Text"
+      ]
+    },
+    {
+      "name": "ItemVisualIdentity",
+      "columns": [
+        "Id",
+        "DDSFile",
+        "AOFile"
+      ]
+    },
     {
       "name": "UniqueStashTypes",
-      "columns": ["Id", "Name", "Image", "StandardCount", "ChallengeLeagueCount", "IsDisabled"]
+      "columns": [
+        "Id",
+        "Name",
+        "Image",
+        "StandardCount",
+        "ChallengeLeagueCount",
+        "IsDisabled"
+      ]
     },
     {
       "name": "UniqueStashLayout",
@@ -58,16 +93,33 @@
       ]
     },
     {
+      "name": "Words",
+      "columns": [
+        "Text"
+      ]
+    },
+    {
       "name": "TradeMarketCategory",
-      "columns": ["Id", "Name", "StyleFlag", "Group"]
+      "columns": [
+        "Id",
+        "Name",
+        "StyleFlag",
+        "Group"
+      ]
     },
     {
       "name": "TradeMarketCategoryGroups",
-      "columns": ["Id", "Name"]
+      "columns": [
+        "Id",
+        "Name"
+      ]
     },
     {
       "name": "TradeMarketCategoryListAllClass",
-      "columns": ["TradeCategory", "ItemClass"]
+      "columns": [
+        "TradeCategory",
+        "ItemClass"
+      ]
     },
     {
       "name": "SkillGems",
@@ -76,7 +128,23 @@
         "StrengthRequirementPercent",
         "DexterityRequirementPercent",
         "IntelligenceRequirementPercent",
-        "IsVaalVariant"
+        "IsVaalVariant",
+        "GemEffects"
+      ]
+    },
+    {
+      "name": "GemEffects",
+      "columns": [
+        "Id",
+        "Name",
+        "GemTags"
+      ]
+    },
+    {
+      "name": "GemTags",
+      "columns": [
+        "Id",
+        "Tag"
       ]
     },
     {
@@ -88,7 +156,72 @@
         "EvasionMin",
         "EvasionMax",
         "EnergyShieldMin",
-        "EnergyShieldMax"
+        "EnergyShieldMax",
+        "WardMin",
+        "WardMax"
+      ]
+    },
+    {
+      "name": "WeaponTypes",
+      "columns": [
+        "BaseItemTypesKey",
+        "Speed",
+        "DamageMin",
+        "DamageMax"
+      ]
+    },
+    {
+      "name": "CurrencyItems",
+      "columns": [
+        "BaseItemTypesKey",
+        "StackSize"
+      ]
+    },
+    {
+      "name": "Mods",
+      "columns": [
+        "Id",
+        "Level",
+        "Name",
+        "GenerationType",
+        "ModTypeKey",
+        "ImplicitTagsKeys",
+        "StatsKey1",
+        "StatsKey2",
+        "StatsKey3",
+        "StatsKey4",
+        "Domain",
+        "Stat1Min",
+        "Stat1Max",
+        "Stat2Min",
+        "Stat2Max",
+        "Stat3Min",
+        "Stat3Max",
+        "Stat4Min",
+        "Stat4Max",
+        "SpawnWeight_TagsKeys",
+        "SpawnWeight_Values",
+        "TagsKeys"
+      ]
+    },
+    {
+      "name": "ModType",
+      "columns": [
+        "Name"
+      ]
+    },
+    {
+      "name": "Tags",
+      "columns": [
+        "Id",
+        "DisplayString"
+      ]
+    },
+    {
+      "name": "Stats",
+      "columns": [
+        "Id",
+        "Text"
       ]
     }
   ]

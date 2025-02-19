@@ -4,6 +4,7 @@ import path from "node:path";
 const SOUND_PATH = "./packages/assets/static/sounds";
 
 export function extractSounds(filePath: string) {
+  console.log("Writing sounds file...");
   const sounds = fs.readdirSync(SOUND_PATH).map((file) => ({
     displayName: file.replace("AlertSound", "").split(".")[0].replace("Sh", ""),
     id: file.replace("AlertSound", "").split(".")[0],

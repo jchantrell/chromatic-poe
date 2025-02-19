@@ -1,36 +1,59 @@
-import visuals from "./poe2/tables/English/ItemVisualIdentity.json";
-import classes from "./poe2/tables/English/ItemClasses.json";
-import classCategories from "./poe2/tables/English/ItemClassCategories.json";
-import bases from "./poe2/tables/English/BaseItemTypes.json";
-import tradeCategories from "./poe2/tables/English/TradeMarketCategory.json";
-import tradeGroups from "./poe2/tables/English/TradeMarketCategoryGroups.json";
-import armourTypes from "./poe2/tables/English/ArmourTypes.json";
-import weaponTypes from "./poe2/tables/English/WeaponTypes.json";
-import skillGems from "./poe2/tables/English/SkillGems.json";
-import gemTags from "./poe2/tables/English/GemTags.json";
-import gemEffects from "./poe2/tables/English/GemEffects.json";
-import exchange from "./poe2/tables/English/CurrencyExchange.json";
-import exchangeCategory from "./poe2/tables/English/CurrencyExchangeCategories.json";
-import attributeRequirements from "./poe2/tables/English/AttributeRequirements.json";
-import currencyItems from "./poe2/tables/English/CurrencyItems.json";
-import minimapIcons from "./poe2/tables/English/MinimapIcons.json";
-import words from "./poe2/tables/English/Words.json";
-import uniqueStashLayout from "./poe2/tables/English/UniqueStashLayout.json";
-import uniqueStashTypes from "./poe2/tables/English/UniqueStashTypes.json";
-import tags from "./poe2/tables/English/Tags.json";
-import mods from "./poe2/tables/English/Mods.json";
-import modTypes from "./poe2/tables/English/ModType.json";
-import goldModPrices from "./poe2/tables/English/GoldModPrices.json";
-import stats from "./poe2/tables/English/Stats.json";
+import visuals from "./poe1/tables/English/ItemVisualIdentity.json";
+import classes from "./poe1/tables/English/ItemClasses.json";
+import classCategories from "./poe1/tables/English/ItemClassCategories.json";
+import bases from "./poe1/tables/English/BaseItemTypes.json";
+import tradeCategories from "./poe1/tables/English/TradeMarketCategory.json";
+import tradeGroups from "./poe1/tables/English/TradeMarketCategoryGroups.json";
+import armourTypes from "./poe1/tables/English/ArmourTypes.json";
+import weaponTypes from "./poe1/tables/English/WeaponTypes.json";
+import skillGems from "./poe1/tables/English/SkillGems.json";
+import gemTags from "./poe1/tables/English/GemTags.json";
+import gemEffects from "./poe1/tables/English/GemEffects.json";
+import exchange from "./poe1/tables/English/CurrencyExchange.json";
+import exchangeCategory from "./poe1/tables/English/CurrencyExchangeCategories.json";
+import currencyItems from "./poe1/tables/English/CurrencyItems.json";
+import minimapIcons from "./poe1/tables/English/MinimapIcons.json";
+import words from "./poe1/tables/English/Words.json";
+import uniqueStashLayout from "./poe1/tables/English/UniqueStashLayout.json";
+import uniqueStashTypes from "./poe1/tables/English/UniqueStashTypes.json";
+import tags from "./poe1/tables/English/Tags.json";
+import mods from "./poe1/tables/English/Mods.json";
+import modTypes from "./poe1/tables/English/ModType.json";
+import stats from "./poe1/tables/English/Stats.json";
+
+import visualsV2 from "./poe2/tables/English/ItemVisualIdentity.json";
+import classesV2 from "./poe2/tables/English/ItemClasses.json";
+import classCategoriesV2 from "./poe2/tables/English/ItemClassCategories.json";
+import basesV2 from "./poe2/tables/English/BaseItemTypes.json";
+import tradeCategoriesV2 from "./poe2/tables/English/TradeMarketCategory.json";
+import tradeGroupsV2 from "./poe2/tables/English/TradeMarketCategoryGroups.json";
+import armourTypesV2 from "./poe2/tables/English/ArmourTypes.json";
+import weaponTypesV2 from "./poe2/tables/English/WeaponTypes.json";
+import skillGemsV2 from "./poe2/tables/English/SkillGems.json";
+import gemTagsV2 from "./poe2/tables/English/GemTags.json";
+import gemEffectsV2 from "./poe2/tables/English/GemEffects.json";
+import exchangeV2 from "./poe2/tables/English/CurrencyExchange.json";
+import exchangeCategoryV2 from "./poe2/tables/English/CurrencyExchangeCategories.json";
+import attributeRequirementsV2 from "./poe2/tables/English/AttributeRequirements.json";
+import currencyItemsV2 from "./poe2/tables/English/CurrencyItems.json";
+import minimapIconsV2 from "./poe2/tables/English/MinimapIcons.json";
+import wordsV2 from "./poe2/tables/English/Words.json";
+import uniqueStashLayoutV2 from "./poe2/tables/English/UniqueStashLayout.json";
+import uniqueStashTypesV2 from "./poe2/tables/English/UniqueStashTypes.json";
+import tagsV2 from "./poe2/tables/English/Tags.json";
+import modsV2 from "./poe2/tables/English/Mods.json";
+import modTypesV2 from "./poe2/tables/English/ModType.json";
+import goldModPricesV2 from "./poe2/tables/English/GoldModPrices.json";
+import statsV2 from "./poe2/tables/English/Stats.json";
 
 import Database, { type Database as IDatabase } from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
-import { extractMinimapIcons } from "./minimap";
+import { extractMinimapIcons as extractMinimapIconsV2 } from "./minimap";
 import { FileLoader } from "./loader";
 import { BundleIndex } from "./bundle";
 import { exportFiles } from "./file";
-import { extractSounds } from "./sound";
+import { extractSounds as extractSoundsV2 } from "./sound";
 
 export type Config = {
   patch: string;
@@ -71,11 +94,29 @@ enum Tables {
   GEM_TAGS = "gem_tags",
   ARMOUR_TYPES = "armour_types",
   WEAPON_TYPES = "weapon_types",
-  ATTRIBUTE_REQUIREMENTS = "attribute_requirements",
   CURRENCY_ITEMS = "currency_items",
   WORDS = "words",
   UNIQUE_STASH_LAYOUT = "unique_stash_layout",
   UNIQUE_STASH_TYPES = "unique_stash_types",
+
+  BASES_V2 = "bases_v2",
+  VISUALS_V2 = "visuals_v2",
+  CLASSES_V2 = "classes_v2",
+  CLASS_CATEGORIES_V2 = "class_categories_v2",
+  TRADE_GROUPS_V2 = "trade_groups_v2",
+  TRADE_CATEGORIES_V2 = "trade_categories_v2",
+  EXCHANGE_V2 = "exchange_v2",
+  EXCHANGE_CATEGORY_V2 = "exchange_category_v2",
+  SKILL_GEMS_V2 = "skill_gems_v2",
+  GEM_EFFECTS_V2 = "gem_effects_v2",
+  GEM_TAGS_V2 = "gem_tags_v2",
+  ARMOUR_TYPES_V2 = "armour_types_v2",
+  WEAPON_TYPES_V2 = "weapon_types_v2",
+  ATTRIBUTE_REQUIREMENTS_V2 = "attribute_requirements_v2",
+  CURRENCY_ITEMS_V2 = "currency_items_v2",
+  WORDS_V2 = "words_v2",
+  UNIQUE_STASH_LAYOUT_V2 = "unique_stash_layout_v2",
+  UNIQUE_STASH_TYPES_V2 = "unique_stash_types_v2",
 }
 
 const PK = "_index";
@@ -107,21 +148,17 @@ const MODIFIABLE_CLASSES = [
   "Mana Flasks",
   "Utility Flasks",
   "Charms",
-
   "Waystones",
   "Maps",
-
   "Amulets",
   "Rings",
   "Belts",
   "Jewels",
   "Abyss Jewels",
-
   "Boots",
   "Body Armours",
   "Helmets",
   "Gloves",
-
   "Fishing Rods",
   "Claws",
   "Daggers",
@@ -145,7 +182,6 @@ const MODIFIABLE_CLASSES = [
   "Two Hand Axes",
   "Two Hand Maces",
   "Two Hand Swords",
-
   "Blueprints",
   "Contracts",
   "Trinkets",
@@ -153,34 +189,107 @@ const MODIFIABLE_CLASSES = [
   "Heist Gear",
   "Heist Tools",
   "Heist Cloaks",
-
   "Expedition Logbooks",
   "Relics",
   "Sanctified Relics",
 ];
 
 export class DatFiles {
-  gameVersion: 1 | 2;
-  config: Config;
+  gameVersion!: 1 | 2;
+  config!: Config;
   db: IDatabase;
   loader!: FileLoader;
   index!: BundleIndex;
 
-  constructor(config: Config) {
-    this.config = config;
+  constructor() {
     this.db = new Database("chromatic.db", {});
     this.db.pragma("journal_mode = WAL");
+  }
+
+  async init(config: Config) {
+    this.config = config;
+    this.gameVersion = config.patch.startsWith("4") ? 2 : 1;
     this.loader = new FileLoader(
       path.join(process.cwd(), "/.cache"),
       config.patch,
     );
     this.index = new BundleIndex(this.loader);
-    this.gameVersion = config.patch.startsWith("4") ? 2 : 1;
-  }
-
-  async init() {
     await this.loader.init();
     await this.index.loadIndex();
+  }
+
+  async extract(config: Config) {
+    await this.init(config);
+
+    if (this.gameVersion === 1) {
+      return this.extractV1();
+    }
+
+    if (this.gameVersion === 2) {
+      return this.extractV2();
+    }
+  }
+
+  async extractV1() {
+    await this.populateDB();
+  }
+
+  async extractV2() {
+    await this.extractItemsV2();
+    await this.extractModsV2();
+    extractMinimapIconsV2(
+      minimapIconsV2,
+      "./packages/assets/poe2/minimap.json",
+    );
+    extractSoundsV2("./packages/data/poe2/sounds.json");
+  }
+
+  async populateDB() {
+    console.log("Populating DB with dat files...");
+
+    if (this.gameVersion === 1) {
+      this.createDBTable(Tables.CURRENCY_ITEMS, currencyItems);
+      this.createDBTable(Tables.WEAPON_TYPES, weaponTypes);
+      this.createDBTable(Tables.ARMOUR_TYPES, armourTypes);
+      this.createDBTable(Tables.VISUALS, visuals);
+      this.createDBTable(Tables.BASES, bases);
+      this.createDBTable(Tables.CLASSES, classes);
+      this.createDBTable(Tables.CLASS_CATEGORIES, classCategories);
+      this.createDBTable(Tables.TRADE_CATEGORIES, tradeCategories);
+      this.createDBTable(Tables.TRADE_GROUPS, tradeGroups);
+      this.createDBTable(Tables.EXCHANGE, exchange);
+      this.createDBTable(Tables.EXCHANGE_CATEGORY, exchangeCategory);
+      this.createDBTable(Tables.SKILL_GEMS, skillGems);
+      this.createDBTable(Tables.GEM_TAGS, gemTags);
+      this.createDBTable(Tables.GEM_EFFECTS, gemEffects);
+      this.createDBTable(Tables.WORDS, words);
+      this.createDBTable(Tables.UNIQUE_STASH_LAYOUT, uniqueStashLayout);
+      this.createDBTable(Tables.UNIQUE_STASH_TYPES, uniqueStashTypes);
+    }
+
+    if (this.gameVersion === 2) {
+      this.createDBTable(Tables.CURRENCY_ITEMS_V2, currencyItemsV2);
+      this.createDBTable(Tables.WEAPON_TYPES_V2, weaponTypesV2);
+      this.createDBTable(Tables.ARMOUR_TYPES_V2, armourTypesV2);
+      this.createDBTable(Tables.VISUALS_V2, visualsV2);
+      this.createDBTable(Tables.BASES_V2, basesV2);
+      this.createDBTable(Tables.CLASSES_V2, classesV2);
+      this.createDBTable(Tables.CLASS_CATEGORIES_V2, classCategoriesV2);
+      this.createDBTable(Tables.TRADE_CATEGORIES_V2, tradeCategoriesV2);
+      this.createDBTable(Tables.TRADE_GROUPS_V2, tradeGroupsV2);
+      this.createDBTable(Tables.EXCHANGE_V2, exchangeV2);
+      this.createDBTable(Tables.EXCHANGE_CATEGORY_V2, exchangeCategoryV2);
+      this.createDBTable(Tables.SKILL_GEMS_V2, skillGemsV2);
+      this.createDBTable(Tables.GEM_TAGS_V2, gemTagsV2);
+      this.createDBTable(Tables.GEM_EFFECTS_V2, gemEffectsV2);
+      this.createDBTable(
+        Tables.ATTRIBUTE_REQUIREMENTS_V2,
+        attributeRequirementsV2,
+      );
+      this.createDBTable(Tables.WORDS_V2, wordsV2);
+      this.createDBTable(Tables.UNIQUE_STASH_LAYOUT_V2, uniqueStashLayoutV2);
+      this.createDBTable(Tables.UNIQUE_STASH_TYPES_V2, uniqueStashTypesV2);
+    }
   }
 
   generateInsertStmt(table: string, keys: string[]) {
@@ -252,29 +361,31 @@ export class DatFiles {
     );
   }
 
-  async populateDB() {
-    console.log("Populating DB with dat files...");
-    this.createDBTable(Tables.CURRENCY_ITEMS, currencyItems);
-    this.createDBTable(Tables.WEAPON_TYPES, weaponTypes);
-    this.createDBTable(Tables.ARMOUR_TYPES, armourTypes);
-    this.createDBTable(Tables.VISUALS, visuals);
-    this.createDBTable(Tables.BASES, bases);
-    this.createDBTable(Tables.CLASSES, classes);
-    this.createDBTable(Tables.CLASS_CATEGORIES, classCategories);
-    this.createDBTable(Tables.TRADE_CATEGORIES, tradeCategories);
-    this.createDBTable(Tables.TRADE_GROUPS, tradeGroups);
-    this.createDBTable(Tables.EXCHANGE, exchange);
-    this.createDBTable(Tables.EXCHANGE_CATEGORY, exchangeCategory);
-    this.createDBTable(Tables.SKILL_GEMS, skillGems);
-    this.createDBTable(Tables.GEM_TAGS, gemTags);
-    this.createDBTable(Tables.GEM_EFFECTS, gemEffects);
-    this.createDBTable(Tables.ATTRIBUTE_REQUIREMENTS, attributeRequirements);
-    this.createDBTable(Tables.WORDS, words);
-    this.createDBTable(Tables.UNIQUE_STASH_LAYOUT, uniqueStashLayout);
-    this.createDBTable(Tables.UNIQUE_STASH_TYPES, uniqueStashTypes);
+  async queryWiki(
+    offset: number,
+    results: unknown[],
+  ): Promise<{ name: string; base: string }[]> {
+    const req = await fetch(
+      `https://www.poe${this.gameVersion === 2 ? "2" : ""}wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&offset=${offset}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      },
+    );
+    const res = await req.json();
+    if (res.cargoquery.length) {
+      return this.queryWiki(offset + 50, [...results, ...res.cargoquery]);
+    }
+
+    return [...results, ...res.cargoquery].map(({ title }) => ({
+      name: title.name,
+      base: title["base item"],
+    }));
   }
 
-  async extract() {
+  async extractItemsV2() {
     await this.populateDB();
     console.log("Querying DB for items...");
 
@@ -292,96 +403,96 @@ name as base
 WITH ITEMS AS (
 
 SELECT DISTINCT
-${Tables.BASES}.Name as 'name',
-${Tables.CLASSES}.Name as 'class',
-${Tables.CLASS_CATEGORIES}.Text as 'category',
-${Tables.VISUALS}.DDSFile as 'art',
-${Tables.TRADE_CATEGORIES}.Name as 'tradeCategory',
-${Tables.TRADE_GROUPS}.Name as 'tradeGroup',
+${Tables.BASES_V2}.Name as 'name',
+${Tables.CLASSES_V2}.Name as 'class',
+${Tables.CLASS_CATEGORIES_V2}.Text as 'category',
+${Tables.VISUALS_V2}.DDSFile as 'art',
+${Tables.TRADE_CATEGORIES_V2}.Name as 'tradeCategory',
+${Tables.TRADE_GROUPS_V2}.Name as 'tradeGroup',
 exchange_major.Name as 'exchangeCategory',
 exchange_sub.Name as 'exchangeSubCategory',
 
-${Tables.EXCHANGE}.GoldPurchaseFee as 'price',
+${Tables.EXCHANGE_V2}.GoldPurchaseFee as 'price',
 COALESCE(
-  ${Tables.ATTRIBUTE_REQUIREMENTS}.ReqStr,
-  ${Tables.SKILL_GEMS}.StrengthRequirementPercent
+  ${Tables.ATTRIBUTE_REQUIREMENTS_V2}.ReqStr,
+  ${Tables.SKILL_GEMS_V2}.StrengthRequirementPercent
 ) as 'strReq',
 COALESCE(
-  ${Tables.ATTRIBUTE_REQUIREMENTS}.ReqDex,
-  ${Tables.SKILL_GEMS}.DexterityRequirementPercent
+  ${Tables.ATTRIBUTE_REQUIREMENTS_V2}.ReqDex,
+  ${Tables.SKILL_GEMS_V2}.DexterityRequirementPercent
 ) as 'dexReq',
 COALESCE(
-  ${Tables.ATTRIBUTE_REQUIREMENTS}.ReqInt,
-  ${Tables.SKILL_GEMS}.IntelligenceRequirementPercent
+  ${Tables.ATTRIBUTE_REQUIREMENTS_V2}.ReqInt,
+  ${Tables.SKILL_GEMS_V2}.IntelligenceRequirementPercent
 ) as 'intReq',
 
-${Tables.ARMOUR_TYPES}.Armour as 'armour',
-${Tables.ARMOUR_TYPES}.Evasion as 'evasion',
-${Tables.ARMOUR_TYPES}.EnergyShield as 'energyShield',
-${Tables.ARMOUR_TYPES}.Ward as 'ward',
+${Tables.ARMOUR_TYPES_V2}.Armour as 'armour',
+${Tables.ARMOUR_TYPES_V2}.Evasion as 'evasion',
+${Tables.ARMOUR_TYPES_V2}.EnergyShield as 'energyShield',
+${Tables.ARMOUR_TYPES_V2}.Ward as 'ward',
 
-${Tables.WEAPON_TYPES}.DamageMin as 'dmgMin',
-${Tables.WEAPON_TYPES}.DamageMax as 'dmgMax',
-${Tables.WEAPON_TYPES}.Speed as 'speed',
+${Tables.WEAPON_TYPES_V2}.DamageMin as 'dmgMin',
+${Tables.WEAPON_TYPES_V2}.DamageMax as 'dmgMax',
+${Tables.WEAPON_TYPES_V2}.Speed as 'speed',
 
-${Tables.BASES}.Height as 'height',
-${Tables.BASES}.Width as 'width',
-${Tables.BASES}.SiteVisibility as 'active',
+${Tables.BASES_V2}.Height as 'height',
+${Tables.BASES_V2}.Width as 'width',
+${Tables.BASES_V2}.SiteVisibility as 'active',
 
-${Tables.CLASSES}.CanBeCorrupted as corruptable,
+${Tables.CLASSES_V2}.CanBeCorrupted as corruptable,
 (CASE
-  WHEN ${Tables.CURRENCY_ITEMS}.StackSize IS NOT NULL
-  AND ${Tables.CURRENCY_ITEMS}.StackSize > 1
+  WHEN ${Tables.CURRENCY_ITEMS_V2}.StackSize IS NOT NULL
+  AND ${Tables.CURRENCY_ITEMS_V2}.StackSize > 1
   THEN 1
   ELSE 0
 END) as stackable,
 
-${Tables.SKILL_GEMS}.GemEffects as 'gemFx',
-${Tables.BASES}.DropLevel as 'dropLevel'
+${Tables.SKILL_GEMS_V2}.GemEffects as 'gemFx',
+${Tables.BASES_V2}.DropLevel as 'dropLevel'
 
-FROM ${Tables.BASES}
+FROM ${Tables.BASES_V2}
 
-LEFT JOIN ${Tables.CLASSES}
-ON ${Tables.BASES}.ItemClass = ${Tables.CLASSES}.${PK}
+LEFT JOIN ${Tables.CLASSES_V2}
+ON ${Tables.BASES_V2}.ItemClass = ${Tables.CLASSES_V2}.${PK}
 
-LEFT JOIN ${Tables.CLASS_CATEGORIES}
-ON ${Tables.CLASSES}.ItemClassCategory = ${Tables.CLASS_CATEGORIES}.${PK}
+LEFT JOIN ${Tables.CLASS_CATEGORIES_V2}
+ON ${Tables.CLASSES_V2}.ItemClassCategory = ${Tables.CLASS_CATEGORIES_V2}.${PK}
 
-LEFT JOIN ${Tables.VISUALS}
-ON ${Tables.BASES}.ItemVisualIdentity = ${Tables.VISUALS}.${PK}
+LEFT JOIN ${Tables.VISUALS_V2}
+ON ${Tables.BASES_V2}.ItemVisualIdentity = ${Tables.VISUALS_V2}.${PK}
 
-LEFT JOIN ${Tables.TRADE_CATEGORIES}
-ON ${Tables.BASES}.TradeMarketCategory = ${Tables.TRADE_CATEGORIES}.${PK}
-OR ${Tables.CLASSES}.TradeMarketCategory = ${Tables.TRADE_CATEGORIES}.${PK}
+LEFT JOIN ${Tables.TRADE_CATEGORIES_V2}
+ON ${Tables.BASES_V2}.TradeMarketCategory = ${Tables.TRADE_CATEGORIES_V2}.${PK}
+OR ${Tables.CLASSES_V2}.TradeMarketCategory = ${Tables.TRADE_CATEGORIES_V2}.${PK}
 
-LEFT JOIN ${Tables.TRADE_GROUPS}
-ON ${Tables.TRADE_CATEGORIES}.Grouping = ${Tables.TRADE_GROUPS}.${PK}
+LEFT JOIN ${Tables.TRADE_GROUPS_V2}
+ON ${Tables.TRADE_CATEGORIES_V2}.Grouping = ${Tables.TRADE_GROUPS_V2}.${PK}
 
-LEFT JOIN ${Tables.EXCHANGE}
-ON ${Tables.BASES}.${PK} = ${Tables.EXCHANGE}.Item
+LEFT JOIN ${Tables.EXCHANGE_V2}
+ON ${Tables.BASES_V2}.${PK} = ${Tables.EXCHANGE_V2}.Item
 
-LEFT JOIN ${Tables.EXCHANGE_CATEGORY} as exchange_major
-ON ${Tables.EXCHANGE}.Category = exchange_major.${PK}
+LEFT JOIN ${Tables.EXCHANGE_CATEGORY_V2} as exchange_major
+ON ${Tables.EXCHANGE_V2}.Category = exchange_major.${PK}
 
-LEFT JOIN ${Tables.EXCHANGE_CATEGORY} as exchange_sub
-ON ${Tables.EXCHANGE}.SubCategory = exchange_sub.${PK}
+LEFT JOIN ${Tables.EXCHANGE_CATEGORY_V2} as exchange_sub
+ON ${Tables.EXCHANGE_V2}.SubCategory = exchange_sub.${PK}
 
-LEFT JOIN ${Tables.ATTRIBUTE_REQUIREMENTS}
-ON ${Tables.BASES}.${PK} = ${Tables.ATTRIBUTE_REQUIREMENTS}.BaseItemType
+LEFT JOIN ${Tables.ATTRIBUTE_REQUIREMENTS_V2}
+ON ${Tables.BASES_V2}.${PK} = ${Tables.ATTRIBUTE_REQUIREMENTS_V2}.BaseItemType
 
-LEFT JOIN ${Tables.ARMOUR_TYPES}
-ON ${Tables.BASES}.${PK} = ${Tables.ARMOUR_TYPES}.BaseItemType
+LEFT JOIN ${Tables.ARMOUR_TYPES_V2}
+ON ${Tables.BASES_V2}.${PK} = ${Tables.ARMOUR_TYPES_V2}.BaseItemType
 
-LEFT JOIN ${Tables.WEAPON_TYPES}
-ON ${Tables.BASES}.${PK} = ${Tables.WEAPON_TYPES}.BaseItemType
+LEFT JOIN ${Tables.WEAPON_TYPES_V2}
+ON ${Tables.BASES_V2}.${PK} = ${Tables.WEAPON_TYPES_V2}.BaseItemType
 
-LEFT JOIN ${Tables.SKILL_GEMS}
-ON ${Tables.BASES}.${PK} = ${Tables.SKILL_GEMS}.BaseItemType
+LEFT JOIN ${Tables.SKILL_GEMS_V2}
+ON ${Tables.BASES_V2}.${PK} = ${Tables.SKILL_GEMS_V2}.BaseItemType
 
-LEFT JOIN ${Tables.CURRENCY_ITEMS}
-ON ${Tables.BASES}.${PK} = ${Tables.CURRENCY_ITEMS}.BaseItemType
+LEFT JOIN ${Tables.CURRENCY_ITEMS_V2}
+ON ${Tables.BASES_V2}.${PK} = ${Tables.CURRENCY_ITEMS_V2}.BaseItemType
 
-WHERE ${Tables.BASES}.Name != '' AND ${Tables.BASES}.Name IS NOT NULL
+WHERE ${Tables.BASES_V2}.Name != '' AND ${Tables.BASES_V2}.Name IS NOT NULL
 )
 
 -- Weapons
@@ -791,24 +902,24 @@ WHERE class = 'Vault Keys'
     const uniques = this.db
       .prepare(`
 SELECT DISTINCT
-${Tables.WORDS}.Text as name,
+${Tables.WORDS_V2}.Text as name,
 'Uniques' as category,
-${Tables.UNIQUE_STASH_TYPES}.Name as class,
+${Tables.UNIQUE_STASH_TYPES_V2}.Name as class,
 null as type,
 0 AS score, 
-${Tables.VISUALS}.DDSFile as art,
+${Tables.VISUALS_V2}.DDSFile as art,
 null as height,
 null as width,
 null as gemFx,
 null as itemClass
-FROM ${Tables.UNIQUE_STASH_LAYOUT}
-LEFT JOIN ${Tables.UNIQUE_STASH_TYPES}
-ON ${Tables.UNIQUE_STASH_LAYOUT}.UniqueStashTypesKey = ${Tables.UNIQUE_STASH_TYPES}.${PK}
-LEFT JOIN ${Tables.WORDS}
-ON ${Tables.UNIQUE_STASH_LAYOUT}.WordsKey = ${Tables.WORDS}.${PK}
-LEFT JOIN ${Tables.VISUALS}
-ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
-WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolve Cold', 'Sekhema''s Resolve Lightning', 'The Wailing Wall', 'The Road Warrior', 'The Immortan')
+FROM ${Tables.UNIQUE_STASH_LAYOUT_V2}
+LEFT JOIN ${Tables.UNIQUE_STASH_TYPES_V2}
+ON ${Tables.UNIQUE_STASH_LAYOUT_V2}.UniqueStashTypesKey = ${Tables.UNIQUE_STASH_TYPES_V2}.${PK}
+LEFT JOIN ${Tables.WORDS_V2}
+ON ${Tables.UNIQUE_STASH_LAYOUT_V2}.WordsKey = ${Tables.WORDS_V2}.${PK}
+LEFT JOIN ${Tables.VISUALS_V2}
+ON ${Tables.UNIQUE_STASH_LAYOUT_V2}.ItemVisualIdentityKey = ${Tables.VISUALS_V2}.${PK}
+WHERE ${Tables.WORDS_V2}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolve Cold', 'Sekhema''s Resolve Lightning', 'The Wailing Wall', 'The Road Warrior', 'The Immortan')
 `)
       .all();
 
@@ -964,9 +1075,9 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
       if (item.class === "Skill Gems") {
         const effectIds = JSON.parse(item.gemFx);
         for (const effect of effectIds) {
-          const tagIds = JSON.parse(gemEffects[effect].GemTags);
+          const tagIds = JSON.parse(gemEffectsV2[effect].GemTags);
           for (const tagId of tagIds) {
-            const tag = gemTags[tagId];
+            const tag = gemTagsV2[tagId];
             if (tag.Id === "buff") {
               item.class = "Spirit Gems";
             }
@@ -976,49 +1087,14 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
       delete item.gemFx;
     }
 
-    const aggregatedMods = await this.extractMods();
-
     console.log("Writing item file...");
     fs.writeFileSync(
       "./packages/data/poe2/items.json",
       JSON.stringify(allItems, null, " "),
     );
-    console.log("Writing mods file...");
-    fs.writeFileSync(
-      "./packages/data/poe2/mods.json",
-      JSON.stringify(aggregatedMods, null, " "),
-    );
-    extractMinimapIcons(minimapIcons, "./packages/assets/poe2/minimap.json");
-
-    console.log("Writing sounds file...");
-    extractSounds("./packages/data/poe2/sounds.json");
   }
 
-  async queryWiki(
-    offset: number,
-    results: unknown[],
-  ): Promise<{ name: string; base: string }[]> {
-    const req = await fetch(
-      `https://www.poe2wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&offset=${offset}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      },
-    );
-    const res = await req.json();
-    if (res.cargoquery.length) {
-      return this.queryWiki(offset + 50, [...results, ...res.cargoquery]);
-    }
-
-    return [...results, ...res.cargoquery].map(({ title }) => ({
-      name: title.name,
-      base: title["base item"],
-    }));
-  }
-
-  async extractMods() {
+  async extractModsV2() {
     const extraFiles = ["metadata/statdescriptions/stat_descriptions.csd"];
     await exportFiles(
       extraFiles,
@@ -1026,7 +1102,7 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
       this.loader,
     );
     const statDescriptions = this.getStatDescriptions();
-    const inheritsFroms = await this.collectInheritsFromFiles(bases);
+    const inheritsFroms = await this.collectInheritsFromFiles(basesV2);
 
     const hierarchy: ItFileHierarchy = {};
     for (const inheritsFrom of inheritsFroms) {
@@ -1059,15 +1135,15 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
       }
     > = {};
 
-    for (let i = 0; i < goldModPrices.length; i++) {
-      const intersection = goldModPrices[i];
-      const mod = mods[intersection.Mod];
-      const ids = intersection.Tags.map((tag) => tags[tag].Id);
+    for (let i = 0; i < goldModPricesV2.length; i++) {
+      const intersection = goldModPricesV2[i];
+      const mod = modsV2[intersection.Mod];
+      const ids = intersection.Tags.map((tag) => tagsV2[tag].Id);
       const weights = intersection.SpawnWeight;
       if (mod.Name === "") continue;
       if (!ids.length) continue;
 
-      const affixTags = mod.ImplicitTags.map((tag) => tags[tag].Id).filter(
+      const affixTags = mod.ImplicitTags.map((tag) => tagsV2[tag].Id).filter(
         (tag) => !tag.endsWith("_damage"),
       );
 
@@ -1082,7 +1158,7 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
 
       const statsMapped = [mod.Stat1, mod.Stat2, mod.Stat3, mod.Stat4]
         .filter((stat) => stat)
-        .map((stat) => stats[stat]);
+        .map((stat) => statsV2[stat]);
 
       for (let i = 0; i < statsMapped.length; i++) {
         const stat = statsMapped[i];
@@ -1130,7 +1206,7 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
         });
       }
 
-      const type = modTypes[mod.ModType].Name.replace(
+      const type = modTypesV2[mod.ModType].Name.replace(
         /([A-Z])/g,
         (match) => `_${match.toLowerCase()}`,
       ).replace(/^_/, "");
@@ -1150,12 +1226,13 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
       };
     }
 
-    for (const base of bases) {
-      if (!MODIFIABLE_CLASSES.includes(classes[base.ItemClass].Name)) continue;
+    for (const base of basesV2) {
+      if (!MODIFIABLE_CLASSES.includes(classesV2[base.ItemClass].Name))
+        continue;
       const name = base.Name;
       const extendedTags = this.getAllTags(base.InheritsFrom, hierarchy);
       const baseTags = [
-        ...JSON.parse(base.Tags).map((tag) => tags[tag].Id),
+        ...JSON.parse(base.Tags).map((tag) => tagsV2[tag].Id),
         ...extendedTags,
       ];
       const domain = base.ModDomain;
@@ -1178,7 +1255,18 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
       }
     }
 
-    const byModName = {};
+    const byModName: Record<
+      string,
+      {
+        type: string;
+        name: string;
+        label: string;
+        position: string;
+        stats: { label: string; description: string }[][];
+        tags: string[];
+        bases: string[];
+      }
+    > = {};
     for (const mod of Object.values(itemMods)) {
       if (byModName[mod.name]) {
         byModName[mod.name].bases = Array.from(
@@ -1201,7 +1289,15 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
       }
     }
 
-    return Object.values(byModName).filter((mod) => mod.bases.length);
+    console.log("Writing mods file...");
+    fs.writeFileSync(
+      "./packages/data/poe2/mods.json",
+      JSON.stringify(
+        Object.values(byModName).filter((mod) => mod.bases.length),
+        null,
+        " ",
+      ),
+    );
   }
 
   formatDescription(
@@ -1251,7 +1347,7 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
       return `Adds (${minValues[0]}-${minValues[1]}) to (${maxValues[0]}-${maxValues[1]})${suffix}`;
     }
 
-    result = result.replace(/\{(?:\d+)?(?::[\+]?[d])?\}/g, (match) => {
+    result = result.replace(/\{(?:\d+)?(?::[\+]?[d])?\}/g, () => {
       const [min, max] = values[0];
       if (min === max) {
         return `+${Math.abs(min).toString()}`;
@@ -1378,7 +1474,7 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
   }
 
   async collectInheritsFromFiles(
-    initialBases: typeof bases,
+    initialBases: typeof basesV2,
   ): Promise<Set<string>> {
     const inheritsFroms = new Set<string>();
     const processed = new Set<string>();
@@ -1431,16 +1527,22 @@ WHERE ${Tables.WORDS}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Resolv
   }
 }
 
-async function main() {
-  const config = JSON.parse(
+(async () => {
+  const dat = new DatFiles();
+
+  const poe1Config = JSON.parse(
+    fs.readFileSync(
+      path.join(process.cwd(), "/packages/data/poe1/config.json"),
+      "utf8",
+    ),
+  );
+  const poe2Config = JSON.parse(
     fs.readFileSync(
       path.join(process.cwd(), "/packages/data/poe2/config.json"),
       "utf8",
     ),
   );
-  const dat = new DatFiles(config);
-  await dat.init();
-  await dat.extract();
-}
 
-main();
+  await dat.extract(poe1Config);
+  await dat.extract(poe2Config);
+})();
