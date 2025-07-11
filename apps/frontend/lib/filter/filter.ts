@@ -246,6 +246,8 @@ export class Filter {
   convertToText(rule: FilterRule): string {
     const enabledBases = rule.bases.filter((e) => e.enabled).map((e) => e.base);
 
+    console.log(rule.bases);
+
     // pinnacle key bases are not filterable
     const basesArePinnacleKeys = rule.bases.some(
       (e) =>
@@ -314,6 +316,7 @@ export async function generateFilter(
   if (raw) {
     rules = await convertRules(raw);
   }
+
   return new Filter({
     name,
     chromaticVersion: chromatic.config.version,

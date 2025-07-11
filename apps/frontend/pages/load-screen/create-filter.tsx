@@ -11,14 +11,13 @@ import {
 import { TextField, TextFieldInput, TextFieldLabel } from "@pkgs/ui/text-field";
 import { toast } from "solid-sonner";
 import { store } from "@app/store";
-import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@pkgs/ui/toggle-group";
 
 export default function CreateFilter() {
   const [name, setName] = createSignal("Chromatic");
   const [dialogOpen, setDialogOpen] = createSignal(false);
   const [template, setTemplate] = createSignal<Template>(Template.BLANK);
-  const [version, setVersion] = createSignal(2);
+  const [version, setVersion] = createSignal<number>(2);
 
   async function createFilter() {
     if (name() === "") {
@@ -70,18 +69,24 @@ export default function CreateFilter() {
             <div class='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mr-2'>
               PoE Version
             </div>
-            <div class='text-md font-semibold'>1</div>
-            <Switch
-              checked={version() === 2}
-              onChange={(version) => {
-                toast("Only PoE 2 is supported at the moment.");
-              }}
+            <ToggleGroup
+              onChange={(v) => setVersion(Number(v))}
+              value={version().toString()}
+              class='flex flex-wrap'
             >
-              <SwitchControl class='bg-neutral-300 data-[checked]:bg-neutral-300'>
-                <SwitchThumb />
-              </SwitchControl>
-            </Switch>
-            <div class='text-md font-semibold'>2</div>
+              <For each={[1, 2]}>
+                {(option) => {
+                  return (
+                    <ToggleGroupItem
+                      class='data-[pressed]:bg-neutral-700 bg-neutral-700/20 border border-accent'
+                      value={option.toString()}
+                    >
+                      {option}
+                    </ToggleGroupItem>
+                  );
+                }}
+              </For>
+            </ToggleGroup>
           </div>
           <div class='flex items-center gap-2'>
             <div class='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mr-2'>

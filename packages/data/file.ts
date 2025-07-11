@@ -28,6 +28,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import type { FileLoader } from "./loader";
 import sharp from "sharp";
+import { to } from "@pkgs/lib/utils";
 
 const SPRITE_LISTS = [
   {
@@ -84,6 +85,7 @@ export async function exportFiles(
   filesToExport: string[],
   outDir: string,
   loader: FileLoader,
+  gameVersion: 1 | 2,
 ) {
   console.log(`Exporting ${filesToExport.length} files...`);
   // await fs.rm(outDir, { recursive: true, force: true });
@@ -143,6 +145,7 @@ export async function exportFiles(
 
         const split = filePath.split("/");
         const type = split[2];
+        const subtype = split[3];
 
         await imagemagickConvertDDS(
           await loader.getFileContents(filePath),
@@ -150,10 +153,33 @@ export async function exportFiles(
           fileName,
         );
 
+        if (
+          ((type === "Gems" && subtype !== "Support") ||
+            subtype === "VaalGems") &&
+          gameVersion === 1
+        ) {
+          const buffer = await fs.readFile(fileName);
+          const [err, updated] = await to(fixIcon(buffer, 78, 78 * 3));
+          if (!err) {
+            await fs.writeFile(fileName, updated);
+          }
+        }
+
         if (type === "Flasks" && !split[split.length - 1].endsWith("Sap.png")) {
           const buffer = await fs.readFile(fileName);
-          const updated = await fixIcon(buffer, 212, 316);
-          await fs.writeFile(fileName, updated);
+          if (gameVersion === 1) {
+            const [err, updated] = await to(fixIcon(buffer, 156, 78 * 3));
+            if (!err) {
+              await fs.writeFile(fileName, updated);
+            }
+          }
+
+          if (gameVersion === 2) {
+            const [err, updated] = await to(fixIcon(buffer, 212, 316));
+            if (!err) {
+              await fs.writeFile(fileName, updated);
+            }
+          }
         }
       } else {
         await fs.writeFile(

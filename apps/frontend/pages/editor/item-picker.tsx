@@ -5,6 +5,8 @@ import {
   itemIndex,
   Operator,
   Rarity,
+  ConditionKey,
+  ClassesCondition,
 } from "@app/lib/filter";
 import { Checkbox } from "@pkgs/ui/checkbox";
 import { createEffect, createSignal, For } from "solid-js";
@@ -215,19 +217,20 @@ export function ItemPicker(props: { rule: FilterRule }) {
       if (node.data.itemClass === "Pinnacle Keys") {
         if (
           enabled &&
-          !props.rule.conditions.classes?.value.includes("Pinnacle Keys")
+          !props.rule.conditions
+            .filter((condition) => condition.key === ConditionKey.CLASSES)
+            .find((condition) => condition.value.includes("Pinnacle Keys"))
         ) {
           toast.info("Adding 'Pinnacle Keys' class condition to rule.", {
             description:
               "Pinnacle Keys are not filterable by base type and must be filtered by class.",
           });
-          props.rule.conditions.classes = {
-            operator: Operator.EXACT,
-            value: ["Pinnacle Keys"],
-          };
-        }
-        if (!enabled) {
-          // TODO: check if classes condition still needs to exist
+          props.rule.conditions.push(
+            new ClassesCondition({
+              operator: Operator.EXACT,
+              value: ["Pinnacle Keys"],
+            }),
+          );
         }
       }
 

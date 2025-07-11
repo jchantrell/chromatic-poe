@@ -146,7 +146,9 @@ const ITEM_CLASS_BLACKLIST = [
 const MODIFIABLE_CLASSES = [
   "Life Flasks",
   "Mana Flasks",
+  "Hybrid Flasks",
   "Utility Flasks",
+  "Tinctures",
   "Charms",
   "Waystones",
   "Maps",
@@ -179,6 +181,7 @@ const MODIFIABLE_CLASSES = [
   "One Hand Axes",
   "One Hand Maces",
   "One Hand Swords",
+  "Thrusting One Hand Swords",
   "Two Hand Axes",
   "Two Hand Maces",
   "Two Hand Swords",
@@ -192,6 +195,7 @@ const MODIFIABLE_CLASSES = [
   "Expedition Logbooks",
   "Relics",
   "Sanctified Relics",
+  "Idols",
 ];
 
 export class DatFiles {
@@ -231,7 +235,8 @@ export class DatFiles {
   }
 
   async extractV1() {
-    await this.populateDB();
+    await this.extractItemsV1();
+    await this.extractModsV1();
   }
 
   async extractV2() {
@@ -383,6 +388,1005 @@ export class DatFiles {
       name: title.name,
       base: title["base item"],
     }));
+  }
+
+  async extractItemsV1() {
+    await this.populateDB();
+    console.log("Querying DB for items...");
+    const extraFields = `
+art,
+height,
+width,
+gemFx,
+class as itemClass,
+name as base
+`;
+
+    const items = this.db
+      .prepare(`
+WITH ITEMS AS (
+
+SELECT DISTINCT
+${Tables.BASES}.Name as 'name',
+${Tables.CLASSES}.Name as 'class',
+${Tables.CLASS_CATEGORIES}.Text as 'category',
+${Tables.VISUALS}.DDSFile as 'art',
+${Tables.TRADE_CATEGORIES}.Name as 'tradeCategory',
+${Tables.TRADE_GROUPS}.Name as 'tradeGroup',
+exchange_major.Name as 'exchangeCategory',
+exchange_sub.Name as 'exchangeSubCategory',
+
+${Tables.EXCHANGE}.GoldPurchaseFee as 'price',
+${Tables.SKILL_GEMS}.StrengthRequirementPercent as 'strReq',
+${Tables.SKILL_GEMS}.DexterityRequirementPercent as 'dexReq',
+${Tables.SKILL_GEMS}.IntelligenceRequirementPercent as 'intReq',
+
+(${Tables.ARMOUR_TYPES}.ArmourMin + ${Tables.ARMOUR_TYPES}.ArmourMax) / 2 as 'armour',
+(${Tables.ARMOUR_TYPES}.EvasionMin + ${Tables.ARMOUR_TYPES}.EvasionMax) / 2 as 'evasion',
+(${Tables.ARMOUR_TYPES}.EnergyShieldMin + ${Tables.ARMOUR_TYPES}.EnergyShieldMax) / 2 as 'energyShield',
+(${Tables.ARMOUR_TYPES}.WardMin + ${Tables.ARMOUR_TYPES}.WardMax) / 2 as 'ward',
+
+${Tables.WEAPON_TYPES}.DamageMin as 'dmgMin',
+${Tables.WEAPON_TYPES}.DamageMax as 'dmgMax',
+${Tables.WEAPON_TYPES}.Speed as 'speed',
+
+${Tables.BASES}.Height as 'height',
+${Tables.BASES}.Width as 'width',
+${Tables.BASES}.SiteVisibility as 'active',
+
+${Tables.CLASSES}.CanBeCorrupted as corruptable,
+(CASE
+  WHEN ${Tables.CURRENCY_ITEMS}.StackSize IS NOT NULL
+  AND ${Tables.CURRENCY_ITEMS}.StackSize > 1
+  THEN 1
+  ELSE 0
+END) as stackable,
+
+${Tables.SKILL_GEMS}.GemEffects as 'gemFx',
+${Tables.BASES}.DropLevel as 'dropLevel'
+
+FROM ${Tables.BASES}
+
+LEFT JOIN ${Tables.CLASSES}
+ON ${Tables.BASES}.ItemClassesKey = ${Tables.CLASSES}.${PK}
+
+LEFT JOIN ${Tables.CLASS_CATEGORIES}
+ON ${Tables.CLASSES}.ItemClassCategory = ${Tables.CLASS_CATEGORIES}.${PK}
+
+LEFT JOIN ${Tables.VISUALS}
+ON ${Tables.BASES}.ItemVisualIdentity = ${Tables.VISUALS}.${PK}
+
+LEFT JOIN ${Tables.TRADE_CATEGORIES}
+ON ${Tables.BASES}.TradeMarketCategory = ${Tables.TRADE_CATEGORIES}.${PK}
+OR ${Tables.CLASSES}.TradeMarketCategory = ${Tables.TRADE_CATEGORIES}.${PK}
+
+LEFT JOIN ${Tables.TRADE_GROUPS}
+ON ${Tables.TRADE_CATEGORIES}.Grouping = ${Tables.TRADE_GROUPS}.${PK}
+
+LEFT JOIN ${Tables.EXCHANGE}
+ON ${Tables.BASES}.${PK} = ${Tables.EXCHANGE}.Item
+
+LEFT JOIN ${Tables.EXCHANGE_CATEGORY} as exchange_major
+ON ${Tables.EXCHANGE}.Category = exchange_major.${PK}
+
+LEFT JOIN ${Tables.EXCHANGE_CATEGORY} as exchange_sub
+ON ${Tables.EXCHANGE}.SubCategory = exchange_sub.${PK}
+
+LEFT JOIN ${Tables.ARMOUR_TYPES}
+ON ${Tables.BASES}.${PK} = ${Tables.ARMOUR_TYPES}.BaseItemTypesKey
+
+LEFT JOIN ${Tables.WEAPON_TYPES}
+ON ${Tables.BASES}.${PK} = ${Tables.WEAPON_TYPES}.BaseItemTypesKey
+
+LEFT JOIN ${Tables.SKILL_GEMS}
+ON ${Tables.BASES}.${PK} = ${Tables.SKILL_GEMS}.BaseItemTypesKey
+
+LEFT JOIN ${Tables.CURRENCY_ITEMS}
+ON ${Tables.BASES}.${PK} = ${Tables.CURRENCY_ITEMS}.BaseItemTypesKey
+
+WHERE ${Tables.BASES}.Name != '' AND ${Tables.BASES}.Name IS NOT NULL
+)
+
+-- Weapons
+SELECT DISTINCT
+name,
+'Weapons' AS category,
+tradeCategory AS class,
+null as type,
+(dmgMin + dmgMax) / 2 * (1000 / speed) AS score,
+${extraFields}
+FROM ITEMS
+WHERE tradeGroup IN ('One Handed Weapons', 'Two Handed Weapons')
+
+UNION ALL
+
+-- Offhands
+SELECT DISTINCT
+name,
+'Off-hands' AS category,
+class,
+(CASE
+  WHEN armour != 0 AND evasion != 0
+  THEN 'Strength/Dexterity'
+  WHEN armour != 0 AND energyShield != 0
+  THEN 'Strength/Intelligence'
+  WHEN armour != 0
+  THEN 'Strength'
+  WHEN evasion != 0
+  THEN 'Dexterity'
+  WHEN energyShield != 0
+  THEN 'Intelligence'
+  WHEN tradeCategory in ('Quivers')
+  THEN 'Dexterity'
+  ELSE 'Unknown'
+END) AS type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE tradeGroup IN ('Off-hand') 
+
+UNION ALL
+
+-- Armour
+SELECT DISTINCT
+name,
+'Armour' AS category,
+class,
+(CASE
+  WHEN armour != 0 AND evasion != 0 AND energyShield != 0
+  THEN 'Miscellaneous'
+  WHEN ward != 0
+  THEN 'Ward'
+  WHEN armour != 0 AND evasion != 0
+  THEN 'Strength/Dexterity'
+  WHEN armour != 0 AND energyShield != 0
+  THEN 'Strength/Intelligence'
+  WHEN evasion != 0 AND energyShield != 0
+  THEN 'Dexterity/Intelligence'
+  WHEN armour != 0
+  THEN 'Strength'
+  WHEN evasion != 0
+  THEN 'Dexterity'
+  WHEN energyShield != 0
+  THEN 'Intelligence'
+  ELSE 'Miscellaneous'
+END) AS type,
+armour + evasion + energyShield + ward AS score, 
+${extraFields}
+FROM ITEMS
+WHERE tradeGroup IN ('Armour')
+
+UNION ALL
+
+-- Jewellery
+SELECT DISTINCT
+name,
+'Jewellery' AS category,
+class,
+null AS type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE tradeGroup IN ('Jewellery') AND class != 'Trinkets'
+
+UNION ALL
+
+-- Flasks
+SELECT DISTINCT
+name,
+'Flasks' AS category,
+class,
+null AS type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE tradeGroup IN ('Flasks') 
+
+UNION ALL
+
+-- Idols
+SELECT DISTINCT
+name,
+'Mapping' as category,
+'Idols' AS class,
+null AS type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Idols'
+
+UNION ALL
+
+-- Gems
+SELECT DISTINCT
+name,
+'Gems' AS category,
+(CASE
+  WHEN name LIKE 'Awakened%'
+  THEN 'Awakened'
+  WHEN name LIKE 'Vaal%' AND tradeGroup = 'Gems'
+  THEN 'Vaal'
+  WHEN class = 'Skill Gems'
+  THEN 'Active'
+  WHEN class = 'Support Gems'
+  THEN 'Support'
+  ELSE 'Unknown'
+END) as class,
+(CASE
+  WHEN strReq != 0 AND dexReq != 0 AND intReq != 0
+  THEN 'Hybrid'
+  WHEN strReq != 0 AND dexReq != 0
+  THEN 'Strength/Dexterity'
+  WHEN strReq != 0 AND intReq != 0
+  THEN 'Strength/Intelligence'
+  WHEN intReq != 0 AND dexReq != 0
+  THEN 'Dexterity/Intelligence'
+  WHEN strReq != 0
+  THEN 'Strength'
+  WHEN dexReq != 0
+  THEN 'Dexterity'
+  WHEN intReq != 0
+  THEN 'Intelligence'
+  ELSE 'Unknown'
+END) as type,
+strReq + dexReq + intReq AS score, 
+${extraFields}
+FROM ITEMS
+WHERE tradeGroup IN ('Gems') AND name NOT LIKE '[DNT]%' AND name NOT IN ('Coming Soon', 'Shroud')
+
+UNION ALL
+
+SELECT DISTINCT
+name,
+'Gems' AS category,
+'Uncut' AS class,
+null as type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name IN ('Uncut Skill Gem', 'Uncut Support Gem', 'Uncut Spirit Gem')
+
+UNION ALL
+
+-- Pieces
+SELECT DISTINCT
+name,
+'Pieces' AS category,
+class,
+null as type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Pieces'
+
+UNION ALL
+
+-- Jewels
+SELECT DISTINCT
+name,
+'Jewels' AS category,
+class,
+(CASE
+  WHEN name LIKE '%Cluster%'
+  THEN 'Cluster'
+  WHEN name LIKE 'Timeless%'
+  THEN 'Timeless'
+  WHEN name LIKE '%Eye Jewel'
+  THEN 'Abyss'
+  ELSE 'Common'
+END) as type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class IN ('Jewels', 'Abyss Jewels')
+
+UNION ALL
+
+-- Heist
+SELECT DISTINCT
+name,
+'Heist' AS category,
+class,
+null as type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE (tradeCategory = 'Heist Items' OR class = 'Trinkets') AND name NOT LIKE '[UNUSED]%'
+
+UNION ALL
+
+-- Runes
+SELECT DISTINCT
+name,
+'Currency' AS category,
+'Runes' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Runecrafting'
+
+UNION ALL
+
+-- Lifeforce
+SELECT DISTINCT
+name,
+'Currency' AS category,
+'Lifeforce' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Lifeforce'
+
+UNION ALL
+
+-- Omens
+SELECT DISTINCT
+name,
+'Ritual' AS category,
+'Omens' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Omens'
+
+UNION ALL
+
+-- Delve
+SELECT DISTINCT
+name,
+'Delve' AS category,
+exchangeSubcategory as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Delve'
+
+UNION ALL
+
+-- Catalysts
+SELECT DISTINCT
+name,
+'Ultimatum' AS category,
+exchangeSubcategory as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Catalysts'
+
+UNION ALL
+
+-- Scarabs
+SELECT DISTINCT
+name,
+'Mapping' as category,
+'Scarabs' AS class,
+exchangeSubcategory as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Scarabs'
+
+UNION ALL
+
+-- Tattoos
+SELECT DISTINCT
+name,
+'Tattoos' AS category,
+(CASE
+  WHEN exchangeSubcategory LIKE 'Dexterity%'
+  THEN 'Dexterity'
+  WHEN exchangeSubcategory LIKE 'Intelligence%'
+  THEN 'Intelligence'
+  WHEN exchangeSubcategory LIKE 'Strength%'
+  THEN 'Strength'
+  ELSE 'Unknown'
+END)as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Tattoos'
+
+UNION ALL
+
+-- Oils
+SELECT DISTINCT
+name,
+'Blight' AS category,
+'Oils' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Oils'
+
+UNION ALL
+
+-- Fragments
+SELECT DISTINCT
+name,
+'Fragments' AS category,
+exchangeSubcategory as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Fragments'
+
+UNION ALL
+
+-- Maps
+SELECT DISTINCT
+name,
+'Mapping' AS category,
+class,
+(CASE
+  WHEN name LIKE 'Shaped%'
+  THEN 'Shaped'
+  WHEN name IN ('Pit of the Chimera Map', 'Lair of the Hydra Map', 'Maze of the Minotaur Map', 'Forge of the Phoenix Map')
+  THEN 'Guardian'
+  WHEN name IN ('Harbinger Map', 'Engraved Ultimatum', 'Vaal Temple Map')
+  THEN 'Special'
+  WHEN name IN ('Citadel Map', 'Fortress Map', 'Abomination Map', 'Ziggurat Map')
+  THEN 'Tier 17'
+  ELSE 'Common'
+END) as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Maps' AND name != 'The Shaper''s Realm'
+
+UNION ALL
+
+-- Currency, Essence, Runes
+SELECT DISTINCT
+name,
+exchangeCategory AS category,
+(CASE
+  WHEN exchangeSubcategory = exchangeCategory
+  THEN 'Common'
+  ELSE exchangeSubcategory
+END) as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory IN ('Essences', 'Currency', 'Runes')
+
+UNION ALL
+
+-- Special cased currency
+SELECT DISTINCT
+name,
+'Currency' AS category,
+'Common' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name IN ('Albino Rhoa Feather')
+
+UNION ALL
+
+-- Incubators
+SELECT DISTINCT
+name,
+'Legion' AS category,
+class,
+null as type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Incubators'
+
+UNION ALL
+
+-- Timeless Domain
+SELECT DISTINCT
+name,
+'Legion' AS category,
+'Splinters' as class,
+null as type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name IN ('Timeless Eternal Empire Splinter', 'Timeless Karui Splinter', 'Timeless Templar Splinter', 'Timeless Vaal Splinter', 'Timeless Maraketh Splinter')
+
+UNION ALL
+
+SELECT DISTINCT
+name,
+'Legion' AS category,
+'Emblems' as class,
+null as type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name IN ('Timeless Eternal Emblem', 'Timeless Karui Emblem', 'Timeless Templar Emblem', 'Timeless Vaal Emblem', 'Timeless Maraketh Emblem','Unrelenting Timeless Eternal Emblem', 'Unrelenting Timeless Karui Emblem', 'Unrelenting Timeless Templar Emblem', 'Unrelenting Timeless Vaal Emblem', 'Unrelenting Timeless Maraketh Emblem')
+
+UNION ALL
+
+-- Expedition
+SELECT DISTINCT
+name,
+'Expedition' AS category,
+'Logbooks' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Expedition Logbooks'
+
+UNION ALL
+
+SELECT DISTINCT
+name,
+'Expedition' AS category,
+'Currency' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Expedition'
+
+UNION ALL
+
+-- Ultimatum
+SELECT DISTINCT
+name,
+'Ultimatum' AS category,
+'Fragments' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeSubcategory = 'Ultimatum Fragments'
+OR class = 'Inscribed Ultimatum'
+
+UNION ALL
+
+-- Sanctum
+SELECT DISTINCT
+name,
+'Sanctum' AS category,
+'Fragments' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name = 'Forbidden Tome'
+
+UNION ALL
+
+SELECT DISTINCT
+name,
+'Sanctum' AS category,
+class,
+null as type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Relics' AND name NOT LIKE '[DO NOT USE]%'
+
+UNION ALL
+
+-- Delirium, Breach
+SELECT DISTINCT
+name,
+exchangeCategory AS category,
+(CASE
+  WHEN exchangeSubcategory = exchangeCategory
+  THEN 'Fragments'
+  ELSE exchangeSubcategory
+END) as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory IN ('Delirium', 'Breach')
+
+UNION ALL
+
+SELECT DISTINCT
+name,
+'Currency' AS category,
+'Gold' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name = 'Gold'
+
+UNION ALL
+
+-- Corpses
+SELECT DISTINCT
+name,
+'Ritual' AS category,
+class,
+(CASE
+WHEN name like '%Hydra'
+ THEN 'Hydra'
+ WHEN name like '%Frozen Cannibal'
+ THEN 'Frozen Cannibal'
+ WHEN name like '%Fiery Cannibal'
+ THEN 'Fiery Cannibal'
+ WHEN name like '%Dark Marionette'
+ THEN 'Dark Marionette'
+ WHEN name like '%Naval Officer'
+ THEN 'Naval Officer'
+ WHEN name like '%Dancing Sword'
+ THEN 'Dancing Sword'
+ WHEN name like '%Needle Horror'
+ THEN 'Needle Horror'
+ WHEN name like '%Serpent Warrior'
+ THEN 'Serpent Warrior'
+ WHEN name like '%Pain Artist'
+ THEN 'Pain Artist'
+ WHEN name like '%Sawblade Horror'
+ THEN 'Sawblade Horror'
+ WHEN name like '%Blood Demon'
+ THEN 'Blood Demon'
+ WHEN name like '%Slashing Horror'
+ THEN 'Slashing Horror'
+ WHEN name like '%Druidic Alchemist'
+ THEN 'Druidic Alchemist'
+ WHEN name like '%Blasphemer'
+ THEN 'Blasphemer'
+ WHEN name like '%Judgemental Spirit'
+ THEN 'Judgemental Spirit'
+ WHEN name like '%Primal Thunderbird'
+ THEN 'Primal Thunderbird'
+ WHEN name like '%Spirit of Fortune'
+ THEN 'Spirit of Fortune'
+ WHEN name like '%Primal Demiurge'
+ THEN 'Primal Demiurge'
+ WHEN name like '%Runic Skeleton'
+ THEN 'Runic Skeleton'
+ WHEN name like '%Warlord'
+ THEN 'Warlord'
+ WHEN name like '%Dark Reaper'
+ THEN 'Dark Reaper'
+ WHEN name like '%Hulking Miscreation'
+ THEN 'Hulking Miscreation'
+ WHEN name like '%Sanguimancer Demon'
+ THEN 'Sanguimancer Demon'
+ WHEN name like '%Shadow Berserker'
+ THEN 'Shadow Berserker'
+ WHEN name like '%Spider Matriarch'
+ THEN 'Spider Matriarch'
+ WHEN name like '%Half-remembered Goliath'
+ THEN 'Half-remembered Goliath'
+ WHEN name like '%Meatsack'
+ THEN 'Meatsack'
+ WHEN name like '%Eldritch Eye'
+ THEN 'Eldritch Eye'
+ WHEN name like '%Guardian Turtle'
+ THEN 'Guardian Turtle'
+ WHEN name like '%Shadow Construct'
+ THEN 'Shadow Construct'
+ WHEN name like '%Forest Tiger'
+ THEN 'Forest Tiger'
+ WHEN name like '%Forest Warrior' 
+ THEN 'Forest Warrior' 
+ WHEN name like '%Restless Knight' 
+ THEN 'Restless Knight' 
+ WHEN name like '%Riftcaster' 
+ THEN 'Riftcaster' 
+ WHEN name like '%Escaped Prototype' 
+ THEN 'Escaped Prototype' 
+ ELSE 'Unknown'
+END) AS type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Corpses'
+
+UNION ALL
+
+-- Divination Cards
+SELECT DISTINCT
+name,
+'Divination Cards' AS category,
+(CASE
+ WHEN exchangeSubcategory like 'Divination Cards Rewarding%'
+ THEN SUBSTR(exchangeSubcategory, 27)
+ ELSE 'Other'
+END) as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Divination Cards'
+
+UNION ALL
+
+-- Vault Keys
+SELECT DISTINCT
+name,
+'Currency' AS category,
+'Vault Keys' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Vault Keys'
+`)
+
+      .all();
+
+    const uniques = this.db
+      .prepare(`
+SELECT DISTINCT
+${Tables.WORDS}.Text as name,
+'Uniques' as category,
+${Tables.UNIQUE_STASH_TYPES}.Name as class,
+null as type,
+0 AS score, 
+${Tables.VISUALS}.DDSFile as art,
+null as height,
+null as width,
+null as gemFx,
+null as itemClass
+FROM ${Tables.UNIQUE_STASH_LAYOUT}
+LEFT JOIN ${Tables.UNIQUE_STASH_TYPES}
+ON ${Tables.UNIQUE_STASH_LAYOUT}.UniqueStashTypesKey = ${Tables.UNIQUE_STASH_TYPES}.${PK}
+LEFT JOIN ${Tables.WORDS}
+ON ${Tables.UNIQUE_STASH_LAYOUT}.WordsKey = ${Tables.WORDS}.${PK}
+LEFT JOIN ${Tables.VISUALS}
+ON ${Tables.UNIQUE_STASH_LAYOUT}.ItemVisualIdentityKey = ${Tables.VISUALS}.${PK}
+`)
+      .all();
+
+    const allUniques = [...uniques] as Item[];
+    const allItems = [...allUniques, ...items] as Item[];
+
+    await exportFiles(
+      ["art/2dart/minimap/player.png", ...allItems.map((item) => item.art)],
+      path.join(process.cwd(), "packages/assets/poe1/images"),
+      this.loader,
+      this.gameVersion,
+    );
+
+    console.log("Querying wiki for unique bases...");
+    const wikiUniques = await this.queryWiki(0, []);
+    for (const unique of allUniques) {
+      if (unique.base) continue;
+      const entry = wikiUniques.find((entry) => entry.name === unique.name);
+      if (entry) {
+        unique.base = entry.base;
+      } else {
+        console.warn(`Missed base for ${unique.name}`);
+      }
+    }
+
+    for (let i = 0; i < allItems.length; i++) {
+      const item = allItems[i];
+      if (!item.art) {
+        console.warn(`Missed art for ${item.name}`, item);
+        allItems[i] = undefined;
+        continue;
+      }
+
+      const replacedFilepath = `poe1/images/${item.art.replaceAll("/", "@").replace("dds", "png")}`;
+      item.art = replacedFilepath;
+      delete item.gemFx;
+    }
+
+    console.log("Writing item file...");
+    fs.writeFileSync(
+      "./packages/data/poe1/items.json",
+      JSON.stringify(allItems, null, " "),
+    );
+  }
+
+  async extractModsV1() {
+    const extraFiles = [
+      "metadata/statdescriptions/stat_descriptions.txt",
+      "metadata/statdescriptions/atlas_stat_descriptions.txt",
+      "metadata/statdescriptions/map_stat_descriptions.txt",
+      "metadata/statdescriptions/heist_equipment_stat_descriptions.txt",
+      "metadata/statdescriptions/sanctum_relic_stat_descriptions.txt",
+    ];
+    await exportFiles(
+      extraFiles,
+      path.join(process.cwd(), "packages/data/poe1/files"),
+      this.loader,
+      this.gameVersion,
+    );
+    const statDescriptions = this.getStatDescriptions();
+    const inheritsFroms = await this.collectInheritsFromFiles(bases);
+
+    const hierarchy: ItFileHierarchy = {};
+    for (const inheritsFrom of inheritsFroms) {
+      const content = fs.readFileSync(
+        path.join(
+          process.cwd(),
+          "packages/data/poe1/files",
+          `${inheritsFrom}.it`.toLowerCase().replaceAll("/", "@"),
+        ),
+        "utf16le",
+      );
+      const config = this.parseItFile(content);
+      hierarchy[inheritsFrom] = config;
+    }
+
+    const itemMods: Record<
+      string,
+      {
+        name: string;
+        id: string;
+        label: string;
+        tags: string[];
+        type: string;
+        position: string;
+        ids: string[];
+        weights: number[];
+        stats: string[];
+        domain: number;
+        bases: [];
+      }
+    > = {};
+
+    for (let i = 0; i < mods.length; i++) {
+      const mod = mods[i];
+      const ids = mod.SpawnWeight_TagsKeys.map((tag) => tags[tag].Id);
+      const weights = mod.SpawnWeight_Values;
+      if (mod.Name === "") continue;
+      if (!ids.length) continue;
+
+      const affixTags = mod.ImplicitTagsKeys.map((tag) => tags[tag].Id).filter(
+        (tag) => !tag.endsWith("_damage"),
+      );
+
+      const position =
+        mod.GenerationType === 1
+          ? "prefix"
+          : mod.GenerationType === 2
+            ? "suffix"
+            : "affix";
+
+      const allStats: string[] = [];
+
+      const statsMapped = [
+        mod.StatsKey1,
+        mod.StatsKey2,
+        mod.StatsKey3,
+        mod.StatsKey4,
+      ]
+        .filter((stat) => stat)
+        .map((stat) => stats[stat]);
+
+      for (let i = 0; i < statsMapped.length; i++) {
+        const stat = statsMapped[i];
+        const nextStat = statsMapped[i + 1];
+        const statDescription = statDescriptions[stat.Id];
+        const descs = statDescription
+          ? statDescription.filter((desc) => desc.language === "English")
+          : [];
+
+        if (nextStat && i + 1 < statsMapped.length) {
+          const currentDesc = descs[0]?.description;
+
+          if (currentDesc?.includes(" to ")) {
+            const values: [number, number][] = [
+              [mod[`Stat${i + 1}Min`], mod[`Stat${i + 1}Max`]],
+              [mod[`Stat${i + 2}Min`], mod[`Stat${i + 2}Max`]],
+            ];
+
+            const description = this.formatDescription(descs, values);
+            allStats.push(description);
+
+            i++;
+            continue;
+          }
+        }
+
+        const values: [number, number][] = [
+          [mod[`Stat${i + 1}Min`], mod[`Stat${i + 1}Max`]],
+        ];
+
+        const description = this.formatDescription(descs, values);
+        allStats.push(description);
+      }
+
+      const type = modTypes[mod.ModTypeKey].Name.replace(
+        /([A-Z])/g,
+        (match) => `_${match.toLowerCase()}`,
+      ).replace(/^_/, "");
+
+      itemMods[mod.Id] = {
+        name: mod.Name,
+        id: mod.Id,
+        label: allStats.length === 1 ? allStats[0].label : "",
+        stats: allStats,
+        tags: affixTags,
+        type,
+        position,
+        ids,
+        weights,
+        domain: mod.Domain,
+        bases: [],
+      };
+    }
+
+    for (const base of bases) {
+      if (!MODIFIABLE_CLASSES.includes(classes[base.ItemClassesKey].Name))
+        continue;
+      const name = base.Name;
+      const extendedTags = this.getAllTags(base.InheritsFrom, hierarchy);
+      const baseTags = [
+        ...JSON.parse(base.TagsKeys).map((tag) => tags[tag].Id),
+        ...extendedTags,
+      ];
+      const domain = base.ModDomain;
+
+      if (!baseTags.length) continue;
+
+      for (const mod of Object.values(itemMods)) {
+        if (mod.domain !== domain) continue;
+
+        for (let i = 0; i < mod.weights.length; i++) {
+          const weight = mod.weights[i];
+          const id = mod.ids[i];
+
+          if (weight && baseTags.includes(id)) {
+            if (itemMods[mod.id] && !itemMods[mod.id].bases.includes(name)) {
+              itemMods[mod.id].bases.push(name);
+            }
+          }
+        }
+      }
+    }
+
+    const byModName: Record<
+      string,
+      {
+        type: string;
+        name: string;
+        label: string;
+        position: string;
+        stats: string[][];
+        tags: string[];
+        bases: string[];
+      }
+    > = {};
+    for (const mod of Object.values(itemMods)) {
+      if (byModName[mod.name]) {
+        byModName[mod.name].bases = Array.from(
+          new Set([...byModName[mod.name].bases, ...mod.bases]),
+        );
+        byModName[mod.name].tags = Array.from(
+          new Set([...byModName[mod.name].tags, ...mod.tags]),
+        );
+        byModName[mod.name].stats = [...byModName[mod.name].stats, mod.stats];
+      } else {
+        byModName[mod.name] = {
+          type: mod.type,
+          name: mod.name,
+          label: mod.label,
+          position: mod.position,
+          stats: [mod.stats],
+          tags: mod.tags,
+          bases: mod.bases,
+        };
+      }
+    }
+
+    console.log("Writing mods file...");
+    fs.writeFileSync(
+      "./packages/data/poe1/mods.json",
+      JSON.stringify(
+        Object.values(byModName).filter((mod) => mod.bases.length),
+        null,
+        " ",
+      ),
+    );
   }
 
   async extractItemsV2() {
@@ -1039,11 +2043,12 @@ WHERE ${Tables.WORDS_V2}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Res
     const allUniques = [...uniques, ...uniqueOverrides] as Item[];
     const allItems = [...allUniques, ...items] as Item[];
 
-    await exportFiles(
-      ["art/2dart/minimap/player.png", ...allItems.map((item) => item.art)],
-      path.join(process.cwd(), "packages/assets/poe2/images"),
-      this.loader,
-    );
+    // await exportFiles(
+    //   ["art/2dart/minimap/player.png", ...allItems.map((item) => item.art)],
+    //   path.join(process.cwd(), "packages/assets/poe2/images"),
+    //   this.loader,
+    //   this.gameVersion,
+    // );
 
     console.log("Querying wiki for unique bases...");
     const wikiUniques = await this.queryWiki(0, []);
@@ -1095,11 +2100,17 @@ WHERE ${Tables.WORDS_V2}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Res
   }
 
   async extractModsV2() {
-    const extraFiles = ["metadata/statdescriptions/stat_descriptions.csd"];
+    const extraFiles = [
+      "metadata/statdescriptions/stat_descriptions.csd",
+      "metadata/statdescriptions/map_stat_descriptions.csd",
+      "metadata/statdescriptions/heist_equipment_stat_descriptions.csd",
+      "metadata/statdescriptions/sanctum_relic_stat_descriptions.csd",
+    ];
     await exportFiles(
       extraFiles,
       path.join(process.cwd(), "packages/data/poe2/files"),
       this.loader,
+      this.gameVersion,
     );
     const statDescriptions = this.getStatDescriptions();
     const inheritsFroms = await this.collectInheritsFromFiles(basesV2);
@@ -1362,20 +2373,61 @@ WHERE ${Tables.WORDS_V2}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Res
     string,
     Array<{ description: string; language: string; flags?: string }>
   > {
-    const statFile = fs.readFileSync(
-      path.join(
-        process.cwd(),
-        "./packages/data/poe2/files/metadata@statdescriptions@stat_descriptions.csd",
-      ),
-      "utf16le",
-    );
-
     const lookup: Record<
       string,
       Array<{ description: string; language: string; flags?: string }>
     > = {};
 
-    const sections = statFile.split(/\n(?=description|no_description)/);
+    const sections = [];
+
+    const statFile = fs.readFileSync(
+      path.join(
+        process.cwd(),
+        `./packages/data/poe${this.gameVersion}/files/metadata@statdescriptions@stat_descriptions.${this.gameVersion === 1 ? "txt" : "csd"}`,
+      ),
+      "utf16le",
+    );
+    sections.push(...statFile.split(/\n(?=description|no_description)/));
+
+    const mapFile = fs.readFileSync(
+      path.join(
+        process.cwd(),
+        `./packages/data/poe${this.gameVersion}/files/metadata@statdescriptions@map_stat_descriptions.${this.gameVersion === 1 ? "txt" : "csd"}`,
+      ),
+      "utf16le",
+    );
+    sections.push(...mapFile.split(/\n(?=description|no_description)/));
+
+    const heistFile = fs.readFileSync(
+      path.join(
+        process.cwd(),
+        `./packages/data/poe${this.gameVersion}/files/metadata@statdescriptions@heist_equipment_stat_descriptions.${this.gameVersion === 1 ? "txt" : "csd"}`,
+      ),
+      "utf16le",
+    );
+    sections.push(...heistFile.split(/\n(?=description|no_description)/));
+
+    const sanctumFile = fs.readFileSync(
+      path.join(
+        process.cwd(),
+        `./packages/data/poe${this.gameVersion}/files/metadata@statdescriptions@sanctum_relic_stat_descriptions.${this.gameVersion === 1 ? "txt" : "csd"}`,
+      ),
+      "utf16le",
+    );
+    sections.push(...sanctumFile.split(/\n(?=description|no_description)/));
+
+    if (this.gameVersion === 1) {
+      const atlasStatFile = fs.readFileSync(
+        path.join(
+          process.cwd(),
+          "./packages/data/poe1/files/metadata@statdescriptions@atlas_stat_descriptions.txt",
+        ),
+        "utf16le",
+      );
+      sections.push(...atlasStatFile.split(/\n(?=description|no_description)/));
+
+      console.log(sections[sections.length - 2]);
+    }
 
     for (const section of sections) {
       const lines = section.split("\n");
@@ -1502,14 +2554,15 @@ WHERE ${Tables.WORDS_V2}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Res
 
     await exportFiles(
       [`${filePath}.it`.toLowerCase()],
-      path.join(process.cwd(), "packages/data/poe2/files"),
+      path.join(process.cwd(), `packages/data/poe${this.gameVersion}/files`),
       this.loader,
+      this.gameVersion,
     );
 
     const content = fs.readFileSync(
       path.join(
         process.cwd(),
-        "packages/data/poe2/files",
+        `packages/data/poe${this.gameVersion}/files`,
         `${filePath}.it`.toLowerCase().replaceAll("/", "@"),
       ),
       "utf16le",
@@ -1544,5 +2597,5 @@ WHERE ${Tables.WORDS_V2}.Text NOT IN ('Sekhema''s Resolve Fire', 'Sekhema''s Res
   );
 
   await dat.extract(poe1Config);
-  await dat.extract(poe2Config);
+  // await dat.extract(poe2Config);
 })();

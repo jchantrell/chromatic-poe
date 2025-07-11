@@ -663,7 +663,7 @@ export class BaseTypeCondition implements ListCondition<string> {
   }
 }
 
-class ClassesCondition implements ListCondition<string> {
+export class ClassesCondition implements ListCondition<string> {
   readonly key = ConditionKey.CLASSES;
   readonly type = ConditionType.LIST;
   value: string[];

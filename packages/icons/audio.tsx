@@ -1,4 +1,6 @@
-export function AudioIcon() {
+import { cn } from "@pkgs/lib/utils";
+
+export function AudioIcon(props: { class?: string }) {
   return (
     <svg
       xmlns='http://www.w3.org/2000/svg'
@@ -10,7 +12,7 @@ export function AudioIcon() {
       stroke-width='2'
       stroke-linecap='round'
       stroke-linejoin='round'
-      class='lucide lucide-audio-lines'
+      class={cn("lucide lucide-audio-lines", props.class)}
     >
       <path d='M2 10v3' />
       <path d='M6 6v11' />

@@ -141,7 +141,7 @@ fn send_chat_command(text: &str, tab_back: bool) {
 }
 
 #[tauri::command]
-pub fn reload() -> String {
+pub fn reload(version: &str) -> String {
     #[cfg(windows)]
     unsafe {
         let window_name = "Path of Exile 2\0".as_ptr() as *const i8; // TODO: make this configurable

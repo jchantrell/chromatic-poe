@@ -16,7 +16,7 @@ import {
   SaveIcon,
 } from "@pkgs/icons";
 import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
-import { createSignal, type JSXElement, onMount } from "solid-js";
+import { createEffect, createSignal, type JSXElement, onMount } from "solid-js";
 import { Toaster } from "@pkgs/ui/sonner";
 import { Route, Router } from "@solidjs/router";
 import chromatic from "@app/lib/config";
@@ -31,6 +31,7 @@ import Background from "@app/components/background";
 import { checkForUpdate, updateApplication } from "@app/lib/update";
 import { toast } from "solid-sonner";
 import { autosave } from "./lib/storage";
+import { itemIndex } from "@app/lib/filter/items";
 
 export const BASE_URL = import.meta.env.BASE_URL;
 export const storageManager = createLocalStorageManager("theme");
@@ -212,6 +213,17 @@ function App() {
       (navigator.userAgent.includes("Mac") ? event.metaKey : event.ctrlKey)
     ) {
       event.preventDefault();
+    }
+  });
+
+  createEffect(() => {
+    if (store.filter?.poeVersion === 1) {
+      console.log("init v1");
+      itemIndex.initV1();
+    }
+    if (store.filter?.poeVersion === 2) {
+      console.log("init v2");
+      itemIndex.initV2();
     }
   });
 
