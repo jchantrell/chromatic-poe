@@ -1,11 +1,9 @@
-import type { Color, IconSize, Shape } from "@app/lib/filter";
+import type { Color, IconSize, Shape } from "@app/lib/action";
 import { createStore } from "solid-js/store";
 
 export type Coordinate = { x: number; y: number };
 
-// Shape -> Size -> Coordinate
 export type MinimapShapeData = Record<string, Record<string, Coordinate>>;
-// Color -> ShapeData
 export type MinimapColorData = Record<string, MinimapShapeData>;
 
 class MinimapIndex {

@@ -43,12 +43,11 @@ export class WikiManager {
     const url = `${proxyUrl}${encodeURIComponent(targetUrl)}`;
 
     const req = await fetch(url, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
       },
-    );
+    });
     const res = await req.json();
     if (res.cargoquery.length) {
       return this.queryWiki(gameVersion, offset + 50, [
@@ -81,4 +80,3 @@ export class WikiManager {
     return await db.get("uniques", cacheKey);
   }
 }
-

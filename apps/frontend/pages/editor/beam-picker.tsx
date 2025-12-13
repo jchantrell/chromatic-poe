@@ -1,4 +1,5 @@
-import { Color, colors, setBeamColor, setBeamTemp } from "@app/lib/filter";
+import { Color, colors } from "@app/lib/action";
+import { setBeamColor, setBeamTemp } from "@app/lib/commands";
 import { isDefined } from "@app/lib/utils";
 import { store } from "@app/store";
 import { Checkbox } from "@app/ui/checkbox";

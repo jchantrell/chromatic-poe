@@ -1,12 +1,11 @@
 import SoundPlayer from "@app/components/sound-player";
 import Tooltip from "@app/components/tooltip";
-import type { Sound } from "@app/lib/config";
+import type { Sound } from "@app/lib/sounds";
 import {
-  type Filter,
   setSoundEnabled,
   setSoundPath,
   setSoundVolume,
-} from "@app/lib/filter";
+} from "@app/lib/commands";
 import { refreshSounds, store } from "@app/store";
 import { Checkbox } from "@app/ui/checkbox";
 import {
@@ -24,6 +23,7 @@ import { Label } from "@app/ui/label";
 import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
 import { createMemo, createSignal, on, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
+import type { Filter } from "@app/lib/filter";
 
 interface Category {
   label: string;
@@ -32,7 +32,7 @@ interface Category {
 
 export default function SoundPicker() {
   if (!store.activeRule || !store.filter) {
-    return <></>;
+    return "";
   }
   const [sounds, setSounds] = createStore<Category[]>([]);
   const [active, setActive] = createSignal(

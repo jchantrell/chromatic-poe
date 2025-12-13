@@ -1,3 +1,9 @@
+import {
+  BaseTypeCondition,
+  type Conditions,
+  convertRawToConditions,
+  serializeConditions,
+} from "@app/lib/condition";
 import chromatic from "@app/lib/config";
 import { clone, stringifyJSON } from "@app/lib/utils";
 import { addFilter } from "@app/store";
@@ -7,18 +13,10 @@ import { applyPatch, compare, type Operation } from "fast-json-patch";
 import { createMutable, modifyMutable, reconcile } from "solid-js/store";
 import { toast } from "solid-sonner";
 import type { ulid } from "ulid";
-import {
-  type Actions,
-  addParentRefs,
-  BaseTypeCondition,
-  type Command,
-  type Conditions,
-  convertRawToConditions,
-  importFilter as convertRules,
-  itemIndex,
-  serializeActions,
-  serializeConditions,
-} from ".";
+import { type Actions, serializeActions } from "./action";
+import { addParentRefs, type Command } from "./commands";
+import { importFilter } from "./import";
+import { itemIndex } from "./items";
 
 const WRITE_TIMEOUT = 1000;
 
@@ -74,7 +72,7 @@ export class Filter {
     name: string;
     chromaticVersion: string;
     poeVersion: number;
-    poePatch?: string;
+    poePatch: string;
     lastUpdated: Date;
     rules: FilterRule[];
     undoStack?: Operation[][];
@@ -83,9 +81,7 @@ export class Filter {
     this.name = params.name;
     this.chromaticVersion = params.chromaticVersion;
     this.poeVersion = params.poeVersion;
-    // Default patch if missing (migration)
-    this.poePatch =
-      params.poePatch || (params.poeVersion === 2 ? "4.0.0" : "3.25");
+    this.poePatch = params.poePatch;
     this.lastUpdated = params.lastUpdated;
     this.rules = params.rules.map((rule) => ({
       ...rule,
@@ -250,8 +246,7 @@ export class Filter {
   convertToText(rule: FilterRule): string {
     const enabledBases = rule.bases.filter((e) => e.enabled).map((e) => e.base);
 
-    console.log(rule.bases);
-
+    // TODO: can this be fixed now?
     // pinnacle key bases are not filterable
     const basesArePinnacleKeys = rule.bases.some(
       (e) =>
@@ -319,7 +314,7 @@ export async function generateFilter(
   }
 
   if (raw) {
-    rules = await convertRules(raw);
+    rules = await importFilter(raw);
   }
 
   return new Filter({

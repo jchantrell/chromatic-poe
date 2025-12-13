@@ -1,5 +1,6 @@
+import { setEntryActive } from "@app/lib/commands";
 import { dat } from "@app/lib/dat";
-import { type FilterItem, setEntryActive } from "@app/lib/filter";
+import type { FilterItem } from "@app/lib/filter";
 import { store } from "@app/store";
 import {
   ContextMenu,

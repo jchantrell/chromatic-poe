@@ -2,8 +2,7 @@ import {
   type ConditionKey,
   type Conditions,
   createCondition,
-  Filter,
-} from "@app/lib/filter";
+} from "@app/lib/condition";
 import { DesktopStorage, WebStorage } from "@app/lib/storage";
 import { alphabeticalSort, validJson } from "@app/lib/utils";
 import { setInitialised, setLocale, store } from "@app/store";
@@ -12,7 +11,8 @@ import { appConfigDir, documentDir, sep } from "@tauri-apps/api/path";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { locale } from "@tauri-apps/plugin-os";
-import { defaultFilterSounds } from "./sounds";
+import { Filter } from "./filter";
+import { DEFAULT_FILTER_SOUNDS, type Sound } from "./sounds";
 
 function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
   try {
@@ -22,36 +22,6 @@ function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
     return null;
   }
 }
-
-export interface BlobSound {
-  displayName: string;
-  id: string;
-  path: string;
-  type: "custom";
-  data: Blob;
-}
-export interface FileSound {
-  displayName: string;
-  id: string;
-  path: string;
-  type: "custom";
-  data: File;
-}
-export interface CachedSound {
-  displayName: string;
-  id: string;
-  path: string;
-  type: "cached";
-  data: null;
-}
-export interface DefaultSound {
-  displayName: string;
-  id: string;
-  path: string;
-  type: "default";
-  data: null;
-}
-export type Sound = BlobSound | FileSound | CachedSound | DefaultSound;
 
 type SemVer = {
   major: number;
@@ -363,29 +333,23 @@ class Chromatic {
   }
 
   async getDefaultSounds(): Promise<Sound[]> {
-    // Helper function to extract number from start of string
     function getLeadingNumber(str: string) {
       const match = str.match(/^\d+/);
       return match ? Number.parseInt(match[0]) : Number.POSITIVE_INFINITY;
     }
 
-    return [...defaultFilterSounds]
-      .sort((a, b) => {
-        // First compare by leading numbers
-        const numA = getLeadingNumber(a.displayName);
-        const numB = getLeadingNumber(b.displayName);
-        if (numA !== numB) return numA - numB;
-
-        // If numbers are equal or non-existent, sort alphabetically
-        return a.displayName.localeCompare(b.displayName);
-      })
-      .map((sound) => ({
-        displayName: sound.displayName,
-        id: sound.id,
-        path: sound.path,
-        type: "default",
-        data: null,
-      }));
+    return DEFAULT_FILTER_SOUNDS.sort((a, b) => {
+      const numA = getLeadingNumber(a.displayName);
+      const numB = getLeadingNumber(b.displayName);
+      if (numA !== numB) return numA - numB;
+      return a.displayName.localeCompare(b.displayName);
+    }).map((sound) => ({
+      displayName: sound.displayName,
+      id: sound.id,
+      path: sound.path,
+      type: "default",
+      data: null,
+    }));
   }
 
   async getSounds(): Promise<Sound[]> {

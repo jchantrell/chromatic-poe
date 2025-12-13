@@ -1,4 +1,6 @@
-import { createRule, DEFAULT_STYLE, type FilterRule } from "@app/lib/filter";
+import { DEFAULT_STYLE } from "@app/lib/action";
+import { createRule } from "@app/lib/commands";
+import type { FilterRule } from "@app/lib/filter";
 import { clone } from "@app/lib/utils";
 import { store } from "@app/store";
 import { Button } from "@app/ui/button";

@@ -16,8 +16,8 @@ export type Actions = {
   dropSound?: { enabled: boolean; toggle: boolean };
   icon?: { size: IconSize; shape: Shape; color: Color; enabled: boolean };
   beam?: { temp: boolean; color: Color; enabled: boolean };
-  sound?: {
-    path: { value: string; path: string; type: "custom" | "default" };
+  ound?: {
+    path: { value: string; path?: string; type: "custom" | "default" };
     volume: number;
     enabled: boolean;
   };

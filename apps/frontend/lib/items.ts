@@ -1,12 +1,11 @@
 import { recursivelySetKeys } from "@app/lib/utils";
 import Fuse, { type FuseResult } from "fuse.js";
 
-// Define Item interface matching the SQL query output
 export interface Item {
   name: string;
   category: string;
   class: string;
-  type?: string; // Optional in SQL query (null as type)
+  type?: string;
   score?: number;
   art?: string;
   height?: number;
@@ -14,7 +13,7 @@ export interface Item {
   gemFx?: string;
   itemClass?: string;
   base?: string;
-  [key: string]: any; // Allow loose matching for now
+  [key: string]: unknown;
 }
 
 type Hierarchy = { [key: string]: Item | Hierarchy };

@@ -1,12 +1,9 @@
+import { Color, colors, IconSize, Shape } from "@app/lib/action";
 import {
-  Color,
-  colors,
-  IconSize,
-  Shape,
+  setMapIconSize,
   setMapIconColor,
   setMapIconShape,
-  setMapIconSize,
-} from "@app/lib/filter";
+} from "@app/lib/commands";
 import { minimapIndex } from "@app/lib/minimap";
 import { store } from "@app/store";
 import { Popover, PopoverContent, PopoverTrigger } from "@app/ui/popover";

@@ -109,6 +109,7 @@ export enum ConditionKey {
 }
 
 export enum ConditionGroup {
+  UNUSED = "Unused",
   GENERAL = "General",
   GEAR = "Gear",
   GEMS = "Gems",
@@ -153,10 +154,17 @@ type ConditionValues<K extends ConditionKey> = BaseConditionValue & {
 };
 
 type AllConditionTypes = {
-  [key in Exclude<ConditionKey, ConditionKey.BASE_TYPE>]: ConditionValues<key>;
+  [key in ConditionKey]: ConditionValues<key>;
 };
 
 export const conditionTypes: AllConditionTypes = {
+  [ConditionKey.BASE_TYPE]: {
+    label: "Bases",
+    description: "A list of item bases",
+    group: ConditionGroup.UNUSED,
+    type: ConditionInputType.TEXT_LIST,
+    defaultValue: [],
+  },
   [ConditionKey.HEIGHT]: {
     label: "Height",
     description: "The height of the item in inventory slots",
@@ -1227,12 +1235,10 @@ type ConditionConstructors = typeof conditionConstructors;
 type Instance<T extends Function> = T["prototype"];
 type ConditionKeys = keyof ConditionConstructors;
 
-export type Conditions = Exclude<
-  Instance<ConditionConstructors[keyof ConditionConstructors]>,
-  { key: ConditionKey.BASE_TYPE }
+export type Conditions = Instance<
+  ConditionConstructors[keyof ConditionConstructors]
 >;
 
-// [key in Exclude<ConditionKey, ConditionKey.BASE_TYPE>]: {
 export function createCondition<
   K extends ConditionKeys,
   I extends Instance<ConditionConstructors[K]>,

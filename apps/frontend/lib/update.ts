@@ -1,31 +1,10 @@
 import chromatic from "@app/lib/config";
-import { timeSince } from "@app/lib/utils";
+import { formatBytes, timeSince } from "@app/lib/utils";
 import { store } from "@app/store";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
 import { toast } from "solid-sonner";
 
-function formatBytes(bytes: number, decimals = 2) {
-  if (!+bytes) return "0 Bytes";
-
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = [
-    "Bytes",
-    "KiB",
-    "MiB",
-    "GiB",
-    "TiB",
-    "PiB",
-    "EiB",
-    "ZiB",
-    "YiB",
-  ];
-
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-  return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
-}
 export async function checkForUpdate(): Promise<void> {
   if (chromatic.runtime === "web") return;
   const toastId = toast.info("Checking for updates...");

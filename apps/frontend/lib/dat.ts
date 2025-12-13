@@ -1,10 +1,5 @@
-import {
-  SCHEMA_URL,
-  type SchemaFile,
-  type SchemaTable,
-  ValidFor,
-} from "pathofexile-dat-schema";
 import { readColumn, readDatFile } from "pathofexile-dat/dat.js";
+import { SCHEMA_URL, type SchemaFile, ValidFor } from "pathofexile-dat-schema";
 import { ArtManager } from "./art";
 import { BundleManager } from "./bundle";
 import { Database } from "./db";
@@ -12,6 +7,20 @@ import type { Item } from "./filter";
 import { getQuery, TABLES } from "./queries";
 import { to } from "./utils";
 import { WikiManager } from "./wiki";
+
+interface Header {
+  name: string | null;
+  offset: number;
+  type: {
+    array: boolean;
+    interval: boolean;
+    integer?: { unsigned: boolean; size: number };
+    decimal?: { size: number };
+    string?: object;
+    boolean?: object;
+    key?: { foreign: boolean };
+  };
+}
 
 export class DatManager {
   private loader: BundleManager = new BundleManager();
@@ -36,18 +45,13 @@ export class DatManager {
   }
 
   async getItems(patch: string) {
-    console.log("get items");
-    const query = getQuery(patch, "items");
-    console.log("no query");
-    if (!query) return [];
+    const items = (await this.db.query(
+      getQuery(patch, "items"),
+    )) as unknown as Item[];
 
-    const items = (await this.db.query(query)) as unknown as Item[];
-    console.log("items", items);
-
-    const q = getQuery(patch, "uniques");
-    console.log("u query", q);
-    const uniques = (await this.db.query(q)) as unknown as Item[];
-    console.log("uniques", uniques);
+    const uniques = (await this.db.query(
+      getQuery(patch, "uniques"),
+    )) as unknown as Item[];
 
     const gameVersion = patch.startsWith("3") ? 1 : 2;
 
@@ -68,7 +72,6 @@ export class DatManager {
       .filter((i) => i.art)
       .map((i) => ({ name: i.name, path: i.art }));
 
-    // Don't await this, let it run in background to cache images
     this.art
       .ensureCached(patch, artItems)
       .catch((e) => console.error("Failed to ensure art cache", e));
@@ -287,8 +290,15 @@ export class DatManager {
     console.log(`Imported ${rowCount} rows for ${tableName}`);
   }
 
-  private createHeaders(tableSchema: SchemaTable) {
-    const headers: Record<string, unknown>[] = [];
+  private createHeaders(tableSchema: {
+    columns: {
+      name: string | null;
+      array: boolean;
+      interval: boolean;
+      type: string;
+    }[];
+  }) {
+    const headers: Header[] = [];
     let offset = 0;
 
     for (const column of tableSchema.columns) {
@@ -349,9 +359,7 @@ export class DatManager {
     return headers;
   }
 
-  private getHeaderLength(header: {
-    type: { [key: string]: string | { [key: string]: string } };
-  }) {
+  private getHeaderLength(header: Header) {
     if (header.type.array) return 16;
     if (header.type.string) return 8;
 

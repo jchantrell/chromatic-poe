@@ -113,7 +113,7 @@ null as type,
 (dmgMin + dmgMax) / 2 * (1000 / speed) AS score,
 ${extraFields}
 FROM ITEMS
-WHERE category IN ('One Handed Weapons', 'Two Handed Weapons')
+WHERE category IN ('Two Hand Sword', 'Two Hand Axe', 'Two Hand Mace', 'One Hand Sword', 'One Hand Axe', 'One Hand Mace', 'Bow', 'Crossbow', 'Wand', 'Staff', 'Claw', 'Sceptre', 'Spear', 'Dagger')
 
 UNION ALL
 
@@ -140,7 +140,7 @@ END) AS type,
 0 AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE category IN ('Off-hand') 
+WHERE category IN ('Shield', 'Foci', 'Quiver') 
 
 UNION ALL
 
@@ -171,7 +171,7 @@ END) AS type,
 armour + evasion + energyShield + ward AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE category IN ('Armour')
+WHERE category IN ('Helmet', 'Body Armour', 'Boots', 'Gloves')
 
 UNION ALL
 
@@ -184,7 +184,7 @@ null AS type,
 0 AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE category IN ('Jewellery') AND class != 'Trinkets'
+WHERE category IN ('Ring', 'Amulet', 'Belt')
 
 UNION ALL
 
@@ -197,7 +197,7 @@ null AS type,
 0 AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE category IN ('Flasks') 
+WHERE category IN ('Flask', 'Tincture') 
 
 UNION ALL
 
@@ -210,7 +210,7 @@ null AS type,
 0 AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE class = 'Idols'
+WHERE category = 'Idol'
 
 UNION ALL
 
@@ -249,19 +249,7 @@ END) as type,
 strReq + dexReq + intReq AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE category IN ('Gems') AND name NOT LIKE '[DNT]%' AND name NOT IN ('Coming Soon', 'Shroud')
-
-UNION ALL
-
-SELECT DISTINCT
-name,
-'Gems' AS category,
-'Uncut' AS class,
-null as type,
-0 AS score, 
-${extraFields}
-FROM ITEMS
-WHERE name IN ('Uncut Skill Gem', 'Uncut Support Gem', 'Uncut Spirit Gem')
+WHERE category IN ('Skill Gem', 'Support Gem') AND name NOT LIKE '[DNT]%' AND name NOT IN ('Coming Soon', 'Shroud')
 
 UNION ALL
 
@@ -295,7 +283,7 @@ END) as type,
 0 AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE class IN ('Jewels', 'Abyss Jewels')
+WHERE category IN ('Jewel', 'Abyss Jewel')
 
 UNION ALL
 
@@ -308,7 +296,7 @@ null as type,
 0 AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE (class = 'Heist Items' OR class = 'Trinkets') AND name NOT LIKE '[UNUSED]%'
+WHERE category IN ('Heist Gear', 'Heist Tool', 'Heist Cloak', 'Heist Brooch', 'Blueprint', 'Trinket', 'Contract', 'Heist Target') AND name NOT LIKE '[UNUSED]%'
 
 UNION ALL
 
@@ -434,6 +422,18 @@ price AS score,
 ${extraFields}
 FROM ITEMS
 WHERE exchangeCategory = 'Fragments'
+
+UNION ALL
+
+SELECT DISTINCT
+name,
+'Fragments' AS category,
+exchangeSubCategory as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE category = 'Incursion Item'
 
 UNION ALL
 

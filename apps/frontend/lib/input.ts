@@ -1,4 +1,4 @@
-import EventEmitter from "@app/lib/eventEmitter";
+import EventEmitter from "@app/lib/event-emitter";
 
 class Input extends EventEmitter {
   constructor() {

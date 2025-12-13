@@ -1,6 +1,34 @@
-import type { DefaultSound } from "./config";
+export interface BlobSound {
+  displayName: string;
+  id: string;
+  path: string;
+  type: "custom";
+  data: Blob;
+}
+export interface FileSound {
+  displayName: string;
+  id: string;
+  path: string;
+  type: "custom";
+  data: File;
+}
+export interface CachedSound {
+  displayName: string;
+  id: string;
+  path: string;
+  type: "cached";
+  data: null;
+}
+export interface DefaultSound {
+  displayName: string;
+  id: string;
+  path: string;
+  type: "default";
+  data: null;
+}
+export type Sound = BlobSound | FileSound | CachedSound | DefaultSound;
 
-export const defaultFilterSounds: DefaultSound[] = [
+export const DEFAULT_FILTER_SOUNDS: DefaultSound[] = [
   {
     displayName: "1",
     id: "AlertSound1",

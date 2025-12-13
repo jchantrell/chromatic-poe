@@ -32,10 +32,8 @@ export class ArtManager {
     const db = await this.dbPromise;
     const missing: { name: string; path: string }[] = [];
 
-    // Determine game version (1 or 2)
     const gameVersion = patch.startsWith("3") ? 1 : 2;
 
-    // Check memory cache and IDB
     for (const item of items) {
       if (!item.path) continue;
 
@@ -54,15 +52,17 @@ export class ArtManager {
       }
     }
 
-    // Fetch and convert missing
     if (missing.length > 0) {
       console.log(`Fetching ${missing.length} new art files...`);
       for (const item of missing) {
         try {
           const cacheKey = `${gameVersion}/${item.name}`;
-          // Check if file exists in bundle
           const ddsBuffer = await this.loader.getFileContents(item.path);
-          const pngBlob = await this.convertDDSToPNG(ddsBuffer, item.path);
+          const pngBlob = await this.convertDDSToPNG(
+            ddsBuffer,
+            item.path,
+            gameVersion,
+          );
 
           if (pngBlob) {
             await db.put("images", pngBlob, cacheKey);
@@ -98,6 +98,7 @@ export class ArtManager {
   private async convertDDSToPNG(
     buffer: Uint8Array,
     filename: string,
+    _gameVersion: 1 | 2,
   ): Promise<Blob | null> {
     try {
       const dds = parseDds(buffer.buffer);
@@ -107,7 +108,6 @@ export class ArtManager {
 
       let rgba: Uint8Array;
 
-      // Decompress based on format
       if (format === "dxt1") {
         rgba = dxt.decompress(dds.images[0], width, height, dxt.flags.DXT1);
       } else if (format === "dxt3") {
@@ -129,22 +129,65 @@ export class ArtManager {
         height,
       );
 
-      // Try OffscreenCanvas
-      if (typeof OffscreenCanvas !== "undefined") {
-        const canvas = new OffscreenCanvas(width, height);
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return null;
-        ctx.putImageData(imageData, 0, 0);
-        return await canvas.convertToBlob({ type: "image/png" });
+      let needsFix = false;
+      let fixWidth = 0;
+
+      const aspect = width / height;
+      const isStrip3 = aspect > 2.8 && aspect < 3.2;
+      const isStrip1_5 = aspect > 1.4 && aspect < 1.6;
+
+      if (isStrip3 || isStrip1_5) {
+        const pathLower = filename.toLowerCase();
+        const isFlask = pathLower.includes("flask");
+        const isGem =
+          pathLower.includes("gem") && !pathLower.includes("support");
+        const isSap = filename.endsWith("Sap.dds");
+
+        if (!isSap) {
+          if (isStrip3 && (isGem || isFlask)) {
+            needsFix = true;
+            fixWidth = Math.round(width / 3);
+          } else if (isStrip1_5 && isFlask) {
+            needsFix = true;
+            fixWidth = Math.round(width / 3);
+          }
+        }
       }
 
-      // Fallback to HTMLCanvasElement
       const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
       const ctx = canvas.getContext("2d");
       if (!ctx) return null;
-      ctx.putImageData(imageData, 0, 0);
+
+      if (needsFix) {
+        canvas.width = width;
+        canvas.height = height;
+        ctx.putImageData(imageData, 0, 0);
+        ctx.drawImage(
+          canvas,
+          fixWidth * 2,
+          0,
+          fixWidth,
+          height,
+          0,
+          0,
+          fixWidth,
+          height,
+        );
+        ctx.drawImage(
+          canvas,
+          fixWidth,
+          0,
+          fixWidth,
+          height,
+          0,
+          0,
+          fixWidth,
+          height,
+        );
+        ctx.drawImage(canvas, 0, 0, fixWidth, height, 0, 0, fixWidth, height);
+      } else {
+        ctx.putImageData(imageData, 0, 0);
+      }
 
       return new Promise<Blob | null>((resolve) => {
         canvas.toBlob((blob) => resolve(blob), "image/png");

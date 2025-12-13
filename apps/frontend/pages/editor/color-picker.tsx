@@ -1,5 +1,5 @@
 import Tooltip from "@app/components/tooltip";
-import { setColor } from "@app/lib/filter";
+import { setColor } from "@app/lib/commands";
 import { store } from "@app/store";
 import { Label } from "@app/ui/label";
 import jscolor from "@eastdesire/jscolor";

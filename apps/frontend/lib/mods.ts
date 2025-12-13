@@ -1,14 +1,13 @@
 import Fuse, { type FuseResult } from "fuse.js";
 
-// Define Mod interface
 export interface Mod {
   name: string;
   tags: string[];
   type?: string;
   position?: "prefix" | "suffix" | "affix";
   bases?: string[];
-  stats: any[];
-  [key: string]: any;
+  stats: object[];
+  [key: string]: unknown;
 }
 
 export interface SearchableMod extends Mod {

@@ -1,5 +1,4 @@
-import type { Index } from "@app/components/search";
-import { type FilterRule, moveRule } from "@app/lib/filter";
+import type { FilterRule } from "@app/lib/filter";
 import { store } from "@app/store";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
 import {
@@ -14,8 +13,9 @@ import Fuse, { type FuseResult } from "fuse.js";
 import { createEffect, createSignal, For } from "solid-js";
 import CreateRule from "./create-rule";
 import Rule from "./rule-menu-entry";
+import { moveRule } from "@app/lib/commands";
 
-class RuleIndex implements Index {
+class RuleIndex {
   searchIndex!: Fuse<FilterRule>;
 
   constructor() {

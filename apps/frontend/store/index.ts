@@ -1,5 +1,6 @@
-import { chromatic, type Sound } from "@app/lib/config";
+import { chromatic } from "@app/lib/config";
 import type { Filter, FilterRule } from "@app/lib/filter";
+import type { Sound } from "@app/lib/sounds";
 import { to } from "@app/lib/utils";
 import { createMutable } from "solid-js/store";
 import { toast } from "solid-sonner";

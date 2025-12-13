@@ -1,12 +1,5 @@
 import { ChevronDownIcon, ChevronUpIcon } from "@app/icons";
-import {
-  addParentRefs,
-  deleteRule,
-  duplicateRule,
-  type FilterRule,
-  itemIndex,
-  setEntryActive,
-} from "@app/lib/filter";
+import type { FilterRule } from "@app/lib/filter";
 import { store } from "@app/store";
 import { Badge } from "@app/ui/badge";
 import { Collapsible, CollapsibleContent } from "@app/ui/collapsible";
@@ -24,6 +17,13 @@ import { createEffect, createSignal, For, onMount } from "solid-js";
 import Item from "./item";
 import { ItemPicker } from "./item-picker";
 import { MinimapIcon } from "./map-icon-picker";
+import {
+  addParentRefs,
+  deleteRule,
+  duplicateRule,
+  setEntryActive,
+} from "@app/lib/commands";
+import { itemIndex } from "@app/lib/items";
 
 const MIN_PREVIEW_WIDTH = 500; // Adjust this value as needed
 
@@ -33,7 +33,6 @@ export default function Rule(props: { rule: FilterRule }) {
   const [expanded, setExpanded] = createSignal(false);
   const [hovered, setHovered] = createSignal(false);
   const [previewWidth, setPreviewWidth] = createSignal(0);
-  const [itemsLoaded, setItemsLoaded] = createSignal(false);
   const sortable = createSortable(props.rule.id, props.rule);
   const [state] = useDragDropContext();
 

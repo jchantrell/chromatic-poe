@@ -8,12 +8,11 @@ import {
   conditionIndex,
   conditionTypes,
   createCondition,
-  type FilterRule,
   Operator,
   type SearchableCondition,
-} from "@app/lib/filter";
-import { excuteCmd } from "@app/lib/filter/commands";
-import { modIndex } from "@app/lib/filter/mods";
+} from "@app/lib/condition";
+import { excuteCmd } from "@app/lib/commands";
+import { modIndex } from "@app/lib/mods";
 import { store } from "@app/store";
 import { Button } from "@app/ui/button";
 import {
@@ -42,6 +41,7 @@ import {
   ToggleInput,
 } from "./condition-inputs";
 import { ItemPicker } from "./item-picker";
+import type { FilterRule } from "@app/lib/filter";
 
 const operators = [
   Operator.NONE,

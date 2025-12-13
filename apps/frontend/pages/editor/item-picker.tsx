@@ -1,20 +1,18 @@
 import { ChevronDownIcon } from "@app/icons";
 import { dat } from "@app/lib/dat";
+import type { FilterItem, FilterRule, Item } from "@app/lib/filter";
 import {
   ClassesCondition,
   ConditionKey,
-  type FilterItem,
-  type FilterRule,
-  type Item,
-  itemIndex,
   Rarity,
   RarityCondition,
-} from "@app/lib/filter";
+} from "@app/lib/condition";
 import { Checkbox } from "@app/ui/checkbox";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
 import { createEffect, createResource, createSignal, For, on } from "solid-js";
 import { createMutable } from "solid-js/store";
 import { toast } from "solid-sonner";
+import { itemIndex } from "@app/lib/items";
 
 interface BranchNode {
   name: string;

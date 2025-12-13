@@ -158,6 +158,28 @@ export const integerBetween = (max: number, min: number): number => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
+export function formatBytes(bytes: number, decimals = 2) {
+  if (!+bytes) return "0 Bytes";
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = [
+    "Bytes",
+    "KiB",
+    "MiB",
+    "GiB",
+    "TiB",
+    "PiB",
+    "EiB",
+    "ZiB",
+    "YiB",
+  ];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
+}
+
 export function recursivelySetKeys(
   object: Record<string, any>,
   path: (string | null)[],

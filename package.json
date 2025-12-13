@@ -1,5 +1,5 @@
 {
-  "name": "Chromatic",
+  "name": "chromatic-poe",
   "version": "0.4.7",
   "description": "",
   "type": "module",
@@ -10,8 +10,7 @@
     "build:windows": "tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc",
     "build:gh-pages": "vite build --mode gh-pages",
     "tauri": "tauri",
-    "icon": "tauri icon packages/assets/static/tainted-chromatic-icon.png",
-    "dat": "npx tsx packages/data/dat.ts"
+    "icon": "tauri icon packages/assets/static/tainted-chromatic-icon.png"
   },
   "license": "MIT",
   "dependencies": {

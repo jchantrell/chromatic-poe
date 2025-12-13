@@ -139,7 +139,7 @@ export class DesktopStorage implements FileSystem {
     await rename(oldPath, newPath);
   }
   async readFile(path: string) {
-    const bytes = await readTextFile(path);
+    const bytes = (await readTextFile(path)) as unknown as ArrayBuffer; // the type is wrong
     return this.decoder.decode(bytes);
   }
   async deleteFile(path: string) {
