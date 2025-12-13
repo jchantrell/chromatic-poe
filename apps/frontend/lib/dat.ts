@@ -1,21 +1,23 @@
-import { readColumn, readDatFile } from "pathofexile-dat/dat.js";
 import {
   SCHEMA_URL,
   type SchemaFile,
   type SchemaTable,
   ValidFor,
 } from "pathofexile-dat-schema";
+import { readColumn, readDatFile } from "pathofexile-dat/dat.js";
 import { ArtManager } from "./art";
 import { BundleManager } from "./bundle";
 import { Database } from "./db";
 import type { Item } from "./filter";
 import { getQuery, TABLES } from "./queries";
 import { to } from "./utils";
+import { WikiManager } from "./wiki";
 
 export class DatManager {
   private loader: BundleManager = new BundleManager();
   private art: ArtManager = new ArtManager(this.loader);
   private db: Database = new Database();
+  private wiki: WikiManager = new WikiManager();
   private schema: SchemaFile | null = null;
   patch!: string;
 
@@ -34,10 +36,35 @@ export class DatManager {
   }
 
   async getItems(patch: string) {
+    console.log("get items");
     const query = getQuery(patch, "items");
+    console.log("no query");
     if (!query) return [];
+
     const items = (await this.db.query(query)) as unknown as Item[];
-    const artItems = items
+    console.log("items", items);
+
+    const q = getQuery(patch, "uniques");
+    console.log("u query", q);
+    const uniques = (await this.db.query(q)) as unknown as Item[];
+    console.log("uniques", uniques);
+
+    const gameVersion = patch.startsWith("3") ? 1 : 2;
+
+    console.log("Querying wiki for unique bases...");
+    const wikiUniques = await this.wiki.getUniques(gameVersion);
+    for (const unique of uniques) {
+      if (unique.base) continue;
+      const entry = wikiUniques.find((entry) => entry.name === unique.name);
+      if (entry) {
+        unique.base = entry.base;
+      } else {
+        console.warn(`Missed base for ${unique.name}`);
+      }
+    }
+
+    const allItems = [...items, ...uniques];
+    const artItems = allItems
       .filter((i) => i.art)
       .map((i) => ({ name: i.name, path: i.art }));
 
@@ -46,7 +73,7 @@ export class DatManager {
       .ensureCached(patch, artItems)
       .catch((e) => console.error("Failed to ensure art cache", e));
 
-    return items;
+    return allItems;
   }
 
   async getItemArt(name: string) {

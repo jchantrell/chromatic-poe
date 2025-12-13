@@ -38,6 +38,7 @@ export class Database {
     params: SQLiteCompatibleType[] = [],
   ): Promise<Record<string, unknown>[]> {
     if (!this.sqlite3 || !this.db) throw new Error("DB not initialized");
+
     const str = this.sqlite3.str_new(this.db);
     this.sqlite3.str_appendall(str, sql);
     const prepared = await this.sqlite3.prepare_v2(

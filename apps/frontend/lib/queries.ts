@@ -1223,6 +1223,52 @@ FROM ITEMS
 WHERE class = 'Vault Keys'
 `;
 
+const V1_UNIQUES_QUERY = `
+SELECT DISTINCT
+Words.Text as name,
+'Uniques' as category,
+UniqueStashTypes.Name as class,
+null as type,
+0 AS score, 
+Visuals.DDSFile as art,
+null as height,
+null as width,
+null as gemFx,
+null as itemClass
+FROM UniqueStashLayout
+LEFT JOIN UniqueStashTypes
+ON UniqueStashLayout.UniqueStashTypesKey = UniqueStashTypes._index
+LEFT JOIN Words
+ON UniqueStashLayout.WordsKey = Words._index
+LEFT JOIN ItemVisualIdentity AS Visuals
+ON UniqueStashLayout.ItemVisualIdentityKey = Visuals._index
+WHERE UniqueStashLayout.IsAlternateArt = 0 AND
+UniqueStashLayout.RenamedVersion IS NULL
+`;
+
+const V2_UNIQUES_QUERY = `
+SELECT DISTINCT
+Words.Text as name,
+'Uniques' as category,
+UniqueStashTypes.Name as class,
+null as type,
+0 AS score, 
+Visuals.DDSFile as art,
+null as height,
+null as width,
+null as gemFx,
+null as itemClass
+FROM UniqueStashLayout
+LEFT JOIN UniqueStashTypes
+ON UniqueStashLayout.UniqueStashTypesKey = UniqueStashTypes._index
+LEFT JOIN Words
+ON UniqueStashLayout.WordsKey = Words._index
+LEFT JOIN ItemVisualIdentity AS Visuals
+ON UniqueStashLayout.ItemVisualIdentityKey = Visuals._index
+WHERE UniqueStashLayout.IsAlternativeArt = 0 AND
+UniqueStashLayout.RenamedVersion IS NULL
+`;
+
 export function getQuery(patch: string, name: string): string {
   const isV2 = patch.startsWith("4.");
 
@@ -1233,6 +1279,10 @@ export function getQuery(patch: string, name: string): string {
 
   if (name === "mods") {
     query = `SELECT * FROM Mods`;
+  }
+
+  if (name === "uniques") {
+    query = isV2 ? V2_UNIQUES_QUERY : V1_UNIQUES_QUERY;
   }
 
   // Prefix all tables with patch version
