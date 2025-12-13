@@ -1,10 +1,8 @@
-import type { Component, ComponentProps, JSX, ValidComponent } from "solid-js";
-import { Show, splitProps } from "solid-js";
-
+import { cn } from "@app/lib/utils";
 import type { PolymorphicProps } from "@kobalte/core";
 import * as BreadcrumbPrimitive from "@kobalte/core/breadcrumbs";
-
-import { cn } from "@app/lib/utils";
+import type { Component, ComponentProps, JSX, ValidComponent } from "solid-js";
+import { Show, splitProps } from "solid-js";
 
 const Breadcrumb = BreadcrumbPrimitive.Root;
 
@@ -116,7 +114,10 @@ const BreadcrumbEllipsis: Component<ComponentProps<"span">> = (props) => {
 };
 
 export {
-    Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem,
-    BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator
+  Breadcrumb,
+  BreadcrumbEllipsis,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
 };
-

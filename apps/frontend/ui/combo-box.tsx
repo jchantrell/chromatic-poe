@@ -1,10 +1,8 @@
-import type { JSX, ValidComponent } from "solid-js";
-import { splitProps } from "solid-js";
-
+import { cn } from "@app/lib/utils";
 import * as ComboboxPrimitive from "@kobalte/core/combobox";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
-
-import { cn } from "@app/lib/utils";
+import type { JSX, ValidComponent } from "solid-js";
+import { splitProps } from "solid-js";
 
 const Combobox = ComboboxPrimitive.Root;
 const ComboboxItemLabel = ComboboxPrimitive.ItemLabel;
@@ -180,6 +178,14 @@ const ComboboxContent = <T extends ValidComponent = "div">(
 };
 
 export {
-    Combobox, ComboboxContent, ComboboxControl, ComboboxHiddenSelect, ComboboxInput, ComboboxItem, ComboboxItemIndicator, ComboboxItemLabel, ComboboxSection, ComboboxTrigger
+  Combobox,
+  ComboboxContent,
+  ComboboxControl,
+  ComboboxHiddenSelect,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxItemIndicator,
+  ComboboxItemLabel,
+  ComboboxSection,
+  ComboboxTrigger,
 };
-

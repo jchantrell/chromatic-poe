@@ -1,12 +1,11 @@
-import type { JSX, ValidComponent } from "solid-js";
-import { createContext, splitProps, useContext } from "solid-js";
+import { cn } from "@app/lib/utils";
+import { toggleVariants } from "@app/ui/toggle";
 
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import * as ToggleGroupPrimitive from "@kobalte/core/toggle-group";
 import type { VariantProps } from "class-variance-authority";
-
-import { cn } from "@app/lib/utils";
-import { toggleVariants } from "@app/ui/toggle";
+import type { JSX, ValidComponent } from "solid-js";
+import { createContext, splitProps, useContext } from "solid-js";
 
 const ToggleGroupContext = createContext<VariantProps<typeof toggleVariants>>({
   size: "default",

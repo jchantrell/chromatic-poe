@@ -1,11 +1,11 @@
 import {
-    Color,
-    colors,
-    IconSize,
-    setMapIconColor,
-    setMapIconShape,
-    setMapIconSize,
-    Shape,
+  Color,
+  colors,
+  IconSize,
+  Shape,
+  setMapIconColor,
+  setMapIconShape,
+  setMapIconSize,
 } from "@app/lib/filter";
 import { minimapIndex } from "@app/lib/minimap";
 import { store } from "@app/store";
@@ -31,7 +31,13 @@ export function MinimapIcon(props: {
         "background-image": `url(${minimapImg})`,
         height: `calc(64px / ${props.scale})`,
         width: `calc(64px / ${props.scale})`,
-        "background-position": minimapIndex.get(props.color, props.shape, props.size) ? `calc(-${minimapIndex.get(props.color, props.shape, props.size).x}px / ${props.scale}) calc(-${minimapIndex.get(props.color, props.shape, props.size).y}px / ${props.scale})` : undefined,
+        "background-position": minimapIndex.get(
+          props.color,
+          props.shape,
+          props.size,
+        )
+          ? `calc(-${minimapIndex.get(props.color, props.shape, props.size).x}px / ${props.scale}) calc(-${minimapIndex.get(props.color, props.shape, props.size).y}px / ${props.scale})`
+          : undefined,
         "background-size": `calc(${SHEET_WIDTH}px / ${props.scale}) calc(${SHEET_HEIGHT}px / ${props.scale})`,
       }}
     />
@@ -120,24 +126,26 @@ function MapIconPicker() {
           <div class='flex max-w-[200px]'>
             <div class='flex flex-col items-center'>
               {minimapIndex.isLoaded && minimapIndex.data[color()] ? (
-              <For each={Object.entries(minimapIndex.data[color()])}>
-                {(shape) => (
-                  <div
-                    class='hover:bg-muted rounded-lg'
-                    onMouseDown={() => {
-                      setShape(shape[0] as Shape);
-                    }}
-                  >
-                    <MinimapIcon
-                      scale={scale()}
-                      color={color()}
-                      size={size()}
-                      shape={shape[0] as Shape}
-                    />
-                  </div>
-                )}
-              </For>
-              ) : <div>Loading...</div>}
+                <For each={Object.entries(minimapIndex.data[color()])}>
+                  {(shape) => (
+                    <div
+                      class='hover:bg-muted rounded-lg'
+                      onMouseDown={() => {
+                        setShape(shape[0] as Shape);
+                      }}
+                    >
+                      <MinimapIcon
+                        scale={scale()}
+                        color={color()}
+                        size={size()}
+                        shape={shape[0] as Shape}
+                      />
+                    </div>
+                  )}
+                </For>
+              ) : (
+                <div>Loading...</div>
+              )}
             </div>
             <div class='flex flex-col w-full items-center justify-center py-1 mx-1'>
               <RadioGroup value={size()} onChange={setSize} class='flex'>

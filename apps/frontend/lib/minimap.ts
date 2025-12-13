@@ -1,4 +1,4 @@
-import { Color, IconSize, Shape } from "@app/lib/filter";
+import type { Color, IconSize, Shape } from "@app/lib/filter";
 import { createStore } from "solid-js/store";
 
 export type Coordinate = { x: number; y: number };

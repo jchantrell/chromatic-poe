@@ -1,10 +1,8 @@
-import type { ValidComponent } from "solid-js";
-import { Show, splitProps } from "solid-js";
-
+import { cn } from "@app/lib/utils";
 import type { DynamicProps, HandleProps, RootProps } from "@corvu/resizable";
 import ResizablePrimitive from "@corvu/resizable";
-
-import { cn } from "@app/lib/utils";
+import type { ValidComponent } from "solid-js";
+import { Show, splitProps } from "solid-js";
 
 type ResizableProps<T extends ValidComponent = "div"> = RootProps<T> & {
   class?: string;
@@ -74,4 +72,3 @@ const ResizableHandle = <T extends ValidComponent = "button">(
 };
 
 export { Resizable, ResizableHandle, ResizablePanel };
-

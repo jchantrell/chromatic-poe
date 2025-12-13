@@ -8,16 +8,16 @@ import { createMutable, modifyMutable, reconcile } from "solid-js/store";
 import { toast } from "solid-sonner";
 import type { ulid } from "ulid";
 import {
+  type Actions,
   addParentRefs,
   BaseTypeCondition,
+  type Command,
+  type Conditions,
   convertRawToConditions,
   importFilter as convertRules,
   itemIndex,
   serializeActions,
   serializeConditions,
-  type Actions,
-  type Command,
-  type Conditions,
 } from ".";
 
 const WRITE_TIMEOUT = 1000;
@@ -84,7 +84,8 @@ export class Filter {
     this.chromaticVersion = params.chromaticVersion;
     this.poeVersion = params.poeVersion;
     // Default patch if missing (migration)
-    this.poePatch = params.poePatch || (params.poeVersion === 2 ? "4.0.0" : "3.25");
+    this.poePatch =
+      params.poePatch || (params.poeVersion === 2 ? "4.0.0" : "3.25");
     this.lastUpdated = params.lastUpdated;
     this.rules = params.rules.map((rule) => ({
       ...rule,
@@ -313,7 +314,7 @@ export async function generateFilter(
       poeVersion,
       poePatch: poeVersion === 2 ? "4.0.0" : "3.25",
       lastUpdated: new Date(),
-      rules
+      rules,
     });
   }
 

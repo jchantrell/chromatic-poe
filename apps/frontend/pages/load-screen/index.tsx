@@ -1,10 +1,10 @@
-import { For } from "solid-js";
-import { store } from "@app/store";
-import Setup from "./initial-setup";
 import Background from "@app/components/background";
-import ImportFilter from "./import-filter";
+import { store } from "@app/store";
+import { For } from "solid-js";
 import CreateFilter from "./create-filter";
 import ExistingFilter from "./existing-filter";
+import ImportFilter from "./import-filter";
+import Setup from "./initial-setup";
 
 export default function LoadScreen() {
   return (

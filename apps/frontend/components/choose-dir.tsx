@@ -1,19 +1,19 @@
+import { FolderIcon } from "@app/icons";
+import chromatic from "@app/lib/config";
+import { cn, to } from "@app/lib/utils";
+import { store } from "@app/store";
+import { Button } from "@app/ui/button";
+import type { PolymorphicProps } from "@kobalte/core/polymorphic";
+import { platform } from "@tauri-apps/plugin-os";
 import {
   type ComponentProps,
-  type ValidComponent,
   createEffect,
   createSignal,
   onMount,
   splitProps,
+  type ValidComponent,
 } from "solid-js";
-import type { PolymorphicProps } from "@kobalte/core/polymorphic";
-import { Button } from "@app/ui/button";
-import { FolderIcon } from "@app/icons";
-import { cn, to } from "@app/lib/utils";
-import { store } from "@app/store";
-import { platform } from "@tauri-apps/plugin-os";
 import { toast } from "solid-sonner";
-import chromatic from "@app/lib/config";
 
 export function ChooseDirectory<T extends ValidComponent = "div">(
   props: PolymorphicProps<T>,

@@ -14,7 +14,6 @@ export class Database {
     });
     this.sqlite3 = SQLite.Factory(module);
 
-    // @ts-ignore
     const vfs = new IDBBatchAtomicVFS("chromatic-poe-db");
     await vfs.isReady;
 
@@ -34,7 +33,10 @@ export class Database {
     await this.sqlite3.exec(this.db, sql);
   }
 
-  async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+  async query(
+    sql: string,
+    params: SQLiteCompatibleType[] = [],
+  ): Promise<Record<string, unknown>[]> {
     if (!this.sqlite3 || !this.db) throw new Error("DB not initialized");
     const str = this.sqlite3.str_new(this.db);
     this.sqlite3.str_appendall(str, sql);
@@ -59,11 +61,11 @@ export class Database {
       }
 
       while ((await this.sqlite3.step(prepared.stmt)) === SQLite.SQLITE_ROW) {
-        const row: any = {};
+        const row: Record<string, unknown> = {};
         for (let i = 0; i < columnCount; i++) {
           const name = columnNames[i];
           const type = this.sqlite3.column_type(prepared.stmt, i);
-          let value;
+          let value: number | string | null;
           switch (type) {
             case SQLite.SQLITE_INTEGER:
               value = this.sqlite3.column_int(prepared.stmt, i);
@@ -90,7 +92,7 @@ export class Database {
     }
   }
 
-  async run(sql: string, params: any[] = []) {
+  async run(sql: string, params: SQLiteCompatibleType[] = []) {
     if (!this.sqlite3 || !this.db) throw new Error("DB not initialized");
     const str = this.sqlite3.str_new(this.db);
     this.sqlite3.str_appendall(str, sql);
@@ -112,7 +114,7 @@ export class Database {
     }
   }
 
-  async batchRun(sql: string, paramsList: any[][]) {
+  async batchRun(sql: string, paramsList: SQLiteCompatibleType[][]) {
     if (!this.sqlite3 || !this.db) throw new Error("DB not initialized");
     const str = this.sqlite3.str_new(this.db);
     this.sqlite3.str_appendall(str, sql);

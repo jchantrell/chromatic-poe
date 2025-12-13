@@ -1,9 +1,15 @@
-import { SCHEMA_URL, type SchemaFile, ValidFor } from "pathofexile-dat-schema";
 import { readColumn, readDatFile } from "pathofexile-dat/dat.js";
+import {
+  SCHEMA_URL,
+  type SchemaFile,
+  type SchemaTable,
+  ValidFor,
+} from "pathofexile-dat-schema";
 import { ArtManager } from "./art";
 import { BundleManager } from "./bundle";
 import { Database } from "./db";
-import { TABLES, getQuery } from "./queries";
+import type { Item } from "./filter";
+import { getQuery, TABLES } from "./queries";
 import { to } from "./utils";
 
 export class DatManager {
@@ -30,15 +36,21 @@ export class DatManager {
   async getItems(patch: string) {
     const query = getQuery(patch, "items");
     if (!query) return [];
-    const items= await this.db.query(query);
-    const paths = items.map((i) => i.art).filter((p) => p);
-    this.art.getArt(patch, paths); 
-    return items
+    const items = (await this.db.query(query)) as unknown as Item[];
+    const artItems = items
+      .filter((i) => i.art)
+      .map((i) => ({ name: i.name, path: i.art }));
+
+    // Don't await this, let it run in background to cache images
+    this.art
+      .ensureCached(patch, artItems)
+      .catch((e) => console.error("Failed to ensure art cache", e));
+
+    return items;
   }
 
-  async getItemArt(items: { art: string }[]) {
-    const paths = items.map((i) => i.art).filter((p) => p);
-    return await this.art.getArt(this.patch, paths);
+  async getItemArt(name: string) {
+    return await this.art.getCached(this.patch, name);
   }
 
   async getMods(patch: string) {
@@ -46,17 +58,20 @@ export class DatManager {
     return await this.db.query(query);
   }
 
-  async extract(patch: string, onProgress?: (percent: number, msg: string) => void) {
+  async extract(
+    patch: string,
+    onProgress?: (percent: number, msg: string) => void,
+  ) {
     this.patch = patch;
     if (!this.db.db) {
       await this.db.init();
       await this.db.exec(
-         "CREATE TABLE IF NOT EXISTS _patches (version TEXT PRIMARY KEY, date INTEGER)",
+        "CREATE TABLE IF NOT EXISTS _patches (version TEXT PRIMARY KEY, date INTEGER)",
       );
     }
     const check = await this.db.query(
       "SELECT version FROM _patches WHERE version = ?",
-      [patch]
+      [patch],
     );
 
     if (check.length > 0) {
@@ -133,7 +148,7 @@ export class DatManager {
     for (const ext of extensions) {
       if (content) break;
 
-      let paths = [`Data/${tableName}${ext}`];
+      const paths = [`Data/${tableName}${ext}`];
 
       if (isPoE2) {
         paths.unshift(`data/balance/${tableName}${ext}`);
@@ -147,7 +162,7 @@ export class DatManager {
             console.log(`Found ${path}`);
             break;
           }
-        } catch (e) {}
+        } catch (_e) {}
       }
     }
 
@@ -214,10 +229,10 @@ export class DatManager {
 
     await this.db.transaction(async () => {
       const CHUNK_SIZE = 1000;
-      let currentChunk: any[] = [];
+      let currentChunk: SQLiteCompatibleType[][] = [];
 
       for (let i = 0; i < rowCount; i++) {
-        const row: any[] = [i];
+        const row: SQLiteCompatibleType = [i];
         for (const col of colsData) {
           let val = col.data[i];
 
@@ -245,8 +260,8 @@ export class DatManager {
     console.log(`Imported ${rowCount} rows for ${tableName}`);
   }
 
-  private createHeaders(tableSchema: any) {
-    const headers: any[] = [];
+  private createHeaders(tableSchema: SchemaTable) {
+    const headers: Record<string, unknown>[] = [];
     let offset = 0;
 
     for (const column of tableSchema.columns) {
@@ -307,7 +322,9 @@ export class DatManager {
     return headers;
   }
 
-  private getHeaderLength(header: any) {
+  private getHeaderLength(header: {
+    type: { [key: string]: string | { [key: string]: string } };
+  }) {
     if (header.type.array) return 16;
     if (header.type.string) return 8;
 

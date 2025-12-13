@@ -1,10 +1,8 @@
-import type { JSX, ValidComponent } from "solid-js";
-import { splitProps } from "solid-js";
-
+import { cn } from "@app/lib/utils";
 import * as AlertDialogPrimitive from "@kobalte/core/alert-dialog";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
-
-import { cn } from "@app/lib/utils";
+import type { JSX, ValidComponent } from "solid-js";
+import { splitProps } from "solid-js";
 
 const AlertDialog = AlertDialogPrimitive.Root;
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
@@ -114,6 +112,11 @@ const AlertDialogDescription = <T extends ValidComponent = "p">(
 };
 
 export {
-    AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogOverlay, AlertDialogPortal, AlertDialogTitle, AlertDialogTrigger
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogOverlay,
+  AlertDialogPortal,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 };
-

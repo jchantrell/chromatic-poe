@@ -11,10 +11,12 @@ const DDSD_MIPMAPCOUNT = 0x20000;
 const DDPF_FOURCC = 0x4;
 
 function fourCCToInt32(value: string) {
-  return value.charCodeAt(0) +
+  return (
+    value.charCodeAt(0) +
     (value.charCodeAt(1) << 8) +
     (value.charCodeAt(2) << 16) +
-    (value.charCodeAt(3) << 24);
+    (value.charCodeAt(3) << 24)
+  );
 }
 
 function int32ToFourCC(value: number) {
@@ -22,14 +24,14 @@ function int32ToFourCC(value: number) {
     value & 0xff,
     (value >> 8) & 0xff,
     (value >> 16) & 0xff,
-    (value >> 24) & 0xff
+    (value >> 24) & 0xff,
   );
 }
 
-const FOURCC_DXT1 = fourCCToInt32('DXT1');
-const FOURCC_DXT3 = fourCCToInt32('DXT3');
-const FOURCC_DXT5 = fourCCToInt32('DXT5');
-const FOURCC_DX10 = fourCCToInt32('DX10');
+const FOURCC_DXT1 = fourCCToInt32("DXT1");
+const FOURCC_DXT3 = fourCCToInt32("DXT3");
+const FOURCC_DXT5 = fourCCToInt32("DXT5");
+const FOURCC_DX10 = fourCCToInt32("DX10");
 const FOURCC_FP32F = 116; // DXGI_FORMAT_R32G32B32A32_FLOAT
 
 const DDSCAPS2_CUBEMAP = 0x200;
@@ -55,11 +57,11 @@ export function parseDds(arrayBuffer: ArrayBufferLike): DDSInfo {
   const header = new Int32Array(arrayBuffer, 0, headerLengthInt);
 
   if (header[off_magic] !== DDS_MAGIC) {
-    throw new Error('Invalid magic number in DDS header');
+    throw new Error("Invalid magic number in DDS header");
   }
 
   if (!(header[off_pfFlags] & DDPF_FOURCC)) {
-    throw new Error('Unsupported format, must contain a FourCC code');
+    throw new Error("Unsupported format, must contain a FourCC code");
   }
 
   let blockBytes = 0;
@@ -68,15 +70,15 @@ export function parseDds(arrayBuffer: ArrayBufferLike): DDSInfo {
 
   if (fourCC === FOURCC_DXT1) {
     blockBytes = 8;
-    format = 'dxt1';
+    format = "dxt1";
   } else if (fourCC === FOURCC_DXT3) {
     blockBytes = 16;
-    format = 'dxt3';
+    format = "dxt3";
   } else if (fourCC === FOURCC_DXT5) {
     blockBytes = 16;
-    format = 'dxt5';
+    format = "dxt5";
   } else if (fourCC === FOURCC_FP32F) {
-    format = 'rgba32f';
+    format = "rgba32f";
   } else if (fourCC === FOURCC_DX10) {
     const dx10Header = new Uint32Array(arrayBuffer.slice(128, 128 + 20));
     const dx10Format = dx10Header[0];
@@ -84,17 +86,19 @@ export function parseDds(arrayBuffer: ArrayBufferLike): DDSInfo {
 
     if (resourceDimension === D3D10_RESOURCE_DIMENSION_TEXTURE2D) {
       if (dx10Format === DXGI_FORMAT_R32G32B32A32_FLOAT) {
-        format = 'rgba32f';
+        format = "rgba32f";
       } else if (dx10Format === DXGI_FORMAT_R8G8B8A8_UNORM) {
-        format = 'rgba8unorm';
+        format = "rgba8unorm";
       } else {
-        throw new Error('Unsupported DX10 texture format ' + dx10Format);
+        throw new Error(`Unsupported DX10 texture format ${dx10Format}`);
       }
     } else {
-      throw new Error('Unsupported DX10 resource dimension ' + resourceDimension);
+      throw new Error(
+        `Unsupported DX10 resource dimension ${resourceDimension}`,
+      );
     }
   } else {
-    throw new Error('Unsupported FourCC code: ' + int32ToFourCC(fourCC));
+    throw new Error(`Unsupported FourCC code: ${int32ToFourCC(fourCC)}`);
   }
 
   const flags = header[off_flags];
@@ -122,27 +126,28 @@ export function parseDds(arrayBuffer: ArrayBufferLike): DDSInfo {
   }
 
   if (cubemap) {
-     // ... Cubemap logic omitted for brevity as generally not used for items, 
-     // but if needed can copypaste from parse-dds and adapt. 
-     // Keeping it simple for now to fix the item issue.
-     throw new Error('Cubemaps not fully implemented in this custom parser');
+    // ... Cubemap logic omitted for brevity as generally not used for items,
+    // but if needed can copypaste from parse-dds and adapt.
+    // Keeping it simple for now to fix the item issue.
+    throw new Error("Cubemaps not fully implemented in this custom parser");
   } else {
     for (let i = 0; i < mipmapCount; i++) {
       let dataLength: number;
-      
-      if (format === 'rgba8unorm') {
-         dataLength = width * height * 4;
-      } else if (format === 'rgba32f') {
-         dataLength = width * height * 16;
+
+      if (format === "rgba8unorm") {
+        dataLength = width * height * 4;
+      } else if (format === "rgba32f") {
+        dataLength = width * height * 16;
       } else {
-         // DXT / Block compressed
-         dataLength = Math.max(4, width) / 4 * Math.max(4, height) / 4 * blockBytes;
+        // DXT / Block compressed
+        dataLength =
+          (((Math.max(4, width) / 4) * Math.max(4, height)) / 4) * blockBytes;
       }
 
       images.push({
         offset: dataOffset,
         length: dataLength,
-        shape: [width, height] as [number, number]
+        shape: [width, height] as [number, number],
       });
       dataOffset += dataLength;
       width = Math.floor(width / 2);
@@ -155,6 +160,6 @@ export function parseDds(arrayBuffer: ArrayBufferLike): DDSInfo {
     images: images,
     format: format,
     flags: flags,
-    cubemap: cubemap
+    cubemap: cubemap,
   };
 }

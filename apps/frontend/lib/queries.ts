@@ -1237,7 +1237,10 @@ export function getQuery(patch: string, name: string): string {
 
   // Prefix all tables with patch version
   for (const table of TABLES) {
-    query = query.replace(new RegExp(`(?<!\\.)\\b${table}\\b`, "g"), `"${patch}_${table}"`);
+    query = query.replace(
+      new RegExp(`(?<!\\.)\\b${table}\\b`, "g"),
+      `"${patch}_${table}"`,
+    );
   }
 
   return query;

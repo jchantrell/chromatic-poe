@@ -5,11 +5,11 @@ import { Badge } from "@app/ui/badge";
 import { Button } from "@app/ui/button";
 import { Checkbox } from "@app/ui/checkbox";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@app/ui/dialog";
 import { Separator } from "@app/ui/separator";
 import { Slider, SliderThumb, SliderTrack } from "@app/ui/slider";

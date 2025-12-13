@@ -13,15 +13,15 @@ import {
 } from "@app/icons";
 import chromatic from "@app/lib/config";
 import { dat } from "@app/lib/dat";
-import { itemIndex, type Item } from "@app/lib/filter/items";
-import { modIndex, type Mod } from "@app/lib/filter/mods";
+import { type Item, itemIndex } from "@app/lib/filter/items";
+import { type Mod, modIndex } from "@app/lib/filter/mods";
 import { minimapIndex } from "@app/lib/minimap";
 import { checkForUpdate } from "@app/lib/update";
 import { ensureData } from "@app/lib/update-data.tsx";
 import Editor from "@app/pages/editor";
 import LoadScreen from "@app/pages/load-screen";
 import SoundManager from "@app/pages/sound";
-import { refreshSounds, store } from "@app/store";
+import { refreshSounds, setItemsLoaded, store } from "@app/store";
 import { Avatar, AvatarImage } from "@app/ui/avatar";
 import { Button } from "@app/ui/button";
 import { Toaster } from "@app/ui/sonner";
@@ -32,7 +32,7 @@ import {
 } from "@kobalte/core";
 import { Route, Router } from "@solidjs/router";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
-import { createEffect, createSignal, onMount, type JSXElement } from "solid-js";
+import { createEffect, createSignal, type JSXElement, onMount } from "solid-js";
 import { toast } from "solid-sonner";
 import "./app.css";
 import { to } from "./lib/utils";
@@ -231,8 +231,9 @@ function App() {
       store.filter.poePatch = currentVersions.poe2;
     }
 
-    if (itemIndex.patch !== filterVersion){
-        itemIndex.searchIndex = null
+    if (itemIndex.patch !== filterVersion) {
+      itemIndex.searchIndex = null;
+      setItemsLoaded(false);
     }
 
     const [extractError] = await to(ensureData(store.filter.poePatch));
@@ -250,6 +251,7 @@ function App() {
     } else {
       itemIndex.initV2(data.items as Item[], store.filter.poePatch);
     }
+    setItemsLoaded(true);
     modIndex.init(data.mods as Mod[]);
     if (data.minimap) {
       minimapIndex.init(data.minimap);

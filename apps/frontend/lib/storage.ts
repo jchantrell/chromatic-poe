@@ -1,3 +1,5 @@
+import { store } from "@app/store";
+import { sep } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
 import {
   exists,
@@ -10,9 +12,7 @@ import {
   writeFile,
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
-import { sep } from "@tauri-apps/api/path";
 import { eol } from "@tauri-apps/plugin-os";
-import { store } from "@app/store";
 
 export async function autosave() {
   if (store.filter) {
@@ -52,7 +52,7 @@ export class WebStorage implements FileSystem {
   truncatePath(path: string) {
     return path;
   }
-  async upsertDirectory(path: string) {
+  async upsertDirectory(_path: string) {
     return;
   }
   async pickDirectoryPrompt(): Promise<string | null> {
@@ -68,10 +68,10 @@ export class WebStorage implements FileSystem {
   async exists(path: string): Promise<boolean> {
     console.log("Checking for file", path);
     const item = localStorage.getItem(path);
-    return item !== null ? true : false;
+    return item !== null;
   }
 
-  async writeFile(path: string, type: "text" | "binary", data: string) {
+  async writeFile(path: string, _type: "text" | "binary", data: string) {
     console.log("Writing file", path);
     localStorage.setItem(path, data);
   }
@@ -157,7 +157,7 @@ export class DesktopStorage implements FileSystem {
     }
   }
 
-  async uploadFile(path: string, data: string) {}
+  async uploadFile(_path: string, _data: string) {}
 
   async getAllFiles<T extends "text" | "binary">(
     path: string,

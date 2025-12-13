@@ -18,7 +18,7 @@ function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
   try {
     const appWindow = getCurrentWindow();
     return appWindow;
-  } catch (err) {
+  } catch (_err) {
     return null;
   }
 }
@@ -458,7 +458,7 @@ class Chromatic {
     }
   }
 
-  async listImportableFilters(version: number) {
+  async listImportableFilters(_version: number) {
     if (this.runtime === "web") return;
 
     if (!this.config.poeDirectory) return;

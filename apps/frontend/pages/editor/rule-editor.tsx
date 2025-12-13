@@ -1,13 +1,13 @@
 import Tooltip from "@app/components/tooltip";
 import { CloseIcon } from "@app/icons";
 import {
-    Color,
-    IconSize,
-    setBeamEnabled,
-    setDropSoundEnabled,
-    setDropSoundToggle,
-    setMapIconEnabled,
-    Shape,
+  Color,
+  IconSize,
+  Shape,
+  setBeamEnabled,
+  setDropSoundEnabled,
+  setDropSoundToggle,
+  setMapIconEnabled,
 } from "@app/lib/filter";
 import BeamPicker from "@app/pages/editor/beam-picker";
 import ColorPicker from "@app/pages/editor/color-picker";

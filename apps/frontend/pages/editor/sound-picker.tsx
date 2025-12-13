@@ -2,23 +2,23 @@ import SoundPlayer from "@app/components/sound-player";
 import Tooltip from "@app/components/tooltip";
 import type { Sound } from "@app/lib/config";
 import {
-    type Filter,
-    setSoundEnabled,
-    setSoundPath,
-    setSoundVolume,
+  type Filter,
+  setSoundEnabled,
+  setSoundPath,
+  setSoundVolume,
 } from "@app/lib/filter";
 import { refreshSounds, store } from "@app/store";
 import { Checkbox } from "@app/ui/checkbox";
 import {
-    Combobox,
-    ComboboxContent,
-    ComboboxControl,
-    ComboboxInput,
-    ComboboxItem,
-    ComboboxItemIndicator,
-    ComboboxItemLabel,
-    ComboboxSection,
-    ComboboxTrigger,
+  Combobox,
+  ComboboxContent,
+  ComboboxControl,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxItemIndicator,
+  ComboboxItemLabel,
+  ComboboxSection,
+  ComboboxTrigger,
 } from "@app/ui/combo-box";
 import { Label } from "@app/ui/label";
 import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";

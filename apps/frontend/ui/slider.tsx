@@ -1,11 +1,10 @@
-import type { JSX, ValidComponent } from "solid-js";
-import { splitProps } from "solid-js";
+import { cn } from "@app/lib/utils";
+import { Label } from "@app/ui/label";
 
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import * as SliderPrimitive from "@kobalte/core/slider";
-
-import { cn } from "@app/lib/utils";
-import { Label } from "@app/ui/label";
+import type { JSX, ValidComponent } from "solid-js";
+import { splitProps } from "solid-js";
 
 type SliderRootProps<T extends ValidComponent = "div"> =
   SliderPrimitive.SliderRootProps<T> & {
@@ -103,6 +102,10 @@ const SliderValueLabel = <T extends ValidComponent = "label">(
 };
 
 export {
-    Slider, SliderFill, SliderLabel, SliderThumb, SliderTrack, SliderValueLabel
+  Slider,
+  SliderFill,
+  SliderLabel,
+  SliderThumb,
+  SliderTrack,
+  SliderValueLabel,
 };
-

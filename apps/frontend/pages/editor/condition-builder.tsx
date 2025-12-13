@@ -2,10 +2,10 @@ import Tooltip from "@app/components/tooltip";
 import { CloseIcon, PlusIcon } from "@app/icons";
 import {
   type ConditionGroup,
-  conditionGroupColors,
-  conditionIndex,
   ConditionKey,
   type Conditions,
+  conditionGroupColors,
+  conditionIndex,
   conditionTypes,
   createCondition,
   type FilterRule,

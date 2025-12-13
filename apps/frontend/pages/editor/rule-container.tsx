@@ -1,14 +1,14 @@
-import { type Index } from "@app/components/search";
+import type { Index } from "@app/components/search";
 import { type FilterRule, moveRule } from "@app/lib/filter";
 import { store } from "@app/store";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
 import {
-    closestCenter,
-    DragDropProvider,
-    DragDropSensors,
-    type DragEvent,
-    DragOverlay,
-    SortableProvider,
+  closestCenter,
+  DragDropProvider,
+  DragDropSensors,
+  type DragEvent,
+  DragOverlay,
+  SortableProvider,
 } from "@thisbeyond/solid-dnd";
 import Fuse, { type FuseResult } from "fuse.js";
 import { createEffect, createSignal, For } from "solid-js";

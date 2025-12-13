@@ -2,10 +2,10 @@ import { camelCase, clone } from "@app/lib/utils";
 import { ulid } from "ulid";
 import { type Actions, Color, DEFAULT_STYLE, IconSize, Shape } from "./action";
 import {
-    ConditionKey,
-    type Conditions,
-    createCondition,
-    Operator,
+  ConditionKey,
+  type Conditions,
+  createCondition,
+  Operator,
 } from "./condition";
 import type { FilterItem, FilterRule } from "./filter";
 import { itemIndex } from "./items";

@@ -1,10 +1,10 @@
 import type {
-    Color,
-    Filter,
-    FilterItem,
-    FilterRule,
-    IconSize,
-    Shape,
+  Color,
+  Filter,
+  FilterItem,
+  FilterRule,
+  IconSize,
+  Shape,
 } from "@app/lib/filter";
 import { clone } from "@app/lib/utils";
 import { ulid } from "ulid";

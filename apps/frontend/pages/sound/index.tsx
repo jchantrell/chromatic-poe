@@ -6,12 +6,12 @@ import chromatic, { type Sound } from "@app/lib/config";
 import { refreshSounds, setSounds, store } from "@app/store";
 import { Separator } from "@app/ui/separator";
 import {
-    Slider,
-    SliderFill,
-    SliderLabel,
-    SliderThumb,
-    SliderTrack,
-    SliderValueLabel,
+  Slider,
+  SliderFill,
+  SliderLabel,
+  SliderThumb,
+  SliderTrack,
+  SliderValueLabel,
 } from "@app/ui/slider";
 import { platform } from "@tauri-apps/plugin-os";
 import { createSignal, For, onMount } from "solid-js";

@@ -1,12 +1,10 @@
-import type { ValidComponent } from "solid-js";
-import { splitProps } from "solid-js";
-
+import { cn } from "@app/lib/utils";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import * as ToggleButtonPrimitive from "@kobalte/core/toggle-button";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-
-import { cn } from "@app/lib/utils";
+import type { ValidComponent } from "solid-js";
+import { splitProps } from "solid-js";
 
 const toggleVariants = cva(
   "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
@@ -54,4 +52,3 @@ const Toggle = <T extends ValidComponent = "button">(
 
 export { Toggle, toggleVariants };
 export type { ToggleButtonRootProps as ToggleProps };
-

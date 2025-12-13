@@ -1,7 +1,6 @@
+import { cn } from "@app/lib/utils";
 import type { Component, ComponentProps } from "solid-js";
 import { splitProps } from "solid-js";
-
-import { cn } from "@app/lib/utils";
 
 const Label: Component<ComponentProps<"label">> = (props) => {
   const [local, others] = splitProps(props, ["class"]);

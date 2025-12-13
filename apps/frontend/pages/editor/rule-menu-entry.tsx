@@ -3,9 +3,9 @@ import {
   addParentRefs,
   deleteRule,
   duplicateRule,
+  type FilterRule,
   itemIndex,
   setEntryActive,
-  type FilterRule
 } from "@app/lib/filter";
 import { store } from "@app/store";
 import { Badge } from "@app/ui/badge";
@@ -27,15 +27,13 @@ import { MinimapIcon } from "./map-icon-picker";
 
 const MIN_PREVIEW_WIDTH = 500; // Adjust this value as needed
 
-export default function Rule(props: {
-  rule: FilterRule;
-}) {
+export default function Rule(props: { rule: FilterRule }) {
   const [editNameActive, setEditNameActive] = createSignal(false);
   const [active, setActive] = createSignal<boolean>(false);
   const [expanded, setExpanded] = createSignal(false);
   const [hovered, setHovered] = createSignal(false);
   const [previewWidth, setPreviewWidth] = createSignal(0);
-  const [itemsLoaded,setItemsLoaded]=createSignal(false);
+  const [itemsLoaded, setItemsLoaded] = createSignal(false);
   const sortable = createSortable(props.rule.id, props.rule);
   const [state] = useDragDropContext();
 
@@ -210,7 +208,9 @@ export default function Rule(props: {
                   onClick={() => setExpanded(true)}
                   disabled={!itemIndex.searchIndex}
                 >
-                  <div class='flex justify-between items-center w-full'>Edit Bases</div>
+                  <div class='flex justify-between items-center w-full'>
+                    Edit Bases
+                  </div>
                 </DialogTrigger>
                 <ContextMenuItem onMouseDown={handleActive}>
                   <span>{props.rule.enabled ? "Disable" : "Enable"}</span>

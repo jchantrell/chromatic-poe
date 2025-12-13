@@ -25,14 +25,16 @@ class ItemIndex {
   classes: string[] = [];
   itemTable: { [key: string]: { [key: string]: Item } } = {};
   allItems: Item[] = [];
-  patch!: string
+  patch!: string;
 
   findItemByBase(base: string) {
-    return this.allItems.find((item) => item.base && item.base.toLowerCase() === base.toLowerCase());
+    return this.allItems.find(
+      (item) => item.base && item.base.toLowerCase() === base.toLowerCase(),
+    );
   }
-  
+
   findItemByName(name: string) {
-     return this.allItems.find((item) => item.name === name);
+    return this.allItems.find((item) => item.name === name);
   }
 
   initV1(items: Item[], patch: string) {
@@ -46,7 +48,7 @@ class ItemIndex {
       distance: 160,
       threshold: 0.6,
     };
-    
+
     const itemTable: { [key: string]: { [key: string]: Item } } = {};
     const classes = new Set<string>();
 
@@ -76,7 +78,7 @@ class ItemIndex {
   }
 
   initV2(items: Item[], patch: string) {
-     this.patch = patch;
+    this.patch = patch;
     this.allItems = items;
     const options = {
       keys: ["name", "category", "class", "type"],
@@ -132,9 +134,7 @@ class ItemIndex {
     return hierarchy;
   }
 
-  search(
-    args: string,
-  ): FuseResult<Item>[] {
+  search(args: string): FuseResult<Item>[] {
     if (!this.searchIndex) {
       return [];
     }

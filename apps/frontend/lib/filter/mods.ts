@@ -21,8 +21,6 @@ export interface SearchableMod extends Mod {
 class ModIndex {
   searchIndex!: Fuse<SearchableMod>;
 
-  constructor() {}
-  
   init(mods: Mod[]) {
     this.setMods(
       mods.map((mod) => ({

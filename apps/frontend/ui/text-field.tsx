@@ -1,11 +1,9 @@
-import type { ValidComponent } from "solid-js";
-import { splitProps } from "solid-js";
-
+import { cn } from "@app/lib/utils";
 import type { PolymorphicProps } from "@kobalte/core";
 import * as TextFieldPrimitive from "@kobalte/core/text-field";
 import { cva } from "class-variance-authority";
-
-import { cn } from "@app/lib/utils";
+import type { ValidComponent } from "solid-js";
+import { splitProps } from "solid-js";
 
 const TextField = TextFieldPrimitive.Root;
 
@@ -146,7 +144,10 @@ const TextFieldErrorMessage = <T extends ValidComponent = "div">(
 };
 
 export {
-    TextField, TextFieldDescription,
-    TextFieldErrorMessage, TextFieldInput, TextFieldLabel, TextFieldTextArea
+  TextField,
+  TextFieldDescription,
+  TextFieldErrorMessage,
+  TextFieldInput,
+  TextFieldLabel,
+  TextFieldTextArea,
 };
-

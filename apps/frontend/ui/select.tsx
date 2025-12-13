@@ -1,10 +1,8 @@
-import type { JSX, ValidComponent } from "solid-js";
-import { splitProps } from "solid-js";
-
+import { cn } from "@app/lib/utils";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import * as SelectPrimitive from "@kobalte/core/select";
-
-import { cn } from "@app/lib/utils";
+import type { JSX, ValidComponent } from "solid-js";
+import { splitProps } from "solid-js";
 
 const Select = SelectPrimitive.Root;
 const SelectValue = SelectPrimitive.Value;
@@ -114,6 +112,10 @@ const SelectItem = <T extends ValidComponent = "li">(
 };
 
 export {
-    Select, SelectContent, SelectHiddenSelect, SelectItem, SelectTrigger, SelectValue
+  Select,
+  SelectContent,
+  SelectHiddenSelect,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 };
-

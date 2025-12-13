@@ -3,11 +3,11 @@ import { generateFilter, Template } from "@app/lib/filter";
 import { store } from "@app/store";
 import { Button } from "@app/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@app/ui/dialog";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
 import { TextField, TextFieldInput, TextFieldLabel } from "@app/ui/text-field";

@@ -50,11 +50,8 @@ function updateParentState(node: TreeNode) {
   }
 }
 
-
-
 function getIcon(node: TreeNode) {
-  if (node.data)
-    return itemIndex.itemTable[node.data.category][node.data.name].art;
+  if (node.data) return node.name;
   return getIcon(node.children[0]);
 }
 
@@ -117,17 +114,12 @@ function Node(props: {
     setIsExpanded(!isExpanded());
   }
 
+  const icon = getIcon(props.node);
   const [art] = createResource(
-    () => props.node,
-    async (node) => {
-      const artPath = "data" in node && node.data 
-        ? itemIndex.itemTable[node.data.category][node.data.name].art 
-        : getIcon(node);
-      
-      if (!artPath) return "/static/tainted-chromatic-icon.png";
-      const map = await dat.getItemArt([{ art: artPath }]);
-      return map.get(artPath) || "/static/tainted-chromatic-icon.png";
-    }
+    () => icon,
+    async () => {
+      return await dat.getItemArt(icon);
+    },
   );
 
   return (
@@ -152,8 +144,7 @@ function Node(props: {
             <img
               class='mr-1 h-6 max-w-full pointer-events-none'
               alt={`${props.node.data?.name} icon`}
-              src={art() || "/static/tainted-chromatic-icon.png"}
-              onError={(e) => (e.currentTarget.src = "/static/tainted-chromatic-icon.png")}
+              src={art()}
             />
           </figure>
           <span>
@@ -206,7 +197,9 @@ export function ItemPicker(props: { rule: FilterRule }) {
 
     if ("data" in node && node.data) {
       if (node.data.category === "Uniques") {
-        const existingRarity = props.rule.conditions.find(c => c.key === ConditionKey.RARITY);
+        const existingRarity = props.rule.conditions.find(
+          (c) => c.key === ConditionKey.RARITY,
+        );
         if (
           enabled &&
           (!existingRarity || !existingRarity.value.includes(Rarity.UNIQUE))
@@ -216,15 +209,15 @@ export function ItemPicker(props: { rule: FilterRule }) {
               "Uniques are filtered by base type (the small grey text next to the unique's name) so a rarity condition of 'Unique' is required to separate them from other rarities.",
             duration: 10000,
           });
-          
+
           if (existingRarity) {
-             existingRarity.value.push(Rarity.UNIQUE);
+            existingRarity.value.push(Rarity.UNIQUE);
           } else {
-             props.rule.conditions.push(
-               new RarityCondition({
-                 value: [Rarity.UNIQUE],
-               }),
-             );
+            props.rule.conditions.push(
+              new RarityCondition({
+                value: [Rarity.UNIQUE],
+              }),
+            );
           }
         }
         if (!enabled) {

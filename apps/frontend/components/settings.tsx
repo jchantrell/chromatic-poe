@@ -1,5 +1,6 @@
 import { SettingsIcon } from "@app/icons";
 import chromatic from "@app/lib/config";
+import { dat } from "@app/lib/dat";
 import { checkForUpdate, relaunchApp } from "@app/lib/update";
 import { to } from "@app/lib/utils";
 import { store } from "@app/store";
@@ -13,21 +14,19 @@ import {
   DialogTrigger,
 } from "@app/ui/dialog";
 import { Label } from "@app/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@app/ui/select";
 import { Separator } from "@app/ui/separator";
 import { TextField, TextFieldLabel } from "@app/ui/text-field";
 import { createSignal, onMount } from "solid-js";
 import { toast } from "solid-sonner";
 import { ChooseDirectory } from "./choose-dir";
 import Theme from "./theme";
-
-import { dat } from "@app/lib/dat";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@app/ui/select";
 
 export function Settings() {
   const [version, setVersion] = createSignal("0.0.0");
@@ -47,8 +46,6 @@ export function Settings() {
       });
     }
   }
-
-
 
   onMount(async () => {
     setVersion(await chromatic.getVersion());
@@ -136,7 +133,6 @@ export function Settings() {
                 </SelectTrigger>
                 <SelectContent />
               </Select>
-
             </div>
           </div>
         </div>

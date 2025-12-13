@@ -1,10 +1,8 @@
-import type { JSX, ValidComponent } from "solid-js";
-import { splitProps } from "solid-js";
-
+import { cn } from "@app/lib/utils";
 import type { PolymorphicProps } from "@kobalte/core";
 import * as SwitchPrimitive from "@kobalte/core/switch";
-
-import { cn } from "@app/lib/utils";
+import type { JSX, ValidComponent } from "solid-js";
+import { splitProps } from "solid-js";
 
 const Switch = SwitchPrimitive.Root;
 const SwitchDescription = SwitchPrimitive.Description;
@@ -82,8 +80,10 @@ const SwitchLabel = <T extends ValidComponent = "label">(
 };
 
 export {
-    Switch,
-    SwitchControl, SwitchDescription,
-    SwitchErrorMessage, SwitchLabel, SwitchThumb
+  Switch,
+  SwitchControl,
+  SwitchDescription,
+  SwitchErrorMessage,
+  SwitchLabel,
+  SwitchThumb,
 };
-
