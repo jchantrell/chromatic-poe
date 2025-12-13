@@ -14,8 +14,8 @@ import {
 import chromatic from "@app/lib/config";
 import { dat } from "@app/lib/dat";
 import { type Item, itemIndex } from "@app/lib/items";
-import { type Mod, modIndex } from "@app/lib/mods";
 import { minimapIndex } from "@app/lib/minimap";
+import { type Mod, modIndex } from "@app/lib/mods";
 import { checkForUpdate } from "@app/lib/update";
 import { ensureData } from "@app/lib/update-data.tsx";
 import Editor from "@app/pages/editor";

@@ -8,27 +8,6 @@ export const DEFAULT_STYLE = {
   background: { r: 19, g: 14, b: 6, a: 240 },
 };
 
-export type Actions = {
-  fontSize?: number;
-  text?: RgbColor;
-  border?: RgbColor;
-  background?: RgbColor;
-  dropSound?: { enabled: boolean; toggle: boolean };
-  icon?: { size: IconSize; shape: Shape; color: Color; enabled: boolean };
-  beam?: { temp: boolean; color: Color; enabled: boolean };
-  ound?: {
-    path: { value: string; path?: string; type: "custom" | "default" };
-    volume: number;
-    enabled: boolean;
-  };
-};
-
-export enum IconSize {
-  Large = "Large",
-  Medium = "Medium",
-  Small = "Small",
-}
-
 export enum Color {
   Red = "Red",
   Green = "Green",
@@ -41,6 +20,41 @@ export enum Color {
   Orange = "Orange",
   Pink = "Pink",
   Purple = "Purple",
+}
+
+export const colors = {
+  [Color.Red]: "#f80c1e",
+  [Color.Brown]: "#8d1801",
+  [Color.Orange]: "#e97000",
+  [Color.Yellow]: "#be9a30",
+  [Color.Green]: "#1e9912",
+  [Color.Cyan]: "#0ca1b9",
+  [Color.Blue]: "#114dab",
+  [Color.Purple]: "#5d0f8c",
+  [Color.Pink]: "#dc62cb",
+  [Color.Grey]: "#1d1d1d",
+  [Color.White]: "#a8babd",
+};
+
+export type Actions = {
+  fontSize?: number;
+  text?: RgbColor;
+  border?: RgbColor;
+  background?: RgbColor;
+  dropSound?: { enabled: boolean; toggle: boolean };
+  icon?: { size: IconSize; shape: Shape; color: Color; enabled: boolean };
+  beam?: { temp: boolean; color: Color; enabled: boolean };
+  sound?: {
+    path: { value: string; path?: string; type: "custom" | "default" };
+    volume: number;
+    enabled: boolean;
+  };
+};
+
+export enum IconSize {
+  Large = "Large",
+  Medium = "Medium",
+  Small = "Small",
 }
 
 export enum Shape {
@@ -163,17 +177,3 @@ export function serializeActions(actions: Actions) {
 
   return strs;
 }
-
-export const colors = {
-  [Color.Red]: "#f80c1e",
-  [Color.Brown]: "#8d1801",
-  [Color.Orange]: "#e97000",
-  [Color.Yellow]: "#be9a30",
-  [Color.Green]: "#1e9912",
-  [Color.Cyan]: "#0ca1b9",
-  [Color.Blue]: "#114dab",
-  [Color.Purple]: "#5d0f8c",
-  [Color.Pink]: "#dc62cb",
-  [Color.Grey]: "#1d1d1d",
-  [Color.White]: "#a8babd",
-};

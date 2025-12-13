@@ -4,6 +4,7 @@ import {
   getFileInfo,
   readIndexBundle,
 } from "pathofexile-dat/bundles.js";
+import { withRetries } from "./utils";
 
 const BUNDLE_DIR = "Bundles2";
 
@@ -61,39 +62,25 @@ export class BundleManager {
     }
 
     console.log(`Loading from CDN: ${name} ...`);
+    return await withRetries(async () => {
+      const webpath = `/${this.patch}/${BUNDLE_DIR}/${name}`;
+      const response = await fetch(`${this.cdn}${webpath}`);
 
-    let lastError: any;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        if (attempt > 0) {
-          console.log(`Retrying fetch for ${name} (attempt ${attempt + 1})...`);
-          await new Promise((r) => setTimeout(r, 1000 * attempt));
-        }
-
-        const webpath = `/${this.patch}/${BUNDLE_DIR}/${name}`;
-        const response = await fetch(`${this.cdn}${webpath}`);
-
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch ${name} from CDN: ${response.statusText} (${response.status})`,
-          );
-        }
-
-        const buffer = await response.arrayBuffer();
-
-        try {
-          await db.put("bundles", buffer, cacheKey);
-        } catch (e) {
-          console.warn("Failed to write to cache", e);
-        }
-
-        return buffer;
-      } catch (e) {
-        lastError = e;
-        console.warn(`Fetch error for ${name}:`, e);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch ${name} from CDN: ${response.statusText} (${response.status})`,
+        );
       }
-    }
-    throw lastError || new Error(`Failed to fetch ${name} after 3 attempts`);
+
+      const buffer = await response.arrayBuffer();
+
+      try {
+        await db.put("bundles", buffer, cacheKey);
+      } catch (e) {
+        console.warn("Failed to write to cache", e);
+      }
+      return buffer;
+    });
   }
 
   async getFileContents(fullPath: string): Promise<Uint8Array> {

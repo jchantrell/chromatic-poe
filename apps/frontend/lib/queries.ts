@@ -1,26 +1,28 @@
-export const TABLES = [
-  "BaseItemTypes",
-  "ItemVisualIdentity",
-  "ItemClasses",
-  "ItemClassCategories",
-  "CurrencyExchange",
-  "CurrencyExchangeCategories",
-  "SkillGems",
-  "GemTags",
-  "GemEffects",
-  "ArmourTypes",
-  "WeaponTypes",
-  "CurrencyItems",
-  "Words",
-  "UniqueStashLayout",
-  "UniqueStashTypes",
-  "Tags",
-  "Mods",
-  "ModType",
-  "Stats",
-  "AttributeRequirements",
-  "GoldModPrices",
-];
+export enum TableNames {
+  BaseItemTypes = "BaseItemTypes",
+  ItemVisualIdentity = "ItemVisualIdentity",
+  ItemClasses = "ItemClasses",
+  ItemClassCategories = "ItemClassCategories",
+  CurrencyExchange = "CurrencyExchange",
+  CurrencyExchangeCategories = "CurrencyExchangeCategories",
+  SkillGems = "SkillGems",
+  GemTags = "GemTags",
+  GemEffects = "GemEffects",
+  ArmourTypes = "ArmourTypes",
+  WeaponTypes = "WeaponTypes",
+  CurrencyItems = "CurrencyItems",
+  Words = "Words",
+  UniqueStashLayout = "UniqueStashLayout",
+  UniqueStashTypes = "UniqueStashTypes",
+  Tags = "Tags",
+  Mods = "Mods",
+  ModType = "ModType",
+  Stats = "Stats",
+  AttributeRequirements = "AttributeRequirements",
+  GoldModPrices = "GoldModPrices",
+}
+
+export const TABLES = Object.values(TableNames);
 
 export const extraFields = `
 art,
@@ -34,74 +36,74 @@ name as base
 export const V1_ITEMS_QUERY = `
 WITH ITEMS AS (
   SELECT DISTINCT
-  BaseItemTypes.Name as 'name',
-  ItemClasses.Name as 'class',
-  ItemClassCategories.Text as 'category',
-  ItemVisualIdentity.DDSFile as 'art',
+  ${TableNames.BaseItemTypes}.Name as 'name',
+  ${TableNames.ItemClasses}.Name as 'class',
+  ${TableNames.ItemClassCategories}.Text as 'category',
+  ${TableNames.ItemVisualIdentity}.DDSFile as 'art',
   exchange_major.Name as 'exchangeCategory',
   exchange_sub.Name as 'exchangeSubCategory',
 
-  CurrencyExchange.GoldPurchaseFee as 'price',
-  SkillGems.StrengthRequirementPercent as 'strReq',
-  SkillGems.DexterityRequirementPercent as 'dexReq',
-  SkillGems.IntelligenceRequirementPercent as 'intReq',
+  ${TableNames.CurrencyExchange}.GoldPurchaseFee as 'price',
+  ${TableNames.SkillGems}.StrengthRequirementPercent as 'strReq',
+  ${TableNames.SkillGems}.DexterityRequirementPercent as 'dexReq',
+  ${TableNames.SkillGems}.IntelligenceRequirementPercent as 'intReq',
 
-  (ArmourTypes.ArmourMin + ArmourTypes.ArmourMax) / 2 as 'armour',
-  (ArmourTypes.EvasionMin + ArmourTypes.EvasionMax) / 2 as 'evasion',
-  (ArmourTypes.EnergyShieldMin + ArmourTypes.EnergyShieldMax) / 2 as 'energyShield',
-  (ArmourTypes.WardMin + ArmourTypes.WardMax) / 2 as 'ward',
+  (${TableNames.ArmourTypes}.ArmourMin + ${TableNames.ArmourTypes}.ArmourMax) / 2 as 'armour',
+  (${TableNames.ArmourTypes}.EvasionMin + ${TableNames.ArmourTypes}.EvasionMax) / 2 as 'evasion',
+  (${TableNames.ArmourTypes}.EnergyShieldMin + ${TableNames.ArmourTypes}.EnergyShieldMax) / 2 as 'energyShield',
+  (${TableNames.ArmourTypes}.WardMin + ${TableNames.ArmourTypes}.WardMax) / 2 as 'ward',
 
-  WeaponTypes.DamageMin as 'dmgMin',
-  WeaponTypes.DamageMax as 'dmgMax',
-  WeaponTypes.Speed as 'speed',
+  ${TableNames.WeaponTypes}.DamageMin as 'dmgMin',
+  ${TableNames.WeaponTypes}.DamageMax as 'dmgMax',
+  ${TableNames.WeaponTypes}.Speed as 'speed',
 
-  BaseItemTypes.Height as 'height',
-  BaseItemTypes.Width as 'width',
+  ${TableNames.BaseItemTypes}.Height as 'height',
+  ${TableNames.BaseItemTypes}.Width as 'width',
 
-  ItemClasses.CanBeCorrupted as corruptable,
+  ${TableNames.ItemClasses}.CanBeCorrupted as corruptable,
   (CASE
-    WHEN CurrencyItems.StackSize IS NOT NULL
-    AND CurrencyItems.StackSize > 1
+    WHEN ${TableNames.CurrencyItems}.StackSize IS NOT NULL
+    AND ${TableNames.CurrencyItems}.StackSize > 1
     THEN 1
     ELSE 0
   END) as stackable,
 
-  SkillGems.GemEffects as 'gemFx',
-  BaseItemTypes.DropLevel as 'dropLevel'
+  ${TableNames.SkillGems}.GemEffects as 'gemFx',
+  ${TableNames.BaseItemTypes}.DropLevel as 'dropLevel'
 
-  FROM BaseItemTypes
+  FROM ${TableNames.BaseItemTypes}
 
-  LEFT JOIN ItemClasses
-  ON BaseItemTypes.ItemClassesKey = ItemClasses._index
+  LEFT JOIN ${TableNames.ItemClasses}
+  ON ${TableNames.BaseItemTypes}.ItemClassesKey = ${TableNames.ItemClasses}._index
 
-  LEFT JOIN ItemClassCategories
-  ON ItemClasses.ItemClassCategory = ItemClassCategories._index
+  LEFT JOIN ${TableNames.ItemClassCategories}
+  ON ${TableNames.ItemClasses}.ItemClassCategory = ${TableNames.ItemClassCategories}._index
 
-  LEFT JOIN ItemVisualIdentity
-  ON BaseItemTypes.ItemVisualIdentity = ItemVisualIdentity._index
+  LEFT JOIN ${TableNames.ItemVisualIdentity}
+  ON ${TableNames.BaseItemTypes}.ItemVisualIdentity = ${TableNames.ItemVisualIdentity}._index
 
-  LEFT JOIN CurrencyExchange
-  ON BaseItemTypes._index = CurrencyExchange.Item
+  LEFT JOIN ${TableNames.CurrencyExchange}
+  ON ${TableNames.BaseItemTypes}._index = ${TableNames.CurrencyExchange}.Item
 
-  LEFT JOIN CurrencyExchangeCategories as exchange_major
-  ON CurrencyExchange.Category = exchange_major._index
+  LEFT JOIN ${TableNames.CurrencyExchangeCategories} as exchange_major
+  ON ${TableNames.CurrencyExchange}.Category = exchange_major._index
 
-  LEFT JOIN CurrencyExchangeCategories as exchange_sub
-  ON CurrencyExchange.SubCategory = exchange_sub._index
+  LEFT JOIN ${TableNames.CurrencyExchangeCategories} as exchange_sub
+  ON ${TableNames.CurrencyExchange}.SubCategory = exchange_sub._index
 
-  LEFT JOIN ArmourTypes
-  ON BaseItemTypes._index = ArmourTypes.BaseItemTypesKey
+  LEFT JOIN ${TableNames.ArmourTypes}
+  ON ${TableNames.BaseItemTypes}._index = ${TableNames.ArmourTypes}.BaseItemTypesKey
 
-  LEFT JOIN WeaponTypes
-  ON BaseItemTypes._index = WeaponTypes.BaseItemTypesKey
+  LEFT JOIN ${TableNames.WeaponTypes}
+  ON ${TableNames.BaseItemTypes}._index = ${TableNames.WeaponTypes}.BaseItemTypesKey
 
-  LEFT JOIN SkillGems
-  ON BaseItemTypes._index = SkillGems.BaseItemTypesKey
+  LEFT JOIN ${TableNames.SkillGems}
+  ON ${TableNames.BaseItemTypes}._index = ${TableNames.SkillGems}.BaseItemTypesKey
 
-  LEFT JOIN CurrencyItems
-  ON BaseItemTypes._index = CurrencyItems.BaseItemTypesKey
+  LEFT JOIN ${TableNames.CurrencyItems}
+  ON ${TableNames.BaseItemTypes}._index = ${TableNames.CurrencyItems}.BaseItemTypesKey
 
-  WHERE BaseItemTypes.Name != '' AND BaseItemTypes.Name IS NOT NULL
+  WHERE ${TableNames.BaseItemTypes}.Name != '' AND ${TableNames.BaseItemTypes}.Name IS NOT NULL
 )
 
 -- Weapons
@@ -738,88 +740,88 @@ WHERE class = 'Vault Keys'
 export const V2_ITEMS_QUERY = `
 WITH ITEMS AS (
   SELECT DISTINCT
-  BaseItemTypes.Name as 'name',
-  ItemClasses.Name as 'class',
-  ItemClassCategories.Text as 'category',
-  ItemVisualIdentity.DDSFile as 'art',
+  ${TableNames.BaseItemTypes}.Name as 'name',
+  ${TableNames.ItemClasses}.Name as 'class',
+  ${TableNames.ItemClassCategories}.Text as 'category',
+  ${TableNames.ItemVisualIdentity}.DDSFile as 'art',
   exchange_major.Name as 'exchangeCategory',
   exchange_sub.Name as 'exchangeSubCategory',
 
-  CurrencyExchange.GoldPurchaseFee as 'price',
+  ${TableNames.CurrencyExchange}.GoldPurchaseFee as 'price',
   
   -- Use COALESCE for V2 requirement logic
   COALESCE(
-    AttributeRequirements.ReqStr,
-    SkillGems.StrengthRequirementPercent
+    ${TableNames.AttributeRequirements}.ReqStr,
+    ${TableNames.SkillGems}.StrengthRequirementPercent
   ) as 'strReq',
   COALESCE(
-    AttributeRequirements.ReqDex,
-    SkillGems.DexterityRequirementPercent
+    ${TableNames.AttributeRequirements}.ReqDex,
+    ${TableNames.SkillGems}.DexterityRequirementPercent
   ) as 'dexReq',
   COALESCE(
-    AttributeRequirements.ReqInt,
-    SkillGems.IntelligenceRequirementPercent
+    ${TableNames.AttributeRequirements}.ReqInt,
+    ${TableNames.SkillGems}.IntelligenceRequirementPercent
   ) as 'intReq',
 
-  ArmourTypes.Armour as 'armour',
-  ArmourTypes.Evasion as 'evasion',
-  ArmourTypes.EnergyShield as 'energyShield',
-  ArmourTypes.Ward as 'ward',
+  ${TableNames.ArmourTypes}.Armour as 'armour',
+  ${TableNames.ArmourTypes}.Evasion as 'evasion',
+  ${TableNames.ArmourTypes}.EnergyShield as 'energyShield',
+  ${TableNames.ArmourTypes}.Ward as 'ward',
 
-  WeaponTypes.DamageMin as 'dmgMin',
-  WeaponTypes.DamageMax as 'dmgMax',
-  WeaponTypes.Speed as 'speed',
+  ${TableNames.WeaponTypes}.DamageMin as 'dmgMin',
+  ${TableNames.WeaponTypes}.DamageMax as 'dmgMax',
+  ${TableNames.WeaponTypes}.Speed as 'speed',
 
-  BaseItemTypes.Height as 'height',
-  BaseItemTypes.Width as 'width',
+  ${TableNames.BaseItemTypes}.Height as 'height',
+  ${TableNames.BaseItemTypes}.Width as 'width',
 
-  ItemClasses.CanBeCorrupted as corruptable,
+  ${TableNames.ItemClasses}.CanBeCorrupted as corruptable,
   (CASE
-    WHEN CurrencyItems.StackSize IS NOT NULL
-    AND CurrencyItems.StackSize > 1
+    WHEN ${TableNames.CurrencyItems}.StackSize IS NOT NULL
+    AND ${TableNames.CurrencyItems}.StackSize > 1
     THEN 1
     ELSE 0
   END) as stackable,
 
-  SkillGems.GemEffects as 'gemFx',
-  BaseItemTypes.DropLevel as 'dropLevel'
+  ${TableNames.SkillGems}.GemEffects as 'gemFx',
+  ${TableNames.BaseItemTypes}.DropLevel as 'dropLevel'
 
-  FROM BaseItemTypes
+  FROM ${TableNames.BaseItemTypes}
 
-  LEFT JOIN ItemClasses
-  ON BaseItemTypes.ItemClass = ItemClasses._index
+  LEFT JOIN ${TableNames.ItemClasses}
+  ON ${TableNames.BaseItemTypes}.ItemClass = ${TableNames.ItemClasses}._index
 
-  LEFT JOIN ItemClassCategories
-  ON ItemClasses.ItemClassCategory = ItemClassCategories._index
+  LEFT JOIN ${TableNames.ItemClassCategories}
+  ON ${TableNames.ItemClasses}.ItemClassCategory = ${TableNames.ItemClassCategories}._index
 
-  LEFT JOIN ItemVisualIdentity
-  ON BaseItemTypes.ItemVisualIdentity = ItemVisualIdentity._index
+  LEFT JOIN ${TableNames.ItemVisualIdentity}
+  ON ${TableNames.BaseItemTypes}.ItemVisualIdentity = ${TableNames.ItemVisualIdentity}._index
 
-  LEFT JOIN CurrencyExchange
-  ON BaseItemTypes._index = CurrencyExchange.Item
+  LEFT JOIN ${TableNames.CurrencyExchange}
+  ON ${TableNames.BaseItemTypes}._index = ${TableNames.CurrencyExchange}.Item
 
-  LEFT JOIN CurrencyExchangeCategories as exchange_major
-  ON CurrencyExchange.Category = exchange_major._index
+  LEFT JOIN ${TableNames.CurrencyExchangeCategories} as exchange_major
+  ON ${TableNames.CurrencyExchange}.Category = exchange_major._index
 
-  LEFT JOIN CurrencyExchangeCategories as exchange_sub
-  ON CurrencyExchange.SubCategory = exchange_sub._index
+  LEFT JOIN ${TableNames.CurrencyExchangeCategories} as exchange_sub
+  ON ${TableNames.CurrencyExchange}.SubCategory = exchange_sub._index
   
-  LEFT JOIN AttributeRequirements
-  ON BaseItemTypes._index = AttributeRequirements.BaseItemType
+  LEFT JOIN ${TableNames.AttributeRequirements}
+  ON ${TableNames.BaseItemTypes}._index = ${TableNames.AttributeRequirements}.BaseItemType
 
-  LEFT JOIN ArmourTypes
-  ON BaseItemTypes._index = ArmourTypes.BaseItemType
+  LEFT JOIN ${TableNames.ArmourTypes}
+  ON ${TableNames.BaseItemTypes}._index = ${TableNames.ArmourTypes}.BaseItemType
 
-  LEFT JOIN WeaponTypes
-  ON BaseItemTypes._index = WeaponTypes.BaseItemType
+  LEFT JOIN ${TableNames.WeaponTypes}
+  ON ${TableNames.BaseItemTypes}._index = ${TableNames.WeaponTypes}.BaseItemType
 
-  LEFT JOIN SkillGems
-  ON BaseItemTypes._index = SkillGems.BaseItemType
+  LEFT JOIN ${TableNames.SkillGems}
+  ON ${TableNames.BaseItemTypes}._index = ${TableNames.SkillGems}.BaseItemType
 
-  LEFT JOIN CurrencyItems
-  ON BaseItemTypes._index = CurrencyItems.BaseItemType
+  LEFT JOIN ${TableNames.CurrencyItems}
+  ON ${TableNames.BaseItemTypes}._index = ${TableNames.CurrencyItems}.BaseItemType
 
-  WHERE BaseItemTypes.Name != '' AND BaseItemTypes.Name IS NOT NULL
+  WHERE ${TableNames.BaseItemTypes}.Name != '' AND ${TableNames.BaseItemTypes}.Name IS NOT NULL
 )
 
 -- Weapons
@@ -1225,9 +1227,9 @@ WHERE class = 'Vault Keys'
 
 const V1_UNIQUES_QUERY = `
 SELECT DISTINCT
-Words.Text as name,
+${TableNames.Words}.Text as name,
 'Uniques' as category,
-UniqueStashTypes.Name as class,
+${TableNames.UniqueStashTypes}.Name as class,
 null as type,
 0 AS score, 
 Visuals.DDSFile as art,
@@ -1235,22 +1237,22 @@ null as height,
 null as width,
 null as gemFx,
 null as itemClass
-FROM UniqueStashLayout
-LEFT JOIN UniqueStashTypes
-ON UniqueStashLayout.UniqueStashTypesKey = UniqueStashTypes._index
-LEFT JOIN Words
-ON UniqueStashLayout.WordsKey = Words._index
-LEFT JOIN ItemVisualIdentity AS Visuals
-ON UniqueStashLayout.ItemVisualIdentityKey = Visuals._index
-WHERE UniqueStashLayout.IsAlternateArt = 0 AND
-UniqueStashLayout.RenamedVersion IS NULL
+FROM ${TableNames.UniqueStashLayout}
+LEFT JOIN ${TableNames.UniqueStashTypes}
+ON ${TableNames.UniqueStashLayout}.UniqueStashTypesKey = ${TableNames.UniqueStashTypes}._index
+LEFT JOIN ${TableNames.Words}
+ON ${TableNames.UniqueStashLayout}.WordsKey = ${TableNames.Words}._index
+LEFT JOIN ${TableNames.ItemVisualIdentity} AS Visuals
+ON ${TableNames.UniqueStashLayout}.ItemVisualIdentityKey = Visuals._index
+WHERE ${TableNames.UniqueStashLayout}.IsAlternateArt = 0 AND
+${TableNames.UniqueStashLayout}.RenamedVersion IS NULL
 `;
 
 const V2_UNIQUES_QUERY = `
 SELECT DISTINCT
-Words.Text as name,
+${TableNames.Words}.Text as name,
 'Uniques' as category,
-UniqueStashTypes.Name as class,
+${TableNames.UniqueStashTypes}.Name as class,
 null as type,
 0 AS score, 
 Visuals.DDSFile as art,
@@ -1258,15 +1260,15 @@ null as height,
 null as width,
 null as gemFx,
 null as itemClass
-FROM UniqueStashLayout
-LEFT JOIN UniqueStashTypes
-ON UniqueStashLayout.UniqueStashTypesKey = UniqueStashTypes._index
-LEFT JOIN Words
-ON UniqueStashLayout.WordsKey = Words._index
-LEFT JOIN ItemVisualIdentity AS Visuals
-ON UniqueStashLayout.ItemVisualIdentityKey = Visuals._index
-WHERE UniqueStashLayout.IsAlternativeArt = 0 AND
-UniqueStashLayout.RenamedVersion IS NULL
+FROM ${TableNames.UniqueStashLayout}
+LEFT JOIN ${TableNames.UniqueStashTypes}
+ON ${TableNames.UniqueStashLayout}.UniqueStashTypesKey = ${TableNames.UniqueStashTypes}._index
+LEFT JOIN ${TableNames.Words}
+ON ${TableNames.UniqueStashLayout}.WordsKey = ${TableNames.Words}._index
+LEFT JOIN ${TableNames.ItemVisualIdentity} AS Visuals
+ON ${TableNames.UniqueStashLayout}.ItemVisualIdentityKey = Visuals._index
+WHERE ${TableNames.UniqueStashLayout}.IsAlternativeArt = 0 AND
+${TableNames.UniqueStashLayout}.RenamedVersion IS NULL
 `;
 
 export function getQuery(patch: string, name: string): string {
@@ -1278,7 +1280,7 @@ export function getQuery(patch: string, name: string): string {
   }
 
   if (name === "mods") {
-    query = `SELECT * FROM Mods`;
+    query = `SELECT * FROM ${TableNames.Mods}`;
   }
 
   if (name === "uniques") {

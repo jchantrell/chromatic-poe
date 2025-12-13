@@ -1,5 +1,6 @@
 import Tooltip from "@app/components/tooltip";
 import { CloseIcon, PlusIcon } from "@app/icons";
+import { excuteCmd } from "@app/lib/commands";
 import {
   type ConditionGroup,
   ConditionKey,
@@ -11,7 +12,7 @@ import {
   Operator,
   type SearchableCondition,
 } from "@app/lib/condition";
-import { excuteCmd } from "@app/lib/commands";
+import type { FilterRule } from "@app/lib/filter";
 import { modIndex } from "@app/lib/mods";
 import { store } from "@app/store";
 import { Button } from "@app/ui/button";
@@ -41,7 +42,6 @@ import {
   ToggleInput,
 } from "./condition-inputs";
 import { ItemPicker } from "./item-picker";
-import type { FilterRule } from "@app/lib/filter";
 
 const operators = [
   Operator.NONE,

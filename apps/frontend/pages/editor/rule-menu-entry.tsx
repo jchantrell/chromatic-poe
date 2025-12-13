@@ -1,5 +1,12 @@
 import { ChevronDownIcon, ChevronUpIcon } from "@app/icons";
+import {
+  addParentRefs,
+  deleteRule,
+  duplicateRule,
+  setEntryActive,
+} from "@app/lib/commands";
 import type { FilterRule } from "@app/lib/filter";
+import { itemIndex } from "@app/lib/items";
 import { store } from "@app/store";
 import { Badge } from "@app/ui/badge";
 import { Collapsible, CollapsibleContent } from "@app/ui/collapsible";
@@ -17,13 +24,6 @@ import { createEffect, createSignal, For, onMount } from "solid-js";
 import Item from "./item";
 import { ItemPicker } from "./item-picker";
 import { MinimapIcon } from "./map-icon-picker";
-import {
-  addParentRefs,
-  deleteRule,
-  duplicateRule,
-  setEntryActive,
-} from "@app/lib/commands";
-import { itemIndex } from "@app/lib/items";
 
 const MIN_PREVIEW_WIDTH = 500; // Adjust this value as needed
 

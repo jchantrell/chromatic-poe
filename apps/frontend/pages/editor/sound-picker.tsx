@@ -1,11 +1,12 @@
 import SoundPlayer from "@app/components/sound-player";
 import Tooltip from "@app/components/tooltip";
-import type { Sound } from "@app/lib/sounds";
 import {
   setSoundEnabled,
   setSoundPath,
   setSoundVolume,
 } from "@app/lib/commands";
+import type { Filter } from "@app/lib/filter";
+import type { Sound } from "@app/lib/sounds";
 import { refreshSounds, store } from "@app/store";
 import { Checkbox } from "@app/ui/checkbox";
 import {
@@ -23,7 +24,6 @@ import { Label } from "@app/ui/label";
 import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
 import { createMemo, createSignal, on, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
-import type { Filter } from "@app/lib/filter";
 
 interface Category {
   label: string;
