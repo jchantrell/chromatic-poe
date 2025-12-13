@@ -1,4 +1,4 @@
-import { isDefined } from "@pkgs/lib/utils";
+import { isDefined } from "@app/lib/utils";
 
 export type RgbColor = { r: number; g: number; b: number; a: number };
 

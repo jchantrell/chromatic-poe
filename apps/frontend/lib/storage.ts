@@ -12,44 +12,7 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { sep } from "@tauri-apps/api/path";
 import { eol } from "@tauri-apps/plugin-os";
-import chromatic from "./config";
-import { Operator, Rarity, type Filter } from "./filter";
-import { toast } from "solid-sonner";
 import { store } from "@app/store";
-
-async function migrateLegacyFilter(filter: Filter) {
-  filter.poeVersion = 2;
-  filter.chromaticVersion = await chromatic.getVersion();
-  delete filter.version;
-  for (const rule of filter.rules) {
-    rule.continue = false;
-    for (let i = 0; i < rule.bases.length; i++) {
-      rule.bases[i] = {
-        name: rule.bases[i].name,
-        category: rule.bases[i].category,
-        base: rule.bases[i].base,
-        enabled: rule.bases[i].enabled,
-      };
-      if (rule.bases.some((base) => base.category === "Uniques")) {
-        rule.conditions.rarity = {
-          operator: Operator.EXACT,
-          value: [Rarity.UNIQUE],
-        };
-      }
-      if (rule.bases.some((base) => base.category === "Pinnacle")) {
-        rule.conditions.classes = {
-          operator: Operator.EXACT,
-          value: ["Pinnacle Keys"],
-        };
-      }
-    }
-  }
-  toast.info(
-    "Migrated filter format. If your rules contain Pinnacle Keys or Uniques please review them for applied changes.",
-  );
-
-  return filter;
-}
 
 export async function autosave() {
   if (store.filter) {
@@ -120,31 +83,8 @@ export class WebStorage implements FileSystem {
     return localStorage.getItem(path) ?? "";
   }
 
-  async migrateLegacyFilters() {
-    const files = [];
-    const legacyFilters = JSON.parse(localStorage.getItem("filters") ?? "{}");
-    for (const filter in legacyFilters) {
-      if (!localStorage.getItem(`filters/${filter}`)) {
-        const updatedFilter = await migrateLegacyFilter(
-          JSON.parse(legacyFilters[filter]),
-        );
-        localStorage.setItem(
-          `filters/${filter}`,
-          JSON.stringify(updatedFilter),
-        );
-        files.push({
-          name: `filters/${filter}`,
-          data: JSON.stringify(updatedFilter),
-        });
-      }
-    }
-    localStorage.removeItem("filters");
-    return files;
-  }
-
   async getAllFiles<T extends "text" | "binary">(
     path: string,
-    type: T,
   ): Promise<
     {
       name: string;
@@ -153,14 +93,14 @@ export class WebStorage implements FileSystem {
   > {
     const files = [];
     for (const key in localStorage) {
-      // migrate legacy format, remove at some point in the future
-      if (key === "filters") {
-        files.push(...(await this.migrateLegacyFilters()));
-        continue;
-      }
-
       if (key.startsWith(path) && localStorage.getItem(key)) {
-        files.push({ name: key, data: localStorage.getItem(key) });
+        const data = localStorage.getItem(key);
+        if (data) {
+          files.push({ name: key, data } as {
+            name: string;
+            data: T extends "text" ? string : Uint8Array;
+          });
+        }
       }
     }
     return files;
@@ -234,26 +174,6 @@ export class DesktopStorage implements FileSystem {
       if (record.isFile) {
         const bytes = await readFile(`${path}/${record.name}`);
         if (type === "text") {
-          const text = this.decoder.decode(bytes);
-
-          // migrate legacy format, remove at some point in the future
-          if (path.endsWith("/filters")) {
-            const filter = JSON.parse(text);
-            if (filter.version) {
-              const updatedFilter = await migrateLegacyFilter(filter);
-              await this.writeFile(
-                `${path}/${record.name}`,
-                "text",
-                JSON.stringify(updatedFilter),
-              );
-              files.push({
-                name: record.name,
-                data: JSON.stringify(updatedFilter),
-              });
-              continue;
-            }
-          }
-
           files.push({ name: record.name, data: this.decoder.decode(bytes) });
         }
         if (type === "binary") {

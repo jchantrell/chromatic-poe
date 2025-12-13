@@ -1,26 +1,33 @@
 import Fuse, { type FuseResult } from "fuse.js";
-import mods from "@pkgs/data/poe2/mods.json";
 
-type SearchableMod = {
+// Define Mod interface
+export interface Mod {
   name: string;
   tags: string[];
-  type: string;
-  position: "prefix" | "suffix" | "affix";
-  bases: string[];
+  type?: string;
+  position?: "prefix" | "suffix" | "affix";
+  bases?: string[];
+  stats: any[];
+  [key: string]: any;
+}
+
+export interface SearchableMod extends Mod {
   searchStats: {
     label: string;
     description: string;
   }[];
-};
+}
 
 class ModIndex {
   searchIndex!: Fuse<SearchableMod>;
 
-  constructor() {
+  constructor() {}
+  
+  init(mods: Mod[]) {
     this.setMods(
       mods.map((mod) => ({
         ...mod,
-        searchStats: mod.stats.flat(),
+        searchStats: mod.stats ? mod.stats.flat() : [],
       })) as SearchableMod[],
     );
   }

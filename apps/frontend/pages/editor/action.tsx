@@ -1,4 +1,4 @@
-import { TextField, TextFieldLabel } from "@pkgs/ui/text-field";
+import { TextField, TextFieldLabel } from "@app/ui/text-field";
 
 function StylePicker() {
   return (

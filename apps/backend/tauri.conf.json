@@ -4,7 +4,7 @@
   "mainBinaryName": "chromatic",
   "build": {
     "beforeDevCommand": "pnpm vite dev",
-    "devUrl": "http://localhost:1420",
+    "devUrl": "http://localhost:1423",
     "beforeBuildCommand": "pnpm vite build --mode tauri",
     "frontendDist": "../../dist"
   },

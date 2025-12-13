@@ -3,7 +3,6 @@
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
-    "ignore": [],
     "attributePosition": "auto",
     "indentStyle": "space",
     "indentWidth": 2,
@@ -29,8 +28,5 @@
   "linter": {
     "enabled": true,
     "rules": { "a11y": { "noSvgWithoutTitle": { "level": "off" } } }
-  },
-  "organizeImports": {
-    "enabled": true
   }
 }

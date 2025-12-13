@@ -1,4 +1,15 @@
-import { createEffect, createSignal, For, onMount } from "solid-js";
+import { ChevronDownIcon, ChevronUpIcon } from "@app/icons";
+import {
+  addParentRefs,
+  deleteRule,
+  duplicateRule,
+  itemIndex,
+  setEntryActive,
+  type FilterRule
+} from "@app/lib/filter";
+import { store } from "@app/store";
+import { Badge } from "@app/ui/badge";
+import { Collapsible, CollapsibleContent } from "@app/ui/collapsible";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -6,23 +17,13 @@ import {
   ContextMenuPortal,
   ContextMenuShortcut,
   ContextMenuTrigger,
-} from "@pkgs/ui/context-menu";
-import { Collapsible, CollapsibleContent } from "@pkgs/ui/collapsible";
-import {
-  addParentRefs,
-  deleteRule,
-  setEntryActive,
-  duplicateRule,
-  type FilterRule,
-} from "@app/lib/filter";
-import { ChevronDownIcon, ChevronUpIcon } from "@pkgs/icons";
+} from "@app/ui/context-menu";
+import { Dialog, DialogContent, DialogTrigger } from "@app/ui/dialog";
+import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
+import { createEffect, createSignal, For, onMount } from "solid-js";
 import Item from "./item";
-import { store } from "@app/store";
-import { MinimapIcon } from "./map-icon-picker";
 import { ItemPicker } from "./item-picker";
-import { Dialog, DialogContent, DialogTrigger } from "@pkgs/ui/dialog";
-import { useDragDropContext, createSortable } from "@thisbeyond/solid-dnd";
-import { Badge } from "@pkgs/ui/badge";
+import { MinimapIcon } from "./map-icon-picker";
 
 const MIN_PREVIEW_WIDTH = 500; // Adjust this value as needed
 
@@ -34,6 +35,7 @@ export default function Rule(props: {
   const [expanded, setExpanded] = createSignal(false);
   const [hovered, setHovered] = createSignal(false);
   const [previewWidth, setPreviewWidth] = createSignal(0);
+  const [itemsLoaded,setItemsLoaded]=createSignal(false);
   const sortable = createSortable(props.rule.id, props.rule);
   const [state] = useDragDropContext();
 
@@ -206,8 +208,9 @@ export default function Rule(props: {
                 <DialogTrigger
                   as={ContextMenuItem}
                   onClick={() => setExpanded(true)}
+                  disabled={!itemIndex.searchIndex}
                 >
-                  Edit Bases
+                  <div class='flex justify-between items-center w-full'>Edit Bases</div>
                 </DialogTrigger>
                 <ContextMenuItem onMouseDown={handleActive}>
                   <span>{props.rule.enabled ? "Disable" : "Enable"}</span>

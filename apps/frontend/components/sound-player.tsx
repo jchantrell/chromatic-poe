@@ -1,8 +1,8 @@
-import { createEffect, createSignal } from "solid-js";
-import { VolumeIcon } from "@pkgs/icons";
-import type { Sound } from "@app/lib/config";
-import Tooltip from "@app/components/tooltip";
 import { BASE_URL } from "@app/app";
+import Tooltip from "@app/components/tooltip";
+import { VolumeIcon } from "@app/icons";
+import type { Sound } from "@app/lib/config";
+import { createEffect, createSignal } from "solid-js";
 
 export default function SoundPlayer(props: {
   sound: Sound | null;

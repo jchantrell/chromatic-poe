@@ -1,11 +1,10 @@
-import { createEffect, createSignal, on } from "solid-js";
-import { For } from "solid-js";
-import { store } from "@app/store";
 import { Color, colors, setBeamColor, setBeamTemp } from "@app/lib/filter";
-import { Popover, PopoverContent, PopoverTrigger } from "@pkgs/ui/popover";
-import { Checkbox } from "@pkgs/ui/checkbox";
-import { Label } from "@pkgs/ui/label";
-import { isDefined } from "@pkgs/lib/utils";
+import { isDefined } from "@app/lib/utils";
+import { store } from "@app/store";
+import { Checkbox } from "@app/ui/checkbox";
+import { Label } from "@app/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@app/ui/popover";
+import { createEffect, createSignal, For } from "solid-js";
 
 function BeamPicker() {
   const [open, setOpen] = createSignal(false);

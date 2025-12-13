@@ -1,6 +1,6 @@
+import Fuse, { type FuseResult } from "fuse.js";
 import { createMutable } from "solid-js/store";
 import { itemIndex } from "./items";
-import Fuse, { type FuseResult } from "fuse.js";
 
 export enum ConditionType {
   VALUE = "value",
@@ -678,7 +678,7 @@ export class ClassesCondition implements ListCondition<string> {
   }
 }
 
-class RarityCondition implements ListCondition<Rarity> {
+export class RarityCondition implements ListCondition<Rarity> {
   readonly key = ConditionKey.RARITY;
   readonly type = ConditionType.LIST;
   value: Rarity[];

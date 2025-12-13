@@ -1,25 +1,24 @@
-import { clone, stringifyJSON } from "@pkgs/lib/utils";
 import chromatic from "@app/lib/config";
+import { clone, stringifyJSON } from "@app/lib/utils";
 import { addFilter } from "@app/store";
-import type { ulid } from "ulid";
-import { applyPatch, compare, type Operation } from "fast-json-patch";
-import {
-  type Command,
-  type Actions,
-  type Conditions,
-  BaseTypeCondition,
-  serializeActions,
-  addParentRefs,
-  serializeConditions,
-  importFilter as convertRules,
-  itemIndex,
-  convertRawToConditions,
-} from ".";
-import { createMutable, modifyMutable, reconcile } from "solid-js/store";
 import { invoke } from "@tauri-apps/api/core";
 import { sep } from "@tauri-apps/api/path";
+import { applyPatch, compare, type Operation } from "fast-json-patch";
+import { createMutable, modifyMutable, reconcile } from "solid-js/store";
 import { toast } from "solid-sonner";
-import MinimalTemplate from "@pkgs/assets/poe2/templates/minimal.json";
+import type { ulid } from "ulid";
+import {
+  addParentRefs,
+  BaseTypeCondition,
+  convertRawToConditions,
+  importFilter as convertRules,
+  itemIndex,
+  serializeActions,
+  serializeConditions,
+  type Actions,
+  type Command,
+  type Conditions,
+} from ".";
 
 const WRITE_TIMEOUT = 1000;
 
@@ -62,6 +61,7 @@ export class Filter {
   name: string;
   chromaticVersion: string;
   poeVersion: number;
+  poePatch: string;
   lastUpdated: Date;
   rules: FilterRule[];
 
@@ -74,6 +74,7 @@ export class Filter {
     name: string;
     chromaticVersion: string;
     poeVersion: number;
+    poePatch?: string;
     lastUpdated: Date;
     rules: FilterRule[];
     undoStack?: Operation[][];
@@ -82,6 +83,8 @@ export class Filter {
     this.name = params.name;
     this.chromaticVersion = params.chromaticVersion;
     this.poeVersion = params.poeVersion;
+    // Default patch if missing (migration)
+    this.poePatch = params.poePatch || (params.poeVersion === 2 ? "4.0.0" : "3.25");
     this.lastUpdated = params.lastUpdated;
     this.rules = params.rules.map((rule) => ({
       ...rule,
@@ -308,8 +311,9 @@ export async function generateFilter(
       name,
       chromaticVersion: chromatic.config.version,
       poeVersion,
+      poePatch: poeVersion === 2 ? "4.0.0" : "3.25",
       lastUpdated: new Date(),
-      rules: MinimalTemplate.rules as FilterRule[],
+      rules
     });
   }
 
@@ -321,6 +325,7 @@ export async function generateFilter(
     name,
     chromaticVersion: chromatic.config.version,
     poeVersion,
+    poePatch: poeVersion === 2 ? "4.0.0" : "3.25",
     lastUpdated: new Date(),
     rules,
   });

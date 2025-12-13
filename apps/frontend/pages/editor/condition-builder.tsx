@@ -1,47 +1,47 @@
-import { createEffect, createSignal, For, onMount } from "solid-js";
-import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
+import Tooltip from "@app/components/tooltip";
+import { CloseIcon, PlusIcon } from "@app/icons";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@pkgs/ui/select";
-import {
-  type Conditions,
-  type FilterRule,
-  type SearchableCondition,
   type ConditionGroup,
-  ConditionKey,
-  Operator,
   conditionGroupColors,
+  conditionIndex,
+  ConditionKey,
+  type Conditions,
   conditionTypes,
   createCondition,
-  conditionIndex,
+  type FilterRule,
+  Operator,
+  type SearchableCondition,
 } from "@app/lib/filter";
+import { excuteCmd } from "@app/lib/filter/commands";
+import { modIndex } from "@app/lib/filter/mods";
 import { store } from "@app/store";
-import { Label } from "@pkgs/ui/label";
+import { Button } from "@app/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@pkgs/ui/dialog";
-import { Button } from "@pkgs/ui/button";
-import { excuteCmd } from "@app/lib/filter/commands";
-import { ItemPicker } from "./item-picker";
-import Tooltip from "@app/components/tooltip";
+} from "@app/ui/dialog";
+import { Label } from "@app/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@app/ui/select";
+import { Separator } from "@app/ui/separator";
+import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
+import { TextField, TextFieldInput } from "@app/ui/text-field";
+import { createEffect, createSignal, For, onMount } from "solid-js";
 import {
   CheckboxInput,
   SelectInput,
   SliderInput,
   ToggleInput,
 } from "./condition-inputs";
-import { CloseIcon, PlusIcon, TrashIcon } from "@pkgs/icons";
-import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
-import { Separator } from "@pkgs/ui/separator";
-import { modIndex } from "@app/lib/filter/mods";
+import { ItemPicker } from "./item-picker";
 
 const operators = [
   Operator.NONE,

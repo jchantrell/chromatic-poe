@@ -1,12 +1,12 @@
-import { type ConfigColorMode, useColorMode } from "@kobalte/core";
-import { capitalizeFirstLetter } from "@pkgs/lib/utils";
+import { capitalizeFirstLetter } from "@app/lib/utils";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@pkgs/ui/select";
+} from "@app/ui/select";
+import { type ConfigColorMode, useColorMode } from "@kobalte/core";
 
 export function Theme() {
   const { colorMode, setColorMode } = useColorMode();

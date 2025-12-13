@@ -1,11 +1,7 @@
-import "./app.css";
-import {
-  ColorModeProvider,
-  ColorModeScript,
-  createLocalStorageManager,
-} from "@kobalte/core";
-import Editor from "@app/pages/editor";
-import { Button } from "@pkgs/ui/button";
+import Background from "@app/components/background";
+import { Settings } from "@app/components/settings";
+import Tooltip from "@app/components/tooltip";
+import { SAVE_KEY, WRITE_KEY } from "@app/constants";
 import {
   AudioIcon,
   DownloadIcon,
@@ -14,24 +10,32 @@ import {
   HouseIcon,
   MinimiseIcon,
   SaveIcon,
-} from "@pkgs/icons";
-import { Avatar, AvatarImage } from "@pkgs/ui/avatar";
-import { createEffect, createSignal, type JSXElement, onMount } from "solid-js";
-import { Toaster } from "@pkgs/ui/sonner";
-import { Route, Router } from "@solidjs/router";
+} from "@app/icons";
 import chromatic from "@app/lib/config";
-import { getCurrentWebview } from "@tauri-apps/api/webview";
-import { refreshSounds, store } from "@app/store";
-import { SAVE_KEY, WRITE_KEY } from "@app/constants";
-import { Settings } from "@app/components/settings";
-import Tooltip from "@app/components/tooltip";
-import SoundManager from "@app/pages/sound";
+import { dat } from "@app/lib/dat";
+import { itemIndex, type Item } from "@app/lib/filter/items";
+import { modIndex, type Mod } from "@app/lib/filter/mods";
+import { minimapIndex } from "@app/lib/minimap";
+import { checkForUpdate } from "@app/lib/update";
+import { ensureData } from "@app/lib/update-data.tsx";
+import Editor from "@app/pages/editor";
 import LoadScreen from "@app/pages/load-screen";
-import Background from "@app/components/background";
-import { checkForUpdate, updateApplication } from "@app/lib/update";
+import SoundManager from "@app/pages/sound";
+import { refreshSounds, store } from "@app/store";
+import { Avatar, AvatarImage } from "@app/ui/avatar";
+import { Button } from "@app/ui/button";
+import { Toaster } from "@app/ui/sonner";
+import {
+  ColorModeProvider,
+  ColorModeScript,
+  createLocalStorageManager,
+} from "@kobalte/core";
+import { Route, Router } from "@solidjs/router";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
+import { createEffect, createSignal, onMount, type JSXElement } from "solid-js";
 import { toast } from "solid-sonner";
-import { autosave } from "./lib/storage";
-import { itemIndex } from "@app/lib/filter/items";
+import "./app.css";
+import { to } from "./lib/utils";
 
 export const BASE_URL = import.meta.env.BASE_URL;
 export const storageManager = createLocalStorageManager("theme");
@@ -83,7 +87,7 @@ function SideBar() {
           </Link>
         </Tooltip>
       </div>
-      <div class='flex flex-col'>
+      <div class='flex flex-col gap-2 items-center'>
         <Settings />
       </div>
     </nav>
@@ -183,13 +187,6 @@ function Main() {
 }
 
 function App() {
-  onMount(async () => {
-    await chromatic.init();
-    await chromatic.getAllFilters();
-    await refreshSounds();
-    await checkForUpdate();
-    setInterval(autosave, 15000);
-  });
   const [zoom, setZoom] = createSignal(4);
 
   document.addEventListener("wheel", async (event) => {
@@ -216,15 +213,55 @@ function App() {
     }
   });
 
-  createEffect(() => {
-    if (store.filter?.poeVersion === 1) {
-      console.log("init v1");
-      itemIndex.initV1();
+  createEffect(async () => {
+    if (!store.filter) return;
+
+    const filterVersion = store.filter.poePatch;
+    const [versionError, currentVersions] = await to(dat.fetchPoeVersions());
+    if (versionError) {
+      return;
     }
-    if (store.filter?.poeVersion === 2) {
-      console.log("init v2");
-      itemIndex.initV2();
+
+    const gameVersion = filterVersion.startsWith("3") ? 1 : 2;
+
+    if (gameVersion === 1 && filterVersion !== currentVersions.poe1) {
+      store.filter.poePatch = currentVersions.poe1;
     }
+    if (gameVersion === 2 && filterVersion !== currentVersions.poe2) {
+      store.filter.poePatch = currentVersions.poe2;
+    }
+
+    if (itemIndex.patch !== filterVersion){
+        itemIndex.searchIndex = null
+    }
+
+    const [extractError] = await to(ensureData(store.filter.poePatch));
+    if (extractError) {
+      return;
+    }
+
+    const [dataError, data] = await to(dat.load(store.filter.poePatch));
+    if (dataError) {
+      return;
+    }
+
+    if (gameVersion === 1) {
+      itemIndex.initV1(data.items as Item[], store.filter.poePatch);
+    } else {
+      itemIndex.initV2(data.items as Item[], store.filter.poePatch);
+    }
+    modIndex.init(data.mods as Mod[]);
+    if (data.minimap) {
+      minimapIndex.init(data.minimap);
+    }
+  });
+
+  onMount(async () => {
+    await chromatic.init();
+    await chromatic.getAllFilters();
+    await refreshSounds();
+    await checkForUpdate();
+    //setInterval(autosave, 15000);
   });
 
   return (

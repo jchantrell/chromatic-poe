@@ -1,9 +1,9 @@
-import { check } from "@tauri-apps/plugin-updater";
-import { relaunch } from "@tauri-apps/plugin-process";
-import { toast } from "solid-sonner";
-import { store } from "@app/store";
 import chromatic from "@app/lib/config";
-import { timeSince } from "@pkgs/lib/utils";
+import { timeSince } from "@app/lib/utils";
+import { store } from "@app/store";
+import { relaunch } from "@tauri-apps/plugin-process";
+import { check } from "@tauri-apps/plugin-updater";
+import { toast } from "solid-sonner";
 
 function formatBytes(bytes: number, decimals = 2) {
   if (!+bytes) return "0 Bytes";
@@ -56,8 +56,11 @@ export async function updateApplication(): Promise<boolean> {
   const update = await check();
   let updated = false;
   if (update) {
+    const dateStr = update.date
+      ? update.date.split(" ")[0]
+      : new Date().toISOString();
     const toastId = toast.info(
-      `Found update from ${timeSince(new Date(update.date?.split(" ")[0]))}.`,
+      `Found update from ${timeSince(new Date(dateStr))}.`,
       {
         description: `Updating to ${update.version}...`,
       },

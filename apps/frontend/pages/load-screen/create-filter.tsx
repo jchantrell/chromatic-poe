@@ -1,17 +1,17 @@
-import { createSignal, For } from "solid-js";
 import { generateFilter, Template } from "@app/lib/filter";
-import { Button } from "@pkgs/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@pkgs/ui/dialog";
-import { TextField, TextFieldInput, TextFieldLabel } from "@pkgs/ui/text-field";
-import { toast } from "solid-sonner";
 import { store } from "@app/store";
-import { ToggleGroup, ToggleGroupItem } from "@pkgs/ui/toggle-group";
+import { Button } from "@app/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@app/ui/dialog";
+import { TextField, TextFieldInput, TextFieldLabel } from "@app/ui/text-field";
+import { ToggleGroup, ToggleGroupItem } from "@app/ui/toggle-group";
+import { createSignal, For } from "solid-js";
+import { toast } from "solid-sonner";
 
 export default function CreateFilter() {
   const [name, setName] = createSignal("Chromatic");

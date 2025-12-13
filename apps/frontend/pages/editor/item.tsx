@@ -1,3 +1,6 @@
+import { dat } from "@app/lib/dat";
+import { itemIndex, setEntryActive, type FilterItem } from "@app/lib/filter";
+import { store } from "@app/store";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -5,14 +8,39 @@ import {
   ContextMenuPortal,
   ContextMenuShortcut,
   ContextMenuTrigger,
-} from "@pkgs/ui/context-menu";
-import { store } from "@app/store";
-import { setEntryActive, type FilterItem } from "@app/lib/filter";
+} from "@app/ui/context-menu";
 import type { Setter } from "solid-js";
-import { itemIndex } from "@app/lib/filter";
+import { createResource } from "solid-js";
+
+function Name(props: { item: FilterItem }) {
+  return (
+
+     <div class='pointer-events-none text-lg'>
+        {props.item.name}
+        {props.item.category === "Uniques" && (
+          <span class='ml-1 text-xs text-neutral-400'> {props.item.base}</span>
+        )}
+      </div>
+  )
+}
 
 export function Visual(props: { item: FilterItem; class?: string }) {
+  const [art] = createResource(
+    () => props.item,
+    async (item) => {
+      // FilterItem doesn't have 'art', lookup in itemIndex
+      const entry = itemIndex.itemTable?.[item.category]?.[item.name];
+      const artPath = entry?.art;
+      
+      if (!artPath) return "/static/tainted-chromatic-icon.png";
+      
+      const artMap = await dat.getItemArt([{ art: artPath }]);
+      return artMap.get(artPath) || "/static/tainted-chromatic-icon.png";
+    }
+  );
+
   return (
+    !itemIndex.itemTable?.[props.item.category]?.[props.item.name] ? <Name item={props.item} /> :
     <div
       class={`p-1 px-2 ${props.item.enabled ? "text-primary" : "text-accent"} cursor-pointer border items-center flex select-none ${props.class}`}
       onMouseDown={(e) => {
@@ -26,15 +54,11 @@ export function Visual(props: { item: FilterItem; class?: string }) {
         <img
           class='mr-1 h-8 max-w-full pointer-events-none'
           alt={`${props.item.name} icon`}
-          src={itemIndex.itemTable[props.item.category][props.item.name].art}
+          src={art() || "/static/tainted-chromatic-icon.png"}
+          onError={(e) => (e.currentTarget.src = "/static/tainted-chromatic-icon.png")}
         />
       </figure>
-      <div class='pointer-events-none text-lg'>
-        {props.item.name}
-        {props.item.category === "Uniques" && (
-          <span class='ml-1 text-xs text-neutral-400'> {props.item.base}</span>
-        )}
-      </div>
+      <Name item={props.item} />
     </div>
   );
 }

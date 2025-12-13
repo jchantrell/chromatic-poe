@@ -21,10 +21,9 @@
     "baseUrl": "./",
     "paths": {
       "@app/*": ["./apps/frontend/*"],
-      "@pkgs/*": ["./packages/*"]
     }
   },
-  "include": ["apps/frontend", "packages"],
+  "include": ["apps/frontend"],
   "references": [
     {
       "path": "./tsconfig.node.json"

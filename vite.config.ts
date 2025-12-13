@@ -8,12 +8,13 @@ const host = process.env.TAURI_DEV_HOST;
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
   const config = {
-    publicDir: "packages/assets",
-    plugins: [solid()],
+    publicDir: "assets",
+    plugins: [
+      solid(),
+    ],
     resolve: {
       alias: {
         "@app": path.resolve(__dirname, "./apps/frontend"),
-        "@pkgs": path.resolve(__dirname, "./packages"),
       },
     },
     define: {
@@ -21,7 +22,7 @@ export default defineConfig(async ({ mode }) => {
     },
     clearScreen: false,
     server: {
-      port: 1420,
+      port: 1423,
       strictPort: true,
       host: host || false,
       hmr: host
@@ -34,6 +35,15 @@ export default defineConfig(async ({ mode }) => {
       watch: {
         ignored: ["**/apps/backend/**"],
       },
+    },
+    optimizeDeps: {
+      exclude: ["wa-sqlite", "pathofexile-dat"],
+      esbuildOptions: {
+        target: "esnext",
+      },
+    },
+    build: {
+      target: "esnext",
     },
   };
 

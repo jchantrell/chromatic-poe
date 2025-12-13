@@ -1,13 +1,13 @@
-import { createEffect } from "solid-js";
-import { Resizable, ResizableHandle, ResizablePanel } from "@pkgs/ui/resizable";
-import { useColorMode } from "@kobalte/core";
+import { REDO_KEY, SAVE_KEY, UNDO_KEY, WRITE_KEY } from "@app/constants";
 import { input } from "@app/lib/input";
 import { store } from "@app/store";
-import RuleEditor from "./rule-editor";
-import Rules from "./rule-container";
-import Preview from "./filter-preview";
-import { REDO_KEY, SAVE_KEY, UNDO_KEY, WRITE_KEY } from "@app/constants";
+import { Resizable, ResizableHandle, ResizablePanel } from "@app/ui/resizable";
+import { useColorMode } from "@kobalte/core";
+import { createEffect } from "solid-js";
 import { toast } from "solid-sonner";
+import Preview from "./filter-preview";
+import Rules from "./rule-container";
+import RuleEditor from "./rule-editor";
 
 export default function Editor() {
   const { colorMode } = useColorMode();

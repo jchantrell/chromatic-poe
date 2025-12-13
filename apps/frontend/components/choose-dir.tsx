@@ -7,9 +7,9 @@ import {
   splitProps,
 } from "solid-js";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
-import { Button } from "@pkgs/ui/button";
-import { FolderIcon } from "@pkgs/icons";
-import { cn, to } from "@pkgs/lib/utils";
+import { Button } from "@app/ui/button";
+import { FolderIcon } from "@app/icons";
+import { cn, to } from "@app/lib/utils";
 import { store } from "@app/store";
 import { platform } from "@tauri-apps/plugin-os";
 import { toast } from "solid-sonner";

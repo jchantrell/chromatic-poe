@@ -2,7 +2,7 @@ import {
   Tooltip as Primitive,
   TooltipContent,
   TooltipTrigger,
-} from "@pkgs/ui/tooltip";
+} from "@app/ui/tooltip";
 import type { JSXElement } from "solid-js";
 
 export default function Tooltip(props: { children: JSXElement; text: string }) {

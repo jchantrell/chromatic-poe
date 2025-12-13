@@ -1,22 +1,43 @@
+import { recursivelySetKeys } from "@app/lib/utils";
 import Fuse, { type FuseResult } from "fuse.js";
-import itemsV1 from "@pkgs/data/poe1/items.json";
-import itemsV2 from "@pkgs/data/poe2/items.json";
-import { recursivelySetKeys } from "@pkgs/lib/utils";
 
-type Item = (typeof itemsV1)[0];
+// Define Item interface matching the SQL query output
+export interface Item {
+  name: string;
+  category: string;
+  class: string;
+  type?: string; // Optional in SQL query (null as type)
+  score?: number;
+  art?: string;
+  height?: number;
+  width?: number;
+  gemFx?: string;
+  itemClass?: string;
+  base?: string;
+  [key: string]: any; // Allow loose matching for now
+}
+
 type Hierarchy = { [key: string]: Item | Hierarchy };
 
 class ItemIndex {
-  searchIndex!: Fuse<Item>;
-  hierarchy!: Hierarchy;
-  classes!: string[];
-  itemTable!: { [key: string]: { [key: string]: Item } };
+  searchIndex: Fuse<Item> | null = null;
+  hierarchy: Hierarchy = {};
+  classes: string[] = [];
+  itemTable: { [key: string]: { [key: string]: Item } } = {};
+  allItems: Item[] = [];
+  patch!: string
 
-  constructor() {
-    this.initV1();
+  findItemByBase(base: string) {
+    return this.allItems.find((item) => item.base && item.base.toLowerCase() === base.toLowerCase());
+  }
+  
+  findItemByName(name: string) {
+     return this.allItems.find((item) => item.name === name);
   }
 
-  initV1() {
+  initV1(items: Item[], patch: string) {
+    this.patch = patch;
+    this.allItems = items;
     const options = {
       keys: ["name", "category", "class", "type"],
       useExtendedSearch: true,
@@ -25,11 +46,11 @@ class ItemIndex {
       distance: 160,
       threshold: 0.6,
     };
-
+    
     const itemTable: { [key: string]: { [key: string]: Item } } = {};
     const classes = new Set<string>();
 
-    for (const item of itemsV1) {
+    for (const item of items) {
       // lookup table
       if (!itemTable[item.category]) {
         itemTable[item.category] = {};
@@ -48,13 +69,15 @@ class ItemIndex {
       classes.add(extraClass);
     }
 
-    this.hierarchy = this.generateHierarchy(itemsV1);
+    this.hierarchy = this.generateHierarchy(items);
     this.itemTable = itemTable;
     this.classes = Array.from(classes);
-    this.searchIndex = new Fuse(itemsV1, options);
+    this.searchIndex = new Fuse(items, options);
   }
 
-  initV2() {
+  initV2(items: Item[], patch: string) {
+     this.patch = patch;
+    this.allItems = items;
     const options = {
       keys: ["name", "category", "class", "type"],
       useExtendedSearch: true,
@@ -67,7 +90,7 @@ class ItemIndex {
     const itemTable: { [key: string]: { [key: string]: Item } } = {};
     const classes = new Set<string>();
 
-    for (const item of itemsV2) {
+    for (const item of items) {
       // lookup table
       if (!itemTable[item.category]) {
         itemTable[item.category] = {};
@@ -86,10 +109,10 @@ class ItemIndex {
       classes.add(extraClass);
     }
 
-    this.hierarchy = this.generateHierarchy(itemsV2);
+    this.hierarchy = this.generateHierarchy(items);
     this.itemTable = itemTable;
     this.classes = Array.from(classes);
-    this.searchIndex = new Fuse(itemsV2, options);
+    this.searchIndex = new Fuse(items, options);
   }
 
   generateHierarchy(items: Item[]) {
@@ -100,7 +123,7 @@ class ItemIndex {
       if (item.type) path.push(item.type);
 
       if (item.category === "Armour") {
-        path = [item.category, item.type, item.class];
+        path = [item.category, item.type || "Unknown Type", item.class];
       }
 
       path.push(item.name);
@@ -110,8 +133,11 @@ class ItemIndex {
   }
 
   search(
-    args: Parameters<typeof this.searchIndex.search>[0],
+    args: string,
   ): FuseResult<Item>[] {
+    if (!this.searchIndex) {
+      return [];
+    }
     if (!args || (typeof args === "string" && !args.length)) {
       return this.searchIndex.search({ name: "!1234567890" });
     }

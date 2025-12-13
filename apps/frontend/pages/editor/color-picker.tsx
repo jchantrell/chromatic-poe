@@ -1,10 +1,10 @@
-import { createEffect, onMount } from "solid-js";
-import { store } from "@app/store";
-import { setColor } from "@app/lib/filter";
-import { Label } from "@pkgs/ui/label";
-import jscolor from "@eastdesire/jscolor";
-import { toast } from "solid-sonner";
 import Tooltip from "@app/components/tooltip";
+import { setColor } from "@app/lib/filter";
+import { store } from "@app/store";
+import { Label } from "@app/ui/label";
+import jscolor from "@eastdesire/jscolor";
+import { createEffect, onMount } from "solid-js";
+import { toast } from "solid-sonner";
 
 function ColorPicker(props: {
   label: string;

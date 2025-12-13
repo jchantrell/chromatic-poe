@@ -1,23 +1,23 @@
-import { createMemo, createSignal, For, onMount } from "solid-js";
-import { Slider, SliderThumb, SliderTrack } from "@pkgs/ui/slider";
-import { ToggleGroup, ToggleGroupItem } from "@pkgs/ui/toggle-group";
-import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
+import { CloseIcon } from "@app/icons";
 import { type ConditionKey, conditionTypes } from "@app/lib/filter";
-import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
-import {
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@pkgs/ui/dialog";
-import { Dialog } from "@pkgs/ui/dialog";
-import { Button } from "@pkgs/ui/button";
-import { Separator } from "@pkgs/ui/separator";
 import type { modIndex } from "@app/lib/filter/mods";
-import { Checkbox } from "@pkgs/ui/checkbox";
+import { Badge } from "@app/ui/badge";
+import { Button } from "@app/ui/button";
+import { Checkbox } from "@app/ui/checkbox";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@app/ui/dialog";
+import { Separator } from "@app/ui/separator";
+import { Slider, SliderThumb, SliderTrack } from "@app/ui/slider";
+import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
+import { TextField, TextFieldInput } from "@app/ui/text-field";
+import { ToggleGroup, ToggleGroupItem } from "@app/ui/toggle-group";
 import { debounce } from "@solid-primitives/scheduled";
-import { Badge } from "@pkgs/ui/badge";
-import { CloseIcon } from "@pkgs/icons";
+import { createMemo, createSignal, For, onMount } from "solid-js";
 
 type FilteredConditionKey = Exclude<ConditionKey, ConditionKey.BASE_TYPE>;
 

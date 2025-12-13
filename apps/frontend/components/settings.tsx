@@ -1,27 +1,43 @@
-import { SettingsIcon } from "@pkgs/icons";
-import { Button } from "@pkgs/ui/button";
+import { SettingsIcon } from "@app/icons";
+import chromatic from "@app/lib/config";
+import { checkForUpdate, relaunchApp } from "@app/lib/update";
+import { to } from "@app/lib/utils";
+import { store } from "@app/store";
+import { Button } from "@app/ui/button";
+import { Checkbox } from "@app/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@pkgs/ui/dialog";
-import { TextField, TextFieldLabel } from "@pkgs/ui/text-field";
-import Theme from "./theme";
-import { Separator } from "@pkgs/ui/separator";
-import { ChooseDirectory } from "./choose-dir";
-import { Checkbox } from "@pkgs/ui/checkbox";
-import { Label } from "@pkgs/ui/label";
-import chromatic from "@app/lib/config";
+} from "@app/ui/dialog";
+import { Label } from "@app/ui/label";
+import { Separator } from "@app/ui/separator";
+import { TextField, TextFieldLabel } from "@app/ui/text-field";
 import { createSignal, onMount } from "solid-js";
-import { relaunchApp, checkForUpdate } from "@app/lib/update";
-import { to } from "@pkgs/lib/utils";
 import { toast } from "solid-sonner";
-import { store } from "@app/store";
+import { ChooseDirectory } from "./choose-dir";
+import Theme from "./theme";
+
+import { dat } from "@app/lib/dat";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@app/ui/select";
 
 export function Settings() {
   const [version, setVersion] = createSignal("0.0.0");
+
+  const [versions, setVersions] = createSignal<
+    { value: string; label: string }[]
+  >([]);
+  const [selectedVersion, setSelectedVersion] = createSignal<string | null>(
+    null,
+  );
 
   async function handleUpdate() {
     const [err] = await to(checkForUpdate());
@@ -32,8 +48,22 @@ export function Settings() {
     }
   }
 
+
+
   onMount(async () => {
     setVersion(await chromatic.getVersion());
+
+    const [err, v] = await to(dat.fetchPoeVersions());
+    if (err) {
+      return;
+    }
+    if (v) {
+      setVersions([
+        { value: v.poe1, label: `PoE 1 (${v.poe1})` },
+        { value: v.poe2, label: `PoE 2 (${v.poe2})` },
+      ]);
+      if (!selectedVersion()) setSelectedVersion(v.poe1);
+    }
   });
 
   return (
@@ -68,6 +98,47 @@ export function Settings() {
             <TextFieldLabel class='text-right'>Theme</TextFieldLabel>
             <Theme />
           </TextField>
+        </div>
+        <Separator />
+        <DialogHeader>
+          <DialogTitle>Data</DialogTitle>
+        </DialogHeader>
+        <div class='grid py-4'>
+          <div class='flex flex-col gap-4'>
+            <div class='space-y-1'>
+              <h4 class='font-medium leading-none'>Game Data</h4>
+              <p class='text-xs text-muted-foreground'>
+                Select a game version to download the latest data.
+              </p>
+            </div>
+            <div class='flex items-center gap-2'>
+              <Select<string>
+                value={selectedVersion()}
+                onChange={setSelectedVersion}
+                options={versions().map((v) => v.value)}
+                placeholder='Select patch...'
+                itemComponent={(props) => (
+                  <SelectItem item={props.item}>
+                    {
+                      versions().find((v) => v.value === props.item.rawValue)
+                        ?.label
+                    }
+                  </SelectItem>
+                )}
+              >
+                <SelectTrigger class='w-[200px]'>
+                  <SelectValue<string>>
+                    {(state) =>
+                      versions().find((v) => v.value === state.selectedOption())
+                        ?.label
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent />
+              </Select>
+
+            </div>
+          </div>
         </div>
         <Separator />
         <div class='grid py-4 flex items-center justify-center'>

@@ -1,18 +1,18 @@
-import { getVersion } from "@tauri-apps/api/app";
-import { documentDir, appConfigDir, sep } from "@tauri-apps/api/path";
 import {
   type ConditionKey,
   type Conditions,
   createCondition,
   Filter,
 } from "@app/lib/filter";
-import { WebStorage, DesktopStorage } from "@app/lib/storage";
+import { DesktopStorage, WebStorage } from "@app/lib/storage";
+import { alphabeticalSort, validJson } from "@app/lib/utils";
+import { setInitialised, setLocale, store } from "@app/store";
+import { getVersion } from "@tauri-apps/api/app";
+import { appConfigDir, documentDir, sep } from "@tauri-apps/api/path";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { store, setInitialised, setLocale } from "@app/store";
-import { alphabeticalSort, validJson } from "@pkgs/lib/utils";
-import { locale } from "@tauri-apps/plugin-os";
 import { openPath } from "@tauri-apps/plugin-opener";
-import defaultFilterSounds from "@pkgs/data/poe2/sounds.json";
+import { locale } from "@tauri-apps/plugin-os";
+import { defaultFilterSounds } from "./sounds";
 
 function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
   try {

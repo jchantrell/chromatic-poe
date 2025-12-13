@@ -1,19 +1,19 @@
-import Rule from "./rule-menu-entry";
-import CreateRule from "./create-rule";
-import { createEffect, createSignal, For } from "solid-js";
-import { store } from "@app/store";
-import {
-  DragDropProvider,
-  DragDropSensors,
-  DragOverlay,
-  SortableProvider,
-  closestCenter,
-  type DragEvent,
-} from "@thisbeyond/solid-dnd";
+import { type Index } from "@app/components/search";
 import { type FilterRule, moveRule } from "@app/lib/filter";
-import Search, { type Index } from "@app/components/search";
+import { store } from "@app/store";
+import { TextField, TextFieldInput } from "@app/ui/text-field";
+import {
+    closestCenter,
+    DragDropProvider,
+    DragDropSensors,
+    type DragEvent,
+    DragOverlay,
+    SortableProvider,
+} from "@thisbeyond/solid-dnd";
 import Fuse, { type FuseResult } from "fuse.js";
-import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
+import { createEffect, createSignal, For } from "solid-js";
+import CreateRule from "./create-rule";
+import Rule from "./rule-menu-entry";
 
 class RuleIndex implements Index {
   searchIndex!: Fuse<FilterRule>;

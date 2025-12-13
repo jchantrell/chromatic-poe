@@ -1,15 +1,14 @@
-import {
-  ConditionKey,
-  type Conditions,
-  createCondition,
-  Operator,
-} from "./condition";
-import { type Actions, IconSize, Shape, Color, DEFAULT_STYLE } from "./action";
+import { camelCase, clone } from "@app/lib/utils";
 import { ulid } from "ulid";
-import items from "@pkgs/data/poe2/items.json";
+import { type Actions, Color, DEFAULT_STYLE, IconSize, Shape } from "./action";
+import {
+    ConditionKey,
+    type Conditions,
+    createCondition,
+    Operator,
+} from "./condition";
+import type { FilterItem, FilterRule } from "./filter";
 import { itemIndex } from "./items";
-import { clone, camelCase } from "@pkgs/lib/utils";
-import type { FilterRule, FilterItem } from "./filter";
 
 interface ParsedFilterAction {
   type: string;
@@ -47,7 +46,7 @@ function containsExactWord(text: string, searchWord: string): boolean {
 }
 
 function baseExists(name: string) {
-  return items.find((item) => item.base.toLowerCase() === name.toLowerCase());
+  return itemIndex.findItemByBase(name);
 }
 
 function getClasses(value: number | string | boolean | string[]) {
@@ -308,7 +307,7 @@ export async function importFilter(raw: string) {
     const itemBases: FilterItem[] = [];
 
     for (const base of basesToAdd) {
-      const itemBase = items.find((item) => item.name === base);
+      const itemBase = itemIndex.findItemByName(base);
       if (itemBase) {
         itemBases.push({
           name: itemBase.name,

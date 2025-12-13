@@ -1,20 +1,20 @@
+import { ChevronDownIcon } from "@app/icons";
+import { dat } from "@app/lib/dat";
 import {
-  type Item,
+  ClassesCondition,
+  ConditionKey,
   type FilterItem,
   type FilterRule,
+  type Item,
   itemIndex,
-  Operator,
   Rarity,
-  ConditionKey,
-  ClassesCondition,
+  RarityCondition,
 } from "@app/lib/filter";
-import { Checkbox } from "@pkgs/ui/checkbox";
-import { createEffect, createSignal, For } from "solid-js";
+import { Checkbox } from "@app/ui/checkbox";
+import { TextField, TextFieldInput } from "@app/ui/text-field";
+import { createEffect, createResource, createSignal, For, on } from "solid-js";
 import { createMutable } from "solid-js/store";
-import { ChevronDownIcon } from "@pkgs/icons";
 import { toast } from "solid-sonner";
-import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
-import { on } from "solid-js";
 
 interface BranchNode {
   name: string;
@@ -49,6 +49,8 @@ function updateParentState(node: TreeNode) {
     updateParentState(node.parent);
   }
 }
+
+
 
 function getIcon(node: TreeNode) {
   if (node.data)
@@ -115,6 +117,19 @@ function Node(props: {
     setIsExpanded(!isExpanded());
   }
 
+  const [art] = createResource(
+    () => props.node,
+    async (node) => {
+      const artPath = "data" in node && node.data 
+        ? itemIndex.itemTable[node.data.category][node.data.name].art 
+        : getIcon(node);
+      
+      if (!artPath) return "/static/tainted-chromatic-icon.png";
+      const map = await dat.getItemArt([{ art: artPath }]);
+      return map.get(artPath) || "/static/tainted-chromatic-icon.png";
+    }
+  );
+
   return (
     <div class={`select-none ${props.level > 0 ? "ml-4" : ""}`}>
       <div class='flex items-center p-1 hover:bg-accent cursor-pointer'>
@@ -137,13 +152,8 @@ function Node(props: {
             <img
               class='mr-1 h-6 max-w-full pointer-events-none'
               alt={`${props.node.data?.name} icon`}
-              src={
-                "data" in props.node && props.node?.data
-                  ? itemIndex.itemTable[props.node.data.category][
-                      props.node.data?.name
-                    ].art
-                  : getIcon(props.node)
-              }
+              src={art() || "/static/tainted-chromatic-icon.png"}
+              onError={(e) => (e.currentTarget.src = "/static/tainted-chromatic-icon.png")}
             />
           </figure>
           <span>
@@ -196,19 +206,26 @@ export function ItemPicker(props: { rule: FilterRule }) {
 
     if ("data" in node && node.data) {
       if (node.data.category === "Uniques") {
+        const existingRarity = props.rule.conditions.find(c => c.key === ConditionKey.RARITY);
         if (
           enabled &&
-          !props.rule.conditions.rarity?.value.includes(Rarity.UNIQUE)
+          (!existingRarity || !existingRarity.value.includes(Rarity.UNIQUE))
         ) {
           toast.info("Adding 'Unique' rarity condition to rule.", {
             description:
               "Uniques are filtered by base type (the small grey text next to the unique's name) so a rarity condition of 'Unique' is required to separate them from other rarities.",
             duration: 10000,
           });
-          props.rule.conditions.rarity = {
-            operator: Operator.EXACT,
-            value: [Rarity.UNIQUE],
-          };
+          
+          if (existingRarity) {
+             existingRarity.value.push(Rarity.UNIQUE);
+          } else {
+             props.rule.conditions.push(
+               new RarityCondition({
+                 value: [Rarity.UNIQUE],
+               }),
+             );
+          }
         }
         if (!enabled) {
           // TODO: check if rarity condition still needs to exist
@@ -227,7 +244,6 @@ export function ItemPicker(props: { rule: FilterRule }) {
           });
           props.rule.conditions.push(
             new ClassesCondition({
-              operator: Operator.EXACT,
               value: ["Pinnacle Keys"],
             }),
           );

@@ -1,29 +1,29 @@
-import { createMemo, createSignal, on, onMount } from "solid-js";
-import { refreshSounds, store } from "@app/store";
-import {
-  type Filter,
-  setSoundEnabled,
-  setSoundPath,
-  setSoundVolume,
-} from "@app/lib/filter";
-import { Checkbox } from "@pkgs/ui/checkbox";
-import { Label } from "@pkgs/ui/label";
-import { Slider, SliderFill, SliderThumb, SliderTrack } from "@pkgs/ui/slider";
-import Tooltip from "@app/components/tooltip";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxControl,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxItemIndicator,
-  ComboboxItemLabel,
-  ComboboxSection,
-  ComboboxTrigger,
-} from "@pkgs/ui/combo-box";
-import type { Sound } from "@app/lib/config";
-import { createStore } from "solid-js/store";
 import SoundPlayer from "@app/components/sound-player";
+import Tooltip from "@app/components/tooltip";
+import type { Sound } from "@app/lib/config";
+import {
+    type Filter,
+    setSoundEnabled,
+    setSoundPath,
+    setSoundVolume,
+} from "@app/lib/filter";
+import { refreshSounds, store } from "@app/store";
+import { Checkbox } from "@app/ui/checkbox";
+import {
+    Combobox,
+    ComboboxContent,
+    ComboboxControl,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxItemIndicator,
+    ComboboxItemLabel,
+    ComboboxSection,
+    ComboboxTrigger,
+} from "@app/ui/combo-box";
+import { Label } from "@app/ui/label";
+import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
+import { createMemo, createSignal, on, onMount } from "solid-js";
+import { createStore } from "solid-js/store";
 
 interface Category {
   label: string;

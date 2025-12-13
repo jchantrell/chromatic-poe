@@ -1,19 +1,19 @@
-import { createEffect, createSignal, on, onMount } from "solid-js";
-import { For } from "solid-js";
-import { store } from "@app/store";
 import {
-  Color,
-  colors,
-  IconSize,
-  setMapIconColor,
-  setMapIconShape,
-  setMapIconSize,
-  Shape,
+    Color,
+    colors,
+    IconSize,
+    setMapIconColor,
+    setMapIconShape,
+    setMapIconSize,
+    Shape,
 } from "@app/lib/filter";
-import { Popover, PopoverContent, PopoverTrigger } from "@pkgs/ui/popover";
-import minimapIcons from "@pkgs/assets/poe2/minimap.json";
-import { RadioGroup, RadioGroupItem } from "@pkgs/ui/radio-group";
-import minimapImg from "@pkgs/assets/poe2/images/art@2dart@minimap@player.png";
+import { minimapIndex } from "@app/lib/minimap";
+import { store } from "@app/store";
+import { Popover, PopoverContent, PopoverTrigger } from "@app/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@app/ui/radio-group";
+import { createEffect, createSignal, For, on, onMount } from "solid-js";
+
+const minimapImg = "/poe2/images/art@2dart@minimap@player.png";
 
 const SHEET_WIDTH = 896;
 const SHEET_HEIGHT = 3776;
@@ -31,7 +31,7 @@ export function MinimapIcon(props: {
         "background-image": `url(${minimapImg})`,
         height: `calc(64px / ${props.scale})`,
         width: `calc(64px / ${props.scale})`,
-        "background-position": `calc(-${minimapIcons[props.color][props.shape][props.size].x}px / ${props.scale}) calc(-${minimapIcons[props.color][props.shape][props.size].y}px / ${props.scale})`,
+        "background-position": minimapIndex.get(props.color, props.shape, props.size) ? `calc(-${minimapIndex.get(props.color, props.shape, props.size).x}px / ${props.scale}) calc(-${minimapIndex.get(props.color, props.shape, props.size).y}px / ${props.scale})` : undefined,
         "background-size": `calc(${SHEET_WIDTH}px / ${props.scale}) calc(${SHEET_HEIGHT}px / ${props.scale})`,
       }}
     />
@@ -119,7 +119,8 @@ function MapIconPicker() {
         >
           <div class='flex max-w-[200px]'>
             <div class='flex flex-col items-center'>
-              <For each={Object.entries(minimapIcons[color()])}>
+              {minimapIndex.isLoaded && minimapIndex.data[color()] ? (
+              <For each={Object.entries(minimapIndex.data[color()])}>
                 {(shape) => (
                   <div
                     class='hover:bg-muted rounded-lg'
@@ -136,6 +137,7 @@ function MapIconPicker() {
                   </div>
                 )}
               </For>
+              ) : <div>Loading...</div>}
             </div>
             <div class='flex flex-col w-full items-center justify-center py-1 mx-1'>
               <RadioGroup value={size()} onChange={setSize} class='flex'>

@@ -1,18 +1,18 @@
-import { createSignal } from "solid-js";
+import { CopyIcon, EditIcon, TrashIcon } from "@app/icons";
 import type { Filter } from "@app/lib/filter";
-import { Button } from "@pkgs/ui/button";
-import { Dialog, DialogContent } from "@pkgs/ui/dialog";
-import { TextField, TextFieldInput } from "@pkgs/ui/text-field";
-import { EditIcon, TrashIcon, CopyIcon } from "@pkgs/icons";
-import { timeSince } from "@pkgs/lib/utils";
+import { timeSince } from "@app/lib/utils";
+import { removeFilter, setFilter, store } from "@app/store";
+import { Button } from "@app/ui/button";
 import {
-  ContextMenu,
-  ContextMenuItem,
-  ContextMenuContent,
-  ContextMenuTrigger,
-} from "@pkgs/ui/context-menu";
-import { notify } from "@pkgs/ui/sonner";
-import { store, setFilter, removeFilter } from "@app/store";
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuTrigger,
+} from "@app/ui/context-menu";
+import { Dialog, DialogContent } from "@app/ui/dialog";
+import { notify } from "@app/ui/sonner";
+import { TextField, TextFieldInput } from "@app/ui/text-field";
+import { createSignal } from "solid-js";
 
 import { BASE_URL } from "@app/app";
 

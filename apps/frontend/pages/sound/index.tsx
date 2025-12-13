@@ -1,21 +1,20 @@
 import Background from "@app/components/background";
-import { For, onMount } from "solid-js";
-import { RefreshIcon, TrashIcon } from "@pkgs/icons";
-import chromatic, { type Sound } from "@app/lib/config";
-import { platform } from "@tauri-apps/plugin-os";
-import {
-  Slider,
-  SliderFill,
-  SliderThumb,
-  SliderTrack,
-  SliderLabel,
-  SliderValueLabel,
-} from "@pkgs/ui/slider";
-import { createSignal } from "solid-js";
-import Tooltip from "@app/components/tooltip";
-import { Separator } from "@pkgs/ui/separator";
-import { refreshSounds, setSounds, store } from "@app/store";
 import SoundPlayer from "@app/components/sound-player";
+import Tooltip from "@app/components/tooltip";
+import { RefreshIcon, TrashIcon } from "@app/icons";
+import chromatic, { type Sound } from "@app/lib/config";
+import { refreshSounds, setSounds, store } from "@app/store";
+import { Separator } from "@app/ui/separator";
+import {
+    Slider,
+    SliderFill,
+    SliderLabel,
+    SliderThumb,
+    SliderTrack,
+    SliderValueLabel,
+} from "@app/ui/slider";
+import { platform } from "@tauri-apps/plugin-os";
+import { createSignal, For, onMount } from "solid-js";
 
 function SoundFile(props: {
   sound: Sound;

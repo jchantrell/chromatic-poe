@@ -1,25 +1,25 @@
-import { createEffect, createSignal } from "solid-js";
-import { store } from "@app/store";
-import {
-  Color,
-  IconSize,
-  setBeamEnabled,
-  setDropSoundEnabled,
-  setDropSoundToggle,
-  setMapIconEnabled,
-  Shape,
-} from "@app/lib/filter";
-import MapIconPicker from "@app/pages/editor/map-icon-picker";
-import ColorPicker from "@app/pages/editor/color-picker";
-import { Checkbox } from "@pkgs/ui/checkbox";
-import { Label } from "@pkgs/ui/label";
-import BeamPicker from "@app/pages/editor/beam-picker";
-import ConditionManager from "./condition-builder";
-import { Slider, SliderFill, SliderThumb, SliderTrack } from "@pkgs/ui/slider";
 import Tooltip from "@app/components/tooltip";
-import { CloseIcon } from "@pkgs/icons";
+import { CloseIcon } from "@app/icons";
+import {
+    Color,
+    IconSize,
+    setBeamEnabled,
+    setDropSoundEnabled,
+    setDropSoundToggle,
+    setMapIconEnabled,
+    Shape,
+} from "@app/lib/filter";
+import BeamPicker from "@app/pages/editor/beam-picker";
+import ColorPicker from "@app/pages/editor/color-picker";
+import MapIconPicker from "@app/pages/editor/map-icon-picker";
+import { store } from "@app/store";
+import { Checkbox } from "@app/ui/checkbox";
+import { Label } from "@app/ui/label";
+import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
+import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
+import { createEffect, createSignal } from "solid-js";
+import ConditionManager from "./condition-builder";
 import SoundPicker from "./sound-picker";
-import { Switch, SwitchControl, SwitchThumb } from "@pkgs/ui/switch";
 
 function LabelSize() {
   const [size, setSize] = createSignal(32);
