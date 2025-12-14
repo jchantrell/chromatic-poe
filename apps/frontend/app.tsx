@@ -1,6 +1,7 @@
 import Background from "@app/components/background";
 import { Settings } from "@app/components/settings";
 import Tooltip from "@app/components/tooltip";
+import { ensureData } from "@app/components/update-data.tsx";
 import { SAVE_KEY, WRITE_KEY } from "@app/constants";
 import {
   AudioIcon,
@@ -13,15 +14,14 @@ import {
 } from "@app/icons";
 import chromatic from "@app/lib/config";
 import { dat } from "@app/lib/dat";
-import { type Item, itemIndex } from "@app/lib/items";
+import { itemIndex } from "@app/lib/items";
 import { minimapIndex } from "@app/lib/minimap";
 import { type Mod, modIndex } from "@app/lib/mods";
 import { checkForUpdate } from "@app/lib/update";
-import { ensureData } from "@app/lib/update-data.tsx";
 import Editor from "@app/pages/editor";
 import LoadScreen from "@app/pages/load-screen";
 import SoundManager from "@app/pages/sound";
-import { refreshSounds, setItemsLoaded, store } from "@app/store";
+import { refreshSounds, store } from "@app/store";
 import { Avatar, AvatarImage } from "@app/ui/avatar";
 import { Button } from "@app/ui/button";
 import { Toaster } from "@app/ui/sonner";
@@ -34,8 +34,9 @@ import { Route, Router } from "@solidjs/router";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { createEffect, createSignal, type JSXElement, onMount } from "solid-js";
 import { toast } from "solid-sonner";
-import "./app.css";
+import type { Item } from "./lib/filter";
 import { to } from "./lib/utils";
+import "./app.css";
 
 export const BASE_URL = import.meta.env.BASE_URL;
 export const storageManager = createLocalStorageManager("theme");
@@ -219,6 +220,7 @@ function App() {
     const filterVersion = store.filter.poePatch;
     const [versionError, currentVersions] = await to(dat.fetchPoeVersions());
     if (versionError) {
+      console.error("Failed to fetch latest PoE versions", versionError);
       return;
     }
 
@@ -233,16 +235,17 @@ function App() {
 
     if (itemIndex.patch !== filterVersion) {
       itemIndex.searchIndex = null;
-      setItemsLoaded(false);
     }
 
     const [extractError] = await to(ensureData(store.filter.poePatch));
     if (extractError) {
+      console.error("Failed to load items", extractError);
       return;
     }
 
     const [dataError, data] = await to(dat.load(store.filter.poePatch));
     if (dataError) {
+      console.error("Failed to load data", dataError);
       return;
     }
 
@@ -251,7 +254,6 @@ function App() {
     } else {
       itemIndex.initV2(data.items as Item[], store.filter.poePatch);
     }
-    setItemsLoaded(true);
     modIndex.init(data.mods as Mod[]);
     if (data.minimap) {
       minimapIndex.init(data.minimap);

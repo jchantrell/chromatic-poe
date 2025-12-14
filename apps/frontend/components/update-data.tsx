@@ -13,12 +13,9 @@ export async function ensureData(patch: string) {
   await dat.extract(patch, (p, m) => {
     if (!showedToast) {
       showedToast = true;
-      toastId = toast.custom(
-        () => <ToastProgress progress={progress} message={message} />,
-        {
-          duration: Infinity,
-        },
-      );
+      toastId = toast(<ToastProgress progress={progress} message={message} />, {
+        duration: Infinity,
+      });
     }
     setProgress(p);
     setMessage(m);

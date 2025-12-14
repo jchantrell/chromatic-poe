@@ -1,20 +1,6 @@
 import { recursivelySetKeys } from "@app/lib/utils";
 import Fuse, { type FuseResult } from "fuse.js";
-
-export interface Item {
-  name: string;
-  category: string;
-  class: string;
-  type?: string;
-  score?: number;
-  art?: string;
-  height?: number;
-  width?: number;
-  gemFx?: string;
-  itemClass?: string;
-  base?: string;
-  [key: string]: unknown;
-}
+import type { Item } from "./filter";
 
 type Hierarchy = { [key: string]: Item | Hierarchy };
 

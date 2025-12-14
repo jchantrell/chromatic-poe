@@ -1,4 +1,5 @@
 import { type DBSchema, openDB } from "idb";
+import { toast } from "solid-sonner";
 
 type Unique = {
   name: string;
@@ -25,9 +26,10 @@ export class WikiManager {
     const exists = await db.get("uniques", cacheKey);
 
     if (!exists) {
-      return await this.queryWiki(gameVersion, 0, []);
+      toast.error("Could not find unique. Please clear cache and resync.");
     }
 
+    console.log("Getting unique bases from cache...");
     return await db.getAll("uniques");
   }
 
@@ -36,7 +38,6 @@ export class WikiManager {
     offset: number,
     results: unknown[],
   ): Promise<Unique[]> {
-    console.log("query wiki", gameVersion, offset, results);
     const proxyUrl =
       import.meta.env.VITE_CORS_PROXY_URL || "https://corsproxy.io/?";
     const targetUrl = `https://www.poe${gameVersion === 2 ? "2" : ""}wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&offset=${offset}`;

@@ -48,6 +48,7 @@ export class BundleManager {
       bundlesInfo: _index.bundlesInfo,
       filesInfo: _index.filesInfo,
     };
+    console.log("Bundle index loaded");
   }
 
   async fetchFile(name: string): Promise<ArrayBuffer> {

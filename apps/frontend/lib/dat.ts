@@ -55,7 +55,6 @@ export class DatManager {
 
     const gameVersion = patch.startsWith("3") ? 1 : 2;
 
-    console.log("Querying wiki for unique bases...");
     const wikiUniques = await this.wiki.getUniques(gameVersion);
     for (const unique of uniques) {
       if (unique.base) continue;
@@ -128,6 +127,11 @@ export class DatManager {
         console.warn(`Failed to process ${tableName}`, err);
       }
     }
+
+    const gameVersion = patch.startsWith("3") ? 1 : 2;
+
+    console.log("Querying wiki for unique bases...");
+    await this.wiki.queryWiki(gameVersion, 0, []);
 
     await this.db.run(
       "INSERT OR REPLACE INTO _patches (version, date) VALUES (?, ?)",

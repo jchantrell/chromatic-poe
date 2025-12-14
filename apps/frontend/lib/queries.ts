@@ -1267,7 +1267,7 @@ LEFT JOIN ${TableNames.Words}
 ON ${TableNames.UniqueStashLayout}.WordsKey = ${TableNames.Words}._index
 LEFT JOIN ${TableNames.ItemVisualIdentity} AS Visuals
 ON ${TableNames.UniqueStashLayout}.ItemVisualIdentityKey = Visuals._index
-WHERE ${TableNames.UniqueStashLayout}.IsAlternativeArt = 0 AND
+WHERE ${TableNames.UniqueStashLayout}.IsAlternateArt = 0 AND
 ${TableNames.UniqueStashLayout}.RenamedVersion IS NULL
 `;
 

@@ -54,7 +54,7 @@ export default function Rule(props: { rule: FilterRule }) {
     }
   }
 
-  function handleDuplicate(e: MouseEvent) {
+  function handleDuplicate(_: MouseEvent) {
     if (store.filter) {
       duplicateRule(store.filter, props.rule);
     }
