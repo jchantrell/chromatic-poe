@@ -27,17 +27,13 @@ interface Schema extends DBSchema {
 }
 
 export class IDBManager {
-  private dbPromise = openDB<Schema>("chromatic-poe", 2, {
-    upgrade(db, oldVersion) {
-      if (oldVersion < 1) {
-        db.createObjectStore("bundles");
-        db.createObjectStore("uniques");
-        db.createObjectStore("images");
-        db.createObjectStore("minimap");
-      }
-      if (oldVersion < 2) {
-        db.createObjectStore("mods");
-      }
+  private dbPromise = openDB<Schema>("chromatic-poe", 1, {
+    upgrade(db) {
+      db.createObjectStore("bundles");
+      db.createObjectStore("uniques");
+      db.createObjectStore("images");
+      db.createObjectStore("minimap");
+      db.createObjectStore("mods");
     },
   });
 

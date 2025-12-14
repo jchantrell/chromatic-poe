@@ -14,35 +14,33 @@ export class BundleManager {
     filesInfo: Uint8Array;
   };
 
-  public patch!: string;
-  private cdn!: string;
-
   constructor(private db: IDBManager) {}
 
   async init(patch: string) {
-    this.patch = patch;
-    const isPoe2 = this.patch.startsWith("4.");
-    const baseUrl = isPoe2
-      ? "https://patch-poe2.poecdn.com"
-      : "https://patch.poecdn.com";
-    const proxyUrl =
-      import.meta.env.VITE_CORS_PROXY_URL || "https://corsproxy.io/?";
-    this.cdn = `${proxyUrl}${encodeURIComponent(baseUrl)}`;
-
+    if (!patch) return;
     console.log("Loading bundles index...");
-    const indexBin = await this.fetchFile("_.index.bin");
+    const indexBin = await this.fetchFile(patch, "_.index.bin");
     const indexBundle = decompressSliceInBundle(new Uint8Array(indexBin));
     const _index = readIndexBundle(indexBundle);
     this.index = {
       bundlesInfo: _index.bundlesInfo,
       filesInfo: _index.filesInfo,
     };
-    console.log("Bundle index loaded");
   }
 
-  async fetchFile(name: string): Promise<ArrayBuffer> {
+  getCdnUrl(patch: string) {
+    const isPoe2 = patch.startsWith("4.");
+    const baseUrl = isPoe2
+      ? "https://patch-poe2.poecdn.com"
+      : "https://patch.poecdn.com";
+    const proxyUrl =
+      import.meta.env.VITE_CORS_PROXY_URL || "https://corsproxy.io/?";
+    return `${proxyUrl}${encodeURIComponent(baseUrl)}`;
+  }
+
+  async fetchFile(patch: string, name: string): Promise<ArrayBuffer> {
     const db = await this.db.getInstance();
-    const cacheKey = `${this.patch}/${name}`;
+    const cacheKey = `${patch}/${name}`;
 
     try {
       const cached = await db.get("bundles", cacheKey);
@@ -53,8 +51,8 @@ export class BundleManager {
 
     console.log(`Loading from CDN: ${name} ...`);
     return await withRetries(async () => {
-      const webpath = `/${this.patch}/${BUNDLE_DIR}/${name}`;
-      const response = await fetch(`${this.cdn}${webpath}`);
+      const webpath = `/${patch}/${BUNDLE_DIR}/${name}`;
+      const response = await fetch(`${this.getCdnUrl(patch)}/${webpath}`);
 
       if (!response.ok) {
         throw new Error(
@@ -73,15 +71,18 @@ export class BundleManager {
     });
   }
 
-  async getFileContents(fullPath: string): Promise<Uint8Array> {
-    const contents = await this.tryGetFileContents(fullPath);
+  async getFileContents(patch: string, fullPath: string): Promise<Uint8Array> {
+    const contents = await this.tryGetFileContents(patch, fullPath);
     if (!contents) {
       throw new Error(`File no longer exists: ${fullPath}`);
     }
     return contents;
   }
 
-  async tryGetFileContents(fullPath: string): Promise<Uint8Array | null> {
+  async tryGetFileContents(
+    patch: string,
+    fullPath: string,
+  ): Promise<Uint8Array | null> {
     if (!this.index) {
       throw new Error("Loader not initialized. Call init() first.");
     }
@@ -93,7 +94,7 @@ export class BundleManager {
     );
     if (!location) return null;
 
-    const bundleBin = await this.fetchFile(location.bundle);
+    const bundleBin = await this.fetchFile(patch, location.bundle);
     return decompressSliceInBundle(
       new Uint8Array(bundleBin),
       location.offset,

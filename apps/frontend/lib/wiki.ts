@@ -9,9 +9,9 @@ export type Unique = {
 export class WikiManager {
   constructor(private db: IDBManager) {}
 
-  async getUniques(gameVersion: number): Promise<Unique[]> {
+  async getUniques(patch: string): Promise<Unique[]> {
     const db = await this.db.getInstance();
-    const cacheKey = `${gameVersion}/Tabula Rasa`;
+    const cacheKey = `${patch}/Tabula Rasa`;
     const exists = await db.get("uniques", cacheKey);
 
     if (!exists) {
@@ -23,10 +23,11 @@ export class WikiManager {
   }
 
   async queryWiki(
-    gameVersion: number,
+    patch: string,
     offset: number,
     results: unknown[],
   ): Promise<Unique[]> {
+    const gameVersion = patch.startsWith("3") ? 1 : 2;
     const proxyUrl =
       import.meta.env.VITE_CORS_PROXY_URL || "https://corsproxy.io/?";
     const targetUrl = `https://www.poe${gameVersion === 2 ? "2" : ""}wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&offset=${offset}`;
@@ -40,7 +41,7 @@ export class WikiManager {
     });
     const res = await req.json();
     if (res.cargoquery.length) {
-      return this.queryWiki(gameVersion, offset + 50, [
+      return this.queryWiki(patch, offset + 50, [
         ...results,
         ...res.cargoquery,
       ]);
@@ -50,7 +51,7 @@ export class WikiManager {
 
     const db = await this.db.getInstance();
     for (const uniq of [...results, ...res.cargoquery]) {
-      const cacheKey = `${gameVersion}/${uniq.title.name}`;
+      const cacheKey = `${patch}/${uniq.title.name}`;
       const v: Unique = {
         name: uniq.title.name,
         base: uniq.title["base item"],
@@ -63,8 +64,7 @@ export class WikiManager {
   }
 
   async getCached(patch: string, name: string): Promise<Unique | undefined> {
-    const gameVersion = patch.startsWith("3") ? 1 : 2;
-    const cacheKey = `${gameVersion}/${name}`;
+    const cacheKey = `${patch}/${name}`;
 
     const db = await this.db.getInstance();
     return await db.get("uniques", cacheKey);

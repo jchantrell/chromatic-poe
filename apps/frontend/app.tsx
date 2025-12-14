@@ -22,6 +22,7 @@ import {
   refreshSounds,
   setInitialised,
   setPatchLoaded,
+  setPoeCurrentVersions,
   store,
 } from "@app/store";
 import { Avatar, AvatarImage } from "@app/ui/avatar";
@@ -172,10 +173,6 @@ function Main() {
 }
 
 function App() {
-  const [currentVersion, setCurrentVersion] = createSignal<{
-    poe1: string;
-    poe2: string;
-  } | null>(null);
   const [zoom, setZoom] = createSignal(4);
 
   document.addEventListener("wheel", async (event) => {
@@ -202,57 +199,13 @@ function App() {
     }
   });
 
-  createEffect(async () => {
-    const currentVersions = currentVersion();
-    if (!store.initialised || !store.filter || !currentVersions) return;
-    setPatchLoaded(false);
-
-    const filterVersion = store.filter.poePatch;
-
-    const gameVersion = filterVersion.startsWith("3") ? 1 : 2;
-
-    if (gameVersion === 1 && filterVersion !== currentVersions.poe1) {
-      store.filter.poePatch = currentVersions.poe1;
-    }
-    if (gameVersion === 2 && filterVersion !== currentVersions.poe2) {
-      store.filter.poePatch = currentVersions.poe2;
-    }
-
-    const patch = store.filter.poePatch;
-
-    if (itemIndex.patch !== filterVersion) {
-      itemIndex.searchIndex = null;
-    }
-
-    const [extractError] = await to(ensureData(patch));
-    if (extractError) {
-      console.error("Failed to load items", extractError);
-      return;
-    }
-
-    const [dataError, data] = await to(dat.load(patch));
-    if (dataError) {
-      console.error("Failed to load data", dataError);
-      return;
-    }
-
-    if (gameVersion === 1) {
-      itemIndex.initV1(data.items as Item[], patch);
-    } else {
-      itemIndex.initV2(data.items as Item[], patch);
-    }
-    modIndex.init(data.mods as Mod[]);
-
-    setPatchLoaded(true);
-  });
-
   onMount(async () => {
     const [versionError, currentVersions] = await to(dat.fetchPoeVersions());
     if (versionError) {
       console.error("Failed to fetch latest PoE versions", versionError);
       return;
     }
-    setCurrentVersion(currentVersions);
+    setPoeCurrentVersions(currentVersions);
     await chromatic.init();
     await chromatic.getAllFilters();
     setInitialised(true);

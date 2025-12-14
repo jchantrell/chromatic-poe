@@ -15,6 +15,7 @@ interface Store {
   defaultSounds: Sound[];
   appNeedsRestart: boolean;
   patchLoaded: boolean;
+  poeCurrentVersions: { poe1: string; poe2: string } | null;
 }
 
 export const store = createMutable<Store>({
@@ -27,6 +28,7 @@ export const store = createMutable<Store>({
   defaultSounds: [],
   appNeedsRestart: false,
   patchLoaded: false,
+  poeCurrentVersions: null,
 });
 
 export function removeFilter(filter: Filter) {
@@ -55,6 +57,12 @@ export function setPatchLoaded(state: boolean) {
 
 export function setLocale(locale: string | null) {
   store.locale = locale;
+}
+
+export function setPoeCurrentVersions(
+  versions: { poe1: string; poe2: string } | null,
+) {
+  store.poeCurrentVersions = versions;
 }
 
 export async function setSounds(sounds: Sound[]) {

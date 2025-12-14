@@ -1,7 +1,7 @@
 import Fuse, { type FuseResult } from "fuse.js";
-import { BundleManager } from "./bundle";
-import { Database } from "./db";
-import { IDBManager } from "./idb";
+import type { BundleManager } from "./bundle";
+import type { Database } from "./db";
+import type { IDBManager } from "./idb";
 
 const MODIFIABLE_CLASSES = [
   "Life Flasks",
@@ -58,6 +58,21 @@ const MODIFIABLE_CLASSES = [
   "Idols",
 ];
 
+const POE1_STAT_FILES = [
+  "metadata/statdescriptions/stat_descriptions.txt",
+  "metadata/statdescriptions/map_stat_descriptions.txt",
+  "metadata/statdescriptions/heist_equipment_stat_descriptions.txt",
+  "metadata/statdescriptions/sanctum_relic_stat_descriptions.txt",
+  "metadata/statdescriptions/atlas_stat_descriptions.txt",
+];
+
+const POE2_STAT_FILES = [
+  "data/statdescriptions/stat_descriptions.csd",
+  "data/statdescriptions/map_stat_descriptions.csd",
+  "data/statdescriptions/heist_equipment_stat_descriptions.csd",
+  "data/statdescriptions/sanctum_relic_stat_descriptions.csd",
+];
+
 type ItFileDefinition = {
   extends?: string;
   tag?: string;
@@ -86,7 +101,7 @@ export interface Mod {
   [key: string]: unknown;
 }
 
-export interface SingleMod extends Omit<Mod, 'stats'> {
+export interface SingleMod extends Omit<Mod, "stats"> {
   stats: ModStats[];
 }
 
@@ -98,7 +113,7 @@ export class ModManager {
   constructor(
     private loader: BundleManager,
     private idb: IDBManager,
-    private db: Database
+    private db: Database,
   ) {}
 
   async getMods(patch: string) {
@@ -108,51 +123,78 @@ export class ModManager {
     return await db.get("mods", key);
   }
 
-  async extract(patch: string, onProgress?: (percent: number, msg: string) => void) {
-    if (onProgress) onProgress(0, "Fetching stat descriptions...");
-    console.log("Extracting mods...");
+  async extract(
+    patch: string,
+    onProgress?: (percent: number, msg: string) => void,
+  ) {
     const gameVersion = patch.startsWith("3") ? 1 : 2;
-    
-    // 1. Fetch and Parse Stat Descriptions
-    const statDescriptions = await this.getStatDescriptions(gameVersion);
 
-    if (onProgress) onProgress(10, "Resolving base items...");
+    console.log("Extracting mods...");
 
-    // 2. Resolve Base Item Tags (Inheritance)
+    if (onProgress) onProgress(0, "Fetching stat descriptions...");
+    const statDescriptions = await this.getStatDescriptions(patch);
+
+    if (onProgress) onProgress(10, "Building stat hierarchy...");
     const itemClassCol = gameVersion === 1 ? "ItemClassesKey" : "ItemClass";
     const tagsCol = gameVersion === 1 ? "TagsKeys" : "Tags";
-    const baseItems = await this.db.query(`SELECT Name, ${itemClassCol}, ${tagsCol}, InheritsFrom, ModDomain FROM "${patch}_BaseItemTypes"`);
-    const tagsTable = await this.db.query(`SELECT _index, Id FROM "${patch}_Tags"`);
-    const tagsMap = Object.fromEntries(tagsTable.map((t: any) => [t._index, t.Id]));
-    
-    const itemClasses = await this.db.query(`SELECT _index, Name FROM "${patch}_ItemClasses"`);
-    const classesMap = Object.fromEntries(itemClasses.map((t: any) => [t._index, t.Name]));
+    const baseItems = await this.db.query(
+      `SELECT Name, ${itemClassCol}, ${tagsCol}, InheritsFrom, ModDomain FROM "${patch}_BaseItemTypes"`,
+    );
+    const tagsTable = await this.db.query(
+      `SELECT _index, Id FROM "${patch}_Tags"`,
+    );
+    const tagsMap = Object.fromEntries(
+      tagsTable.map((t: any) => [t._index, t.Id]),
+    );
+    const itemClasses = await this.db.query(
+      `SELECT _index, Name FROM "${patch}_ItemClasses"`,
+    );
+    const classesMap = Object.fromEntries(
+      itemClasses.map((t: any) => [t._index, t.Name]),
+    );
+    const hierarchy = await this.buildHierarchy(patch, baseItems, gameVersion);
 
-
-    const hierarchy = await this.buildHierarchy(baseItems, gameVersion);
-
-    if (onProgress) onProgress(20, "Processing mods...");
-
-    // 3. Process Mods
+    if (onProgress) onProgress(20, "Extracting mods...");
     const modsTable = await this.db.query(`SELECT * FROM "${patch}_Mods"`);
-    const statsTable = await this.db.query(`SELECT _index, Id FROM "${patch}_Stats"`);
-    const statsMap = Object.fromEntries(statsTable.map((s: any) => [s._index, s]));
-    
-    const modTypes = await this.db.query(`SELECT _index, Name FROM "${patch}_ModType"`);
-    const modTypesMap = Object.fromEntries(modTypes.map((t: any) => [t._index, t.Name]));
-
+    const statsTable = await this.db.query(
+      `SELECT _index, Id FROM "${patch}_Stats"`,
+    );
+    const statsMap = Object.fromEntries(
+      statsTable.map((s: any) => [s._index, s]),
+    );
+    const modTypes = await this.db.query(
+      `SELECT _index, Name FROM "${patch}_ModType"`,
+    );
+    const modTypesMap = Object.fromEntries(
+      modTypes.map((t: any) => [t._index, t.Name]),
+    );
     let itemMods: Record<string, SingleMod>;
-
     if (gameVersion === 2) {
-        itemMods = await this.extractPoE2(patch, statDescriptions, hierarchy, baseItems, tagsMap, classesMap, modsTable, statsMap, modTypesMap);
+      itemMods = await this.extractPoE2(
+        statDescriptions,
+        hierarchy,
+        baseItems,
+        tagsMap,
+        classesMap,
+        modsTable,
+        statsMap,
+        modTypesMap,
+      );
     } else {
-        itemMods = await this.extractPoE1(patch, statDescriptions, hierarchy, baseItems, tagsMap, classesMap, modsTable, statsMap, modTypesMap);
+      itemMods = await this.extractPoE1(
+        statDescriptions,
+        hierarchy,
+        baseItems,
+        tagsMap,
+        classesMap,
+        modsTable,
+        statsMap,
+        modTypesMap,
+      );
     }
-    
-    if (onProgress) onProgress(80, "Grouping and saving mods...");
 
-    // Group by name and save
-     const byModName: Record<
+    if (onProgress) onProgress(80, "Building mods...");
+    const byModName: Record<
       string,
       {
         type: string;
@@ -166,8 +208,8 @@ export class ModManager {
       }
     > = {};
     for (const mod of Object.values(itemMods) as any[]) {
-        if (!mod.type) continue; 
-        
+      if (!mod.type) continue;
+
       if (byModName[mod.name]) {
         byModName[mod.name].bases = Array.from(
           new Set([...byModName[mod.name].bases, ...(mod.bases || [])]),
@@ -190,92 +232,90 @@ export class ModManager {
       }
     }
 
-    const finalMods = Object.values(byModName).filter((mod) => mod.bases.length);
+    const finalMods = Object.values(byModName).filter(
+      (mod) => mod.bases.length,
+    );
 
     const db = await this.idb.getInstance();
     const key = `${gameVersion}/mods`;
     await db.put("mods", finalMods, key);
     return finalMods;
   }
-  
-  async getStatDescriptions(gameVersion: number) {
-     const ext = gameVersion === 1 ? "txt" : "csd";
-     const files = [
-        `metadata/statdescriptions/stat_descriptions.${ext}`,
-        `metadata/statdescriptions/map_stat_descriptions.${ext}`,
-        `metadata/statdescriptions/heist_equipment_stat_descriptions.${ext}`,
-        `metadata/statdescriptions/sanctum_relic_stat_descriptions.${ext}`,
-     ];
-     
-     if (gameVersion === 1) {
-         files.push("metadata/statdescriptions/atlas_stat_descriptions.txt");
-     }
-     
-     const lookup: Record<string, Array<{ description: string; language: string; flags?: string }>> = {};
 
-     for (const filePath of files) {
-         try {
-             const contentUint8 = await this.loader.getFileContents(filePath);
-             const decoder = new TextDecoder("utf-16le");
-             const content = decoder.decode(contentUint8);
-             this.parseStatDescriptionFile(content, lookup);
-         } catch (e) {
-             console.warn(`Failed to load stat description: ${filePath}`, e);
-         }
-     }
-     
-     return lookup;
+  async getStatDescriptions(patch: string) {
+    const lookup: Record<
+      string,
+      Array<{ description: string; language: string; flags?: string }>
+    > = {};
+
+    const gameVersion = patch.startsWith("3") ? 1 : 2;
+
+    for (const filePath of gameVersion === 1
+      ? POE1_STAT_FILES
+      : POE2_STAT_FILES) {
+      const contentUint8 = await this.loader.getFileContents(patch, filePath);
+      const decoder = new TextDecoder("utf-16le");
+      const content = decoder.decode(contentUint8);
+      this.parseStatDescriptionFile(content, lookup);
+    }
+
+    return lookup;
   }
 
   parseStatDescriptionFile(content: string, lookup: Record<string, any[]>) {
-      const sections = content.split(/\n(?=description|no_description)/);
-      
-       for (const section of sections) {
-          const lines = section.split("\n");
+    const sections = content.split(/\n(?=description|no_description)/);
 
-          const idLine = lines.find((line) => {
-            const trimmed = line.trim();
-            return trimmed.startsWith("1 ") || trimmed.startsWith("2 ") || trimmed.startsWith("3 ") || trimmed.startsWith("4 ");
-          });
-          if (!idLine) continue;
+    for (const section of sections) {
+      const lines = section.split("\n");
 
-          const ids = idLine.trim().slice(2).split(/\s+/).filter(Boolean);
+      const idLine = lines.find((line) => {
+        const trimmed = line.trim();
+        return (
+          trimmed.startsWith("1 ") ||
+          trimmed.startsWith("2 ") ||
+          trimmed.startsWith("3 ") ||
+          trimmed.startsWith("4 ")
+        );
+      });
+      if (!idLine) continue;
+
+      const ids = idLine.trim().slice(2).split(/\s+/).filter(Boolean);
+      for (const id of ids) {
+        lookup[id] = [];
+      }
+
+      let currentLanguage = "English";
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        if (line.startsWith("lang")) {
+          currentLanguage = line.split('"')[1];
+          continue;
+        }
+
+        const match = line.match(/"([^"]+)"/);
+        if (match) {
+          const fullLine = line;
+          const description = match[1];
+          const afterQuote = fullLine
+            .slice(
+              fullLine.indexOf(`"${description}"`) + description.length + 2,
+            )
+            .trim();
+
           for (const id of ids) {
-            lookup[id] = [];
-          }
-
-          let currentLanguage = "English";
-
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-
-            if (line.startsWith("lang")) {
-              currentLanguage = line.split('"')[1];
-              continue;
-            }
-
-            const match = line.match(/"([^"]+)"/);
-            if (match) {
-              const fullLine = line;
-              const description = match[1];
-              const afterQuote = fullLine
-                .slice(
-                  fullLine.indexOf(`"${description}"`) + description.length + 2,
-                )
-                .trim();
-
-              for (const id of ids) {
-                lookup[id].push({
-                  description,
-                  language: currentLanguage,
-                  flags: afterQuote || undefined,
-                });
-              }
-            }
+            lookup[id].push({
+              description,
+              language: currentLanguage,
+              flags: afterQuote || undefined,
+            });
           }
         }
+      }
+    }
   }
-  
+
   formatDescription(
     descriptions: { description: string; flags?: string[]; language: string }[],
     values: [number, number][],
@@ -323,7 +363,7 @@ export class ModManager {
       return `Adds (${minValues[0]}-${minValues[1]}) to (${maxValues[0]}-${maxValues[1]})${suffix}`;
     }
 
-    result = result.replace(/\{(?:\d+)?(?::[\+]?[d])?\}/g, () => {
+    result = result.replace(/\{(?:\d+)?(?::[+]?[d])?\}/g, () => {
       const [min, max] = values[0];
       if (min === max) {
         return `+${Math.abs(min).toString()}`;
@@ -333,53 +373,70 @@ export class ModManager {
 
     return result;
   }
-  
-  async buildHierarchy(baseItems: any[], gameVersion: number): Promise<ItFileHierarchy> {
-      const inheritsFroms = new Set<string>();
-      const processed = new Set<string>();
-      
-      for (const base of baseItems) {
-           if (base.InheritsFrom) {
-               await this.recursivelyFetchInheritsFromFiles(base.InheritsFrom, inheritsFroms, processed, gameVersion);
-           }
+
+  async buildHierarchy(
+    patch: string,
+    baseItems: any[],
+    gameVersion: number,
+  ): Promise<ItFileHierarchy> {
+    const inheritsFroms = new Set<string>();
+    const processed = new Set<string>();
+
+    for (const base of baseItems) {
+      if (base.InheritsFrom) {
+        await this.recursivelyFetchInheritsFromFiles(
+          patch,
+          base.InheritsFrom,
+          inheritsFroms,
+          processed,
+          gameVersion,
+        );
       }
-      
-      const hierarchy: ItFileHierarchy = {};
-      for (const inheritsFrom of inheritsFroms) {
-          const pathName = `${inheritsFrom}.it`.toLowerCase(); 
-          try {
-              const contentUint8 = await this.loader.getFileContents(pathName);
-              const decoder = new TextDecoder("utf-16le");
-              const content = decoder.decode(contentUint8);
-              hierarchy[inheritsFrom] = this.parseItFile(content);
-          } catch(e) {
-              console.warn(`Failed to parse .it file: ${pathName}`, e);
-          }
+    }
+
+    const hierarchy: ItFileHierarchy = {};
+    for (const inheritsFrom of inheritsFroms) {
+      const pathName = `${inheritsFrom}.it`.toLowerCase();
+      try {
+        const contentUint8 = await this.loader.getFileContents(patch, pathName);
+        const decoder = new TextDecoder("utf-16le");
+        const content = decoder.decode(contentUint8);
+        hierarchy[inheritsFrom] = this.parseItFile(content);
+      } catch (e) {
+        console.warn(`Failed to parse .it file: ${pathName}`, e);
       }
-      return hierarchy;
+    }
+    return hierarchy;
   }
-  
+
   async recursivelyFetchInheritsFromFiles(
+    patch: string,
     filePath: string,
     inheritsFroms: Set<string>,
     processed: Set<string>,
-    gameVersion: number
+    gameVersion: number,
   ) {
     if (processed.has(filePath) || filePath === "nothing") return;
 
     inheritsFroms.add(filePath);
     processed.add(filePath);
-    
+
     try {
-        const pathName = `${filePath}.it`.toLowerCase();
-        const contentUint8 = await this.loader.getFileContents(pathName);
-        const decoder = new TextDecoder("utf-16le");
-        const content = decoder.decode(contentUint8);
-        const def = this.parseItFile(content);
-        
-        if (def.extends) {
-             await this.recursivelyFetchInheritsFromFiles(def.extends, inheritsFroms, processed, gameVersion);
-        }
+      const pathName = `${filePath}.it`.toLowerCase();
+      const contentUint8 = await this.loader.getFileContents(patch, pathName);
+      const decoder = new TextDecoder("utf-16le");
+      const content = decoder.decode(contentUint8);
+      const def = this.parseItFile(content);
+
+      if (def.extends) {
+        await this.recursivelyFetchInheritsFromFiles(
+          patch,
+          def.extends,
+          inheritsFroms,
+          processed,
+          gameVersion,
+        );
+      }
     } catch (e) {}
   }
 
@@ -412,7 +469,7 @@ export class ModManager {
 
     return def;
   }
-  
+
   getAllTags(itemPath: string, hierarchy: ItFileHierarchy): string[] {
     const tags: string[] = [];
     let currentPath = itemPath;
@@ -430,10 +487,8 @@ export class ModManager {
 
     return tags;
   }
-  
-  // Placeholder extraction methods to be filled
+
   async extractPoE1(
-    patch: string,
     statDescriptions: any,
     hierarchy: ItFileHierarchy,
     baseItems: any[],
@@ -441,15 +496,15 @@ export class ModManager {
     classesMap: any,
     modsTable: any[],
     statsMap: any,
-    modTypesMap: any
+    modTypesMap: any,
   ): Promise<Record<string, SingleMod>> {
     const itemMods: Record<string, SingleMod> = {};
 
     for (const mod of modsTable) {
       if (!mod.SpawnWeight_TagsKeys) continue;
-      
-      const tagKeys = Array.isArray(mod.SpawnWeight_TagsKeys) 
-        ? mod.SpawnWeight_TagsKeys 
+
+      const tagKeys = Array.isArray(mod.SpawnWeight_TagsKeys)
+        ? mod.SpawnWeight_TagsKeys
         : JSON.parse(mod.SpawnWeight_TagsKeys as string);
 
       const weights = Array.isArray(mod.SpawnWeight_Values)
@@ -457,13 +512,13 @@ export class ModManager {
         : JSON.parse(mod.SpawnWeight_Values as string);
 
       const ids = tagKeys.map((key: number) => tagsMap[key]).filter(Boolean);
-      
+
       if (!mod.Name || !ids.length) continue;
 
       const implicitTagKeys = Array.isArray(mod.ImplicitTagsKeys)
-          ? mod.ImplicitTagsKeys
-          : JSON.parse(mod.ImplicitTagsKeys as string);
-          
+        ? mod.ImplicitTagsKeys
+        : JSON.parse(mod.ImplicitTagsKeys as string);
+
       const affixTags = implicitTagKeys
         .map((key: number) => tagsMap[key])
         .filter((tag: string) => tag && !tag.endsWith("_damage"));
@@ -488,7 +543,7 @@ export class ModManager {
       for (let i = 0; i < statsMapped.length; i++) {
         const stat = statsMapped[i];
         if (!stat) continue;
-        
+
         const nextStat = statsMapped[i + 1];
         const statDescription = statDescriptions[stat.Id];
         const descs = statDescription
@@ -519,13 +574,12 @@ export class ModManager {
         const description = this.formatDescription(descs, values);
         allStats.push({ label: description, description });
       }
-      
+
       let typeName = "";
       if (mod.ModTypeKey != null && modTypesMap[mod.ModTypeKey]) {
-          typeName = modTypesMap[mod.ModTypeKey].replace(
-            /([A-Z])/g,
-            (match: string) => `_${match.toLowerCase()}`,
-          ).replace(/^_/, "");
+        typeName = modTypesMap[mod.ModTypeKey]
+          .replace(/([A-Z])/g, (match: string) => `_${match.toLowerCase()}`)
+          .replace(/^_/, "");
       }
 
       itemMods[mod.Id] = {
@@ -542,24 +596,23 @@ export class ModManager {
       };
     }
 
-    // Link Mods to Bases
     for (const base of baseItems) {
       if (!base.ItemClassesKey) continue;
       const className = classesMap[base.ItemClassesKey];
       if (!MODIFIABLE_CLASSES.includes(className)) continue;
-      
+
       const name = base.Name;
       const extendedTags = this.getAllTags(base.InheritsFrom, hierarchy);
-      
-      const baseTagKeys = Array.isArray(base.TagsKeys) 
-          ? base.TagsKeys 
-          : JSON.parse(base.TagsKeys as string);
+
+      const baseTagKeys = Array.isArray(base.TagsKeys)
+        ? base.TagsKeys
+        : JSON.parse(base.TagsKeys as string);
 
       const baseTags = [
         ...baseTagKeys.map((key: number) => tagsMap[key]),
         ...extendedTags,
       ].filter(Boolean);
-      
+
       const domain = base.ModDomain;
 
       if (!baseTags.length) continue;
@@ -573,20 +626,23 @@ export class ModManager {
           const id = mod.ids[i];
 
           if (weight > 0 && baseTags.includes(id)) {
-            if (itemMods[mod.id] && !(itemMods[mod.id] as any).bases?.includes(name)) {
-                if (!(itemMods[mod.id] as any).bases) (itemMods[mod.id] as any).bases = [];
-                (itemMods[mod.id] as any).bases!.push(name);
+            if (
+              itemMods[mod.id] &&
+              !(itemMods[mod.id] as any).bases?.includes(name)
+            ) {
+              if (!(itemMods[mod.id] as any).bases)
+                (itemMods[mod.id] as any).bases = [];
+              (itemMods[mod.id] as any).bases!.push(name);
             }
           }
         }
       }
     }
-    
+
     return itemMods;
   }
 
   async extractPoE2(
-    patch: string,
     statDescriptions: any,
     hierarchy: ItFileHierarchy,
     baseItems: any[],
@@ -594,146 +650,124 @@ export class ModManager {
     classesMap: any,
     modsTable: any[],
     statsMap: any,
-    modTypesMap: any
+    modTypesMap: any,
   ): Promise<Record<string, SingleMod>> {
     const itemMods: Record<string, SingleMod> = {};
-    const goldModPricesTable = await this.db.query(`SELECT * FROM "${patch}_GoldModPrices"`);
 
-    for (const intersection of goldModPricesTable) {
-        if (!intersection.Mod && intersection.Mod !== 0) continue; // Mod is foreign key to modsTable index? 
-        // Legacy: const mod = modsV2[intersection.Mod];
-        
-        // SQLite: Mods table has _index. 
-        // We can optimize by converting modsTable to a map or array access if indices match.
-        // Assuming modsTable is an array where index matches _index if sorted.
-        // Alternatively, use a map.
-        // I'll assume modsTable is array of objects. Creating a map is safer.
-        // But modsTable passed to this function is array of all rows.
-        
-        // Let's create `modsMap` once at start of function?
-        // Actually passing it in would be better, but I'll make it here.
-    }
-    
-    // Efficiency: create map of mods by index
-    const modsByIndex = new Map(modsTable.map(m => [m._index, m]));
-    
-    for (const intersection of goldModPricesTable) {
-        const mod = modsByIndex.get(intersection.Mod);
-        if (!mod) continue;
-        
-        const tagKeys = Array.isArray(intersection.Tags) 
-            ? intersection.Tags 
-            : JSON.parse(intersection.Tags as string);
-            
-        const ids = tagKeys.map((key: number) => tagsMap[key]).filter(Boolean);
-        if (!mod.Name || !ids.length) continue;
-        
-        const implicitTagKeys = Array.isArray(mod.ImplicitTags) // PoE2 uses 'ImplicitTags' not 'ImplicitTagsKeys' ? Legacy says 'ImplicitTags'
-          ? mod.ImplicitTags
-          : JSON.parse(mod.ImplicitTags as string);
-          
-        const affixTags = implicitTagKeys
-            .map((key: number) => tagsMap[key])
-            .filter((tag: string) => tag && !tag.endsWith("_damage"));
+    for (const mod of modsTable) {
+      if (!mod.SpawnWeight_TagsKeys) continue;
 
-        const position =
-            mod.GenerationType === 1
-            ? "prefix"
-            : mod.GenerationType === 2
-                ? "suffix"
-                : "affix";
-        
-        const allStats: { label: string; description: string }[] = [];
-        const statsMapped = [mod.Stat1, mod.Stat2, mod.Stat3, mod.Stat4]
-            .filter((key) => key !== null && key !== undefined)
-            .map((key) => statsMap[key]);
+      const tagKeys = Array.isArray(mod.SpawnWeight_Tags)
+        ? mod.SpawnWeight_Tags
+        : JSON.parse(mod.SpawnWeight_Tags as string);
 
-        for (let i = 0; i < statsMapped.length; i++) {
-            const stat = statsMapped[i];
-            if (!stat) continue;
-            const nextStat = statsMapped[i + 1];
-            const statDescription = statDescriptions[stat.Id];
-            const descs = statDescription
-            ? statDescription.filter((desc: any) => desc.language === "English")
-            : [];
+      const weights = Array.isArray(mod.SpawnWeight_Values)
+        ? mod.SpawnWeight_Values
+        : JSON.parse(mod.SpawnWeight_Values as string);
 
-            if (nextStat && i + 1 < statsMapped.length) {
-                const currentDesc = descs[0]?.description;
-                const nextDescs = statDescriptions[nextStat.Id]?.filter(
-                    (desc: any) => desc.language === "English",
-                );
-                const nextDesc = nextDescs?.[0]?.description;
+      const ids = tagKeys.map((key: number) => tagsMap[key]).filter(Boolean);
 
-                if (currentDesc?.includes(" to ") && nextDesc?.includes(" to ")) {
-                    // PoE2 values are in StatNValue which is an array [min, max]? 
-                    // Legacy: [mod[`Stat${i + 1}Value`][0], mod[`Stat${i + 1}Value`][1]]
-                    // But in SQLite `Stat1Value` might be JSON array "[min, max]"
-                    // or it might be separate columns? Dat schema usually has arrays for this in PoE2?
-                    // Let's check schema/legacy. Legacy: `mod.Stat1Value[0]`
-                    // So Stat1Value is an array.
-                    
-                    const val1 = typeof mod[`Stat${i + 1}Value`] === 'string' ? JSON.parse(mod[`Stat${i + 1}Value`]) : mod[`Stat${i + 1}Value`];
-                    const val2 = typeof mod[`Stat${i + 2}Value`] === 'string' ? JSON.parse(mod[`Stat${i + 2}Value`]) : mod[`Stat${i + 2}Value`];
-                    
-                    const values: [number, number][] = [
-                        [val1[0], val1[1]],
-                        [val2[0], val2[1]],
-                    ];
+      if (!mod.Name || !ids.length) continue;
 
-                    allStats.push({
-                        label: (stat.Text || nextStat.Text || "").replace(
-                            /\b(Minimum|Maximum|Local)\s+/gi,
-                            "",
-                        ),
-                        description: this.formatDescription(descs, values),
-                    });
+      const implicitTagKeys = Array.isArray(mod.ImplicitTags)
+        ? mod.ImplicitTags
+        : JSON.parse(mod.ImplicitTags as string);
 
-                    i++;
-                    continue;
-                }
-            }
-            
-            const val = typeof mod[`Stat${i + 1}Value`] === 'string' ? JSON.parse(mod[`Stat${i + 1}Value`]) : mod[`Stat${i + 1}Value`];
+      const affixTags = implicitTagKeys
+        .map((key: number) => tagsMap[key])
+        .filter((tag: string) => tag && !tag.endsWith("_damage"));
+
+      const position =
+        mod.GenerationType === 1
+          ? "prefix"
+          : mod.GenerationType === 2
+            ? "suffix"
+            : "affix";
+
+      const allStats: { label: string; description: string }[] = [];
+      const statsMapped = [mod.Stat1, mod.Stat2, mod.Stat3, mod.Stat4]
+        .filter((key) => key !== null && key !== undefined)
+        .map((key) => statsMap[key]);
+
+      for (let i = 0; i < statsMapped.length; i++) {
+        const stat = statsMapped[i];
+        if (!stat) continue;
+        const nextStat = statsMapped[i + 1];
+        const statDescription = statDescriptions[stat.Id];
+        const descs = statDescription
+          ? statDescription.filter((desc: any) => desc.language === "English")
+          : [];
+
+        if (nextStat && i + 1 < statsMapped.length) {
+          const currentDesc = descs[0]?.description;
+          const nextDescs = statDescriptions[nextStat.Id]?.filter(
+            (desc: any) => desc.language === "English",
+          );
+          const nextDesc = nextDescs?.[0]?.description;
+
+          if (currentDesc?.includes(" to ") && nextDesc?.includes(" to ")) {
+            const val1 =
+              typeof mod[`Stat${i + 1}Value`] === "string"
+                ? JSON.parse(mod[`Stat${i + 1}Value`])
+                : mod[`Stat${i + 1}Value`];
+            const val2 =
+              typeof mod[`Stat${i + 2}Value`] === "string"
+                ? JSON.parse(mod[`Stat${i + 2}Value`])
+                : mod[`Stat${i + 2}Value`];
+
             const values: [number, number][] = [
-                [val[0], val[1]],
+              [val1[0], val1[1]],
+              [val2[0], val2[1]],
             ];
 
             allStats.push({
-                label: stat.Text.replace(/\b(Minimum|Maximum|Local)\s+/gi, ""),
-                description: descs.length
-                    ? this.formatDescription(descs, values)
-                    : "",
+              label: (stat.Text || nextStat.Text || "").replace(
+                /\b(Minimum|Maximum|Local)\s+/gi,
+                "",
+              ),
+              description: this.formatDescription(descs, values),
             });
-        }
-        
-        let typeName = "";
-        if (mod.ModType != null && modTypesMap[mod.ModType]) { // ModType not ModTypeKey in PoE2? Legacy says mod.ModType
-             typeName = modTypesMap[mod.ModType].replace(
-                /([A-Z])/g,
-                (match: string) => `_${match.toLowerCase()}`,
-            ).replace(/^_/, "");
-        }
-        
-        // Weights come from intersection.SpawnWeight
-        const weights = Array.isArray(intersection.SpawnWeight)
-            ? intersection.SpawnWeight
-            : JSON.parse(intersection.SpawnWeight as string);
 
-        itemMods[mod.Id] = {
-            name: mod.Name,
-            id: mod.Id,
-            stats: allStats,
-            tags: affixTags,
-            type: typeName,
-            position,
-            ids,
-            weights,
-            domain: mod.Domain,
-            bases: [],
-        };
+            i++;
+            continue;
+          }
+        }
+
+        const val =
+          typeof mod[`Stat${i + 1}Value`] === "string"
+            ? JSON.parse(mod[`Stat${i + 1}Value`])
+            : mod[`Stat${i + 1}Value`];
+        const values: [number, number][] = [[val[0], val[1]]];
+
+        allStats.push({
+          label: stat.Text.replace(/\b(Minimum|Maximum|Local)\s+/gi, ""),
+          description: descs.length
+            ? this.formatDescription(descs, values)
+            : "",
+        });
+      }
+
+      let typeName = "";
+      if (mod.ModType != null && modTypesMap[mod.ModType]) {
+        typeName = modTypesMap[mod.ModType]
+          .replace(/([A-Z])/g, (match: string) => `_${match.toLowerCase()}`)
+          .replace(/^_/, "");
+      }
+
+      itemMods[mod.Id] = {
+        name: mod.Name,
+        id: mod.Id,
+        stats: allStats,
+        tags: affixTags,
+        type: typeName,
+        position,
+        ids,
+        weights,
+        domain: mod.Domain,
+        bases: [],
+      };
     }
-    
-    // Link Mods to Bases (Same logic as PoE1 essentially)
+
     for (const base of baseItems) {
       if (!base.ItemClass) continue; // ItemClass index in V2
       const className = classesMap[base.ItemClass];
@@ -741,16 +775,16 @@ export class ModManager {
 
       const name = base.Name;
       const extendedTags = this.getAllTags(base.InheritsFrom, hierarchy);
-      
-      const baseTagKeys = Array.isArray(base.Tags) // Tags not TagsKeys in V2
-          ? base.Tags
-          : JSON.parse(base.Tags as string);
+
+      const baseTagKeys = Array.isArray(base.Tags)
+        ? base.Tags
+        : JSON.parse(base.Tags as string);
 
       const baseTags = [
         ...baseTagKeys.map((key: number) => tagsMap[key]),
         ...extendedTags,
       ].filter(Boolean);
-      
+
       const domain = base.ModDomain;
 
       if (!baseTags.length) continue;
@@ -764,9 +798,13 @@ export class ModManager {
           const id = mod.ids[i];
 
           if (weight > 0 && baseTags.includes(id)) {
-            if (itemMods[mod.id] && !(itemMods[mod.id] as any).bases?.includes(name)) {
-                if (!(itemMods[mod.id] as any).bases) (itemMods[mod.id] as any).bases = [];
-                (itemMods[mod.id] as any).bases!.push(name);
+            if (
+              itemMods[mod.id] &&
+              !(itemMods[mod.id] as any).bases?.includes(name)
+            ) {
+              if (!(itemMods[mod.id] as any).bases)
+                (itemMods[mod.id] as any).bases = [];
+              (itemMods[mod.id] as any).bases!.push(name);
             }
           }
         }

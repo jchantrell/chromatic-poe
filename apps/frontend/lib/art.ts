@@ -23,7 +23,7 @@ export class ArtManager {
 
   async ensureCached(
     patch: string,
-    items: { name: string; path: string }[],
+    imgs: { name: string; path: string }[],
   ): Promise<void> {
     if (!this.loader.index) {
       await this.loader.init(patch);
@@ -33,10 +33,10 @@ export class ArtManager {
 
     const gameVersion = patch.startsWith("3") ? 1 : 2;
 
-    for (const item of items) {
-      if (!item.path) continue;
+    for (const img of imgs) {
+      if (!img.path) continue;
 
-      const cacheKey = `${gameVersion}/${item.name}`;
+      const cacheKey = `${gameVersion}/${img.name}`;
 
       if (this.urlCache.has(cacheKey)) {
         continue;
@@ -47,7 +47,7 @@ export class ArtManager {
         const url = URL.createObjectURL(blob);
         this.urlCache.set(cacheKey, url);
       } else {
-        missing.push(item);
+        missing.push(img);
       }
     }
 
@@ -56,7 +56,7 @@ export class ArtManager {
       for (const item of missing) {
         try {
           const cacheKey = `${gameVersion}/${item.name}`;
-          const ddsBuffer = await this.loader.getFileContents(item.path);
+          const ddsBuffer = await this.loader.getFileContents(patch, item.path);
           const pngBlob = await this.convertDDSToPNG(
             ddsBuffer,
             item.path,

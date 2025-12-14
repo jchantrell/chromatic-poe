@@ -1,15 +1,19 @@
-import { Progress, ProgressLabel, ProgressValueLabel } from "@app/ui/progress";
+import {
+  Progress as Atomic,
+  ProgressLabel,
+  ProgressValueLabel,
+} from "@app/ui/progress";
 import type { Accessor } from "solid-js";
 
-interface ToastProgressProps {
+interface ProgressProps {
   progress: Accessor<number>;
   message: Accessor<string>;
 }
 
-export function ToastProgress(props: ToastProgressProps) {
+export function Progress(props: ProgressProps) {
   return (
     <div class='p-2'>
-      <Progress
+      <Atomic
         value={props.progress()}
         minValue={0}
         maxValue={100}
@@ -19,7 +23,7 @@ export function ToastProgress(props: ToastProgressProps) {
           <ProgressLabel>{props.message()}</ProgressLabel>
           <ProgressValueLabel />
         </div>
-      </Progress>
+      </Atomic>
     </div>
   );
 }
