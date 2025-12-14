@@ -14,6 +14,7 @@ interface Store {
   sounds: Sound[];
   defaultSounds: Sound[];
   appNeedsRestart: boolean;
+  patchLoaded: boolean;
 }
 
 export const store = createMutable<Store>({
@@ -25,6 +26,7 @@ export const store = createMutable<Store>({
   sounds: [],
   defaultSounds: [],
   appNeedsRestart: false,
+  patchLoaded: false,
 });
 
 export function removeFilter(filter: Filter) {
@@ -45,6 +47,10 @@ export function setActiveRule(rule: FilterRule | null) {
 
 export function setInitialised(state: boolean) {
   store.initialised = state;
+}
+
+export function setPatchLoaded(state: boolean) {
+  store.patchLoaded = state;
 }
 
 export function setLocale(locale: string | null) {

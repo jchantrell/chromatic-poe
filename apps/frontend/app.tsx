@@ -5,7 +5,6 @@ import { SAVE_KEY, WRITE_KEY } from "@app/constants";
 import {
   AudioIcon,
   DownloadIcon,
-  EditIcon,
   ExitIcon,
   HouseIcon,
   MinimiseIcon,
@@ -19,7 +18,12 @@ import { checkForUpdate } from "@app/lib/update";
 import Editor from "@app/pages/editor";
 import LoadScreen from "@app/pages/load-screen";
 import SoundManager from "@app/pages/sound";
-import { refreshSounds, setInitialised, store } from "@app/store";
+import {
+  refreshSounds,
+  setInitialised,
+  setPatchLoaded,
+  store,
+} from "@app/store";
 import { Avatar, AvatarImage } from "@app/ui/avatar";
 import { Button } from "@app/ui/button";
 import { Toaster } from "@app/ui/sonner";
@@ -28,7 +32,7 @@ import {
   ColorModeScript,
   createLocalStorageManager,
 } from "@kobalte/core";
-import { Route, Router, useParams } from "@solidjs/router";
+import { Route, Router } from "@solidjs/router";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { createEffect, createSignal, type JSXElement, onMount } from "solid-js";
 import { toast } from "solid-sonner";
@@ -73,11 +77,6 @@ function SideBar() {
         <Tooltip text='Home'>
           <Link href={BASE_URL}>
             <HouseIcon />
-          </Link>
-        </Tooltip>
-        <Tooltip text='Edit Active Filter'>
-          <Link href={`${BASE_URL}edit`} disabled={!store.filter}>
-            <EditIcon />
           </Link>
         </Tooltip>
         <Tooltip text='Manage Sounds'>
@@ -205,8 +204,8 @@ function App() {
 
   createEffect(async () => {
     const currentVersions = currentVersion();
-    if (!store.filter || !currentVersions) return;
-    setInitialised(false);
+    if (!store.initialised || !store.filter || !currentVersions) return;
+    setPatchLoaded(false);
 
     const filterVersion = store.filter.poePatch;
 
@@ -219,30 +218,32 @@ function App() {
       store.filter.poePatch = currentVersions.poe2;
     }
 
+    const patch = store.filter.poePatch;
+
     if (itemIndex.patch !== filterVersion) {
       itemIndex.searchIndex = null;
     }
 
-    const [extractError] = await to(ensureData(store.filter.poePatch));
+    const [extractError] = await to(ensureData(patch));
     if (extractError) {
       console.error("Failed to load items", extractError);
       return;
     }
 
-    const [dataError, data] = await to(dat.load(store.filter.poePatch));
+    const [dataError, data] = await to(dat.load(patch));
     if (dataError) {
       console.error("Failed to load data", dataError);
       return;
     }
 
     if (gameVersion === 1) {
-      itemIndex.initV1(data.items as Item[], store.filter.poePatch);
+      itemIndex.initV1(data.items as Item[], patch);
     } else {
-      itemIndex.initV2(data.items as Item[], store.filter.poePatch);
+      itemIndex.initV2(data.items as Item[], patch);
     }
     modIndex.init(data.mods as Mod[]);
 
-    setInitialised(true);
+    setPatchLoaded(true);
   });
 
   onMount(async () => {
@@ -254,6 +255,7 @@ function App() {
     setCurrentVersion(currentVersions);
     await chromatic.init();
     await chromatic.getAllFilters();
+    setInitialised(true);
     await refreshSounds();
     await checkForUpdate();
     //setInterval(autosave, 15000);

@@ -92,13 +92,8 @@ class Chromatic {
       await this.writeConfig(defaultConfig);
     }
 
-    if (this.runtime === "web") {
-      setInitialised(true);
-      return;
-    }
-
-    if (this.config?.poeDirectory) {
-      setInitialised(true);
+    setInitialised(true);
+    if (this.runtime === "desktop") {
       setLocale(await locale());
     }
   }

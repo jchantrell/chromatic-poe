@@ -1,6 +1,6 @@
 import Background from "@app/components/background";
+import { Loading } from "@app/components/loading";
 import { REDO_KEY, SAVE_KEY, UNDO_KEY, WRITE_KEY } from "@app/constants";
-import { LoadCircleIcon } from "@app/icons";
 import { input } from "@app/lib/input";
 import { setFilter, store } from "@app/store";
 import { Resizable, ResizableHandle, ResizablePanel } from "@app/ui/resizable";
@@ -18,7 +18,7 @@ export default function Editor() {
 
   createEffect(() => {
     const filter = store.filters.find((entry) => entry.name === params.filter);
-    if (filter) setFilter(filter);
+    setFilter(filter || null);
   });
 
   createEffect(() => {
@@ -53,35 +53,35 @@ export default function Editor() {
 
   return (
     <>
-      {!store.filter && (
+      {store.filter ? (
+        store.patchLoaded ? (
+          <Resizable orientation='horizontal'>
+            <ResizablePanel class='flex flex-col'>
+              <Rules />
+            </ResizablePanel>
+            <ResizableHandle class='bg-primary-foreground' />
+            <ResizablePanel>
+              <div
+                class={`bg-no-repeat bg-center bg-cover size-full relative ${
+                  colorMode() === "dark"
+                    ? "bg-[url('/static/bg-dark.jpg')]"
+                    : "bg-[url('/static/bg-light.jpg')]"
+                }`}
+              >
+                {store.activeRule ? <RuleEditor /> : <Preview />}
+              </div>
+              u
+            </ResizablePanel>
+          </Resizable>
+        ) : (
+          <Loading />
+        )
+      ) : (
         <Background>
-          <div class='size-full flex  justify-center items-center'>
-            No filter loaded.
+          <div class='size-full flex justify-center items-center'>
+            {store.initialised && `No existing filter named ${params.filter}`}
           </div>
         </Background>
-      )}
-      {store.initialised && store.filter ? (
-        <Resizable orientation='horizontal'>
-          <ResizablePanel class='flex flex-col'>
-            <Rules />
-          </ResizablePanel>
-          <ResizableHandle class='bg-primary-foreground' />
-          <ResizablePanel>
-            <div
-              class={`bg-no-repeat bg-center bg-cover size-full relative ${
-                colorMode() === "dark"
-                  ? "bg-[url('/static/bg-dark.jpg')]"
-                  : "bg-[url('/static/bg-light.jpg')]"
-              }`}
-            >
-              {store.activeRule ? <RuleEditor /> : <Preview />}
-            </div>
-          </ResizablePanel>
-        </Resizable>
-      ) : (
-        <div class='size-full flex justify-center items-center'>
-          <LoadCircleIcon class='animate-spin' />
-        </div>
       )}
     </>
   );
