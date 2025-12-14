@@ -1,11 +1,12 @@
-import { readColumn, readDatFile } from "pathofexile-dat/dat.js";
 import { SCHEMA_URL, type SchemaFile, ValidFor } from "pathofexile-dat-schema";
+import { readColumn, readDatFile } from "pathofexile-dat/dat.js";
 import { ArtManager } from "./art";
 import { BundleManager } from "./bundle";
 import { Database } from "./db";
 import type { Item } from "./filter";
 import { IDBManager } from "./idb";
 import { MinimapManager } from "./minimap";
+import { ModManager } from "./mods";
 import { getQuery, TABLES } from "./queries";
 import { to } from "./utils";
 import { WikiManager } from "./wiki";
@@ -32,6 +33,7 @@ export class DatManager {
   private wiki: WikiManager = new WikiManager(this.idb);
   private schema: SchemaFile | null = null;
   minimap: MinimapManager = new MinimapManager(this.art, this.idb);
+  mods: ModManager = new ModManager(this.loader, this.idb, this.db);
   patch!: string;
 
   async load(patch: string) {
@@ -85,8 +87,7 @@ export class DatManager {
   }
 
   async getMods(patch: string) {
-    const query = getQuery(patch, "mods");
-    return await this.db.query(query);
+    return await this.mods.getMods(patch);
   }
 
   async extract(
@@ -117,11 +118,18 @@ export class DatManager {
     if (onProgress) onProgress(0, "Fetching bundle index...");
     await this.loader.init(patch);
 
+    // Weighted progress distribution:
+    // 0-60%: Table Imports
+    // 60-65%: Minimap
+    // 65-95%: Mods
+    // 95-100%: Wiki
+
     console.log(`Starting extraction for patch ${patch}...`);
     for (let i = 0; i < TABLES.length; i++) {
       const tableName = TABLES[i];
       if (onProgress) {
-        onProgress((i / TABLES.length) * 100, `Processing ${tableName}...`);
+        const percent = (i / TABLES.length) * 60;
+        onProgress(percent, `Processing ${tableName}...`);
       }
       console.log(`Processing ${tableName}...`);
       const [err] = await to(this.importTable(tableName));
@@ -132,10 +140,21 @@ export class DatManager {
 
     const gameVersion = patch.startsWith("3") ? 1 : 2;
 
+    if (onProgress) onProgress(60, "Processing minimap...");
     const minimap = await this.db.query(getQuery(patch, "minimap"));
-    await this.minimap.extract(patch, minimap);
+    await this.minimap.extract(patch, minimap as unknown as { Id: string }[]);
+    
+    if (onProgress) onProgress(65, "Processing mods...");
+    await this.mods.extract(patch, (percent, msg) => {
+        if (onProgress) {
+            // Map 0-100 to 65-95
+             const weighted = 65 + (percent * 0.3);
+             onProgress(weighted, msg);
+        }
+    });
 
     console.log("Querying wiki for unique bases...");
+    if (onProgress) onProgress(95, "Querying wiki...");
     await this.wiki.queryWiki(gameVersion, 0, []);
 
     await this.db.run(
@@ -208,7 +227,7 @@ export class DatManager {
     if (!content) throw new Error(`File not found for ${tableName}`);
     if (!usedExt) throw new Error("File extension unknown");
 
-    const datFile = readDatFile(usedExt, content);
+    const datFile = readDatFile(usedExt, content.buffer);
 
     const headers = this.createHeaders(tableSchema);
 
