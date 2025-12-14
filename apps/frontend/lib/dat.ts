@@ -36,17 +36,23 @@ export class DatManager {
   mods: ModManager = new ModManager(this.loader, this.idb, this.db);
   patch!: string;
 
-  async load(patch: string) {
+  async load(
+    patch: string,
+    onProgress?: (percent: number, msg: string) => void,
+  ) {
     this.patch = patch;
     await this.initDb();
 
-    const items = await this.getItems(patch);
+    const items = await this.getItems(patch, onProgress);
     const mods = await this.getMods(patch);
     const minimap = await this.minimap.getIcons(patch);
     return { items, mods, minimap };
   }
 
-  async getItems(patch: string) {
+  async getItems(
+    patch: string,
+    onProgress?: (percent: number, msg: string) => void,
+  ) {
     const items = (await this.db.query(
       getQuery(patch, "items"),
     )) as unknown as Item[];
@@ -68,9 +74,7 @@ export class DatManager {
 
     const allItems = [...items, ...uniques];
     const artItems = allItems.map((i) => ({ name: i.name, path: i.art }));
-    this.art
-      .ensureCached(patch, artItems)
-      .catch((e) => console.error("Failed to ensure art cache", e));
+    this.art.ensureCached(patch, artItems, onProgress);
 
     return allItems;
   }
@@ -179,9 +183,7 @@ export class DatManager {
       );
     }
 
-    if (onProgress) onProgress(100, "Finalizing...");
-
-    console.log("Extraction complete.");
+    if (onProgress) onProgress(100, "Finished");
   }
 
   async importSchema() {

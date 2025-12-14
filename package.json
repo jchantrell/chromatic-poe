@@ -10,7 +10,7 @@
     "build:windows": "tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc",
     "build:gh-pages": "vite build --mode gh-pages",
     "tauri": "tauri",
-    "icon": "tauri icon packages/assets/static/tainted-chromatic-icon.png"
+    "icon": "tauri icon packages/assets/tainted-chromatic-icon.png"
   },
   "license": "MIT",
   "dependencies": {

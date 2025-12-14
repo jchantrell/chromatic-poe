@@ -140,7 +140,7 @@ function Node(props: {
         <div class='flex items-center flex-grow'>
           <figure class='max-w-lg'>
             <img
-              class='mr-1 h-6 max-w-full pointer-events-none'
+              class='mr-1 h-8 max-w-full pointer-events-none'
               alt={`${props.node.data?.name} icon`}
               src={art()}
             />

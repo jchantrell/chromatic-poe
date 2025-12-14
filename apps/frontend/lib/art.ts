@@ -24,6 +24,7 @@ export class ArtManager {
   async ensureCached(
     patch: string,
     imgs: { name: string; path: string }[],
+    onProgress?: (percent: number, msg: string) => void,
   ): Promise<void> {
     if (!this.loader.index) {
       await this.loader.init(patch);
@@ -53,7 +54,12 @@ export class ArtManager {
 
     if (missing.length > 0) {
       console.log(`Fetching ${missing.length} new art files...`);
-      for (const item of missing) {
+
+      for (let i = 0; i < missing.length; i++) {
+        const item = missing[i];
+        if (onProgress) {
+          onProgress((i / missing.length) * 100, `Downloading ${item.name}`);
+        }
         try {
           const cacheKey = `${gameVersion}/${item.name}`;
           const ddsBuffer = await this.loader.getFileContents(patch, item.path);
@@ -72,11 +78,15 @@ export class ArtManager {
           console.warn(`Failed to process art: ${item.path}`, e);
         }
       }
+
+      if (onProgress) {
+        onProgress(100, "Done");
+      }
     }
   }
 
   async getCached(patch: string, name: string): Promise<string | undefined> {
-    if (!patch) {
+    if (!patch || !this.db) {
       return;
     }
     const gameVersion = patch.startsWith("3") ? 1 : 2;
@@ -88,6 +98,7 @@ export class ArtManager {
 
     const db = await this.db.getInstance();
     const blob = await db.get("images", cacheKey);
+
     if (blob) {
       const url = URL.createObjectURL(blob);
       this.urlCache.set(cacheKey, url);

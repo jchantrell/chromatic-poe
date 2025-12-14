@@ -6,7 +6,6 @@ export enum TableNames {
   CurrencyExchange = "CurrencyExchange",
   CurrencyExchangeCategories = "CurrencyExchangeCategories",
   SkillGems = "SkillGems",
-  GemTags = "GemTags",
   GemEffects = "GemEffects",
   ArmourTypes = "ArmourTypes",
   WeaponTypes = "WeaponTypes",
@@ -19,7 +18,6 @@ export enum TableNames {
   ModType = "ModType",
   Stats = "Stats",
   AttributeRequirements = "AttributeRequirements",
-  GoldModPrices = "GoldModPrices",
   MinimapIcons = "MinimapIcons",
 }
 

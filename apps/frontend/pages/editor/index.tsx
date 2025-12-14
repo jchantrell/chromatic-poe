@@ -90,7 +90,28 @@ export default function Editor() {
       return;
     }
 
-    const [dataError, data] = await to(dat.load(patch));
+    setProgress(0);
+    setMessage("Initialising...");
+    let toastId: string | number | undefined;
+    let hasShownToast = false;
+
+    const [dataError, data] = await to(
+      dat.load(patch, (p, m) => {
+        if (!hasShownToast) {
+          toastId = toast(<Progress progress={progress} message={message} />, {
+            duration: Infinity,
+          });
+          hasShownToast = true;
+        }
+        setProgress(p);
+        setMessage(m);
+
+        if (p === 100) {
+          toast.dismiss(toastId);
+        }
+      }),
+    );
+
     if (dataError) {
       console.error("Failed to load data", dataError);
       return;
@@ -119,8 +140,8 @@ export default function Editor() {
               <div
                 class={`bg-no-repeat bg-center bg-cover size-full relative ${
                   colorMode() === "dark"
-                    ? "bg-[url('/static/bg-dark.jpg')]"
-                    : "bg-[url('/static/bg-light.jpg')]"
+                    ? "bg-[url('/bg-dark.jpg')]"
+                    : "bg-[url('/bg-light.jpg')]"
                 }`}
               >
                 {store.activeRule ? <RuleEditor /> : <Preview />}

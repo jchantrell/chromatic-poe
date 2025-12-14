@@ -7,8 +7,8 @@ export default function Background(props: { children: JSXElement }) {
     <div
       class={`bg-no-repeat bg-center bg-cover size-full ${
         colorMode() === "dark"
-          ? "bg-[url('/static/bg-dark.jpg')]"
-          : "bg-[url('/static/bg-light.jpg')]"
+          ? "bg-[url('/bg-dark.jpg')]"
+          : "bg-[url('/bg-light.jpg')]"
       }`}
     >
       {props.children}
