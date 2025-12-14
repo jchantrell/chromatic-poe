@@ -4,19 +4,25 @@ import {
   setMapIconShape,
   setMapIconSize,
 } from "@app/lib/commands";
-import { minimapIndex } from "@app/lib/minimap";
+import { dat } from "@app/lib/dat";
 import { store } from "@app/store";
 import { Popover, PopoverContent, PopoverTrigger } from "@app/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@app/ui/radio-group";
-import { createEffect, createSignal, For, on, onMount } from "solid-js";
-
-const minimapImg = "/poe2/images/art@2dart@minimap@player.png";
+import {
+  createEffect,
+  createResource,
+  createSignal,
+  For,
+  on,
+  onMount,
+} from "solid-js";
 
 const SHEET_WIDTH = 896;
 const SHEET_HEIGHT = 3776;
 const PREVIEW_SCALE = 2; // magic number
 
 export function MinimapIcon(props: {
+  sheet?: string;
   size: IconSize;
   scale: number;
   color: Color;
@@ -25,16 +31,10 @@ export function MinimapIcon(props: {
   return (
     <div
       style={{
-        "background-image": `url(${minimapImg})`,
+        "background-image": `url(${props.sheet})`,
         height: `calc(64px / ${props.scale})`,
         width: `calc(64px / ${props.scale})`,
-        "background-position": minimapIndex.get(
-          props.color,
-          props.shape,
-          props.size,
-        )
-          ? `calc(-${minimapIndex.get(props.color, props.shape, props.size).x}px / ${props.scale}) calc(-${minimapIndex.get(props.color, props.shape, props.size).y}px / ${props.scale})`
-          : undefined,
+        "background-position": `calc(-${dat.minimap.coords?.[props.color][props.shape][props.size].x}px / ${props.scale}) calc(-${dat.minimap.coords?.[props.color][props.shape][props.size].y}px / ${props.scale})`,
         "background-size": `calc(${SHEET_WIDTH}px / ${props.scale}) calc(${SHEET_HEIGHT}px / ${props.scale})`,
       }}
     />
@@ -53,6 +53,9 @@ function MapIconPicker() {
   const [color, setColor] = createSignal<Color>(
     store.activeRule?.actions.icon?.color || Color.Red,
   );
+  const [sheet] = createResource(async () => {
+    return await dat.getArt("minimap");
+  });
 
   onMount(() => {
     window.addEventListener("resize", () => {
@@ -105,6 +108,7 @@ function MapIconPicker() {
             {store.activeRule?.actions.icon?.enabled ? (
               <PopoverTrigger class=''>
                 <MinimapIcon
+                  sheet={sheet()}
                   scale={PREVIEW_SCALE}
                   size={store.activeRule.actions.icon.size}
                   shape={store.activeRule.actions.icon.shape}
@@ -122,8 +126,8 @@ function MapIconPicker() {
         >
           <div class='flex max-w-[200px]'>
             <div class='flex flex-col items-center'>
-              {minimapIndex.isLoaded && minimapIndex.data[color()] ? (
-                <For each={Object.entries(minimapIndex.data[color()])}>
+              {dat.minimap?.coords?.[color()] ? (
+                <For each={Object.entries(dat.minimap.coords[color()])}>
                   {(shape) => (
                     <div
                       class='hover:bg-muted rounded-lg'
@@ -132,6 +136,7 @@ function MapIconPicker() {
                       }}
                     >
                       <MinimapIcon
+                        sheet={sheet()}
                         scale={scale()}
                         color={color()}
                         size={size()}

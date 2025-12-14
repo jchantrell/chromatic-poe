@@ -116,7 +116,7 @@ function Node(props: {
   const [art] = createResource(
     () => icon,
     async () => {
-      return await dat.getItemArt(icon);
+      return await dat.getArt(icon);
     },
   );
 

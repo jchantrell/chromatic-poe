@@ -20,6 +20,7 @@ export enum TableNames {
   Stats = "Stats",
   AttributeRequirements = "AttributeRequirements",
   GoldModPrices = "GoldModPrices",
+  MinimapIcons = "MinimapIcons",
 }
 
 export const TABLES = Object.values(TableNames);
@@ -1285,6 +1286,10 @@ export function getQuery(patch: string, name: string): string {
 
   if (name === "uniques") {
     query = isV2 ? V2_UNIQUES_QUERY : V1_UNIQUES_QUERY;
+  }
+
+  if (name === "minimap") {
+    query = `SELECT * FROM ${TableNames.MinimapIcons}`;
   }
 
   // Prefix all tables with patch version

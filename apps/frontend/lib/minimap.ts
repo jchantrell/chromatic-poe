@@ -1,42 +1,93 @@
 import type { Color, IconSize, Shape } from "@app/lib/action";
-import { createStore } from "solid-js/store";
+import { recursivelySetKeys } from "@app/lib/utils";
+import { toast } from "solid-sonner";
+import type { ArtManager } from "./art";
+import type { IDBManager } from "./idb";
 
-export type Coordinate = { x: number; y: number };
+const WIDTH = 64;
+const HEIGHT = 64;
+const SHEET_WIDTH = 896;
 
-export type MinimapShapeData = Record<string, Record<string, Coordinate>>;
-export type MinimapColorData = Record<string, MinimapShapeData>;
+export type MinimapCoords = {
+  [key in Color]: {
+    [key in Shape]: { [key in IconSize]: { x: number; y: number } };
+  };
+};
 
-class MinimapIndex {
-  private store = createStore<{
-    data: MinimapColorData;
-    isLoaded: boolean;
-  }>({
-    data: {},
-    isLoaded: false,
-  });
+const re =
+  /(LootFilter)(Large|Medium|Small)(Blue|Green|Brown|Red|White|Yellow|Cyan|Grey|Orange|Pink|Purple)(Circle|Diamond|Hexagon|Square|Star|Triangle|Cross|Moon|Raindrop|Kite|Pentagon|UpsideDownHouse)/;
 
-  get state() {
-    return this.store[0];
+export class MinimapManager {
+  coords: MinimapCoords | undefined;
+
+  constructor(
+    private art: ArtManager,
+    private db: IDBManager,
+  ) {}
+
+  async getIcons(patch: string): Promise<MinimapCoords | undefined> {
+    const db = await this.db.getInstance();
+    const gameVersion = patch.startsWith("3") ? 1 : 2;
+    const coordsKey = `${gameVersion}/coords`;
+    const coords = await db.get("minimap", coordsKey);
+
+    if (!coords) {
+      toast.error("Could not find unique. Please clear cache and resync.");
+      return;
+    }
+
+    await this.art.ensureCached(patch, [
+      {
+        name: "minimap",
+        path: "Art/2DArt/Minimap/Player.dds",
+      },
+    ]);
+
+    this.coords = coords;
+    return coords;
   }
 
-  private setStore = this.store[1];
+  async extract(patch: string, icons: { Id: string }[]) {
+    console.log("Extracting minimap icons...");
+    const table = {};
+    const gameVersion = patch.startsWith("3") ? 1 : 2;
 
-  get data() {
-    return this.state.data;
+    for (let i = 0; i < icons.length; i++) {
+      const icon = icons[i];
+      if (!icon) break;
+      if (icon.Id.startsWith("LootFilter")) {
+        const match = this.parseLootFilterId(icon.Id);
+        if (!match) {
+          console.log(`Couldn't parse ${icon.Id}`);
+          continue;
+        }
+        const { size, color, shape } = match;
+        const perRow = SHEET_WIDTH / WIDTH;
+        const row = Math.floor(i / perRow);
+        const col = i % perRow;
+        const x = col * WIDTH;
+        const y = row * HEIGHT;
+        recursivelySetKeys(table, [color, shape, size], { x, y });
+      }
+    }
+
+    const cacheKey = `${gameVersion}/coords`;
+    const db = await this.db.getInstance();
+    await db.put("minimap", table as MinimapCoords, cacheKey);
+    this.coords = table as MinimapCoords;
+    return table;
   }
 
-  get isLoaded() {
-    return this.state.isLoaded;
-  }
-
-  init(data: MinimapColorData) {
-    this.setStore("data", data);
-    this.setStore("isLoaded", true);
-  }
-
-  get(color: Color, shape: Shape, size: IconSize): Coordinate | undefined {
-    return this.data[color]?.[shape]?.[size];
+  parseLootFilterId(id: string) {
+    const match = id.match(re);
+    if (!match) {
+      return null;
+    }
+    return {
+      prefix: match[1],
+      size: match[2],
+      color: match[3],
+      shape: match[4],
+    };
   }
 }
-
-export const minimapIndex = new MinimapIndex();

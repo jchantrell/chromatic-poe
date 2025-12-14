@@ -7,6 +7,8 @@ import type { Item } from "./filter";
 import { getQuery, TABLES } from "./queries";
 import { to } from "./utils";
 import { WikiManager } from "./wiki";
+import { MinimapManager } from "./minimap";
+import { IDBManager } from "./idb";
 
 interface Header {
   name: string | null;
@@ -23,11 +25,13 @@ interface Header {
 }
 
 export class DatManager {
-  private loader: BundleManager = new BundleManager();
-  private art: ArtManager = new ArtManager(this.loader);
+  private idb: IDBManager = new IDBManager();
+  private loader: BundleManager = new BundleManager(this.idb);
+  private art: ArtManager = new ArtManager(this.loader, this.idb);
   private db: Database = new Database();
-  private wiki: WikiManager = new WikiManager();
+  private wiki: WikiManager = new WikiManager(this.idb);
   private schema: SchemaFile | null = null;
+  minimap: MinimapManager = new MinimapManager(this.art, this.idb);
   patch!: string;
 
   async load(patch: string) {
@@ -41,7 +45,8 @@ export class DatManager {
 
     const items = await this.getItems(patch);
     const mods = await this.getMods(patch);
-    return { items, mods, minimap: null };
+    const minimap = await this.minimap.getIcons(patch);
+    return { items, mods, minimap };
   }
 
   async getItems(patch: string) {
@@ -67,10 +72,7 @@ export class DatManager {
     }
 
     const allItems = [...items, ...uniques];
-    const artItems = allItems
-      .filter((i) => i.art)
-      .map((i) => ({ name: i.name, path: i.art }));
-
+    const artItems = allItems.map((i) => ({ name: i.name, path: i.art }));
     this.art
       .ensureCached(patch, artItems)
       .catch((e) => console.error("Failed to ensure art cache", e));
@@ -78,7 +80,7 @@ export class DatManager {
     return allItems;
   }
 
-  async getItemArt(name: string) {
+  async getArt(name: string) {
     return await this.art.getCached(this.patch, name);
   }
 
@@ -129,6 +131,9 @@ export class DatManager {
     }
 
     const gameVersion = patch.startsWith("3") ? 1 : 2;
+
+    const minimap = await this.db.query(getQuery(patch, "minimap"));
+    await this.minimap.extract(patch, minimap);
 
     console.log("Querying wiki for unique bases...");
     await this.wiki.queryWiki(gameVersion, 0, []);

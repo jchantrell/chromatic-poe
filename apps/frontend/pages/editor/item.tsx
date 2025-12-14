@@ -17,7 +17,7 @@ export function Visual(props: { item: FilterItem; class?: string }) {
   const [art] = createResource(
     () => props.item,
     async (item) => {
-      return await dat.getItemArt(item.name);
+      return await dat.getArt(item.name);
     },
   );
 

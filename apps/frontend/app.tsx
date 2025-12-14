@@ -15,7 +15,6 @@ import {
 import chromatic from "@app/lib/config";
 import { dat } from "@app/lib/dat";
 import { itemIndex } from "@app/lib/items";
-import { minimapIndex } from "@app/lib/minimap";
 import { type Mod, modIndex } from "@app/lib/mods";
 import { checkForUpdate } from "@app/lib/update";
 import Editor from "@app/pages/editor";
@@ -255,9 +254,6 @@ function App() {
       itemIndex.initV2(data.items as Item[], store.filter.poePatch);
     }
     modIndex.init(data.mods as Mod[]);
-    if (data.minimap) {
-      minimapIndex.init(data.minimap);
-    }
   });
 
   onMount(async () => {

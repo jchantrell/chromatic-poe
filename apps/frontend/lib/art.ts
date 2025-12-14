@@ -1,15 +1,8 @@
 // @ts-ignore
 import dxt from "dxt-js";
-import { type DBSchema, openDB } from "idb";
 import type { BundleManager } from "./bundle";
 import { parseDds } from "./dds";
-
-interface ArtCacheSchema extends DBSchema {
-  images: {
-    key: string;
-    value: Blob;
-  };
-}
+import type { IDBManager } from "./idb";
 
 const TINCTURE_SUFFIX = [
   "UniquePrismatic.dds",
@@ -20,15 +13,12 @@ const TINCTURE_SUFFIX = [
 ];
 
 export class ArtManager {
-  private dbPromise = openDB<ArtCacheSchema>("poe-art-cache", 1, {
-    upgrade(db) {
-      db.createObjectStore("images");
-    },
-  });
-
   private urlCache = new Map<string, string>();
 
-  constructor(private loader: BundleManager) {}
+  constructor(
+    private loader: BundleManager,
+    private db: IDBManager,
+  ) {}
 
   async ensureCached(
     patch: string,
@@ -37,7 +27,7 @@ export class ArtManager {
     if (!this.loader.index) {
       await this.loader.init(patch);
     }
-    const db = await this.dbPromise;
+    const db = await this.db.getInstance();
     const missing: { name: string; path: string }[] = [];
 
     const gameVersion = patch.startsWith("3") ? 1 : 2;
@@ -92,7 +82,7 @@ export class ArtManager {
       return this.urlCache.get(cacheKey);
     }
 
-    const db = await this.dbPromise;
+    const db = await this.db.getInstance();
     const blob = await db.get("images", cacheKey);
     if (blob) {
       const url = URL.createObjectURL(blob);
@@ -222,7 +212,7 @@ export class ArtManager {
   }
 
   async clearCache() {
-    const db = await this.dbPromise;
+    const db = await this.db.getInstance();
     await db.clear("images");
   }
 }

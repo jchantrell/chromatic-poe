@@ -1,27 +1,14 @@
-import { type DBSchema, openDB } from "idb";
 import {
   decompressSliceInBundle,
   getFileInfo,
   readIndexBundle,
 } from "pathofexile-dat/bundles.js";
 import { withRetries } from "./utils";
+import type { IDBManager } from "./idb";
 
 const BUNDLE_DIR = "Bundles2";
 
-interface BundleCacheSchema extends DBSchema {
-  bundles: {
-    key: string;
-    value: ArrayBuffer;
-  };
-}
-
 export class BundleManager {
-  private dbPromise = openDB<BundleCacheSchema>("poe-bundle-cache", 1, {
-    upgrade(db) {
-      db.createObjectStore("bundles");
-    },
-  });
-
   index?: {
     bundlesInfo: Uint8Array;
     filesInfo: Uint8Array;
@@ -29,6 +16,8 @@ export class BundleManager {
 
   public patch!: string;
   private cdn!: string;
+
+  constructor(private db: IDBManager) {}
 
   async init(patch: string) {
     this.patch = patch;
@@ -52,7 +41,7 @@ export class BundleManager {
   }
 
   async fetchFile(name: string): Promise<ArrayBuffer> {
-    const db = await this.dbPromise;
+    const db = await this.db.getInstance();
     const cacheKey = `${this.patch}/${name}`;
 
     try {
@@ -113,7 +102,7 @@ export class BundleManager {
   }
 
   async clearCache() {
-    const db = await this.dbPromise;
+    const db = await this.db.getInstance();
     await db.clear("bundles");
   }
 }

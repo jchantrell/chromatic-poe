@@ -1,27 +1,16 @@
-import { type DBSchema, openDB } from "idb";
 import { toast } from "solid-sonner";
+import type { IDBManager } from "./idb";
 
-type Unique = {
+export type Unique = {
   name: string;
   base: string;
 };
 
-interface WikiCacheSchema extends DBSchema {
-  uniques: {
-    key: string;
-    value: Unique;
-  };
-}
-
 export class WikiManager {
-  private dbPromise = openDB<WikiCacheSchema>("poe-wiki-cache", 1, {
-    upgrade(db) {
-      db.createObjectStore("uniques");
-    },
-  });
+  constructor(private db: IDBManager) {}
 
   async getUniques(gameVersion: number): Promise<Unique[]> {
-    const db = await this.dbPromise;
+    const db = await this.db.getInstance();
     const cacheKey = `${gameVersion}/Tabula Rasa`;
     const exists = await db.get("uniques", cacheKey);
 
@@ -59,8 +48,8 @@ export class WikiManager {
 
     const uniques: Unique[] = [];
 
-    const db = await this.dbPromise;
-    for (const uniq of [...results, res.cargoquery]) {
+    const db = await this.db.getInstance();
+    for (const uniq of [...results, ...res.cargoquery]) {
       const cacheKey = `${gameVersion}/${uniq.title.name}`;
       const v: Unique = {
         name: uniq.title.name,
@@ -77,7 +66,7 @@ export class WikiManager {
     const gameVersion = patch.startsWith("3") ? 1 : 2;
     const cacheKey = `${gameVersion}/${name}`;
 
-    const db = await this.dbPromise;
+    const db = await this.db.getInstance();
     return await db.get("uniques", cacheKey);
   }
 }
