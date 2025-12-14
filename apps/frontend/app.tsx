@@ -20,7 +20,7 @@ import { checkForUpdate } from "@app/lib/update";
 import Editor from "@app/pages/editor";
 import LoadScreen from "@app/pages/load-screen";
 import SoundManager from "@app/pages/sound";
-import { refreshSounds, store } from "@app/store";
+import { refreshSounds, setInitialised, store } from "@app/store";
 import { Avatar, AvatarImage } from "@app/ui/avatar";
 import { Button } from "@app/ui/button";
 import { Toaster } from "@app/ui/sonner";
@@ -187,10 +187,14 @@ function Main() {
 }
 
 function App() {
+  const [currentVersion, setCurrentVersion] = createSignal<{
+    poe1: string;
+    poe2: string;
+  } | null>(null);
   const [zoom, setZoom] = createSignal(4);
 
   document.addEventListener("wheel", async (event) => {
-    if (event.ctrlKey) {
+    if (event.ctrlKey && chromatic.runtime === "desktop") {
       const view = getCurrentWebview();
       if (event.deltaY > 0 && ZOOM_LEVELS[zoom() - 1]) {
         setZoom(zoom() - 1);
@@ -214,14 +218,11 @@ function App() {
   });
 
   createEffect(async () => {
-    if (!store.filter) return;
+    const currentVersions = currentVersion();
+    if (!store.filter || !currentVersions) return;
+    setInitialised(false);
 
     const filterVersion = store.filter.poePatch;
-    const [versionError, currentVersions] = await to(dat.fetchPoeVersions());
-    if (versionError) {
-      console.error("Failed to fetch latest PoE versions", versionError);
-      return;
-    }
 
     const gameVersion = filterVersion.startsWith("3") ? 1 : 2;
 
@@ -254,9 +255,17 @@ function App() {
       itemIndex.initV2(data.items as Item[], store.filter.poePatch);
     }
     modIndex.init(data.mods as Mod[]);
+
+    setInitialised(true);
   });
 
   onMount(async () => {
+    const [versionError, currentVersions] = await to(dat.fetchPoeVersions());
+    if (versionError) {
+      console.error("Failed to fetch latest PoE versions", versionError);
+      return;
+    }
+    setCurrentVersion(currentVersions);
     await chromatic.init();
     await chromatic.getAllFilters();
     await refreshSounds();

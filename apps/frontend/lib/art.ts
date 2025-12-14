@@ -1,6 +1,7 @@
 // @ts-ignore
 import dxt from "dxt-js";
-import type { BundleManager } from "./bundle";
+import { decodeBC7 } from "./bc7";
+import { BundleManager } from "./bundle";
 import { parseDds } from "./dds";
 import type { IDBManager } from "./idb";
 
@@ -75,6 +76,9 @@ export class ArtManager {
   }
 
   async getCached(patch: string, name: string): Promise<string | undefined> {
+    if (!patch) {
+      return;
+    }
     const gameVersion = patch.startsWith("3") ? 1 : 2;
     const cacheKey = `${gameVersion}/${name}`;
 
@@ -111,6 +115,12 @@ export class ArtManager {
       rgba = dxt.decompress(dds.images[0], width, height, dxt.flags.DXT3);
     } else if (format === "dxt5") {
       rgba = dxt.decompress(dds.images[0], width, height, dxt.flags.DXT5);
+    } else if (format === "bc7") {
+      rgba = decodeBC7(
+        new Uint8Array(buffer.buffer, dds.images[0].offset),
+        width,
+        height,
+      );
     } else if (format === "rgba8unorm") {
       const offset = dds.images[0].offset;
       const length = dds.images[0].length;

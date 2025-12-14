@@ -246,15 +246,8 @@ export class Filter {
   convertToText(rule: FilterRule): string {
     const enabledBases = rule.bases.filter((e) => e.enabled).map((e) => e.base);
 
-    // TODO: can this be fixed now?
-    // pinnacle key bases are not filterable
-    const basesArePinnacleKeys = rule.bases.some(
-      (e) =>
-        itemIndex.itemTable[e.category][e.name].itemClass === "Pinnacle Keys",
-    );
-
     const conditions = [...rule.conditions];
-    if (enabledBases.length && !basesArePinnacleKeys) {
+    if (enabledBases.length) {
       conditions.push(
         new BaseTypeCondition({ value: Array.from(new Set(enabledBases)) }),
       );

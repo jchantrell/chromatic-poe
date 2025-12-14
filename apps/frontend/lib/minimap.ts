@@ -6,7 +6,8 @@ import type { IDBManager } from "./idb";
 
 const WIDTH = 64;
 const HEIGHT = 64;
-const SHEET_WIDTH = 896;
+export const SHEET_WIDTH = 896;
+export const SHEET_HEIGHT = 3200;
 
 export type MinimapCoords = {
   [key in Color]: {
@@ -36,13 +37,6 @@ export class MinimapManager {
       return;
     }
 
-    await this.art.ensureCached(patch, [
-      {
-        name: "minimap",
-        path: "Art/2DArt/Minimap/Player.dds",
-      },
-    ]);
-
     this.coords = coords;
     return coords;
   }
@@ -51,6 +45,13 @@ export class MinimapManager {
     console.log("Extracting minimap icons...");
     const table = {};
     const gameVersion = patch.startsWith("3") ? 1 : 2;
+
+    await this.art.ensureCached(patch, [
+      {
+        name: "minimap",
+        path: "Art/2DArt/Minimap/Player.dds",
+      },
+    ]);
 
     for (let i = 0; i < icons.length; i++) {
       const icon = icons[i];

@@ -8,6 +8,7 @@ import { toast } from "solid-sonner";
 import Preview from "./filter-preview";
 import Rules from "./rule-container";
 import RuleEditor from "./rule-editor";
+import { LoadCircleIcon } from "@app/icons";
 
 export default function Editor() {
   const { colorMode } = useColorMode();
@@ -41,9 +42,10 @@ export default function Editor() {
       },
     );
   });
+
   return (
     <>
-      {store.initialised && store.filter !== null && (
+      {store.initialised && store.filter ? (
         <Resizable orientation='horizontal'>
           <ResizablePanel class='flex flex-col'>
             <Rules />
@@ -61,6 +63,10 @@ export default function Editor() {
             </div>
           </ResizablePanel>
         </Resizable>
+      ) : (
+        <div class='size-full flex justify-center items-center'>
+          <LoadCircleIcon class='animate-spin' />
+        </div>
       )}
     </>
   );

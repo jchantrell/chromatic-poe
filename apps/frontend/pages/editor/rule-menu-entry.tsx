@@ -20,10 +20,17 @@ import {
 } from "@app/ui/context-menu";
 import { Dialog, DialogContent, DialogTrigger } from "@app/ui/dialog";
 import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
-import { createEffect, createSignal, For, onMount } from "solid-js";
+import {
+  createEffect,
+  createResource,
+  createSignal,
+  For,
+  onMount,
+} from "solid-js";
 import Item from "./item";
 import { ItemPicker } from "./item-picker";
 import { MinimapIcon } from "./map-icon-picker";
+import { dat } from "@app/lib/dat";
 
 const MIN_PREVIEW_WIDTH = 500; // Adjust this value as needed
 
@@ -35,6 +42,21 @@ export default function Rule(props: { rule: FilterRule }) {
   const [previewWidth, setPreviewWidth] = createSignal(0);
   const sortable = createSortable(props.rule.id, props.rule);
   const [state] = useDragDropContext();
+  const [icons] = createResource(async () => {
+    const url = await dat.getArt("minimap");
+    const img = new Image();
+
+    await new Promise((res, rej) => {
+      img.onload = res;
+      img.onerror = rej;
+      img.src = url || "";
+    });
+
+    const width = img.naturalWidth;
+    const height = img.naturalHeight;
+
+    return { url, height, width };
+  });
 
   let previewRef: HTMLDivElement | undefined;
 
@@ -164,6 +186,8 @@ export default function Rule(props: { rule: FilterRule }) {
                     <div class='mr-1'>
                       {props.rule.actions.icon?.enabled ? (
                         <MinimapIcon
+                          sheet={icons()?.url}
+                          sheetHeight={icons()?.height}
                           scale={3}
                           size={props.rule.actions.icon?.size}
                           shape={props.rule.actions.icon?.shape}

@@ -12,6 +12,7 @@ const DDSCAPS2_CUBEMAP = 0x200;
 const D3D10_RESOURCE_DIMENSION_TEXTURE2D = 3;
 const DXGI_FORMAT_R32G32B32A32_FLOAT = 2;
 const DXGI_FORMAT_R8G8B8A8_UNORM = 28;
+const DXGI_FORMAT_BC7_UNORM = 98;
 
 const HEADER_LENGTH_INT = 31;
 
@@ -85,6 +86,8 @@ export function parseDds(arrayBuffer: ArrayBufferLike): {
         format = "rgba32f";
       } else if (dx10Format === DXGI_FORMAT_R8G8B8A8_UNORM) {
         format = "rgba8unorm";
+      } else if (dx10Format === DXGI_FORMAT_BC7_UNORM) {
+        format = "bc7";
       } else {
         throw new Error(`Unsupported DX10 texture format ${dx10Format}`);
       }
@@ -131,6 +134,9 @@ export function parseDds(arrayBuffer: ArrayBufferLike): {
         dataLength = width * height * 4;
       } else if (format === "rgba32f") {
         dataLength = width * height * 16;
+      } else if (format === "bc7") {
+        dataLength =
+           (((Math.max(4, width) / 4) * Math.max(4, height)) / 4) * 16;
       } else {
         dataLength =
           (((Math.max(4, width) / 4) * Math.max(4, height)) / 4) * blockBytes;
