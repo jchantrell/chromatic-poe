@@ -4,12 +4,10 @@ import { For } from "solid-js";
 import CreateFilter from "./create-filter";
 import ExistingFilter from "./existing-filter";
 import ImportFilter from "./import-filter";
-import Setup from "./initial-setup";
 
 export default function LoadScreen() {
   return (
     <>
-      {!store.initialised && <Setup />}
       {store.initialised && (
         <Background>
           <div class='flex justify-center items-center size-full'>

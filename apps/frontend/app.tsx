@@ -1,4 +1,3 @@
-import Background from "@app/components/background";
 import { Settings } from "@app/components/settings";
 import Tooltip from "@app/components/tooltip";
 import { ensureData } from "@app/components/update-data.tsx";
@@ -29,7 +28,7 @@ import {
   ColorModeScript,
   createLocalStorageManager,
 } from "@kobalte/core";
-import { Route, Router } from "@solidjs/router";
+import { Route, Router, useParams } from "@solidjs/router";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { createEffect, createSignal, type JSXElement, onMount } from "solid-js";
 import { toast } from "solid-sonner";
@@ -166,20 +165,7 @@ function Main() {
     >
       <Router>
         <Route path={BASE_URL} component={() => <LoadScreen />} />
-        <Route
-          path={`${BASE_URL}edit`}
-          component={() =>
-            store.filter ? (
-              <Editor />
-            ) : (
-              <Background>
-                <div class='size-full flex  justify-center items-center'>
-                  No filter loaded.
-                </div>
-              </Background>
-            )
-          }
-        />
+        <Route path={`${BASE_URL}:filter`} component={() => <Editor />} />
         <Route path={`${BASE_URL}sound`} component={() => <SoundManager />} />
       </Router>
     </main>

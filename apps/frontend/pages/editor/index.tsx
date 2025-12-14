@@ -1,9 +1,11 @@
+import Background from "@app/components/background";
 import { REDO_KEY, SAVE_KEY, UNDO_KEY, WRITE_KEY } from "@app/constants";
 import { LoadCircleIcon } from "@app/icons";
 import { input } from "@app/lib/input";
-import { store } from "@app/store";
+import { setFilter, store } from "@app/store";
 import { Resizable, ResizableHandle, ResizablePanel } from "@app/ui/resizable";
 import { useColorMode } from "@kobalte/core";
+import { useParams } from "@solidjs/router";
 import { createEffect } from "solid-js";
 import { toast } from "solid-sonner";
 import Preview from "./filter-preview";
@@ -12,6 +14,12 @@ import RuleEditor from "./rule-editor";
 
 export default function Editor() {
   const { colorMode } = useColorMode();
+  const params = useParams();
+
+  createEffect(() => {
+    const filter = store.filters.find((entry) => entry.name === params.filter);
+    if (filter) setFilter(filter);
+  });
 
   createEffect(() => {
     input.on(
@@ -45,6 +53,13 @@ export default function Editor() {
 
   return (
     <>
+      {!store.filter && (
+        <Background>
+          <div class='size-full flex  justify-center items-center'>
+            No filter loaded.
+          </div>
+        </Background>
+      )}
       {store.initialised && store.filter ? (
         <Resizable orientation='horizontal'>
           <ResizablePanel class='flex flex-col'>
