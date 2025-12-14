@@ -1,7 +1,7 @@
 // @ts-ignore
 import dxt from "dxt-js";
 import { decodeBC7 } from "./bc7";
-import { BundleManager } from "./bundle";
+import type { BundleManager } from "./bundle";
 import { parseDds } from "./dds";
 import type { IDBManager } from "./idb";
 

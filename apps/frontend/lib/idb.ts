@@ -1,6 +1,6 @@
 import { type DBSchema, openDB } from "idb";
-import type { Unique } from "./wiki";
 import type { MinimapCoords } from "./minimap";
+import type { Unique } from "./wiki";
 
 interface Schema extends DBSchema {
   bundles: {

@@ -4,11 +4,11 @@ import { ArtManager } from "./art";
 import { BundleManager } from "./bundle";
 import { Database } from "./db";
 import type { Item } from "./filter";
+import { IDBManager } from "./idb";
+import { MinimapManager } from "./minimap";
 import { getQuery, TABLES } from "./queries";
 import { to } from "./utils";
 import { WikiManager } from "./wiki";
-import { MinimapManager } from "./minimap";
-import { IDBManager } from "./idb";
 
 interface Header {
   name: string | null;

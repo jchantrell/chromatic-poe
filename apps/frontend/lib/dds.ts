@@ -136,7 +136,7 @@ export function parseDds(arrayBuffer: ArrayBufferLike): {
         dataLength = width * height * 16;
       } else if (format === "bc7") {
         dataLength =
-           (((Math.max(4, width) / 4) * Math.max(4, height)) / 4) * 16;
+          (((Math.max(4, width) / 4) * Math.max(4, height)) / 4) * 16;
       } else {
         dataLength =
           (((Math.max(4, width) / 4) * Math.max(4, height)) / 4) * blockBytes;

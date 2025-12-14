@@ -5,6 +5,7 @@ import {
   duplicateRule,
   setEntryActive,
 } from "@app/lib/commands";
+import { dat } from "@app/lib/dat";
 import type { FilterRule } from "@app/lib/filter";
 import { itemIndex } from "@app/lib/items";
 import { store } from "@app/store";
@@ -30,7 +31,6 @@ import {
 import Item from "./item";
 import { ItemPicker } from "./item-picker";
 import { MinimapIcon } from "./map-icon-picker";
-import { dat } from "@app/lib/dat";
 
 const MIN_PREVIEW_WIDTH = 500; // Adjust this value as needed
 

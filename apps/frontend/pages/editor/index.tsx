@@ -1,4 +1,5 @@
 import { REDO_KEY, SAVE_KEY, UNDO_KEY, WRITE_KEY } from "@app/constants";
+import { LoadCircleIcon } from "@app/icons";
 import { input } from "@app/lib/input";
 import { store } from "@app/store";
 import { Resizable, ResizableHandle, ResizablePanel } from "@app/ui/resizable";
@@ -8,7 +9,6 @@ import { toast } from "solid-sonner";
 import Preview from "./filter-preview";
 import Rules from "./rule-container";
 import RuleEditor from "./rule-editor";
-import { LoadCircleIcon } from "@app/icons";
 
 export default function Editor() {
   const { colorMode } = useColorMode();

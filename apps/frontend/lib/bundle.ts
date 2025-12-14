@@ -3,8 +3,8 @@ import {
   getFileInfo,
   readIndexBundle,
 } from "pathofexile-dat/bundles.js";
-import { withRetries } from "./utils";
 import type { IDBManager } from "./idb";
+import { withRetries } from "./utils";
 
 const BUNDLE_DIR = "Bundles2";
 
