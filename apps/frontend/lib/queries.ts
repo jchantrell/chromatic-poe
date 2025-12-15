@@ -202,16 +202,46 @@ WHERE category IN ('Flask', 'Tincture')
 
 UNION ALL
 
--- Idols
+-- Jewels
 SELECT DISTINCT
 name,
-'Mapping' as category,
-'Idols' AS class,
-null AS type,
+'Jewels' AS category,
+(CASE
+  WHEN name LIKE '%Cluster%'
+  THEN 'Cluster'
+  WHEN name LIKE 'Timeless%'
+  THEN 'Timeless'
+  WHEN name LIKE '%Eye Jewel'
+  THEN 'Abyss'
+  ELSE 'Common'
+END) as class,
+(CASE
+  WHEN name LIKE '%Cluster%'
+  THEN 'Cluster'
+  WHEN name LIKE 'Timeless%'
+  THEN 'Timeless'
+  WHEN name LIKE '%Eye Jewel'
+  THEN 'Abyss'
+  ELSE 'Common'
+END) as type,
 0 AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE category = 'Idol'
+WHERE category IN ('Jewel', 'Abyss Jewel')
+
+UNION ALL
+
+-- Pieces
+SELECT DISTINCT
+name,
+'Uniques' AS category,
+'Pieces' as class,
+null as type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Pieces'
+
 
 UNION ALL
 
@@ -222,7 +252,7 @@ name,
 (CASE
   WHEN name LIKE 'Awakened%'
   THEN 'Awakened'
-  WHEN name LIKE 'Vaal%' AND category = 'Gems'
+  WHEN name LIKE 'Vaal%' AND category = 'Skill Gem'
   THEN 'Vaal'
   WHEN class = 'Skill Gems'
   THEN 'Active'
@@ -250,67 +280,7 @@ END) as type,
 strReq + dexReq + intReq AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE category IN ('Skill Gem', 'Support Gem') AND name NOT LIKE '[DNT]%' AND name NOT IN ('Coming Soon', 'Shroud')
-
-UNION ALL
-
--- Pieces
-SELECT DISTINCT
-name,
-'Pieces' AS category,
-class,
-null as type,
-0 AS score, 
-${extraFields}
-FROM ITEMS
-WHERE class = 'Pieces'
-
-UNION ALL
-
--- Jewels
-SELECT DISTINCT
-name,
-'Jewels' AS category,
-class,
-(CASE
-  WHEN name LIKE '%Cluster%'
-  THEN 'Cluster'
-  WHEN name LIKE 'Timeless%'
-  THEN 'Timeless'
-  WHEN name LIKE '%Eye Jewel'
-  THEN 'Abyss'
-  ELSE 'Common'
-END) as type,
-0 AS score, 
-${extraFields}
-FROM ITEMS
-WHERE category IN ('Jewel', 'Abyss Jewel')
-
-UNION ALL
-
--- Heist
-SELECT DISTINCT
-name,
-'Heist' AS category,
-class,
-null as type,
-0 AS score, 
-${extraFields}
-FROM ITEMS
-WHERE category IN ('Heist Gear', 'Heist Tool', 'Heist Cloak', 'Heist Brooch', 'Blueprint', 'Trinket', 'Contract', 'Heist Target') AND name NOT LIKE '[UNUSED]%'
-
-UNION ALL
-
--- Runes
-SELECT DISTINCT
-name,
-'Currency' AS category,
-'Runes' as class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE exchangeCategory = 'Runecrafting'
+WHERE category IN ('Skill Gem', 'Support Gem') AND name NOT LIKE '%]%' AND name NOT IN ('Coming Soon', 'Shroud', 'WIP Support', 'Vaal Soul Harvesting')
 
 UNION ALL
 
@@ -327,121 +297,27 @@ WHERE exchangeCategory = 'Lifeforce'
 
 UNION ALL
 
--- Omens
+-- Divination Cards
 SELECT DISTINCT
 name,
-'Ritual' AS category,
-'Omens' as class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE exchangeCategory = 'Omens'
-
-UNION ALL
-
--- Delve
-SELECT DISTINCT
-name,
-'Delve' AS category,
-exchangeSubCategory as class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE exchangeCategory = 'Delve'
-
-UNION ALL
-
--- Catalysts
-SELECT DISTINCT
-name,
-'Ultimatum' AS category,
-exchangeSubCategory as class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE exchangeCategory = 'Catalysts'
-
-UNION ALL
-
--- Scarabs
-SELECT DISTINCT
-name,
-'Mapping' as category,
-'Scarabs' AS class,
-exchangeSubCategory as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE exchangeCategory = 'Scarabs'
-
-UNION ALL
-
--- Tattoos
-SELECT DISTINCT
-name,
-'Tattoos' AS category,
+'Divination Cards' AS category,
 (CASE
-  WHEN exchangeSubCategory LIKE 'Dexterity%'
-  THEN 'Dexterity'
-  WHEN exchangeSubCategory LIKE 'Intelligence%'
-  THEN 'Intelligence'
-  WHEN exchangeSubCategory LIKE 'Strength%'
-  THEN 'Strength'
-  ELSE 'Unknown'
-END)as class,
+ WHEN exchangeSubCategory like 'Divination Cards Rewarding%'
+ THEN SUBSTR(exchangeSubCategory, 27)
+ ELSE 'Other'
+END) as class,
 null as type,
 price AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE exchangeCategory = 'Tattoos'
-
-UNION ALL
-
--- Oils
-SELECT DISTINCT
-name,
-'Blight' AS category,
-'Oils' as class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE exchangeCategory = 'Oils'
-
-UNION ALL
-
--- Fragments
-SELECT DISTINCT
-name,
-'Fragments' AS category,
-exchangeSubCategory as class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE exchangeCategory = 'Fragments'
-
-UNION ALL
-
-SELECT DISTINCT
-name,
-'Fragments' AS category,
-exchangeSubCategory as class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE category = 'Incursion Item'
+WHERE class = 'Divination Cards'
 
 UNION ALL
 
 -- Maps
 SELECT DISTINCT
 name,
-'Mapping' AS category,
+'Maps' AS category,
 class,
 (CASE
   WHEN name LIKE 'Shaped%'
@@ -461,7 +337,137 @@ WHERE class = 'Maps' AND name != 'The Shaper''s Realm'
 
 UNION ALL
 
--- Currency, Essence, Runes
+-- Scarabs
+SELECT DISTINCT
+name,
+'Scarabs' as category,
+exchangeSubCategory as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Scarabs'
+
+UNION ALL
+
+-- Fragments
+SELECT DISTINCT
+name,
+'Fragments' AS category,
+exchangeSubCategory as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Fragments'
+
+
+UNION ALL
+
+-- Heist
+SELECT DISTINCT
+name,
+'Leagues' as category,
+'Heist' AS class,
+class as type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE category IN ('Heist Gear', 'Heist Tool', 'Heist Cloak', 'Heist Brooch', 'Blueprint', 'Trinket', 'Contract', 'Heist Target') AND name NOT LIKE '[UNUSED]%'
+
+
+UNION ALL
+
+-- Omens
+SELECT DISTINCT
+name,
+'Leagues' AS category,
+'Omens' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Omens'
+
+UNION ALL
+
+-- Delve
+SELECT DISTINCT
+name,
+'Leagues' as category,
+'Delve' AS class,
+exchangeSubCategory as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Delve'
+
+UNION ALL
+
+-- Catalysts
+SELECT DISTINCT
+name,
+'Currency' AS category,
+exchangeSubCategory as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Catalysts'
+
+
+UNION ALL
+
+-- Tattoos
+SELECT DISTINCT
+name,
+'Leagues' as category,
+'Tattoos' AS class,
+(CASE
+  WHEN exchangeSubCategory LIKE 'Dexterity%'
+  THEN 'Dexterity'
+  WHEN exchangeSubCategory LIKE 'Intelligence%'
+  THEN 'Intelligence'
+  WHEN exchangeSubCategory LIKE 'Strength%'
+  THEN 'Strength'
+  ELSE 'Unknown'
+END)as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Tattoos'
+
+UNION ALL
+
+-- Runes
+SELECT DISTINCT
+name,
+'Leagues' as category,
+'Runes' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Runegrafts'
+
+UNION ALL
+
+-- Oils
+SELECT DISTINCT
+name,
+'Leagues' AS category,
+'Oils' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory = 'Oils'
+
+
+UNION ALL
+
+
+-- Currency
 SELECT DISTINCT
 name,
 exchangeCategory AS category,
@@ -474,7 +480,24 @@ null as type,
 price AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE exchangeCategory IN ('Essences', 'Currency', 'Runes')
+WHERE exchangeCategory IN ('Currency')
+
+UNION ALL
+
+-- Essence
+SELECT DISTINCT
+name,
+'Currency' as category,
+exchangeCategory AS class,
+(CASE
+  WHEN exchangeSubCategory = exchangeCategory
+  THEN 'Common'
+  ELSE exchangeSubCategory
+END) as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE exchangeCategory IN ('Essences')
 
 UNION ALL
 
@@ -494,7 +517,7 @@ UNION ALL
 -- Incubators
 SELECT DISTINCT
 name,
-'Legion' AS category,
+'Leagues' AS category,
 class,
 null as type,
 0 AS score, 
@@ -507,8 +530,8 @@ UNION ALL
 -- Timeless Domain
 SELECT DISTINCT
 name,
-'Legion' AS category,
-'Splinters' as class,
+'Fragments' AS category,
+'Legion Splinters' as class,
 null as type,
 0 AS score, 
 ${extraFields}
@@ -519,8 +542,8 @@ UNION ALL
 
 SELECT DISTINCT
 name,
-'Legion' AS category,
-'Emblems' as class,
+'Fragments' AS category,
+'Legion Emblems' as class,
 null as type,
 0 AS score, 
 ${extraFields}
@@ -532,8 +555,8 @@ UNION ALL
 -- Expedition
 SELECT DISTINCT
 name,
-'Expedition' AS category,
-'Logbooks' as class,
+'Fragments' AS category,
+'Expedition Logbook' as class,
 null as type,
 price AS score, 
 ${extraFields}
@@ -544,8 +567,8 @@ UNION ALL
 
 SELECT DISTINCT
 name,
-'Expedition' AS category,
-'Currency' as class,
+'Currency' AS category,
+'Expedition' as class,
 null as type,
 price AS score, 
 ${extraFields}
@@ -571,8 +594,8 @@ UNION ALL
 -- Sanctum
 SELECT DISTINCT
 name,
-'Sanctum' AS category,
-'Fragments' as class,
+'Fragments' AS category,
+'Sanctum' as class,
 null as type,
 price AS score, 
 ${extraFields}
@@ -581,11 +604,24 @@ WHERE name = 'Forbidden Tome'
 
 UNION ALL
 
+-- Idols
 SELECT DISTINCT
 name,
-'Sanctum' AS category,
-class,
-null as type,
+'Leagues' as category,
+'Idols' AS class,
+null AS type,
+0 AS score, 
+${extraFields}
+FROM ITEMS
+WHERE category = 'Idol'
+
+UNION ALL
+
+SELECT DISTINCT
+name,
+'Leagues' AS category,
+'Sanctum Relics' as class,
+'Sanctum Relics' as type,
 0 AS score, 
 ${extraFields}
 FROM ITEMS
@@ -596,13 +632,9 @@ UNION ALL
 -- Delirium, Breach
 SELECT DISTINCT
 name,
-exchangeCategory AS category,
-(CASE
-  WHEN exchangeSubCategory = exchangeCategory
-  THEN 'Fragments'
-  ELSE exchangeSubCategory
-END) as class,
-null as type,
+'Fragments' AS category,
+exchangeCategory as class,
+exchangeSubCategory as type,
 price AS score, 
 ${extraFields}
 FROM ITEMS
@@ -625,7 +657,7 @@ UNION ALL
 -- Corpses
 SELECT DISTINCT
 name,
-'Ritual' AS category,
+'Leagues' AS category,
 class,
 (CASE
 WHEN name like '%Hydra'
@@ -705,22 +737,6 @@ ${extraFields}
 FROM ITEMS
 WHERE class = 'Corpses'
 
-UNION ALL
-
--- Divination Cards
-SELECT DISTINCT
-name,
-'Divination Cards' AS category,
-(CASE
- WHEN exchangeSubCategory like 'Divination Cards Rewarding%'
- THEN SUBSTR(exchangeSubCategory, 27)
- ELSE 'Other'
-END) as class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE class = 'Divination Cards'
 
 UNION ALL
 
@@ -1026,7 +1042,7 @@ WHERE class = 'Tablet'
 
 UNION ALL
 
--- Currency, Essence, Runes
+-- Currency, Essence 
 SELECT DISTINCT
 name,
 exchangeCategory AS category,
@@ -1039,7 +1055,7 @@ null as type,
 price AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE exchangeCategory IN ('Essences', 'Currency', 'Runes')
+WHERE exchangeCategory IN ('Essences', 'Currency')
 
 UNION ALL
 
