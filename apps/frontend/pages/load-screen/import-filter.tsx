@@ -1,5 +1,5 @@
 import chromatic from "@app/lib/config";
-import { generateFilter, Template } from "@app/lib/filter";
+import { generateFilter } from "@app/lib/filter";
 import { store } from "@app/store";
 import { Button } from "@app/ui/button";
 import {
@@ -19,7 +19,7 @@ export default function ImportFilter() {
   const [name, setName] = createSignal("Chromatic");
   const [raw, setRaw] = createSignal("");
   const [dialogOpen, setDialogOpen] = createSignal(false);
-  const [version, setVersion] = createSignal(2);
+  const [version, setVersion] = createSignal<1 | 2>(2);
   const [selectedFilter, setSelectedFilter] = createSignal<string | null>(null);
   const [importableFilters, setImportableFilters] = createSignal<
     { name: string; data: string }[]
@@ -38,12 +38,7 @@ export default function ImportFilter() {
       toast(`Filter with name ${name()} already exists.`);
       return;
     }
-    const filter = await generateFilter(
-      name(),
-      version(),
-      Template.BLANK,
-      raw(),
-    );
+    const filter = await generateFilter(name(), version(), raw());
     await filter.save();
     setDialogOpen(false);
   }
@@ -72,8 +67,8 @@ export default function ImportFilter() {
     setName(filter.name.replace(".filter", ""));
   }
 
-  function handleVersion(version: number) {
-    toast("Only PoE 2 is supported at the moment.");
+  function handleVersion(number: 1 | 2) {
+    setVersion(number);
   }
 
   onMount(async () => {

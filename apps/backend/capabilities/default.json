@@ -5,17 +5,16 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "core:window:default",
     "core:window:allow-start-dragging",
     "core:window:allow-close",
     "core:window:allow-minimize",
     "core:window:allow-toggle-maximize",
     "core:webview:allow-set-webview-zoom",
     "os:default",
-    "fs:default",
     "dialog:default",
-    "opener:default",
     "updater:default",
+    "process:default",
+    "opener:default",
     {
       "identifier": "opener:allow-open-path",
       "allow": [
@@ -24,46 +23,11 @@
         }
       ]
     },
-    {
-      "identifier": "fs:read-all",
-      "allow": [
-        {
-          "path": "$HOME/**"
-        },
-        {
-          "path": "$APPCONFIG"
-        },
-        {
-          "path": "$APPCONFIG/*"
-        },
-        {
-          "path": "$APPCONFIG/config.json"
-        },
-        {
-          "path": "$APPCONFIG/filters/**"
-        }
-      ]
-    },
-    {
-      "identifier": "fs:write-all",
-      "allow": [
-        {
-          "path": "$HOME/**"
-        },
-        {
-          "path": "$APPCONFIG"
-        },
-        {
-          "path": "$APPCONFIG/*"
-        },
-        {
-          "path": "$APPCONFIG/config.json"
-        },
-        {
-          "path": "$APPCONFIG/filters/**"
-        }
-      ]
-    },
-    "process:default"
+    "fs:allow-home-read-recursive",
+    "fs:allow-home-write-recursive",
+    "fs:allow-data-read-recursive",
+    "fs:allow-data-write-recursive",
+    "fs:allow-document-read-recursive",
+    "fs:allow-document-write-recursive"
   ]
 }

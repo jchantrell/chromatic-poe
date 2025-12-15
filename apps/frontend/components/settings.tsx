@@ -73,12 +73,6 @@ export function Settings() {
           <DialogTitle>General</DialogTitle>
         </DialogHeader>
         <div class='grid py-2'>
-          {chromatic.fileSystem.runtime === "desktop" && (
-            <TextField class='grid grid-cols-4 items-center gap-4'>
-              <TextFieldLabel class='text-right'>PoE Directory</TextFieldLabel>
-              <ChooseDirectory class='col-span-3' />
-            </TextField>
-          )}
           <TextField class='grid grid-cols-4 items-center gap-4'>
             <Label aria-disabled={true} class='text-right'>
               Autosave
@@ -100,44 +94,9 @@ export function Settings() {
         <DialogHeader>
           <DialogTitle>Data</DialogTitle>
         </DialogHeader>
-        <div class='grid py-4'>
-          <div class='flex flex-col gap-4'>
-            <div class='space-y-1'>
-              <h4 class='font-medium leading-none'>Game Data</h4>
-              <p class='text-xs text-muted-foreground'>
-                Select a game version to download the latest data.
-              </p>
-            </div>
-            <div class='flex items-center gap-2'>
-              <Select<string>
-                value={selectedVersion()}
-                onChange={setSelectedVersion}
-                options={versions().map((v) => v.value)}
-                placeholder='Select patch...'
-                itemComponent={(props) => (
-                  <SelectItem item={props.item}>
-                    {
-                      versions().find((v) => v.value === props.item.rawValue)
-                        ?.label
-                    }
-                  </SelectItem>
-                )}
-              >
-                <SelectTrigger class='w-[200px]'>
-                  <SelectValue<string>>
-                    {(state) =>
-                      versions().find((v) => v.value === state.selectedOption())
-                        ?.label
-                    }
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent />
-              </Select>
-            </div>
-          </div>
-        </div>
+        <div class='grid py-4'></div>
         <Separator />
-        <div class='grid py-4 flex items-center justify-center'>
+        <div class='py-4 flex items-center justify-center'>
           <div class='flex items-center gap-1 pb-1'>
             <Label>Current Version</Label>
             {version()}

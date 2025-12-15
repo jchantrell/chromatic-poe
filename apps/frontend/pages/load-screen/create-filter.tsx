@@ -1,4 +1,4 @@
-import { generateFilter, Template } from "@app/lib/filter";
+import { generateFilter } from "@app/lib/filter";
 import { store } from "@app/store";
 import { Button } from "@app/ui/button";
 import {
@@ -16,7 +16,6 @@ import { toast } from "solid-sonner";
 export default function CreateFilter() {
   const [name, setName] = createSignal("Chromatic");
   const [dialogOpen, setDialogOpen] = createSignal(false);
-  const [template, setTemplate] = createSignal<Template>(Template.BLANK);
   const [version, setVersion] = createSignal<number>(2);
 
   async function createFilter() {
@@ -28,13 +27,9 @@ export default function CreateFilter() {
       toast(`Filter with name ${name()} already exists.`);
       return;
     }
-    const filter = await generateFilter(name(), version(), template());
+    const filter = await generateFilter(name(), version());
     await filter.save();
     setDialogOpen(false);
-  }
-
-  function handleTemplate(template: Template) {
-    setTemplate(template);
   }
 
   return (
@@ -80,29 +75,6 @@ export default function CreateFilter() {
                     <ToggleGroupItem
                       class='data-[pressed]:bg-neutral-700 bg-neutral-700/20 border border-accent'
                       value={option.toString()}
-                    >
-                      {option}
-                    </ToggleGroupItem>
-                  );
-                }}
-              </For>
-            </ToggleGroup>
-          </div>
-          <div class='flex items-center gap-2'>
-            <div class='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mr-2'>
-              Template
-            </div>
-            <ToggleGroup
-              onChange={(v) => handleTemplate(v as Template)}
-              value={template()}
-              class='flex flex-wrap'
-            >
-              <For each={Object.values(Template)}>
-                {(option) => {
-                  return (
-                    <ToggleGroupItem
-                      class='data-[pressed]:bg-neutral-700 bg-neutral-700/20 border border-accent'
-                      value={option}
                     >
                       {option}
                     </ToggleGroupItem>

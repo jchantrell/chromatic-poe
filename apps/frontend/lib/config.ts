@@ -1,18 +1,21 @@
-import {
-  type ConditionKey,
-  type Conditions,
-  createCondition,
-} from "@app/lib/condition";
-import { DesktopStorage, WebStorage } from "@app/lib/storage";
-import { alphabeticalSort, validJson } from "@app/lib/utils";
+import { alphabeticalSort, to } from "@app/lib/utils";
 import { setInitialised, setLocale, store } from "@app/store";
 import { getVersion } from "@tauri-apps/api/app";
-import { appConfigDir, documentDir, sep } from "@tauri-apps/api/path";
+import { documentDir, homeDir } from "@tauri-apps/api/path";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { openPath } from "@tauri-apps/plugin-opener";
-import { locale } from "@tauri-apps/plugin-os";
+import { locale, platform } from "@tauri-apps/plugin-os";
 import { Filter } from "./filter";
 import { DEFAULT_FILTER_SOUNDS, type Sound } from "./sounds";
+import {
+  exists,
+  readDir,
+  readFile,
+  writeTextFile,
+} from "@tauri-apps/plugin-fs";
+import { IDBManager } from "./idb";
+import { toast } from "solid-sonner";
+import { invoke } from "@tauri-apps/api/core";
 
 function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
   try {
@@ -29,27 +32,27 @@ type SemVer = {
   patch: number;
 };
 
-interface ChromaticConfiguration {
+export interface ChromaticConfiguration {
   version: string;
-  poeDirectory?: string | null;
+}
+
+export async function autosave() {
+  if (store.filter) {
+    await store.filter.save();
+  }
 }
 
 class Chromatic {
-  fileSystem: DesktopStorage | WebStorage;
   config!: ChromaticConfiguration;
   runtime: "desktop" | "web";
   tauriWindow?: ReturnType<typeof getCurrentWindow> | null;
-
-  configPath!: string;
-  soundPath = "sounds";
-  filterPath = "filters";
-  configFile = "config.json";
+  db: IDBManager = new IDBManager();
+  decoder = new TextDecoder("utf-8");
 
   constructor() {
     const appWindow = tryGetAppWindow();
     this.tauriWindow = appWindow;
     this.runtime = appWindow ? "desktop" : "web";
-    this.fileSystem = appWindow ? new DesktopStorage() : new WebStorage();
   }
 
   close() {
@@ -65,31 +68,18 @@ class Chromatic {
       return;
     }
 
-    this.configPath =
-      this.runtime === "desktop" ? await appConfigDir() : "config";
+    const db = await this.db.getInstance();
+    const config = await db.get("config", "main");
 
-    if (this.runtime === "desktop") {
-      await this.bootstrap();
+    if (config) {
+      this.config = await this.parseConfig(config);
     }
 
-    const fullConfigPath =
-      this.runtime === "desktop"
-        ? `${this.configPath}/${this.configFile}`
-        : this.configPath;
-
-    const configExists = await this.fileSystem.exists(fullConfigPath);
-
-    if (configExists) {
-      console.log("Config exists. Reading file...");
-      const raw = await this.fileSystem.readFile(fullConfigPath);
-      console.log("Raw config", raw);
-      this.config = await this.parseConfig(raw);
-    }
-
-    if (!configExists) {
+    if (!config) {
       console.log("Config does not exist. Creating with defaults...");
       const defaultConfig = await this.defaultConfig();
       await this.writeConfig(defaultConfig);
+      this.config = defaultConfig;
     }
 
     setInitialised(true);
@@ -98,29 +88,9 @@ class Chromatic {
     }
   }
 
-  async bootstrap() {
-    if (this.fileSystem.runtime !== "desktop") return;
-    await this.fileSystem.upsertDirectory(`${this.configPath}`);
-    await this.fileSystem.upsertDirectory(
-      `${this.configPath}${sep()}${this.filterPath}`,
-    );
-    if (this.config?.poeDirectory) {
-      await this.fileSystem.upsertDirectory(
-        `${this.config.poeDirectory}${sep()}${this.soundPath}`,
-      );
-    }
-  }
-
-  async parseConfig(raw: string): Promise<ChromaticConfiguration> {
-    if (!validJson(raw)) {
-      console.log("Config seems corrupted. Replacing with current default");
-      const defaultConfig = await this.defaultConfig();
-      await this.writeConfig(defaultConfig);
-      return defaultConfig;
-    }
-
-    const config = JSON.parse(raw);
-
+  async parseConfig(
+    config: ChromaticConfiguration,
+  ): Promise<ChromaticConfiguration> {
     if (!config.version) {
       console.log(
         "Config seems corrupted. Replacing with current default",
@@ -194,10 +164,10 @@ class Chromatic {
   }
 
   async writeConfig(config: ChromaticConfiguration) {
-    const path = `${this.configPath}${this.runtime === "desktop" ? `${sep()}${this.configFile}` : ""}`;
-    await this.fileSystem.writeFile(path, "text", JSON.stringify(config));
-    console.log(`Successfully wrote config to ${path}`, config);
+    const db = await this.db.getInstance();
+    await db.put("config", config, "main");
     this.config = config;
+    console.log("Successfully wrote config", config);
   }
 
   async migrateConfig(
@@ -229,28 +199,42 @@ class Chromatic {
     const config: ChromaticConfiguration = {
       version: await this.getVersion(),
     };
-    if (this.runtime === "desktop") {
-      config.poeDirectory = null;
-    }
     return config;
   }
 
-  windowsPoeDirectory(docPath: string) {
-    return `${docPath}\\Documents\\My Games\\Path of Exile 2`;
-  }
-  linuxPoeDirectory(docPath: string) {
-    return `${docPath}/.steam/root/steamapps/compatdata/238960/pfx/drive_c/users/steamuser/My Documents/My Games/Path of Exile 2`;
+  windowsPoeDirectory(docPath: string, version: 1 | 2): string {
+    return `${docPath}\\Documents\\My Games\\Path of Exile${version === 2 && " 2"}`;
   }
 
-  async getAssumedPoeDirectory(os: string): Promise<string | null> {
+  linuxPoeDirectory(
+    docPath: string | undefined,
+    homePath: string | undefined,
+    version: 1 | 2,
+  ): string[] {
+    return [
+      `${homePath}/.local/share/Steam/steamapps/compatdata/238960/pfx/drive_c/users/steamuser/Documents/My Games/Path of Exile${version === 2 && " 2"}`,
+      `${homePath}/.steam/root/steamapps/compatdata/238960/pfx/drive_c/users/steamuser/My Documents/My Games/Path of Exile${version === 2 && " 2"}`,
+      `${docPath}/My Games/Path of Exile${version === 2 && " 2"}`,
+    ];
+  }
+
+  async getAssumedPoeDirectory(version: 1 | 2): Promise<string | null> {
+    const os = platform();
+
     if (os === "windows") {
       const docPath = await documentDir();
-      return this.windowsPoeDirectory(docPath);
+      return this.windowsPoeDirectory(docPath, version);
     }
 
     if (os === "linux") {
-      const docPath = await documentDir();
-      return this.linuxPoeDirectory(docPath);
+      const [, docPath] = await to(documentDir());
+      const [, homePath] = await to(homeDir());
+
+      const paths = this.linuxPoeDirectory(docPath, homePath, version);
+      for (const path of paths) {
+        const [, found] = await to(exists(path));
+        if (found) return path;
+      }
     }
 
     return null;
@@ -262,69 +246,72 @@ class Chromatic {
     return { poeDirectory: path, config: this.config };
   }
 
-  getFiltersPath(filter: Filter, newName?: string) {
-    if (this.runtime === "web") {
-      return `filters/${newName ? newName : filter.name}`;
-    }
-    return `${this.configPath}/${this.filterPath}/${newName ? newName : filter.name}.json`;
-  }
-
-  async migrateFilterVersion(rawFilter: Filter): Promise<Filter> {
-    const chromaticVersion = await this.getVersion();
-    let needsWrite = false;
-    console.log("Checking for filter version upgrades", { rawFilter });
-    const filterSemVer = this.semVer(rawFilter.chromaticVersion);
-
-    // before 0.4.4 conditions were a hashtable
-    if (
-      filterSemVer.major === 0 &&
-      filterSemVer.minor <= 4 &&
-      filterSemVer.patch < 4
-    ) {
-      for (const rule of rawFilter.rules) {
-        const updatedConditions = [];
-        const legacyConditions = Object.entries(rule.conditions);
-        for (const [key, value] of legacyConditions) {
-          const condition = createCondition(key as ConditionKey, value);
-          updatedConditions.push(condition);
-        }
-        rule.conditions = updatedConditions as Conditions[];
-      }
-      needsWrite = true;
-    }
-
-    if (rawFilter.chromaticVersion !== chromaticVersion) {
-      needsWrite = true;
-    }
-
-    if (needsWrite) {
-      rawFilter.chromaticVersion = chromaticVersion;
-      this.fileSystem.writeFile(
-        this.getFiltersPath(rawFilter),
-        "text",
-        JSON.stringify(rawFilter),
-      );
-    }
-    return rawFilter;
-  }
-
   async getAllFilters() {
-    const filters =
-      this.runtime === "desktop"
-        ? await this.fileSystem.getAllFiles(
-            `${this.configPath}/${this.filterPath}`,
-            "text",
-          )
-        : await this.fileSystem.getAllFiles(this.filterPath, "text");
-
-    for (const file of filters) {
-      const props = JSON.parse(file.data);
-      props.lastUpdated = new Date(props.lastUpdated);
-      const valid = await this.migrateFilterVersion(props);
-      new Filter(valid);
+    const db = await this.db.getInstance();
+    const filters = await db.getAll("filters");
+    for (const filter of filters) {
+      filter.lastUpdated = new Date(filter.lastUpdated);
+      new Filter(filter);
     }
 
     store.filters.sort(alphabeticalSort((filter) => filter.name));
+  }
+
+  async writeFilter(filter: Filter) {
+    if (this.runtime === "desktop") {
+      const version = filter.poePatch.startsWith("3") ? 1 : 2;
+      const dir = await this.getAssumedPoeDirectory(version);
+      if (!dir) return;
+      const path = `${dir}/${filter.name}.filter`;
+      await writeTextFile(path, filter.serialize());
+      setTimeout(async () => {
+        await invoke("reload");
+      }, 250);
+      toast("Wrote filter to PoE directory.");
+    }
+
+    if (this.runtime === "web") {
+      const filename = `${filter.name}.filter`;
+      const blob = new Blob([filter.serialize()], { type: "text" });
+      if (window.navigator?.msSaveOrOpenBlob) {
+        window.navigator.msSaveBlob(blob, filename);
+      } else {
+        const elem = window.document.createElement("a");
+        elem.href = window.URL.createObjectURL(blob);
+        elem.download = filename;
+        document.body.appendChild(elem);
+        elem.click();
+        document.body.removeChild(elem);
+      }
+      toast("Exported filter. Check your downloads folder.");
+    }
+  }
+
+  async saveFilter(filter: Filter) {
+    const db = await this.db.getInstance();
+
+    db.put(
+      "filters",
+      {
+        ...filter,
+        lastUpdated: filter.lastUpdated.toISOString(), // FIXME: just store the ISO string always and convert to date adhoc
+      },
+      filter.name,
+    );
+  }
+
+  async deleteFilter(filter: Filter) {
+    const db = await this.db.getInstance();
+    db.delete("filters", filter.name);
+    store.filters = store.filters.filter((f) => f.name !== filter.name);
+  }
+
+  async renameFilter(filter: Filter, newName: string) {
+    const db = await this.db.getInstance();
+    const oldName = filter.name;
+    filter.setName(newName);
+    await filter.save();
+    db.delete("filters", oldName);
   }
 
   async getDefaultSounds(): Promise<Sound[]> {
@@ -347,67 +334,41 @@ class Chromatic {
     }));
   }
 
-  async getSounds(): Promise<Sound[]> {
+  async getSounds(version: 1 | 2): Promise<Sound[]> {
     const sounds: Sound[] = [];
-    if (this.runtime === "desktop") {
-      const rawSounds = await this.fileSystem.getAllFiles(
-        `${this.config.poeDirectory}${sep()}${this.soundPath}`,
-        "binary",
-      );
-      for (const sound of rawSounds) {
-        if (
-          sound.name.endsWith(".wav") ||
-          sound.name.endsWith(".mp3") ||
-          sound.name.endsWith(".ogg")
-        ) {
-          const blob = new Blob([sound.data], { type: "audio/wav" });
-          sounds.push({
-            displayName: sound.name.split(".")[0],
-            id: sound.name,
-            path: `sounds/${sound.name}`,
-            data: blob,
-            type: "custom",
-          });
-        }
-      }
-    }
+
     if (this.runtime === "web") {
-      const cachedSounds = await this.fileSystem.getAllFiles(
-        this.soundPath,
-        "text",
-      );
-      // handle the legacy format
-      if (cachedSounds[0]?.data.includes("undefined")) {
-        return [];
-      }
-      if (cachedSounds.length) {
-        sounds.push(
-          ...JSON.parse(cachedSounds[0].data).map((sound: Sound) => ({
-            displayName: sound.displayName,
-            id: sound.id,
-            path: sound.path,
-            type: "cached",
-          })),
-        );
-      }
+      const db = await this.db.getInstance();
+      const cachedSounds = await db.getAll("sounds");
+      return cachedSounds;
     }
+
+    if (this.runtime === "desktop") {
+      const dir = await this.getAssumedPoeDirectory(version);
+      if (!dir) return [];
+      const soundDir = `${dir}/sounds`;
+      const files = await this.getAllFiles(soundDir, "text");
+      return files
+        .filter((file) => file.name.endsWith(".wav")) // TODO: support more files
+        .map((f) => ({
+          ...f,
+          path: f.name,
+          displayName: f.name,
+          id: f.name,
+          type: "custom",
+          data: new Blob(), // FIXME:
+        }));
+    }
+
     return sounds;
   }
 
   async uploadSounds(files: Sound[]) {
     if (this.runtime === "web") {
-      this.fileSystem.writeFile(
-        this.soundPath,
-        "text",
-        JSON.stringify(
-          files.map((file) => ({
-            displayName: file.displayName,
-            id: file.id,
-            path: file.path,
-            type: "cached",
-          })),
-        ),
-      );
+      const db = await this.db.getInstance();
+      for (const file of files) {
+        await db.put("sounds", file, file.id);
+      }
     }
   }
 
@@ -417,21 +378,51 @@ class Chromatic {
     }
   }
 
-  async listImportableFilters(_version: number) {
-    if (this.runtime === "web") return;
+  async listImportableFilters(
+    version: 1 | 2,
+  ): Promise<{ name: string; data: string }[]> {
+    if (this.runtime === "web") return [];
 
-    if (!this.config.poeDirectory) return;
+    const dir = await this.getAssumedPoeDirectory(version);
+    if (dir) {
+      const files = await this.getAllFiles(dir, "text");
+      return files.filter(
+        (file) =>
+          file.name.endsWith(".filter") &&
+          !store.filters.some((filter) => filter.name === file.name),
+      );
+    }
 
-    const files = await this.fileSystem.getAllFiles(
-      this.config.poeDirectory,
-      "text",
-    );
+    return [];
+  }
 
-    return files.filter(
-      (file) =>
-        file.name.endsWith(".filter") &&
-        !store.filters.some((filter) => filter.name === file.name),
-    );
+  async getAllFiles<T extends "text" | "binary">(
+    path: string,
+    type: T,
+  ): Promise<
+    {
+      name: string;
+      data: T extends "text" ? string : Uint8Array;
+    }[]
+  > {
+    if (this.runtime !== "desktop") return [];
+    const records = await readDir(path);
+    const files = [];
+    for (const record of records) {
+      if (record.isFile) {
+        const bytes = await readFile(`${path}/${record.name}`);
+        if (type === "text") {
+          files.push({ name: record.name, data: this.decoder.decode(bytes) });
+        }
+        if (type === "binary") {
+          files.push({ name: record.name, data: bytes });
+        }
+      }
+    }
+    return files as {
+      name: string;
+      data: T extends "text" ? string : Uint8Array;
+    }[];
   }
 }
 

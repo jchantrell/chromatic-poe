@@ -2,7 +2,7 @@ import { BASE_URL } from "@app/app";
 import { CopyIcon, EditIcon, TrashIcon } from "@app/icons";
 import type { Filter } from "@app/lib/filter";
 import { timeSince } from "@app/lib/utils";
-import { removeFilter, setFilter, store } from "@app/store";
+import { removeFilter, store } from "@app/store";
 import { Button } from "@app/ui/button";
 import {
   ContextMenu,

@@ -5,10 +5,8 @@ import {
   serializeConditions,
 } from "@app/lib/condition";
 import chromatic from "@app/lib/config";
-import { clone, stringifyJSON } from "@app/lib/utils";
+import { clone } from "@app/lib/utils";
 import { addFilter } from "@app/store";
-import { invoke } from "@tauri-apps/api/core";
-import { sep } from "@tauri-apps/api/path";
 import { applyPatch, compare, type Operation } from "fast-json-patch";
 import { createMutable, modifyMutable, reconcile } from "solid-js/store";
 import { toast } from "solid-sonner";
@@ -16,7 +14,6 @@ import type { ulid } from "ulid";
 import { type Actions, serializeActions } from "./action";
 import { addParentRefs, type Command } from "./commands";
 import { importFilter } from "./import";
-import { itemIndex } from "./items";
 
 const WRITE_TIMEOUT = 1000;
 
@@ -105,11 +102,7 @@ export class Filter {
   }
 
   async updateName(newName: string) {
-    const oldPath = chromatic.getFiltersPath(this);
-    const newPath = chromatic.getFiltersPath(this, newName);
-    await chromatic.fileSystem.renameFile(oldPath, newPath);
-    this.setName(newName);
-    await this.save();
+    await chromatic.renameFilter(this, newName);
   }
 
   copy(newName: string): Filter {
@@ -179,25 +172,13 @@ export class Filter {
   }
 
   async deleteFile() {
-    const configPath = chromatic.getFiltersPath(this);
-    await chromatic.fileSystem.deleteFile(configPath);
-    if (chromatic.fileSystem.runtime === "desktop") {
-      const filterPath = `${chromatic.config?.poeDirectory}${sep()}${this.name}.chromatic.filter`;
-      if (await chromatic.fileSystem.exists(filterPath)) {
-        await chromatic.fileSystem.deleteFile(filterPath);
-      }
-    }
+    await chromatic.deleteFilter(this);
     toast("Deleted filter.");
   }
 
   async save() {
-    const path = chromatic.getFiltersPath(this);
     this.setLastUpdated(new Date());
-    const filter = stringifyJSON({
-      ...this,
-      lastUpdated: this.lastUpdated.toISOString(),
-    });
-    await chromatic.fileSystem.writeFile(path, "text", filter);
+    await chromatic.saveFilter(this);
   }
 
   async writeFile() {
@@ -206,31 +187,7 @@ export class Filter {
       return;
     }
     this.lastWriteTime = now;
-
-    if (chromatic.fileSystem.runtime === "desktop") {
-      const path = `${chromatic.config.poeDirectory}${sep()}${this.name}.chromatic.filter`;
-      await chromatic.fileSystem.writeFile(path, "text", this.serialize());
-      setTimeout(async () => {
-        await invoke("reload");
-      }, 250);
-      toast("Wrote filter to PoE directory.");
-    }
-
-    if (chromatic.fileSystem.runtime === "web") {
-      const filename = `${this.name}.chromatic.filter`;
-      const blob = new Blob([this.serialize()], { type: "text" });
-      if (window.navigator.msSaveOrOpenBlob) {
-        window.navigator.msSaveBlob(blob, filename);
-      } else {
-        const elem = window.document.createElement("a");
-        elem.href = window.URL.createObjectURL(blob);
-        elem.download = filename;
-        document.body.appendChild(elem);
-        elem.click();
-        document.body.removeChild(elem);
-      }
-      toast("Exported filter. Check your downloads folder.");
-    }
+    await chromatic.writeFilter(this);
   }
 
   serialize(): string {
@@ -282,29 +239,12 @@ export class Filter {
   }
 }
 
-export enum Template {
-  BLANK = "Blank",
-  MINIMAL = "Minimal",
-}
-
 export async function generateFilter(
   name: string,
   poeVersion: number,
-  template: Template,
   raw?: string,
 ): Promise<Filter> {
   let rules: FilterRule[] = [];
-
-  if (template === Template.MINIMAL) {
-    return new Filter({
-      name,
-      chromaticVersion: chromatic.config.version,
-      poeVersion,
-      poePatch: poeVersion === 2 ? "4.0.0" : "3.25",
-      lastUpdated: new Date(),
-      rules,
-    });
-  }
 
   if (raw) {
     rules = await importFilter(raw);
