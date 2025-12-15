@@ -102,10 +102,10 @@ export default function SoundManager() {
   function getExampleDir() {
     const os = chromatic.runtime === "desktop" ? platform() : "web";
     if (os === "windows" || os === "web") {
-      return `${chromatic?.config?.poeDirectory ? `${chromatic?.config?.poeDirectory}\\sounds` : `${chromatic.windowsPoeDirectory("C:\\Users\\User")}\\sounds\\my-sound.wav`}`;
+      return `${chromatic.windowsPoeDirectory("C:\\Users\\User", 1)}\\sounds\\my-sound.wav`;
     }
     if (os === "linux") {
-      return `${chromatic?.config?.poeDirectory ? `${chromatic?.config?.poeDirectory}/sounds/my-sound.wav` : `${chromatic.linuxPoeDirectory("home/user")}/sounds/my-sound.wav`}`;
+      return `${chromatic.linuxPoeDirectory("/home/user", "/home/user", 1)[1]}/sounds/my-sound.wav`;
     }
   }
 

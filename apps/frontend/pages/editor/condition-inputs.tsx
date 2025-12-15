@@ -47,7 +47,7 @@ export function SliderInput(props: {
       </TextField>
       <div class='flex w-[150px]'>
         <SliderTrack>
-          <SliderThumb class='border border-2 border-primary bg-secondary' />
+          <SliderThumb class='border-2 border-primary bg-secondary' />
         </SliderTrack>
       </div>
     </Slider>
@@ -128,7 +128,7 @@ export function SelectInput(props: {
                 if (
                   !filtered().some((entry) => entry[props.groupKey] === group)
                 ) {
-                  return <></>;
+                  return "";
                 }
                 return (
                   <div class='flex flex-col gap-1'>

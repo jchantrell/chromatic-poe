@@ -203,7 +203,7 @@ class Chromatic {
   }
 
   windowsPoeDirectory(docPath: string, version: 1 | 2): string {
-    return `${docPath}\\Documents\\My Games\\Path of Exile${version === 2 && " 2"}`;
+    return `${docPath}\\Documents\\My Games\\Path of Exile${version === 2 ? " 2" : ""}`;
   }
 
   linuxPoeDirectory(
@@ -212,9 +212,9 @@ class Chromatic {
     version: 1 | 2,
   ): string[] {
     return [
-      `${homePath}/.local/share/Steam/steamapps/compatdata/238960/pfx/drive_c/users/steamuser/Documents/My Games/Path of Exile${version === 2 && " 2"}`,
-      `${homePath}/.steam/root/steamapps/compatdata/238960/pfx/drive_c/users/steamuser/My Documents/My Games/Path of Exile${version === 2 && " 2"}`,
-      `${docPath}/My Games/Path of Exile${version === 2 && " 2"}`,
+      `${homePath}/.local/share/Steam/steamapps/compatdata/238960/pfx/drive_c/users/steamuser/Documents/My Games/Path of Exile${version === 2 ? " 2" : ""}`,
+      `${homePath}/.steam/root/steamapps/compatdata/238960/pfx/drive_c/users/steamuser/My Documents/My Games/Path of Exile${version === 2 ? " 2" : ""}`,
+      `${docPath}/My Games/Path of Exile${version === 2 ? " 2" : ""}`,
     ];
   }
 

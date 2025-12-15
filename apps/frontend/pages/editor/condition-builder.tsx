@@ -2,7 +2,7 @@ import Tooltip from "@app/components/tooltip";
 import { CloseIcon, PlusIcon } from "@app/icons";
 import { excuteCmd } from "@app/lib/commands";
 import {
-  type ConditionGroup,
+  ConditionGroup,
   ConditionKey,
   type Conditions,
   conditionGroupColors,
@@ -141,7 +141,11 @@ export default function ConditionManager(props: { rule: FilterRule }) {
   createEffect(() => {
     setFilteredConditionGroups(
       Array.from(
-        new Set(filteredConditions().map((condition) => condition.group)),
+        new Set(
+          filteredConditions()
+            .filter((condition) => condition.group !== ConditionGroup.UNUSED)
+            .map((condition) => condition.group),
+        ),
       ),
     );
   });
@@ -195,7 +199,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                         (condition) => condition.group === group,
                       )
                     ) {
-                      return <></>;
+                      return "";
                     }
                     return (
                       <div class='flex flex-col gap-1 mb-2'>

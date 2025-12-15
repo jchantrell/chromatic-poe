@@ -32,7 +32,13 @@ import Item from "./item";
 import { ItemPicker } from "./item-picker";
 import { MinimapIcon } from "./map-icon-picker";
 
-const MIN_PREVIEW_WIDTH = 500; // Adjust this value as needed
+const MIN_PREVIEW_WIDTH = 500;
+
+function Menu(props: {
+  rule: FilterRule;
+  setExpanded: (state: boolean) => void;
+  handleActive: () => void;
+}) {}
 
 export default function Rule(props: { rule: FilterRule }) {
   const [editNameActive, setEditNameActive] = createSignal(false);
@@ -76,15 +82,15 @@ export default function Rule(props: { rule: FilterRule }) {
     }
   }
 
-  function handleDuplicate(_: MouseEvent) {
-    if (store.filter) {
-      duplicateRule(store.filter, props.rule);
-    }
-  }
-
   function handleActive() {
     if (store.filter) {
       setEntryActive(store.filter, props.rule, !props.rule.enabled);
+    }
+  }
+
+  function handleDuplicate(_: MouseEvent) {
+    if (store.filter) {
+      duplicateRule(store.filter, props.rule);
     }
   }
 
@@ -120,14 +126,15 @@ export default function Rule(props: { rule: FilterRule }) {
     return () => observer.disconnect();
   });
 
-  function getBorderColor(active: boolean, hovered: boolean) {
+  function getBgColor(active: boolean, hovered: boolean) {
     if (active) {
-      return "border-[#EEE]";
+      return "bg-muted";
     }
     if (hovered) {
-      return "border-accent";
+      return "bg-muted";
     }
-    return "border-muted";
+
+    return "bg-secondary/25";
   }
 
   return (
@@ -140,14 +147,11 @@ export default function Rule(props: { rule: FilterRule }) {
       }}
     >
       <Dialog>
-        <Collapsible
-          onOpenChange={(open) => setExpanded(open)}
-          open={expanded()}
-        >
-          <ContextMenu>
-            <ContextMenuTrigger>
+        <ContextMenu>
+          <ContextMenuTrigger>
+            <div>
               <div
-                class={`h-12 w-full flex border ${props.rule.enabled ? "text-primary" : "text-accent"} cursor-pointer items-center justify-between select-none ${getBorderColor(active(), hovered())}`}
+                class={`h-12 w-full flex border cursor-pointer items-center justify-between text-accent-foreground select-none ${getBgColor(active(), hovered())} ${expanded() ? "sticky top-0" : ""}`}
                 onMouseOut={() => setHovered(false)}
                 onMouseOver={() => setHovered(true)}
                 onFocus={() => null}
@@ -165,7 +169,7 @@ export default function Rule(props: { rule: FilterRule }) {
                       )}
                     </div>
                     <input
-                      class={`flex pb-1 w-full bg-primary-foreground outline-none border-none ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"}`}
+                      class={`bg-transparent py-1 px-2 border-none field-sizing-content ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"}`}
                       type='text'
                       value={props.rule.name}
                       onChange={handleNameChange}
@@ -223,49 +227,56 @@ export default function Rule(props: { rule: FilterRule }) {
                   </div>
                 </div>
               </div>
-            </ContextMenuTrigger>
-            <ContextMenuPortal>
-              <ContextMenuContent class='w-48'>
-                <DialogTrigger
-                  as={ContextMenuItem}
-                  onClick={() => setExpanded(true)}
-                  disabled={!itemIndex.searchIndex}
-                >
-                  <div class='flex justify-between items-center w-full'>
-                    Edit Bases
-                  </div>
-                </DialogTrigger>
-                <ContextMenuItem onMouseDown={handleActive}>
-                  <span>{props.rule.enabled ? "Disable" : "Enable"}</span>
-                  <ContextMenuShortcut>⇧+LClick</ContextMenuShortcut>
-                </ContextMenuItem>
-                <ContextMenuItem onMouseDown={handleDuplicate}>
-                  <span>Duplicate</span>
-                </ContextMenuItem>
-                <ContextMenuItem onMouseDown={handleDelete}>
-                  <span>Delete</span>
-                </ContextMenuItem>
-              </ContextMenuContent>
-            </ContextMenuPortal>
-          </ContextMenu>
-          <CollapsibleContent>
-            <ul
-              class={`ms-6 border-s-[1px] grid border-r-0 ${hovered() ? "border-accent" : "border-muted"}`}
-              onMouseOut={() => setHovered(false)}
-              onMouseOver={() => setHovered(true)}
-              onMouseDown={onMouseDown}
-              onFocus={() => null}
-              onBlur={() => null}
-            >
-              <For each={props.rule.bases}>
-                {(entry) => <Item item={entry} setHovered={setHovered} />}
-              </For>
-            </ul>
-          </CollapsibleContent>
-          <DialogContent class='sm:max-w-[600px] overflow-y-visible'>
-            <ItemPicker rule={props.rule} />
-          </DialogContent>
-        </Collapsible>
+
+              <Collapsible
+                onOpenChange={(open) => setExpanded(open)}
+                open={expanded()}
+              >
+                <CollapsibleContent>
+                  <ul
+                    class={`ms-6 border-s-[1px] grid border-r-0 ${hovered() ? "border-accent" : "border-muted"}`}
+                    onMouseOut={() => setHovered(false)}
+                    onMouseOver={() => setHovered(true)}
+                    onMouseDown={onMouseDown}
+                    onFocus={() => null}
+                    onBlur={() => null}
+                  >
+                    <For each={props.rule.bases}>
+                      {(entry) => <Item item={entry} setHovered={setHovered} />}
+                    </For>
+                  </ul>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+          </ContextMenuTrigger>
+          <ContextMenuPortal>
+            <ContextMenuContent class='w-48'>
+              <DialogTrigger
+                as={ContextMenuItem}
+                onClick={() => setExpanded(true)}
+                disabled={!itemIndex.searchIndex}
+              >
+                <div class='flex justify-between items-center w-full'>
+                  Edit Bases
+                </div>
+              </DialogTrigger>
+              <ContextMenuItem onMouseDown={handleActive}>
+                <span>{props.rule.enabled ? "Disable" : "Enable"}</span>
+                <ContextMenuShortcut>⇧+LClick</ContextMenuShortcut>
+              </ContextMenuItem>
+              <ContextMenuItem onMouseDown={handleDuplicate}>
+                <span>Duplicate</span>
+              </ContextMenuItem>
+              <ContextMenuItem onMouseDown={handleDelete}>
+                <span>Delete</span>
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenuPortal>
+        </ContextMenu>
+
+        <DialogContent class='sm:max-w-[600px] overflow-y-visible'>
+          <ItemPicker rule={props.rule} />
+        </DialogContent>
       </Dialog>
     </div>
   );

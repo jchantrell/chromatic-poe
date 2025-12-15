@@ -52,7 +52,7 @@ const SwitchThumb = <T extends ValidComponent = "div">(
   return (
     <SwitchPrimitive.Thumb
       class={cn(
-        "pointer-events-none block size-5 translate-x-0 rounded-full bg-background shadow-lg ring-0 transition-transform data-[checked]:translate-x-5",
+        "pointer-events-none block size-5 translate-x-0 rounded-full bg-primary-foreground shadow-lg ring-0 transition-transform data-[checked]:translate-x-5",
         local.class,
       )}
       {...others}

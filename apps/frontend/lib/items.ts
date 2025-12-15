@@ -26,7 +26,7 @@ class ItemIndex {
     this.patch = patch;
     this.allItems = items;
     const options = {
-      keys: ["name", "category", "class", "type"],
+      keys: ["name", "base", "category", "class", "type"],
       useExtendedSearch: true,
       ignoreFieldNorm: true,
       minMatchCharLength: 1,

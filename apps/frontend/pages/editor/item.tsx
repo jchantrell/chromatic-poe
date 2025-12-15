@@ -23,7 +23,7 @@ export function Visual(props: { item: FilterItem; class?: string }) {
 
   return (
     <div
-      class={`p-1 px-2 ${props.item.enabled ? "text-primary" : "text-accent"} cursor-pointer border items-center flex select-none ${props.class}`}
+      class={`p-1 px-2 ${props.item.enabled ? "text-primary" : "text-primary/25"} cursor-pointer border items-center flex select-none ${props.class}`}
       onMouseDown={(e) => {
         e.stopPropagation();
         if (e.button === 0 && e.shiftKey && store.filter) {
@@ -34,7 +34,7 @@ export function Visual(props: { item: FilterItem; class?: string }) {
       <figure class='max-w-lg'>
         {art() ? (
           <img
-            class='mr-1 h-8 max-w-full pointer-events-none'
+            class={`mr-1 h-8 max-w-full pointer-events-none ${props.item.enabled ? "" : "grayscale"}`}
             alt={`${props.item.name} icon`}
             src={art()}
           />

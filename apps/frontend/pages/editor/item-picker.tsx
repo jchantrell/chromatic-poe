@@ -1,4 +1,3 @@
-import { ChevronDownIcon } from "@app/icons";
 import {
   ClassesCondition,
   ConditionKey,
@@ -116,35 +115,30 @@ function Node(props: {
   const [art] = createResource(
     () => icon,
     async () => {
+      if (!icon) return null;
       return await dat.getArt(icon);
     },
   );
 
   return (
     <div class={`select-none ${props.level > 0 ? "ml-4" : ""}`}>
-      <div class='flex items-center p-1 hover:bg-accent cursor-pointer'>
-        <div class='w-6'>
-          {"children" in props.node && (
-            <div onMouseDown={handleExpand}>
-              <ChevronDownIcon />
-            </div>
-          )}
-        </div>
-
+      <div class='flex items-center p-1 hover:bg-accent/60 cursor-pointer'>
         <Checkbox
           checked={props.node.enabled}
           onChange={handleToggle}
-          class='mx-1'
+          class='mr-2 py-1 flex items-center justify-center h-full'
         />
 
-        <div class='flex items-center flex-grow'>
-          <figure class='max-w-lg'>
-            <img
-              class='mr-1 h-8 max-w-full pointer-events-none'
-              alt={`${props.node.data?.name} icon`}
-              src={art()}
-            />
-          </figure>
+        <div class='flex items-center flex-grow' onMouseDown={handleExpand}>
+          {art() && (
+            <figure class='max-w-lg'>
+              <img
+                class='mr-1 h-6 max-w-full pointer-events-none'
+                alt={`${props.node.data?.name} icon`}
+                src={art()}
+              />
+            </figure>
+          )}
           <span>
             {props.node.name}
             {props.node.data?.category === "Uniques" && (
@@ -297,7 +291,7 @@ export function ItemPicker(props: { rule: FilterRule }) {
           <TextFieldInput type='text' placeholder='Search for items...' />
         </TextField>
       </div>
-      <div class='overflow-y-auto h-[50vh]'>
+      <div class='overflow-y-auto h-[50vh] p-2'>
         <For each={itemHierarchy.hierarchy.children}>
           {(item) => <Node node={item} level={0} onToggle={handleToggle} />}
         </For>

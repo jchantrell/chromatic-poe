@@ -91,11 +91,6 @@ export function Settings() {
           </TextField>
         </div>
         <Separator />
-        <DialogHeader>
-          <DialogTitle>Data</DialogTitle>
-        </DialogHeader>
-        <div class='grid py-4'></div>
-        <Separator />
         <div class='py-4 flex items-center justify-center'>
           <div class='flex items-center gap-1 pb-1'>
             <Label>Current Version</Label>
