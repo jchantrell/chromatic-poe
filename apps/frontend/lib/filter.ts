@@ -226,7 +226,7 @@ export class Filter {
     actions: Actions,
     conditions: Conditions[],
   ) {
-    const eol = chromatic.fileSystem.eol();
+    const eol = chromatic.eol();
     const block = show ? Block.show : Block.hide;
     const conditionText = serializeConditions(conditions)
       .map((condition) => `  ${condition}${eol}`)

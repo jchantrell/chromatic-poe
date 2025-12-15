@@ -4,7 +4,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { documentDir, homeDir } from "@tauri-apps/api/path";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { openPath } from "@tauri-apps/plugin-opener";
-import { locale, platform } from "@tauri-apps/plugin-os";
+import { eol, locale, platform } from "@tauri-apps/plugin-os";
 import { Filter } from "./filter";
 import { DEFAULT_FILTER_SOUNDS, type Sound } from "./sounds";
 import {
@@ -288,30 +288,58 @@ class Chromatic {
   }
 
   async saveFilter(filter: Filter) {
-    const db = await this.db.getInstance();
-
-    db.put(
-      "filters",
-      {
-        ...filter,
-        lastUpdated: filter.lastUpdated.toISOString(), // FIXME: just store the ISO string always and convert to date adhoc
+    toast.promise(
+      async () => {
+        const raw = JSON.parse(
+          JSON.stringify({
+            ...filter,
+            lastUpdated: filter.lastUpdated.toISOString(), // FIXME: just store the ISO string always and convert to date adhoc
+          }),
+        );
+        const db = await this.db.getInstance();
+        await db.put("filters", raw, filter.name);
       },
-      filter.name,
+      {
+        success: "Saved filter",
+        loading: "Saving filter...",
+        error: (err) => {
+          console.log(err);
+          return `Failed to save filter: ${err}`;
+        },
+      },
     );
   }
 
   async deleteFilter(filter: Filter) {
-    const db = await this.db.getInstance();
-    db.delete("filters", filter.name);
-    store.filters = store.filters.filter((f) => f.name !== filter.name);
+    toast.promise(
+      async () => {
+        const db = await this.db.getInstance();
+        await db.delete("filters", filter.name);
+        store.filters = store.filters.filter((f) => f.name !== filter.name);
+      },
+      {
+        success: "Deleted filter",
+        loading: "Deleting filter...",
+        error: "Failed to delete filter",
+      },
+    );
   }
 
   async renameFilter(filter: Filter, newName: string) {
-    const db = await this.db.getInstance();
-    const oldName = filter.name;
-    filter.setName(newName);
-    await filter.save();
-    db.delete("filters", oldName);
+    toast.promise(
+      async () => {
+        const db = await this.db.getInstance();
+        const oldName = filter.name;
+        filter.setName(newName);
+        await filter.save();
+        await db.delete("filters", oldName);
+      },
+      {
+        success: "Renamed filter",
+        loading: "Renaming filter...",
+        error: "Failed to rename filter",
+      },
+    );
   }
 
   async getDefaultSounds(): Promise<Sound[]> {
@@ -423,6 +451,14 @@ class Chromatic {
       name: string;
       data: T extends "text" ? string : Uint8Array;
     }[];
+  }
+
+  eol() {
+    if (this.runtime === "desktop") return eol();
+    if (this.runtime === "web") {
+      if (navigator.userAgent.toLowerCase().indexOf("win") > -1) return "\r\n";
+      return "\n";
+    }
   }
 }
 
