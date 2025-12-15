@@ -112,7 +112,7 @@ export default function ImportFilter() {
                 handleVersion(checked ? 2 : 1);
               }}
             >
-              <SwitchControl class='bg-neutral-300 data-[checked]:bg-neutral-300'>
+              <SwitchControl class='bg-neutral-300 data-checked:bg-neutral-300'>
                 <SwitchThumb />
               </SwitchControl>
             </Switch>
@@ -132,7 +132,7 @@ export default function ImportFilter() {
                 <div class='flex w-full'>
                   <label
                     for='file'
-                    class='inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-primary bg-neutral-700 hover:bg-neutral-700/90 w-20'
+                    class='inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-primary bg-neutral-700 hover:bg-neutral-700/90 w-20'
                   >
                     Upload
                   </label>
@@ -164,7 +164,7 @@ export default function ImportFilter() {
                       {(filter) => {
                         return (
                           <ToggleGroupItem
-                            class='data-[pressed]:bg-neutral-700 bg-neutral-700/25 border border-accent'
+                            class='data-pressed:bg-neutral-700 bg-neutral-700/25 border border-accent'
                             value={filter.name}
                             onClick={() => handleExistingFilter(filter)}
                           >

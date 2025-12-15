@@ -178,7 +178,7 @@ export default function Rule(props: { rule: FilterRule }) {
                 </div>
                 <div class='flex items-center max-w-min'>
                   <div
-                    class='flex text-nowrap p-1 px-4 items-center justify-center border border-1 mr-1'
+                    class='flex text-nowrap p-1 px-4 items-center justify-center border border mr-1'
                     style={{
                       display:
                         previewWidth() >= MIN_PREVIEW_WIDTH ? "flex" : "none",
@@ -234,7 +234,7 @@ export default function Rule(props: { rule: FilterRule }) {
               >
                 <CollapsibleContent>
                   <ul
-                    class={`ms-6 border-s-[1px] grid border-r-0 ${hovered() ? "border-accent" : "border-muted"}`}
+                    class={`ms-6 border-s grid border-r-0 ${hovered() ? "border-accent" : "border-muted"}`}
                     onMouseOut={() => setHovered(false)}
                     onMouseOver={() => setHovered(true)}
                     onMouseDown={onMouseDown}

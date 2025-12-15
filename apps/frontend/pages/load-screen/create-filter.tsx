@@ -73,7 +73,7 @@ export default function CreateFilter() {
                 {(option) => {
                   return (
                     <ToggleGroupItem
-                      class='data-[pressed]:bg-neutral-700 bg-neutral-700/20 border border-accent'
+                      class='data-pressed:bg-neutral-700 bg-neutral-700/20 border border-accent'
                       value={option.toString()}
                     >
                       {option}

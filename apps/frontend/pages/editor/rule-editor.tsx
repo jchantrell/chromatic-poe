@@ -226,7 +226,7 @@ export default function RuleEditor() {
 
   return (
     <div class='size-full p-10 overflow-hidden flex flex-col items-center'>
-      <div class='rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[expanded]:bg-accent data-[expanded]:text-muted-foreground'>
+      <div class='rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-expanded:bg-accent data-expanded:text-muted-foreground'>
         <button
           type='button'
           class='absolute top-1 left-1 p-1 flex items-center justify-center w-6 h-6 bg-muted rounded-full text-center'
@@ -255,7 +255,7 @@ export default function RuleEditor() {
         </div>
         <textarea
           spellcheck={false}
-          class='border border-accent-foreground/25 p-1 text-sm text-wrap whitespace-pre bg-primary-foreground/80 overflow-x-none overflow-y-auto max-h-[250px] max-w-[300px] resize-none outline-none'
+          class='border border-accent-foreground/25 p-1 text-sm text-wrap whitespace-pre bg-primary-foreground/80 overflow-x-none overflow-y-auto max-h-[250px] max-w-[300px] resize-none outline-hidden'
         >
           {store.filter?.convertToText(store.activeRule)}
         </textarea>

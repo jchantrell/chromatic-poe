@@ -129,7 +129,7 @@ function Node(props: {
           class='mr-2 py-1 flex items-center justify-center h-full'
         />
 
-        <div class='flex items-center flex-grow' onMouseDown={handleExpand}>
+        <div class='flex items-center grow' onMouseDown={handleExpand}>
           {art() && (
             <figure class='max-w-lg'>
               <img

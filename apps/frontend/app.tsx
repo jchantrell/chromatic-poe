@@ -224,7 +224,7 @@ function App() {
         storageManager={storageManager}
         initialColorMode='dark'
       >
-        <div class='grid h-screen size-full grid-cols-[80px,1fr] fixed inset-0'>
+        <div class='grid h-screen size-full grid-cols-[80px_1fr] fixed inset-0'>
           <SideBar />
           <div class='size-full flex flex-col'>
             <TopBar />

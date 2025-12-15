@@ -155,7 +155,7 @@ export default function ExistingFilter(props: { filter: Filter }) {
           </ContextMenuItem>
           <ContextMenuItem
             onSelect={() => setDeleteDialogOpen(true)}
-            class='data-[highlighted]:bg-destructive'
+            class='data-highlighted:bg-destructive'
           >
             <div class='flex items-center text-xs'>
               <TrashIcon />

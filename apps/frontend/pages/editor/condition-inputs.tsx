@@ -217,7 +217,7 @@ export function ToggleInput(props: {
           {(option) => {
             return (
               <ToggleGroupItem
-                class='data-[pressed]:bg-neutral-900 bg-neutral-900/25 border border-accent'
+                class='data-pressed:bg-neutral-900 bg-neutral-900/25 border border-accent'
                 value={option}
               >
                 {option}
