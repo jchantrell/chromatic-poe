@@ -1,4 +1,3 @@
-import { ConditionKey, Rarity, RarityCondition } from "@app/lib/condition";
 import { dat } from "@app/lib/dat";
 import type { FilterItem, FilterRule, Item } from "@app/lib/filter";
 import { itemIndex } from "@app/lib/items";
@@ -13,10 +12,8 @@ import {
   For,
   on,
   onCleanup,
-  untrack,
 } from "solid-js";
 import { createMutable } from "solid-js/store";
-import { toast } from "solid-sonner";
 
 interface BranchNode {
   name: string;
@@ -240,6 +237,19 @@ export function ItemPicker(props: { rule: FilterRule }) {
       }
     });
   }
+
+  createEffect(
+    on(searchTerm, () => {
+      const results = itemIndex.search(
+        searchTerm() !== "" ? `'${searchTerm()}` : "",
+      );
+      itemHierarchy.hierarchy = rollup(
+        itemIndex.generateHierarchy(results.map((result) => result.item)),
+        "Items",
+        props.rule.bases,
+      );
+    }),
+  );
 
   onCleanup(() => {
     batch(() => {
