@@ -87,7 +87,7 @@ function ColorPicker(props: {
         <Tooltip text='Accepts HEX and RGBA values'>
           <div class='flex items-center gap-1'>
             <input
-              class='rounded-sm w-36 h-5 bg-muted border border-accent p-1'
+              class='rounded-sm w-36 h-5 bg-muted border border-accent p-1 cursor-pointer'
               ref={pickerRef}
               value={picker ? picker.toHEXAString() : "#FFFFFFFF"}
             />

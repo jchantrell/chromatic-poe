@@ -164,233 +164,231 @@ export default function ConditionManager(props: { rule: FilterRule }) {
   });
 
   return (
-    <div class='mx-auto p-4 h-full'>
-      <div class='space-y-4 flex flex-col size-full max-w-[650px]'>
-        <div class='flex gap-5 items-center'>
-          <Dialog>
-            <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
-              Edit Items
-            </DialogTrigger>
-            <DialogContent class='sm:max-w-[600px] overflow-y-visible'>
-              <ItemPicker rule={props.rule} />
-            </DialogContent>
-          </Dialog>
-          <Dialog>
-            <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
-              Add Conditions
-            </DialogTrigger>
-            <DialogContent class='sm:max-w-[600px]'>
-              <DialogHeader>
-                <DialogTitle>Add Conditions to {props.rule?.name}</DialogTitle>
-              </DialogHeader>
-              <div class='py-2'>
-                <TextField value={searchTerm()} onChange={setSearchTerm}>
-                  <TextFieldInput
-                    type='text'
-                    placeholder='Search for conditions...'
-                  />
-                </TextField>
-              </div>
-              <div class='overflow-y-auto h-[50vh]'>
-                <For each={filteredConditionGroups()}>
-                  {(group) => {
-                    if (
-                      !filteredConditions().some(
-                        (condition) => condition.group === group,
-                      )
-                    ) {
-                      return "";
-                    }
-                    return (
-                      <div class='flex flex-col gap-1 mb-2'>
-                        <Label
-                          class={`text-md h-4 mb-1 ${conditionGroupColors[group]}`}
-                        >
-                          {group}
-                        </Label>
-                        <Separator />
-                        <For
-                          each={filteredConditions().filter(
-                            (condition) => condition.group === group,
-                          )}
-                        >
-                          {(condition) => (
-                            <div class='flex gap-2 items-center ml-1'>
-                              <Button
-                                onClick={() =>
-                                  addCondition(condition.key as ConditionKey)
-                                }
-                                size='sm'
-                                variant='secondary'
-                              >
-                                <PlusIcon />
-                              </Button>
-                              <div class='flex flex-col'>
-                                <span class='text-md'>
-                                  {condition.label}
-                                  <span class='text-sm text-accent-foreground'>
-                                    {" "}
-                                    {getConditionCount(condition.key)}
-                                  </span>
-                                </span>
-                                <span class='text-xs text-muted-foreground'>
-                                  {condition.description}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </For>
-                      </div>
-                    );
-                  }}
-                </For>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <div class='grid grid-rows-2 gap-1'>
-            <Tooltip text='Show or Hide'>
-              <div class='flex items-center gap-1'>
-                <Label class='text-md font-semibold mr-5'>Show</Label>
-                <Switch
-                  checked={props.rule?.show}
-                  onChange={(checked) => {
-                    toggleHidden(checked);
-                  }}
-                  class='flex items-center space-x-2'
-                >
-                  <SwitchControl class='bg-accent'>
-                    <SwitchThumb />
-                  </SwitchControl>
-                </Switch>
-              </div>
-            </Tooltip>
-            <Tooltip text='Continue to the next rule after this one'>
-              <div class='flex items-center gap-1'>
-                <Label class='text-md font-semibold'>Continue</Label>
-                <Switch
-                  checked={props.rule?.continue}
-                  onChange={(checked) => {
-                    toggleContinue(checked);
-                  }}
-                  class='flex items-center space-x-1'
-                >
-                  <SwitchControl class='bg-accent'>
-                    <SwitchThumb />
-                  </SwitchControl>
-                </Switch>
-              </div>
-            </Tooltip>
-          </div>
-        </div>
-
-        {props.rule && !props.rule.conditions.length ? (
-          <div class='text-center py-8 text-muted-foreground'>
-            No conditions. Click "Edit Conditions" to start.
-          </div>
-        ) : (
-          <div class='space-y-4 flex flex-col items-start overflow-y-auto h-full'>
-            <For each={props.rule.conditions}>
-              {(condition) => {
-                const conditionType = conditionTypes[condition.key];
-                const EXCLUDED_OPERATORS = [Operator.GTE, Operator.LTE];
-                const filteredOperators = operators.filter((op) => {
+    <div class='space-y-4 flex flex-col size-full overflow-y-auto'>
+      <div class='flex flex-wrap gap-3 items-center w-full'>
+        <Dialog>
+          <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
+            Edit Items
+          </DialogTrigger>
+          <DialogContent class='sm:max-w-[600px] overflow-y-visible'>
+            <ItemPicker rule={props.rule} />
+          </DialogContent>
+        </Dialog>
+        <Dialog>
+          <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
+            Add Conditions
+          </DialogTrigger>
+          <DialogContent class='sm:max-w-[600px]'>
+            <DialogHeader>
+              <DialogTitle>Add Conditions to {props.rule?.name}</DialogTitle>
+            </DialogHeader>
+            <div class='py-2'>
+              <TextField value={searchTerm()} onChange={setSearchTerm}>
+                <TextFieldInput
+                  type='text'
+                  placeholder='Search for conditions...'
+                />
+              </TextField>
+            </div>
+            <div class='overflow-y-auto h-[50vh]'>
+              <For each={filteredConditionGroups()}>
+                {(group) => {
                   if (
-                    condition.key === ConditionKey.SOCKETS &&
-                    EXCLUDED_OPERATORS.includes(op)
+                    !filteredConditions().some(
+                      (condition) => condition.group === group,
+                    )
                   ) {
-                    return false;
+                    return "";
                   }
-                  return true;
-                });
-                if (!condition) return <></>;
-                return (
-                  <div class='flex gap-4 items-center justify-between bg-neutral-600/60 rounded-lg'>
-                    <div class='flex gap-2 items-center py-2 px-4'>
-                      <Label class='text-md text-nowrap'>
-                        {conditionType.label}
+                  return (
+                    <div class='flex flex-col gap-1 mb-2'>
+                      <Label
+                        class={`text-md h-4 mb-1 ${conditionGroupColors[group]}`}
+                      >
+                        {group}
                       </Label>
-                      {"operator" in condition && condition.operator && (
-                        <div class='w-full'>
-                          <Select
-                            value={condition.operator}
-                            onChange={(value) => {
-                              if (value) {
-                                updateCondition(condition, "operator", value);
+                      <Separator />
+                      <For
+                        each={filteredConditions().filter(
+                          (condition) => condition.group === group,
+                        )}
+                      >
+                        {(condition) => (
+                          <div class='flex gap-2 items-center ml-1'>
+                            <Button
+                              onClick={() =>
+                                addCondition(condition.key as ConditionKey)
                               }
-                            }}
-                            options={filteredOperators}
-                            itemComponent={(props) => (
-                              <SelectItem item={props.item}>
-                                {props.item.rawValue}
-                              </SelectItem>
-                            )}
-                          >
-                            <SelectTrigger class='w-[70px] bg-muted'>
-                              <SelectValue<string>>
-                                {(state) => state.selectedOption()}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent />
-                          </Select>
-                        </div>
-                      )}
-                      <div class='ml-2'>
-                        {conditionType.type === "slider" && (
-                          <SliderInput
-                            key={condition.key}
-                            value={condition.value}
-                            onChange={(v) => {
-                              updateCondition(condition, "value", v);
-                            }}
-                          />
+                              size='sm'
+                              variant='secondary'
+                            >
+                              <PlusIcon />
+                            </Button>
+                            <div class='flex flex-col'>
+                              <span class='text-md'>
+                                {condition.label}
+                                <span class='text-sm text-accent-foreground'>
+                                  {" "}
+                                  {getConditionCount(condition.key)}
+                                </span>
+                              </span>
+                              <span class='text-xs text-muted-foreground'>
+                                {condition.description}
+                              </span>
+                            </div>
+                          </div>
                         )}
-                        {conditionType.type === "select" && (
-                          <SelectInput
-                            key={condition.key}
-                            value={condition.value}
-                            index={getIndex(condition.key)}
-                            groupKey={getGroupKey(condition.key)}
-                            onChange={(v) => {
-                              updateCondition(condition, "value", v);
-                            }}
-                          />
-                        )}
-                        {conditionType.type === "text-list" && (
-                          <ToggleInput
-                            key={condition.key}
-                            value={condition.value}
-                            onChange={(v) => {
-                              updateCondition(condition, "value", v);
-                            }}
-                          />
-                        )}
-                        {conditionType.type === "checkbox" && (
-                          <CheckboxInput
-                            key={condition.key}
-                            value={condition.value}
-                            onChange={(v) => {
-                              updateCondition(condition, "value", v);
-                            }}
-                          />
-                        )}
-                      </div>
+                      </For>
                     </div>
-                    <Button
-                      variant='ghost'
-                      onMouseDown={() => removeCondition(condition)}
-                      class='h-full'
-                    >
-                      <div class='h-6 w-6'>
-                        <CloseIcon />
-                      </div>
-                    </Button>
-                  </div>
-                );
-              }}
-            </For>
-          </div>
-        )}
+                  );
+                }}
+              </For>
+            </div>
+          </DialogContent>
+        </Dialog>
+        <div class='grid grid-rows-2 gap-1'>
+          <Tooltip text='Show or Hide'>
+            <div class='flex items-center gap-1 justify-between'>
+              <Label class='text-md font-semibold mr-5'>Show</Label>
+              <Switch
+                checked={props.rule?.show}
+                onChange={(checked) => {
+                  toggleHidden(checked);
+                }}
+                class='flex items-center'
+              >
+                <SwitchControl class='bg-accent'>
+                  <SwitchThumb />
+                </SwitchControl>
+              </Switch>
+            </div>
+          </Tooltip>
+          <Tooltip text='Continue to the next rule after this one'>
+            <div class='flex items-center gap-1 justify-between'>
+              <Label class='text-md font-semibold'>Continue</Label>
+              <Switch
+                checked={props.rule?.continue}
+                onChange={(checked) => {
+                  toggleContinue(checked);
+                }}
+                class='flex items-center'
+              >
+                <SwitchControl class='bg-accent'>
+                  <SwitchThumb />
+                </SwitchControl>
+              </Switch>
+            </div>
+          </Tooltip>
+        </div>
       </div>
+
+      {props.rule && !props.rule.conditions.length ? (
+        <div class='text-center py-8 text-muted-foreground'>
+          No conditions. Click "Edit Conditions" to start.
+        </div>
+      ) : (
+        <div class='space-y-4 pb-2 flex flex-col items-start overflow-y-auto size-full'>
+          <For each={props.rule.conditions}>
+            {(condition) => {
+              const conditionType = conditionTypes[condition.key];
+              const EXCLUDED_OPERATORS = [Operator.GTE, Operator.LTE];
+              const filteredOperators = operators.filter((op) => {
+                if (
+                  condition.key === ConditionKey.SOCKETS &&
+                  EXCLUDED_OPERATORS.includes(op)
+                ) {
+                  return false;
+                }
+                return true;
+              });
+              if (!condition) return null;
+              return (
+                <div class='bg-muted-foreground/30 border border-primary-foreground w-fit flex gap-4 items-center justify-between rounded-lg'>
+                  <div class='flex gap-2 items-center py-2 px-4'>
+                    <Label class='text-md text-nowrap'>
+                      {conditionType.label}
+                    </Label>
+                    {"operator" in condition && condition.operator && (
+                      <div class='w-full'>
+                        <Select
+                          value={condition.operator}
+                          onChange={(value) => {
+                            if (value) {
+                              updateCondition(condition, "operator", value);
+                            }
+                          }}
+                          options={filteredOperators}
+                          itemComponent={(props) => (
+                            <SelectItem item={props.item}>
+                              {props.item.rawValue}
+                            </SelectItem>
+                          )}
+                        >
+                          <SelectTrigger class='w-[70px] bg-muted'>
+                            <SelectValue<string>>
+                              {(state) => state.selectedOption()}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent />
+                        </Select>
+                      </div>
+                    )}
+                    <div class='ml-2'>
+                      {conditionType.type === "slider" && (
+                        <SliderInput
+                          key={condition.key}
+                          value={condition.value}
+                          onChange={(v) => {
+                            updateCondition(condition, "value", v);
+                          }}
+                        />
+                      )}
+                      {conditionType.type === "select" && (
+                        <SelectInput
+                          key={condition.key}
+                          value={condition.value}
+                          index={getIndex(condition.key)}
+                          groupKey={getGroupKey(condition.key)}
+                          onChange={(v) => {
+                            updateCondition(condition, "value", v);
+                          }}
+                        />
+                      )}
+                      {conditionType.type === "text-list" && (
+                        <ToggleInput
+                          key={condition.key}
+                          value={condition.value}
+                          onChange={(v) => {
+                            updateCondition(condition, "value", v);
+                          }}
+                        />
+                      )}
+                      {conditionType.type === "checkbox" && (
+                        <CheckboxInput
+                          key={condition.key}
+                          value={condition.value}
+                          onChange={(v) => {
+                            updateCondition(condition, "value", v);
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    variant='ghost'
+                    onMouseDown={() => removeCondition(condition)}
+                    class='h-full'
+                  >
+                    <div class='h-6 w-6'>
+                      <CloseIcon />
+                    </div>
+                  </Button>
+                </div>
+              );
+            }}
+          </For>
+        </div>
+      )}
     </div>
   );
 }

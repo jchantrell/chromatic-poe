@@ -94,7 +94,7 @@ export default function Rules() {
       <DragOverlay>
         {(draggable) => {
           if (!draggable) return null;
-          return <div class='sortable'>{draggable.data.name}</div>;
+          return <div class='sortable cursor-grab'>{draggable.data.name}</div>;
         }}
       </DragOverlay>
     </DragDropProvider>

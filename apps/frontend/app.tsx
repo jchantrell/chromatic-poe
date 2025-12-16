@@ -1,7 +1,6 @@
 import { Settings } from "@app/components/settings";
 import Tooltip from "@app/components/tooltip";
-import { ensureData } from "@app/components/update-data.tsx";
-import { SAVE_KEY, WRITE_KEY } from "@app/constants";
+import { REDO_KEY, SAVE_KEY, UNDO_KEY, WRITE_KEY } from "@app/constants";
 import {
   AudioIcon,
   DownloadIcon,
@@ -12,8 +11,6 @@ import {
 } from "@app/icons";
 import chromatic from "@app/lib/config";
 import { dat } from "@app/lib/dat";
-import { itemIndex } from "@app/lib/items";
-import { type Mod, modIndex } from "@app/lib/mods";
 import { checkForUpdate } from "@app/lib/update";
 import Editor from "@app/pages/editor";
 import LoadScreen from "@app/pages/load-screen";
@@ -21,7 +18,6 @@ import SoundManager from "@app/pages/sound";
 import {
   refreshSounds,
   setInitialised,
-  setPatchLoaded,
   setPoeCurrentVersions,
   store,
 } from "@app/store";
@@ -35,11 +31,11 @@ import {
 } from "@kobalte/core";
 import { Route, Router } from "@solidjs/router";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
-import { createEffect, createSignal, type JSXElement, onMount } from "solid-js";
+import { createSignal, type JSXElement, onMount } from "solid-js";
 import { toast } from "solid-sonner";
-import type { Item } from "./lib/filter";
 import { to } from "./lib/utils";
 import "./app.css";
+import { input } from "./lib/input";
 
 export const BASE_URL = import.meta.env.BASE_URL;
 export const storageManager = createLocalStorageManager("theme");
@@ -99,57 +95,63 @@ function TopBar() {
       class='w-full flex justify-between items-center h-12'
       data-tauri-drag-region
     >
-      <div class='flex items-center gap-2'>
+      <div class='flex items-center justify-between w-full gap-2'>
         {store.filter ? (
           <>
             <div class='ml-2 font-semibold text-xl mr-4 flex '>
               {store.filter?.name} (PoE {store.filter.poeVersion})
             </div>
-            <Tooltip text={`Save (Ctrl + ${SAVE_KEY.toUpperCase()})`}>
-              <Button
-                variant='ghost'
-                size='icon'
-                onMouseUp={() => {
-                  toast("Saving filter...");
-                  store.filter?.save();
-                }}
-              >
-                <SaveIcon />
-              </Button>
-            </Tooltip>
-            <Tooltip text={`Export (Ctrl + ${WRITE_KEY.toUpperCase()})`}>
-              <Button
-                variant='ghost'
-                size='icon'
-                onMouseUp={() => {
-                  store.filter?.writeFile();
-                }}
-              >
-                <DownloadIcon />
-              </Button>
-            </Tooltip>
+            <div>
+              <Tooltip text={`Save (Ctrl + ${SAVE_KEY.toUpperCase()})`}>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  onMouseUp={() => {
+                    toast("Saving filter...");
+                    store.filter?.save();
+                  }}
+                >
+                  <SaveIcon />
+                </Button>
+              </Tooltip>
+              <Tooltip text={`Export (Ctrl + ${WRITE_KEY.toUpperCase()})`}>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  onMouseUp={() => {
+                    store.filter?.writeFile();
+                  }}
+                >
+                  <DownloadIcon />
+                </Button>
+              </Tooltip>
+            </div>
           </>
         ) : null}
       </div>
       <div class='flex'>
         {chromatic.runtime === "desktop" && (
           <>
-            <Button
-              variant='ghost'
-              size='icon'
-              class='h-14 rounded-none'
-              onMouseUp={() => chromatic.minimize()}
-            >
-              <MinimiseIcon />
-            </Button>
-            <Button
-              variant='ghost'
-              size='icon'
-              class='h-14 rounded-none'
-              onMouseUp={() => chromatic.close()}
-            >
-              <ExitIcon />
-            </Button>
+            <Tooltip text={"Minimise"}>
+              <Button
+                variant='ghost'
+                size='icon'
+                class='h-14 rounded-none'
+                onMouseUp={() => chromatic.minimize()}
+              >
+                <MinimiseIcon />
+              </Button>
+            </Tooltip>
+            <Tooltip text={"Exit"}>
+              <Button
+                variant='ghost'
+                size='icon'
+                class='h-14 rounded-none'
+                onMouseUp={() => chromatic.close()}
+              >
+                <ExitIcon />
+              </Button>
+            </Tooltip>
           </>
         )}
       </div>
@@ -200,6 +202,32 @@ function App() {
   });
 
   onMount(async () => {
+    input.on(
+      "keypress",
+      (
+        key: string,
+        pressed: boolean,
+        event: { shift: boolean; alt: boolean; ctrl: boolean },
+      ) => {
+        if (!pressed || !store.filter) return;
+
+        if (key === UNDO_KEY && event.ctrl && pressed) {
+          return store?.filter?.undo();
+        }
+
+        if (key === REDO_KEY && event.ctrl && pressed) {
+          return store?.filter?.redo();
+        }
+
+        if (key === SAVE_KEY && event.ctrl && pressed) {
+          return store.filter?.save();
+        }
+
+        if (key === WRITE_KEY && event.ctrl && pressed) {
+          return store.filter?.writeFile();
+        }
+      },
+    );
     const [versionError, currentVersions] = await to(dat.fetchPoeVersions());
     if (versionError) {
       console.error("Failed to fetch latest PoE versions", versionError);
@@ -224,7 +252,7 @@ function App() {
         storageManager={storageManager}
         initialColorMode='dark'
       >
-        <div class='grid h-screen size-full grid-cols-[80px_1fr] fixed inset-0'>
+        <div class='grid h-screen size-full grid-cols-[80px_1fr] fixed inset-0 font-fontin'>
           <SideBar />
           <div class='size-full flex flex-col'>
             <TopBar />
@@ -233,7 +261,14 @@ function App() {
             </div>
           </div>
         </div>
-        <Toaster />
+        <Toaster
+          theme='dark'
+          toastOptions={{
+            style: {
+              background: "hsl(var(--accent))",
+            },
+          }}
+        />
       </ColorModeProvider>
     </>
   );

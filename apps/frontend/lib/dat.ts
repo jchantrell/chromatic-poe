@@ -104,7 +104,7 @@ export class DatManager {
     this.patch = patch;
     await this.initDb();
 
-    if (onProgress) onProgress(0, "Fetching bundle index...");
+    if (onProgress) onProgress(0, "Initialising...");
     await this.loader.init(patch);
 
     // tables

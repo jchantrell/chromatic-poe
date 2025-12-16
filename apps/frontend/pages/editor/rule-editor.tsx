@@ -170,7 +170,7 @@ function ToggleDropSound() {
           checked={dropSoundActive()}
         />
       </Tooltip>
-      <div class='flex grow-0'>
+      <div class='ml-2 flex grow-0'>
         {store.activeRule?.actions.dropSound?.enabled ? (
           <div class='flex items-center gap-1'>
             <Switch
@@ -189,6 +189,34 @@ function ToggleDropSound() {
           ""
         )}
       </div>
+    </div>
+  );
+}
+
+function RulePreview() {
+  if (!store.activeRule) return null;
+  return (
+    <textarea
+      id='rule-preview'
+      spellcheck={false}
+      class='border border-accent-foreground/25 p-1 text-sm text-wrap whitespace-pre bg-primary-foreground/80 overflow-x-hidden overflow-y-auto resize-none outline-hidden size-full'
+    >
+      {store.filter?.convertToText(store.activeRule)}
+    </textarea>
+  );
+}
+
+function RuleActions() {
+  return (
+    <div class='gap-2 flex flex-col'>
+      <ColorPicker label='Text' key='text' />
+      <ColorPicker label='Border' key='border' />
+      <ColorPicker label='Background' key='background' />
+      <LabelSize />
+      <ToggleMapIcon />
+      <ToggleBeam />
+      <ToggleDropSound />
+      <SoundPicker />
     </div>
   );
 }
@@ -225,42 +253,30 @@ export default function RuleEditor() {
   if (!store.activeRule) return null;
 
   return (
-    <div class='size-full p-10 overflow-hidden flex flex-col items-center'>
-      <div class='rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-expanded:bg-accent data-expanded:text-muted-foreground'>
-        <button
-          type='button'
-          class='absolute top-1 left-1 p-1 flex items-center justify-center w-6 h-6 bg-muted rounded-full text-center'
-          onMouseDown={() => {
-            store.activeRule = null;
-          }}
-        >
-          <CloseIcon />
-        </button>
+    <div class='inset-0 size-full flex flex-col items-center bg-muted/60 overflow-y-auto'>
+      <div class='w-full p-2'>
+        <Tooltip text={"Close rule editor"}>
+          <button
+            type='button'
+            class='p-1 flex items-center justify-center w-6 h-6 bg-muted text-center cursor-pointer rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-expanded:bg-accent data-expanded:text-muted-foreground
+            '
+            onMouseDown={() => {
+              store.activeRule = null;
+            }}
+          >
+            <CloseIcon />
+          </button>
+        </Tooltip>
       </div>
-      <div class='flex items-center justify-center min-h-[100px]'>
-        <ItemLabel />
-      </div>
-      <div class='flex gap-4 min-w-[400px] max-w-[800px] w-full justify-center'>
-        <div class='flex-col flex gap-4 min-w-[350px] '>
-          <div class='gap-2 flex flex-col'>
-            <ColorPicker label='Text' key='text' />
-            <ColorPicker label='Border' key='border' />
-            <ColorPicker label='Background' key='background' />
-            <LabelSize />
-            <ToggleMapIcon />
-            <ToggleBeam />
-            <ToggleDropSound />
-            <SoundPicker />
-          </div>
+      <div class='p-5 size-full m-h-fit flex flex-col items-center'>
+        <div class='flex items-center justify-center min-h-[100px]'>
+          <ItemLabel />
         </div>
-        <textarea
-          spellcheck={false}
-          class='border border-accent-foreground/25 p-1 text-sm text-wrap whitespace-pre bg-primary-foreground/80 overflow-x-none overflow-y-auto max-h-[250px] max-w-[300px] resize-none outline-hidden'
-        >
-          {store.filter?.convertToText(store.activeRule)}
-        </textarea>
+        <div class='flex flex-col gap-2'>
+          <RuleActions />
+          <ConditionManager rule={store.activeRule} />
+        </div>
       </div>
-      <ConditionManager rule={store.activeRule} />
     </div>
   );
 }

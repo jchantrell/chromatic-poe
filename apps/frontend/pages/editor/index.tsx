@@ -1,8 +1,6 @@
 import { Progress } from "@app/components/progress";
-import { REDO_KEY, SAVE_KEY, UNDO_KEY, WRITE_KEY } from "@app/constants";
 import { dat } from "@app/lib/dat";
 import type { Item } from "@app/lib/filter";
-import { input } from "@app/lib/input";
 import { itemIndex } from "@app/lib/items";
 import { type Mod, modIndex } from "@app/lib/mods";
 import { to } from "@app/lib/utils";
@@ -25,35 +23,6 @@ export default function Editor() {
   createEffect(() => {
     const filter = store.filters.find((entry) => entry.name === params.filter);
     setFilter(filter || null);
-  });
-
-  createEffect(() => {
-    input.on(
-      "keypress",
-      (
-        key: string,
-        pressed: boolean,
-        event: { shift: boolean; alt: boolean; ctrl: boolean },
-      ) => {
-        if (!store.filter) return;
-
-        if (key === UNDO_KEY && event.ctrl && pressed) {
-          return store?.filter?.undo();
-        }
-
-        if (key === REDO_KEY && event.ctrl && pressed) {
-          return store?.filter?.redo();
-        }
-
-        if (key === SAVE_KEY && event.ctrl && pressed) {
-          return store.filter?.save();
-        }
-
-        if (key === WRITE_KEY && event.ctrl && pressed) {
-          return store.filter?.writeFile();
-        }
-      },
-    );
   });
 
   createEffect(async () => {
@@ -90,7 +59,7 @@ export default function Editor() {
     }
 
     setProgress(0);
-    setMessage("Initialising...");
+    setMessage("");
     let toastId: string | number | undefined;
     let hasShownToast = false;
 
@@ -134,7 +103,7 @@ export default function Editor() {
             <ResizablePanel class='flex flex-col'>
               <Rules />
             </ResizablePanel>
-            <ResizableHandle class='bg-primary-foreground' />
+            <ResizableHandle class='bg-secondary w-1.5' />
             <ResizablePanel>
               <div
                 class={`bg-no-repeat bg-center bg-cover size-full relative ${

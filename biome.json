@@ -27,7 +27,12 @@
   },
   "linter": {
     "enabled": true,
-    "rules": { "a11y": { "noSvgWithoutTitle": { "level": "off" } } }
+    "rules": {
+      "a11y": {
+        "noSvgWithoutTitle": { "level": "off" },
+        "noStaticElementInteractions": "off"
+      }
+    }
   },
   "files": {
     "includes": ["apps/frontend/**/*.ts", "apps/frontend/**/*.tsx"]

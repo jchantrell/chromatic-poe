@@ -52,7 +52,7 @@ function BeamPicker() {
             {store.activeRule?.actions.beam?.enabled ? (
               <PopoverTrigger class='size-full p-3'>
                 <div
-                  class='h-5 w-6 rounded-md border border-accent hover:border-primary'
+                  class='h-5 w-6 rounded-md border border-accent hover:border-primary cursor-pointer'
                   style={{ background: `${colors[color()]}` }}
                 />
               </PopoverTrigger>

@@ -34,15 +34,9 @@ import { MinimapIcon } from "./map-icon-picker";
 
 const MIN_PREVIEW_WIDTH = 500;
 
-function Menu(props: {
-  rule: FilterRule;
-  setExpanded: (state: boolean) => void;
-  handleActive: () => void;
-}) {}
-
 export default function Rule(props: { rule: FilterRule }) {
   const [editNameActive, setEditNameActive] = createSignal(false);
-  const [active, setActive] = createSignal<boolean>(false);
+  const [selected, setSelected] = createSignal<boolean>(false);
   const [expanded, setExpanded] = createSignal(false);
   const [hovered, setHovered] = createSignal(false);
   const [previewWidth, setPreviewWidth] = createSignal(0);
@@ -103,8 +97,8 @@ export default function Rule(props: { rule: FilterRule }) {
 
   createEffect(() => {
     if (store.activeRule) {
-      setActive(store.activeRule.id === props.rule.id);
-    } else setActive(false);
+      setSelected(store.activeRule.id === props.rule.id);
+    } else setSelected(false);
   });
 
   createEffect(() => {
@@ -126,15 +120,36 @@ export default function Rule(props: { rule: FilterRule }) {
     return () => observer.disconnect();
   });
 
-  function getBgColor(active: boolean, hovered: boolean) {
-    if (active) {
-      return "bg-muted";
+  function getBorderColor() {
+    if (!props.rule.enabled) {
+      return "";
     }
-    if (hovered) {
-      return "bg-muted";
+    if (hovered() || selected()) {
+      return "border-2 border-accent";
     }
 
-    return "bg-secondary/25";
+    return "border border-accent";
+  }
+
+  function getBgColor() {
+    if (!props.rule.enabled) {
+      return "bg-muted/50";
+    }
+    if (hovered() || selected()) {
+      return "bg-secondary";
+    }
+
+    return "bg-muted";
+  }
+
+  function getTextColor() {
+    if (!props.rule.enabled) {
+      return "text-muted-foreground/20";
+    }
+    if (hovered() || selected()) {
+      return "text-foreground";
+    }
+    return "text-foreground/80";
   }
 
   return (
@@ -151,12 +166,12 @@ export default function Rule(props: { rule: FilterRule }) {
           <ContextMenuTrigger>
             <div>
               <div
-                class={`h-12 w-full flex border cursor-pointer items-center justify-between text-accent-foreground select-none ${getBgColor(active(), hovered())} ${expanded() ? "sticky top-0" : ""}`}
+                class={`h-12 w-full flex cursor-pointer items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()} ${expanded() ? "sticky top-0" : ""}`}
                 onMouseOut={() => setHovered(false)}
                 onMouseOver={() => setHovered(true)}
                 onFocus={() => null}
                 onBlur={() => null}
-                onMouseDown={onMouseDown}
+                onMouseUp={onMouseDown}
                 ref={previewRef}
               >
                 <div class='m-1 flex items-center w-full'>
@@ -169,7 +184,7 @@ export default function Rule(props: { rule: FilterRule }) {
                       )}
                     </div>
                     <input
-                      class={`bg-transparent py-1 px-2 border-none field-sizing-content ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"}`}
+                      class={`bg-transparent py-1 px-2 border-none field-sizing-content ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"} `}
                       type='text'
                       value={props.rule.name}
                       onChange={handleNameChange}
@@ -178,7 +193,7 @@ export default function Rule(props: { rule: FilterRule }) {
                 </div>
                 <div class='flex items-center max-w-min'>
                   <div
-                    class='flex text-nowrap p-1 px-4 items-center justify-center border border mr-1'
+                    class='flex text-nowrap p-1 px-4 items-center justify-center  border mr-1'
                     style={{
                       display:
                         previewWidth() >= MIN_PREVIEW_WIDTH ? "flex" : "none",
@@ -257,7 +272,7 @@ export default function Rule(props: { rule: FilterRule }) {
                 disabled={!itemIndex.searchIndex}
               >
                 <div class='flex justify-between items-center w-full'>
-                  Edit Bases
+                  Edit Items
                 </div>
               </DialogTrigger>
               <ContextMenuItem onMouseDown={handleActive}>

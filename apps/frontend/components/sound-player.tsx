@@ -1,7 +1,7 @@
 import { BASE_URL } from "@app/app";
 import Tooltip from "@app/components/tooltip";
 import { VolumeIcon } from "@app/icons";
-import type { Sound } from "@app/lib/config";
+import type { Sound } from "@app/lib/sounds";
 import { createEffect, createSignal } from "solid-js";
 
 export default function SoundPlayer(props: {
@@ -53,7 +53,7 @@ export default function SoundPlayer(props: {
           onClick={async () => await handlePlay()}
           type='button'
           title={`Play Sound ${props.sound?.id}`}
-          class={`p-2 ${props.highlight ? "hover:bg-primary/10" : ""} w-${props.size} h-${props.size} ${
+          class={`p-2 cursor-pointer ${props.highlight ? "hover:bg-primary/10" : ""} w-${props.size} h-${props.size} ${
             validAudio ? "" : "text-primary/25"
           }`}
           disabled={!validAudio}

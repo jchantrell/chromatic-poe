@@ -16,7 +16,7 @@
   "dependencies": {
     "@corvu/resizable": "^0.2.3",
     "@eastdesire/jscolor": "^2.5.2",
-    "@kobalte/core": "^0.13.7",
+    "@kobalte/core": "^0.13.11",
     "@solid-primitives/deep": "^0.2.10",
     "@solid-primitives/scheduled": "^1.5.0",
     "@solidjs/router": "^0.14.10",

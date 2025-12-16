@@ -1,4 +1,4 @@
-import { alphabeticalSort, to } from "@app/lib/utils";
+import { alphabeticalSort, stringifyJSON, to } from "@app/lib/utils";
 import { setInitialised, setLocale, store } from "@app/store";
 import { getVersion } from "@tauri-apps/api/app";
 import { documentDir, homeDir } from "@tauri-apps/api/path";
@@ -291,7 +291,7 @@ class Chromatic {
     toast.promise(
       async () => {
         const raw = JSON.parse(
-          JSON.stringify({
+          stringifyJSON({
             ...filter,
             lastUpdated: filter.lastUpdated.toISOString(), // FIXME: just store the ISO string always and convert to date adhoc
           }),
@@ -302,10 +302,7 @@ class Chromatic {
       {
         success: "Saved filter",
         loading: "Saving filter...",
-        error: (err) => {
-          console.log(err);
-          return `Failed to save filter: ${err}`;
-        },
+        error: "Failed to save filter",
       },
     );
   }

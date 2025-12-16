@@ -6,12 +6,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@app/ui/select";
-import { type ConfigColorMode, useColorMode } from "@kobalte/core";
+import { useColorMode } from "@kobalte/core";
 
 export function Theme() {
   const { colorMode, setColorMode } = useColorMode();
 
-  function handleChange(theme: ConfigColorMode) {
+  function handleChange(theme: "dark" | "light" | null) {
     if (!theme) {
       return setColorMode("dark");
     }

@@ -119,7 +119,7 @@ function MapIconPicker() {
             }}
           >
             {store.activeRule?.actions.icon?.enabled ? (
-              <PopoverTrigger class=''>
+              <PopoverTrigger class='cursor-pointer'>
                 <MinimapIcon
                   sheet={icons()?.url}
                   sheetHeight={icons()?.height}
@@ -144,7 +144,7 @@ function MapIconPicker() {
                 <For each={Object.entries(dat.minimap.coords[color()])}>
                   {(shape) => (
                     <div
-                      class='hover:bg-muted rounded-lg'
+                      class='hover:bg-muted rounded-lg cursor-pointer'
                       onMouseDown={() => {
                         setShape(shape[0] as Shape);
                       }}
@@ -175,7 +175,7 @@ function MapIconPicker() {
                   {(color) => {
                     return (
                       <button
-                        class='w-full rounded-lg border border-accent hover:border-primary'
+                        class='w-full rounded-lg border border-accent hover:border-primary cursor-pointer'
                         type='button'
                         style={{ background: color[1] }}
                         onClick={() => {

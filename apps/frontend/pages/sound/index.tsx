@@ -2,7 +2,8 @@ import Background from "@app/components/background";
 import SoundPlayer from "@app/components/sound-player";
 import Tooltip from "@app/components/tooltip";
 import { RefreshIcon, TrashIcon } from "@app/icons";
-import chromatic, { type Sound } from "@app/lib/config";
+import chromatic from "@app/lib/config";
+import type { Sound } from "@app/lib/sounds";
 import { refreshSounds, setSounds, store } from "@app/store";
 import { Separator } from "@app/ui/separator";
 import {
@@ -15,6 +16,7 @@ import {
 } from "@app/ui/slider";
 import { platform } from "@tauri-apps/plugin-os";
 import { createSignal, For, onMount } from "solid-js";
+import { toast } from "solid-sonner";
 
 function SoundFile(props: {
   sound: Sound;
@@ -109,6 +111,15 @@ export default function SoundManager() {
     }
   }
 
+  async function openSoundDir() {
+    const dir = await chromatic.getAssumedPoeDirectory(2);
+    if (!dir) {
+      toast.error("Could not locate PoE directory");
+      return;
+    }
+    await chromatic.openFileExplorer(dir);
+  }
+
   onMount(async () => {
     await refreshSounds();
     setInit(true);
@@ -142,17 +153,8 @@ export default function SoundManager() {
               )}
               <label
                 for='file'
-                class='inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 w-56 ml-2'
-                onMouseDown={async () => {
-                  if (
-                    chromatic.runtime === "desktop" &&
-                    chromatic.config?.poeDirectory
-                  ) {
-                    await chromatic.openFileExplorer(
-                      chromatic.config.poeDirectory,
-                    );
-                  }
-                }}
+                class='inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 w-56 ml-2 cursor-pointer'
+                onMouseDown={openSoundDir}
               >
                 {chromatic.runtime === "desktop"
                   ? "Open Sounds Folder"
@@ -198,7 +200,7 @@ export default function SoundManager() {
             <div class='w-full flex justify-center'>
               {!init() && <span class='text-center'>Loading...</span>}
               {init() && !store.sounds.length && (
-                <span class='text-center'>No sounds uploaded.</span>
+                <span class='text-center'>No custom sounds found.</span>
               )}
             </div>
             <div class='flex flex-col size-full'>
