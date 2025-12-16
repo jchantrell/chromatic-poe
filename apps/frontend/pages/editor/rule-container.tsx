@@ -122,6 +122,11 @@ export default function Rules() {
   function setExpanded(id: string, enabled: boolean) {
     if (!enabled) {
       setExpandedRules(expandedRules().filter((entry) => entry !== id));
+      virtualizer.scrollToIndex(
+        filteredItems().findIndex((entry) => {
+          return "actions" in entry.item && entry.item.id === id;
+        }),
+      );
     } else {
       setExpandedRules([...expandedRules(), id]);
     }
