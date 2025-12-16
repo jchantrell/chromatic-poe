@@ -86,8 +86,6 @@ export default function Rules() {
     return items;
   });
 
-  /* Sticky Header Logic */
-  /* Sticky Header Logic */
   const stickyIndexes = createMemo(() => {
     return filteredItems()
       .map((item, index) => ("actions" in item.item ? index : null))
@@ -157,15 +155,21 @@ export default function Rules() {
               <For each={virtualizer.getVirtualItems()}>
                 {(virtualItem) => {
                   const entry = () => filteredItems()[virtualItem.index];
+                  const currentEntry = entry();
 
                   return (
                     <div
                       data-index={virtualItem.index}
                       data-key={virtualItem.key}
-                      ref={virtualizer.measureElement}
+                      ref={(el) =>
+                        queueMicrotask(() => virtualizer.measureElement(el))
+                      }
                       class='absolute top-0 left-0 w-full pr-1'
                       style={{
-                        ...(activeStickyIndex() === virtualItem.index
+                        ...(activeStickyIndex() === virtualItem.index &&
+                        currentEntry &&
+                        "actions" in currentEntry.item &&
+                        expandedRules().includes(currentEntry.item.id)
                           ? {
                               position: "sticky",
                               "z-index": 1,
