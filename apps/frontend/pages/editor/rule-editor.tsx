@@ -199,7 +199,7 @@ function RulePreview() {
     <textarea
       id='rule-preview'
       spellcheck={false}
-      class='border border-accent-foreground/25 p-1 text-sm text-wrap  bg-primary-foreground/80 overflow-x-hidden overflow-y-auto resize-none outline-hidden size-full scrollbar-thumb-neutral-600'
+      class='border border-accent-foreground/25 text-sm text-wrap py-1 px-2 bg-primary-foreground/80 overflow-x-hidden overflow-y-auto resize-none outline-hidden size-full scrollbar-thumb-neutral-600'
     >
       {store.filter?.convertToText(store.activeRule)}
     </textarea>
