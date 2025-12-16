@@ -11,16 +11,29 @@ import {
   ContextMenuTrigger,
 } from "@app/ui/context-menu";
 import type { Setter } from "solid-js";
-import { createResource } from "solid-js";
+import { createSignal, onMount } from "solid-js";
+
+function Image(props: { item: FilterItem }) {
+  const [art, setArt] = createSignal<string | undefined>(undefined);
+
+  onMount(() => {
+    dat.getArt(props.item.name).then((url) => {
+      setArt(url);
+    });
+  });
+
+  return (
+    <figure class='max-w-lg'>
+      <img
+        class={`mr-1 h-8 max-w-full pointer-events-none ${props.item.enabled ? "" : "grayscale"}`}
+        alt={`${props.item.name} icon`}
+        src={art()}
+      />
+    </figure>
+  );
+}
 
 export function Visual(props: { item: FilterItem; class?: string }) {
-  const [art] = createResource(
-    () => props.item,
-    async (item) => {
-      return await dat.getArt(item.name);
-    },
-  );
-
   return (
     <div
       class={`p-1 px-2 ${props.item.enabled ? "text-primary" : "text-primary/25"} cursor-pointer border items-center flex select-none ${props.class}`}
@@ -31,17 +44,7 @@ export function Visual(props: { item: FilterItem; class?: string }) {
         }
       }}
     >
-      <figure class='max-w-lg'>
-        {art() ? (
-          <img
-            class={`mr-1 h-8 max-w-full pointer-events-none ${props.item.enabled ? "" : "grayscale"}`}
-            alt={`${props.item.name} icon`}
-            src={art()}
-          />
-        ) : (
-          ""
-        )}
-      </figure>
+      <Image item={props.item} />
       <div class='pointer-events-none text-lg'>
         {props.item.name}
         {props.item.category === "Uniques" && (

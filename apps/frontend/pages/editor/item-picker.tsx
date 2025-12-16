@@ -1,15 +1,20 @@
-import {
-  ClassesCondition,
-  ConditionKey,
-  Rarity,
-  RarityCondition,
-} from "@app/lib/condition";
+import { ConditionKey, Rarity, RarityCondition } from "@app/lib/condition";
 import { dat } from "@app/lib/dat";
 import type { FilterItem, FilterRule, Item } from "@app/lib/filter";
 import { itemIndex } from "@app/lib/items";
 import { Checkbox } from "@app/ui/checkbox";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
-import { createEffect, createResource, createSignal, For, on } from "solid-js";
+import {
+  batch,
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  on,
+  onCleanup,
+  untrack,
+} from "solid-js";
 import { createMutable } from "solid-js/store";
 import { toast } from "solid-sonner";
 
@@ -57,7 +62,12 @@ function rollup(
   branchName: string,
   bases: FilterItem[],
   parent?: BranchNode,
+  basesSet?: Set<string>,
 ): BranchNode {
+  if (!basesSet) {
+    basesSet = new Set(bases.map((base) => `${base.name}|${base.category}`));
+  }
+
   const node: BranchNode = {
     name: branchName,
     enabled: false,
@@ -75,12 +85,7 @@ function rollup(
       };
       node.children.push(leafNode);
 
-      if (
-        bases.some(
-          (base) =>
-            base.name === value.name && base.category === value.category,
-        )
-      ) {
+      if (basesSet.has(`${value.name}|${value.category}`)) {
         let current: TreeNode | undefined = leafNode;
         while (current) {
           current.enabled = true;
@@ -88,7 +93,7 @@ function rollup(
         }
       }
     } else {
-      node.children.push(rollup(value, key, bases, node));
+      node.children.push(rollup(value, key, bases, node, basesSet));
     }
   }
 
@@ -103,22 +108,20 @@ function Node(props: {
   const [isExpanded, setIsExpanded] = createSignal(false);
   const isBranch = "children" in props.node;
 
-  function handleToggle() {
+  const handleToggle = () => {
     props.onToggle(props.node, !props.node.enabled);
-  }
+  };
 
-  function handleExpand() {
+  const handleExpand = () => {
     setIsExpanded(!isExpanded());
-  }
+  };
 
-  const icon = getIcon(props.node);
-  const [art] = createResource(
-    () => icon,
-    async () => {
-      if (!icon) return null;
-      return await dat.getArt(icon);
-    },
-  );
+  const icon = createMemo(() => getIcon(props.node));
+
+  const [art] = createResource(icon, async (iconName) => {
+    if (!iconName) return null;
+    return await dat.getArt(iconName);
+  });
 
   return (
     <div class={`select-none ${props.level > 0 ? "ml-4" : ""}`}>
@@ -172,117 +175,85 @@ export function ItemPicker(props: { rule: FilterRule }) {
     hierarchy: rollup(itemIndex.hierarchy, "Items", props.rule.bases),
   });
 
-  function toggleNode(node: TreeNode, enabled: boolean): void {
+  const pendingChanges = {
+    toAdd: [] as FilterItem[],
+    toRemove: new Set<string>(),
+  };
+
+  function toggle(node: TreeNode, enabled: boolean): void {
     if (node.enabled === enabled) return;
 
     node.enabled = enabled;
 
     if ("children" in node && node.children) {
       for (const child of node.children) {
-        toggleNode(child, enabled);
-      }
-    }
-
-    if ("parent" in node) {
-      updateParentState(node);
-    }
-
-    if ("data" in node && node.data) {
-      if (node.data.category === "Uniques") {
-        const existingRarity = props.rule.conditions.find(
-          (c) => c.key === ConditionKey.RARITY,
-        );
-        if (
-          enabled &&
-          (!existingRarity || !existingRarity.value.includes(Rarity.UNIQUE))
-        ) {
-          toast.info("Adding 'Unique' rarity condition to rule.", {
-            description:
-              "Uniques are filtered by base type (the small grey text next to the unique's name) so a rarity condition of 'Unique' is required to separate them from other rarities.",
-            duration: 10000,
-          });
-
-          if (existingRarity) {
-            existingRarity.value.push(Rarity.UNIQUE);
-          } else {
-            props.rule.conditions.push(
-              new RarityCondition({
-                value: [Rarity.UNIQUE],
-              }),
-            );
-          }
-        }
-        if (!enabled) {
-          // TODO: check if rarity condition still needs to exist
-        }
-      }
-      if (node.data.itemClass === "Pinnacle Keys") {
-        if (
-          enabled &&
-          !props.rule.conditions
-            .filter((condition) => condition.key === ConditionKey.CLASSES)
-            .find((condition) => condition.value.includes("Pinnacle Keys"))
-        ) {
-          toast.info("Adding 'Pinnacle Keys' class condition to rule.", {
-            description:
-              "Pinnacle Keys are not filterable by base type and must be filtered by class.",
-          });
-          props.rule.conditions.push(
-            new ClassesCondition({
-              value: ["Pinnacle Keys"],
-            }),
-          );
-        }
-      }
-
-      const ruleHasBase = props.rule.bases.some(
-        (base) => base.name === node.name,
-      );
-      if (!ruleHasBase && enabled) {
-        props.rule.bases.push({
-          name: node.data.name,
-          base: node.data.base,
-          category: node.data.category,
-          enabled,
-        });
-      }
-
-      if (ruleHasBase && !enabled) {
-        props.rule.bases = props.rule.bases.filter(
-          (base) => base.name !== node.name,
-        );
+        toggle(child, enabled);
       }
     }
   }
 
-  function updateNode(root: TreeNode, node: TreeNode, enabled: boolean) {
-    if (root === node) {
-      toggleNode(root, enabled);
-    }
-
-    if (root.children) {
-      for (const child of root.children) {
-        updateNode(child, node, enabled);
+  function collectLeaves(
+    node: TreeNode,
+    leaves: (LeafNode | TreeNode)[],
+  ): void {
+    if ("data" in node) {
+      leaves.push(node);
+    } else if ("children" in node) {
+      for (const child of node.children) {
+        collectLeaves(child, leaves);
       }
     }
   }
 
   function handleToggle(node: TreeNode, enabled: boolean) {
-    updateNode(itemHierarchy.hierarchy, node, enabled);
+    batch(() => {
+      toggle(node, enabled);
+
+      if (node.parent) {
+        updateParentState(node);
+      }
+
+      const leaves: LeafNode[] = [];
+      collectLeaves(node, leaves);
+
+      if (enabled) {
+        const existingNames = new Set(props.rule.bases.map((b) => b.name));
+
+        leaves.forEach((leaf) => {
+          if (!existingNames.has(leaf.data.name)) {
+            pendingChanges.toAdd.push({
+              name: leaf.data.name,
+              base: leaf.data.base,
+              category: leaf.data.category,
+              enabled,
+            });
+            pendingChanges.toRemove.delete(leaf.data.name);
+          }
+        });
+      } else {
+        leaves.forEach((leaf) => {
+          pendingChanges.toRemove.add(leaf.data.name);
+          pendingChanges.toAdd = pendingChanges.toAdd.filter(
+            (item) => item.name !== leaf.data.name,
+          );
+        });
+      }
+    });
   }
 
-  createEffect(
-    on(searchTerm, () => {
-      const results = itemIndex.search(
-        searchTerm() !== "" ? `'${searchTerm()}` : "",
-      );
-      itemHierarchy.hierarchy = rollup(
-        itemIndex.generateHierarchy(results.map((result) => result.item)),
-        "Items",
-        props.rule.bases,
-      );
-    }),
-  );
+  onCleanup(() => {
+    batch(() => {
+      if (pendingChanges.toAdd.length > 0) {
+        props.rule.bases.push(...pendingChanges.toAdd);
+      }
+
+      if (pendingChanges.toRemove.size > 0) {
+        props.rule.bases = props.rule.bases.filter(
+          (base) => !pendingChanges.toRemove.has(base.name),
+        );
+      }
+    });
+  });
 
   return (
     <div class='p-2'>

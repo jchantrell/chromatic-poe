@@ -5,12 +5,10 @@ import {
   duplicateRule,
   setEntryActive,
 } from "@app/lib/commands";
-import { dat } from "@app/lib/dat";
 import type { FilterRule } from "@app/lib/filter";
 import { itemIndex } from "@app/lib/items";
 import { store } from "@app/store";
 import { Badge } from "@app/ui/badge";
-import { Collapsible, CollapsibleContent } from "@app/ui/collapsible";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -21,24 +19,25 @@ import {
 } from "@app/ui/context-menu";
 import { Dialog, DialogContent, DialogTrigger } from "@app/ui/dialog";
 import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
-import { createEffect, createSignal, For, onMount } from "solid-js";
-import Item from "./item";
-import { ItemPicker } from "./item-picker";
+import { createEffect, createSignal, onMount } from "solid-js";
 import { DropPreview } from "./drop-preview";
+import { ItemPicker } from "./item-picker";
 
 const MIN_PREVIEW_WIDTH = 500;
 
-export default function Rule(props: { rule: FilterRule }) {
+export default function Rule(props: {
+  rule: FilterRule;
+  expanded: boolean;
+  setExpanded: (id: string, expanded: boolean) => void;
+}) {
   const [editNameActive, setEditNameActive] = createSignal(false);
   const [selected, setSelected] = createSignal<boolean>(false);
-  const [expanded, setExpanded] = createSignal(false);
   const [hovered, setHovered] = createSignal(false);
   const [previewWidth, setPreviewWidth] = createSignal(0);
   const sortable = createSortable(props.rule.id, props.rule);
   const [state] = useDragDropContext();
 
   let previewRef: HTMLDivElement | undefined;
-
   function onMouseDown(e: MouseEvent) {
     e.stopPropagation();
     if (e.button === 0 && !e.shiftKey) {
@@ -145,7 +144,7 @@ export default function Rule(props: { rule: FilterRule }) {
           <ContextMenuTrigger>
             <div>
               <div
-                class={`h-12 w-full flex cursor-pointer items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()} ${expanded() ? "sticky top-0" : ""}`}
+                class={`h-12 w-full flex cursor-pointer items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()} ${props.expanded ? "sticky top-0" : ""}`}
                 onMouseOut={() => setHovered(false)}
                 onMouseOver={() => setHovered(true)}
                 onFocus={() => null}
@@ -190,41 +189,20 @@ export default function Rule(props: { rule: FilterRule }) {
                       e.stopPropagation();
                       if (!props.rule.bases.length) return;
                       if (e.button === 0 && !e.shiftKey) {
-                        return setExpanded(!expanded());
+                        props.setExpanded(props.rule.id, !props.expanded);
                       }
                     }}
                   >
-                    {expanded() ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                    {props.expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
                   </div>
                 </div>
               </div>
-
-              <Collapsible
-                onOpenChange={(open) => setExpanded(open)}
-                open={expanded()}
-              >
-                <CollapsibleContent>
-                  <ul
-                    class={`ms-6 border-s grid border-r-0 ${hovered() ? "border-accent" : "border-muted"}`}
-                    onMouseOut={() => setHovered(false)}
-                    onMouseOver={() => setHovered(true)}
-                    onMouseDown={onMouseDown}
-                    onFocus={() => null}
-                    onBlur={() => null}
-                  >
-                    <For each={props.rule.bases}>
-                      {(entry) => <Item item={entry} setHovered={setHovered} />}
-                    </For>
-                  </ul>
-                </CollapsibleContent>
-              </Collapsible>
             </div>
           </ContextMenuTrigger>
           <ContextMenuPortal>
             <ContextMenuContent class='w-48'>
               <DialogTrigger
                 as={ContextMenuItem}
-                onClick={() => setExpanded(true)}
                 disabled={!itemIndex.searchIndex}
               >
                 <div class='flex justify-between items-center w-full'>

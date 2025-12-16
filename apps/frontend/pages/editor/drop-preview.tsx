@@ -54,17 +54,7 @@ export function DropPreview(props: {
           ""
         )}
       </div>
-      {props.rule.bases.length
-        ? props.rule.bases
-            .filter((base) => base.enabled)
-            .reduce(
-              (a, b) => {
-                return a.name.length <= b.name.length ? a : b;
-              },
-              props.rule.bases.find((base) => base.enabled) ||
-                props.rule.bases[0],
-            ).name
-        : "Item"}
+      {props.rule.bases.length ? props.rule.bases[0].name : "Item"}
     </div>
   );
 }

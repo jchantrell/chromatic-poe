@@ -1,67 +1,114 @@
 import { moveRule } from "@app/lib/commands";
-import type { FilterRule } from "@app/lib/filter";
+import type { FilterItem, FilterRule } from "@app/lib/filter";
 import { store } from "@app/store";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
+import { createVirtualizer } from "@tanstack/solid-virtual";
 import {
   closestCenter,
   DragDropProvider,
   DragDropSensors,
-  type DragEvent,
   DragOverlay,
   SortableProvider,
+  type DragEvent,
 } from "@thisbeyond/solid-dnd";
-import Fuse, { type FuseResult } from "fuse.js";
-import { createEffect, createSignal, For } from "solid-js";
+import Fuse from "fuse.js";
+import { createMemo, createSignal, For } from "solid-js";
 import CreateRule from "./create-rule";
+import Item from "./item";
 import Rule from "./rule-menu-entry";
 
-class RuleIndex {
-  searchIndex!: Fuse<FilterRule>;
+const options = {
+  keys: ["name", "bases.name", "bases.base"],
+  useExtendedSearch: true,
+  ignoreFieldNorm: true,
+  minMatchCharLength: 1,
+  distance: 160,
+  threshold: 0.6,
+};
 
-  constructor() {
-    this.setRules([]);
-  }
-
-  setRules(rules: FilterRule[]) {
-    const options = {
-      keys: ["name", "bases.name", "bases.base"],
-      useExtendedSearch: true,
-      ignoreFieldNorm: true,
-      minMatchCharLength: 1,
-      distance: 160,
-      threshold: 0.6,
-    };
-    this.searchIndex = new Fuse(rules, options);
-  }
-
-  search(
-    args: Parameters<typeof this.searchIndex.search>[0],
-  ): FuseResult<FilterRule>[] {
-    // handle empty search
-    if (!args || (typeof args === "string" && !args.length)) {
-      return this.searchIndex.search({ name: "!1234567890" });
-    }
-    return this.searchIndex.search(`'${args}`);
-  }
+function getItemKey(
+  item: FilterRule | FilterItem,
+  parentRuleId?: string,
+): string {
+  return "actions" in item
+    ? `rule-${item.id}`
+    : `item-${parentRuleId}-${item.name}`;
 }
-
-const ruleIndex = new RuleIndex();
 
 export default function Rules() {
   const [searchTerm, setSearchTerm] = createSignal("");
-  const [searchResults, setSearchResults] = createSignal<string[]>();
+  const [expandedRules, setExpandedRules] = createSignal<string[]>([]);
+  let scrollContainerRef: HTMLDivElement | null = null;
+
+  const searchIndex = createMemo(() => {
+    return new Fuse(store.filter?.rules || [], options);
+  });
+
+  const filteredItems = createMemo(() => {
+    const items: Array<{
+      item: FilterRule | FilterItem;
+      key: string;
+      ruleId: string;
+    }> = [];
+
+    const term = searchTerm();
+    let rules: FilterRule[] = [];
+
+    if (!term) {
+      rules = store.filter?.rules || [];
+    } else {
+      rules = searchIndex()
+        .search(term)
+        .map((result) => result.item);
+    }
+
+    for (const rule of rules) {
+      items.push({
+        item: rule,
+        key: getItemKey(rule),
+        ruleId: rule.id,
+      });
+
+      if (expandedRules().includes(rule.id)) {
+        for (const base of rule.bases) {
+          items.push({
+            item: base,
+            key: getItemKey(base, rule.id),
+            ruleId: rule.id,
+          });
+        }
+      }
+    }
+
+    return items;
+  });
+
+  const virtualizer = createVirtualizer({
+    get count() {
+      return filteredItems().length;
+    },
+    getScrollElement: () => scrollContainerRef,
+    getItemKey: (idx: number) => filteredItems()[idx].key,
+    estimateSize: (idx: number) => {
+      const entry = filteredItems()[idx];
+      return "actions" in entry.item ? 50 : 40;
+    },
+    overscan: 10,
+  });
+
+  function setExpanded(id: string, enabled: boolean) {
+    if (!enabled) {
+      setExpandedRules(expandedRules().filter((entry) => entry !== id));
+    } else {
+      setExpandedRules([...expandedRules(), id]);
+    }
+  }
+
   function onDragEnd({ draggable, droppable }: DragEvent) {
     if (draggable && droppable && store.filter) {
       moveRule(store.filter, String(draggable.id), String(droppable.id));
     }
   }
-
-  createEffect(() => {
-    ruleIndex.setRules(store.filter?.rules ?? []);
-    setSearchResults(
-      ruleIndex.search(`${searchTerm()}`).map((result) => result.item.id),
-    );
-  });
 
   return (
     <DragDropProvider onDragEnd={onDragEnd} collisionDetector={closestCenter}>
@@ -75,19 +122,58 @@ export default function Rules() {
               <TextFieldInput type='text' placeholder={"Search for rules..."} />
             </TextField>
           </div>
-          <ul class='flex flex-col overflow-y-auto pr-1'>
-            <For
-              each={
-                store.filter?.rules.filter((rule) =>
-                  searchResults()?.includes(rule.id),
-                ) ?? []
-              }
-            >
-              {(rule) => {
-                return <Rule rule={rule} />;
+          <div
+            ref={scrollContainerRef}
+            style={{
+              height: "100%",
+              overflow: "auto",
+            }}
+          >
+            <ul
+              class='flex flex-col overflow-y-auto relative w-full'
+              style={{
+                height: `${virtualizer.getTotalSize()}px`,
               }}
-            </For>
-          </ul>
+            >
+              <For each={virtualizer.getVirtualItems()}>
+                {(virtualItem) => {
+                  const entry = () => filteredItems()[virtualItem.index];
+
+                  return (
+                    <div
+                      data-index={virtualItem.index}
+                      data-key={virtualItem.key}
+                      ref={virtualizer.measureElement}
+                      class='absolute top-0 left-0 w-full pr-1'
+                      style={{
+                        transform: `translateY(${virtualItem.start}px)`,
+                      }}
+                    >
+                      {(() => {
+                        const currentEntry = entry();
+                        if (!currentEntry) return null;
+
+                        return "actions" in currentEntry.item ? (
+                          <Rule
+                            rule={currentEntry.item as FilterRule}
+                            expanded={expandedRules().includes(
+                              currentEntry.item.id,
+                            )}
+                            setExpanded={setExpanded}
+                          />
+                        ) : (
+                          <Item
+                            item={currentEntry.item as FilterItem}
+                            setHovered={() => null}
+                          />
+                        );
+                      })()}
+                    </div>
+                  );
+                }}
+              </For>
+            </ul>
+          </div>
         </SortableProvider>
         <CreateRule />
       </div>
