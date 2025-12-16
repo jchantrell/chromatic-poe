@@ -253,8 +253,8 @@ export default function RuleEditor() {
   if (!store.activeRule) return null;
 
   return (
-    <div class='inset-0 size-full flex flex-col items-center bg-muted/60 overflow-y-auto'>
-      <div class='w-full p-2'>
+    <div class='inset-0 size-full flex flex-col items-center bg-muted/80 overflow-hidden'>
+      <div class='w-full pt-2 pl-2 shrink-0'>
         <Tooltip text={"Close rule editor"}>
           <button
             type='button'
@@ -268,13 +268,20 @@ export default function RuleEditor() {
           </button>
         </Tooltip>
       </div>
-      <div class='p-5 size-full m-h-fit flex flex-col items-center'>
-        <div class='flex items-center justify-center min-h-[100px]'>
+      <div class='px-5 size-full flex flex-col overflow-hidden gap-1'>
+        <div class='flex justify-center items-center min-h-[60px] shrink-0'>
           <ItemLabel />
         </div>
-        <div class='flex flex-col gap-2'>
-          <RuleActions />
-          <ConditionManager rule={store.activeRule} />
+        <div class='flex gap-5 flex-1 min-h-0 p-2'>
+          <div class='flex flex-col gap-2 w-full lg:max-w-xl flex-1 min-h-0'>
+            <div class='shrink-0'>
+              <RuleActions />
+            </div>
+            <ConditionManager rule={store.activeRule} />
+          </div>
+          <div class='flex-1 min-h-0 hidden lg:flex'>
+            <RulePreview />
+          </div>
         </div>
       </div>
     </div>

@@ -2,44 +2,44 @@ import Tooltip from "@app/components/tooltip";
 import { CloseIcon, PlusIcon } from "@app/icons";
 import { excuteCmd } from "@app/lib/commands";
 import {
-  ConditionGroup,
-  ConditionKey,
-  type Conditions,
-  conditionGroupColors,
-  conditionIndex,
-  conditionTypes,
-  createCondition,
-  Operator,
-  type SearchableCondition,
+    ConditionGroup,
+    conditionGroupColors,
+    conditionIndex,
+    ConditionKey,
+    conditionTypes,
+    createCondition,
+    Operator,
+    type Conditions,
+    type SearchableCondition,
 } from "@app/lib/condition";
 import type { FilterRule } from "@app/lib/filter";
 import { modIndex } from "@app/lib/mods";
 import { store } from "@app/store";
 import { Button } from "@app/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "@app/ui/dialog";
 import { Label } from "@app/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@app/ui/select";
 import { Separator } from "@app/ui/separator";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
 import { createEffect, createSignal, For, onMount } from "solid-js";
 import {
-  CheckboxInput,
-  SelectInput,
-  SliderInput,
-  ToggleInput,
+    CheckboxInput,
+    SelectInput,
+    SliderInput,
+    ToggleInput,
 } from "./condition-inputs";
 import { ItemPicker } from "./item-picker";
 
@@ -164,7 +164,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
   });
 
   return (
-    <div class='space-y-4 flex flex-col size-full overflow-y-auto'>
+    <div class='space-y-4 flex flex-col w-full flex-1 min-h-0 overflow-hidden'>
       <div class='flex flex-wrap gap-3 items-center w-full'>
         <Dialog>
           <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
@@ -287,7 +287,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
           No conditions. Click "Edit Conditions" to start.
         </div>
       ) : (
-        <div class='space-y-4 pb-2 flex flex-col items-start overflow-y-auto size-full'>
+        <div class='space-y-4 pb-2 flex flex-col items-start overflow-y-auto w-full flex-1 min-h-0 pr-2'>
           <For each={props.rule.conditions}>
             {(condition) => {
               const conditionType = conditionTypes[condition.key];
