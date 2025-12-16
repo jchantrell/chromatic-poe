@@ -199,7 +199,7 @@ function RulePreview() {
     <textarea
       id='rule-preview'
       spellcheck={false}
-      class='border border-accent-foreground/25 p-1 text-sm text-wrap whitespace-pre bg-primary-foreground/80 overflow-x-hidden overflow-y-auto resize-none outline-hidden size-full'
+      class='border border-accent-foreground/25 p-1 text-sm text-wrap  bg-primary-foreground/80 overflow-x-hidden overflow-y-auto resize-none outline-hidden size-full scrollbar-thumb-neutral-600'
     >
       {store.filter?.convertToText(store.activeRule)}
     </textarea>
@@ -272,14 +272,14 @@ export default function RuleEditor() {
         <div class='flex justify-center items-center min-h-[60px] shrink-0'>
           <ItemLabel />
         </div>
-        <div class='flex gap-5 flex-1 min-h-0 p-2'>
-          <div class='flex flex-col gap-2 w-full lg:max-w-xl flex-1 min-h-0'>
+        <div class='flex gap-5 flex-1 min-h-0 p-2 @container'>
+          <div class='flex flex-col gap-2 w-full @3xl:max-w-xl flex-1 min-h-0'>
             <div class='shrink-0'>
               <RuleActions />
             </div>
             <ConditionManager rule={store.activeRule} />
           </div>
-          <div class='flex-1 min-h-0 hidden lg:flex'>
+          <div class='flex-1 min-h-0 hidden @3xl:flex'>
             <RulePreview />
           </div>
         </div>

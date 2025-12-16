@@ -1,21 +1,21 @@
 import { alphabeticalSort, stringifyJSON, to } from "@app/lib/utils";
 import { setInitialised, setLocale, store } from "@app/store";
 import { getVersion } from "@tauri-apps/api/app";
+import { invoke } from "@tauri-apps/api/core";
 import { documentDir, homeDir } from "@tauri-apps/api/path";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { openPath } from "@tauri-apps/plugin-opener";
-import { eol, locale, platform } from "@tauri-apps/plugin-os";
-import { Filter } from "./filter";
-import { DEFAULT_FILTER_SOUNDS, type Sound } from "./sounds";
 import {
   exists,
   readDir,
   readFile,
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
-import { IDBManager } from "./idb";
+import { openPath } from "@tauri-apps/plugin-opener";
+import { eol, locale, platform } from "@tauri-apps/plugin-os";
 import { toast } from "solid-sonner";
-import { invoke } from "@tauri-apps/api/core";
+import { Filter } from "./filter";
+import { IDBManager } from "./idb";
+import { DEFAULT_FILTER_SOUNDS, type Sound } from "./sounds";
 
 function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
   try {

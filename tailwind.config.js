@@ -101,7 +101,7 @@ module.exports = {
   },
   plugins: [
     require("tailwindcss-animate"),
-    plugin(({ addUtilities }) => {
+    plugin(({ addUtilities, matchUtilities, theme }) => {
       addUtilities({
         ".inset-center": {
           top: "50%",
@@ -117,6 +117,19 @@ module.exports = {
           "@apply -translate-x-1/2": {},
         },
       });
+      matchUtilities(
+        {
+          "scrollbar-thumb": (value) => ({
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: value,
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              backgroundColor: `color-mix(in srgb, ${value}, transparent 20%)`,
+            },
+          }),
+        },
+        { values: theme("colors"), type: "color" }
+      );
     }),
   ],
 };
