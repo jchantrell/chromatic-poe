@@ -70,6 +70,38 @@ export default function Rule(props: { rule: FilterRule }) {
     }
   }
 
+  function getBorderColor() {
+    if (!props.rule.enabled) {
+      return "";
+    }
+    if (hovered() || selected()) {
+      return "border-2 border-accent";
+    }
+
+    return "border border-accent";
+  }
+
+  function getBgColor() {
+    if (!props.rule.enabled) {
+      return "bg-muted/50";
+    }
+    if (hovered() || selected()) {
+      return "bg-secondary";
+    }
+
+    return "bg-muted";
+  }
+
+  function getTextColor() {
+    if (!props.rule.enabled) {
+      return "text-muted-foreground/20";
+    }
+    if (hovered() || selected()) {
+      return "text-foreground";
+    }
+    return "text-foreground/80";
+  }
+
   function handleNameChange(e: Event) {
     if (e.target instanceof HTMLInputElement) {
       props.rule.name = e.target.value;
@@ -119,38 +151,6 @@ export default function Rule(props: { rule: FilterRule }) {
     observer.observe(previewRef);
     return () => observer.disconnect();
   });
-
-  function getBorderColor() {
-    if (!props.rule.enabled) {
-      return "";
-    }
-    if (hovered() || selected()) {
-      return "border-2 border-accent";
-    }
-
-    return "border border-accent";
-  }
-
-  function getBgColor() {
-    if (!props.rule.enabled) {
-      return "bg-muted/50";
-    }
-    if (hovered() || selected()) {
-      return "bg-secondary";
-    }
-
-    return "bg-muted";
-  }
-
-  function getTextColor() {
-    if (!props.rule.enabled) {
-      return "text-muted-foreground/20";
-    }
-    if (hovered() || selected()) {
-      return "text-foreground";
-    }
-    return "text-foreground/80";
-  }
 
   return (
     <div
@@ -229,7 +229,7 @@ export default function Rule(props: { rule: FilterRule }) {
                       : "Item"}
                   </div>
                   <div
-                    class={`hover:bg-muted flex items-center h-11 p-1 ${!props.rule.bases.length ? "opacity-30" : ""}`}
+                    class={`flex items-center h-11 p-1 ${!props.rule.bases.length ? "opacity-0" : "hover:text-accent-foreground/60"}`}
                     onMouseDown={(e: MouseEvent) => {
                       e.stopPropagation();
                       if (!props.rule.bases.length) return;
