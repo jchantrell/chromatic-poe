@@ -75,7 +75,7 @@ export default function Rules() {
               <TextFieldInput type='text' placeholder={"Search for rules..."} />
             </TextField>
           </div>
-          <ul class='flex flex-col overflow-y-auto px-1'>
+          <ul class='flex flex-col overflow-y-auto pr-1'>
             <For
               each={
                 store.filter?.rules.filter((rule) =>

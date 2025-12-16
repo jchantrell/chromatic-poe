@@ -59,7 +59,7 @@ export default function Editor() {
     }
 
     setProgress(0);
-    setMessage("");
+    setMessage("Initialising...");
     let toastId: string | number | undefined;
     let hasShownToast = false;
 

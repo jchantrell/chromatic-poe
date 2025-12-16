@@ -9,15 +9,18 @@ import {
 } from "@app/lib/commands";
 import BeamPicker from "@app/pages/editor/beam-picker";
 import ColorPicker from "@app/pages/editor/color-picker";
-import MapIconPicker from "@app/pages/editor/map-icon-picker";
+import MapIconPicker, { MinimapIcon } from "@app/pages/editor/map-icon-picker";
 import { store } from "@app/store";
 import { Checkbox } from "@app/ui/checkbox";
 import { Label } from "@app/ui/label";
 import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createResource, createSignal } from "solid-js";
 import ConditionManager from "./condition-builder";
 import SoundPicker from "./sound-picker";
+import { FilterRule } from "@app/lib/filter";
+import { dat } from "@app/lib/dat";
+import { DropPreview } from "./drop-preview";
 
 function LabelSize() {
   const [size, setSize] = createSignal(32);
@@ -221,34 +224,6 @@ function RuleActions() {
   );
 }
 
-function ItemLabel() {
-  if (!store.activeRule) return null;
-  return (
-    <div
-      class='flex w-full text-nowrap items-center justify-center border-[1.5px] min-w-fit max-h-fit px-3 mb-2'
-      style={{
-        color: `rgba(${store.activeRule.actions.text?.r ?? 0}, ${store.activeRule.actions.text?.g ?? 0}, ${store.activeRule.actions.text?.b ?? 0}, ${(store.activeRule.actions.text?.a ?? 255) / 255})`,
-        "border-color": `rgba(${store.activeRule.actions.border?.r ?? 0}, ${store.activeRule.actions.border?.g ?? 0}, ${store.activeRule.actions.border?.b ?? 0}, ${(store.activeRule.actions.border?.a ?? 255) / 255})`,
-        "background-color": `rgba(${store.activeRule.actions.background?.r ?? 0}, ${store.activeRule.actions.background?.g ?? 0}, ${store.activeRule.actions.background?.b ?? 0}, ${(store.activeRule.actions.background?.a ?? 255) / 255})`,
-        "max-width": `${(store.activeRule.actions.fontSize || 32) * 6}px`,
-        "font-size": `${(store.activeRule.actions.fontSize || 32) / 1.5}px`,
-      }}
-    >
-      {store.activeRule.bases.length
-        ? store.activeRule.bases
-            .filter((base) => base.enabled)
-            .reduce(
-              (a, b) => {
-                return a.name.length <= b.name.length ? a : b;
-              },
-              store.activeRule.bases.find((base) => base.enabled) ||
-                store.activeRule.bases[0],
-            ).name
-        : "Item"}
-    </div>
-  );
-}
-
 export default function RuleEditor() {
   if (!store.activeRule) return null;
 
@@ -270,7 +245,7 @@ export default function RuleEditor() {
       </div>
       <div class='px-5 size-full flex flex-col overflow-hidden gap-1'>
         <div class='flex justify-center items-center min-h-[60px] shrink-0'>
-          <ItemLabel />
+          <DropPreview rule={store.activeRule} dynamicSize />
         </div>
         <div class='flex gap-5 flex-1 min-h-0 p-2 @container'>
           <div class='flex flex-col gap-2 w-full @3xl:max-w-xl flex-1 min-h-0'>

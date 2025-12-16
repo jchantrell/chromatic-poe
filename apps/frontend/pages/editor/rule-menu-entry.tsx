@@ -21,16 +21,10 @@ import {
 } from "@app/ui/context-menu";
 import { Dialog, DialogContent, DialogTrigger } from "@app/ui/dialog";
 import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
-import {
-  createEffect,
-  createResource,
-  createSignal,
-  For,
-  onMount,
-} from "solid-js";
+import { createEffect, createSignal, For, onMount } from "solid-js";
 import Item from "./item";
 import { ItemPicker } from "./item-picker";
-import { MinimapIcon } from "./map-icon-picker";
+import { DropPreview } from "./drop-preview";
 
 const MIN_PREVIEW_WIDTH = 500;
 
@@ -42,21 +36,6 @@ export default function Rule(props: { rule: FilterRule }) {
   const [previewWidth, setPreviewWidth] = createSignal(0);
   const sortable = createSortable(props.rule.id, props.rule);
   const [state] = useDragDropContext();
-  const [icons] = createResource(async () => {
-    const url = await dat.getArt("minimap");
-    const img = new Image();
-
-    await new Promise((res, rej) => {
-      img.onload = res;
-      img.onerror = rej;
-      img.src = url || "";
-    });
-
-    const width = img.naturalWidth;
-    const height = img.naturalHeight;
-
-    return { url, height, width };
-  });
 
   let previewRef: HTMLDivElement | undefined;
 
@@ -171,12 +150,16 @@ export default function Rule(props: { rule: FilterRule }) {
                 onMouseOver={() => setHovered(true)}
                 onFocus={() => null}
                 onBlur={() => null}
-                onMouseUp={onMouseDown}
                 ref={previewRef}
               >
                 <div class='m-1 flex items-center w-full'>
-                  <div class='text-xl p-1 flex w-full items-center'>
-                    <div class='w-16 flex items-center mr-1'>
+                  <div
+                    class='text-xl p-1 flex w-full items-center'
+                    onMouseUp={onMouseDown}
+                  >
+                    <div
+                      class={`w-16 flex items-center mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
+                    >
                       {props.rule.show ? (
                         <Badge variant='success'>Show</Badge>
                       ) : (
@@ -193,40 +176,13 @@ export default function Rule(props: { rule: FilterRule }) {
                 </div>
                 <div class='flex items-center max-w-min'>
                   <div
-                    class='flex text-nowrap p-1 px-4 items-center justify-center  border mr-1'
+                    class={`flex text-nowrap items-center justify-center border mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
                     style={{
                       display:
                         previewWidth() >= MIN_PREVIEW_WIDTH ? "flex" : "none",
-                      color: `rgba(${props.rule.actions.text?.r ?? 0}, ${props.rule.actions.text?.g ?? 0}, ${props.rule.actions.text?.b ?? 0}, ${(props.rule.actions.text?.a ?? 255) / 255})`,
-                      "border-color": `rgba(${props.rule.actions.border?.r ?? 0}, ${props.rule.actions.border?.g ?? 0}, ${props.rule.actions.border?.b ?? 0}, ${(props.rule.actions.border?.a ?? 255) / 255})`,
-                      "background-color": `rgba(${props.rule.actions.background?.r ?? 0}, ${props.rule.actions.background?.g ?? 0}, ${props.rule.actions.background?.b ?? 0}, ${(props.rule.actions.background?.a ?? 255) / 255})`,
                     }}
                   >
-                    <div class='mr-1'>
-                      {props.rule.actions.icon?.enabled ? (
-                        <MinimapIcon
-                          sheet={icons()?.url}
-                          sheetHeight={icons()?.height}
-                          scale={3}
-                          size={props.rule.actions.icon?.size}
-                          shape={props.rule.actions.icon?.shape}
-                          color={props.rule.actions.icon?.color}
-                        />
-                      ) : (
-                        ""
-                      )}
-                    </div>
-                    {props.rule.bases.length
-                      ? props.rule.bases
-                          .filter((base) => base.enabled)
-                          .reduce(
-                            (a, b) => {
-                              return a.name.length <= b.name.length ? a : b;
-                            },
-                            props.rule.bases.find((base) => base.enabled) ||
-                              props.rule.bases[0],
-                          ).name
-                      : "Item"}
+                    <DropPreview rule={props.rule} showIcon iconScale={3} />
                   </div>
                   <div
                     class={`flex items-center h-11 p-1 ${!props.rule.bases.length ? "opacity-0" : "hover:text-accent-foreground/60"}`}
