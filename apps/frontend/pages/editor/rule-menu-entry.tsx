@@ -144,7 +144,7 @@ export default function Rule(props: {
           <ContextMenuTrigger>
             <div>
               <div
-                class={`h-12 w-full flex cursor-pointer items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()} ${props.expanded ? "sticky top-0" : ""}`}
+                class={`h-12 w-full flex cursor-pointer items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()}`}
                 onMouseOut={() => setHovered(false)}
                 onMouseOver={() => setHovered(true)}
                 onFocus={() => null}

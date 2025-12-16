@@ -2,7 +2,10 @@ import { moveRule } from "@app/lib/commands";
 import type { FilterItem, FilterRule } from "@app/lib/filter";
 import { store } from "@app/store";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
-import { createVirtualizer } from "@tanstack/solid-virtual";
+import {
+  createVirtualizer,
+  defaultRangeExtractor,
+} from "@tanstack/solid-virtual";
 import {
   closestCenter,
   DragDropProvider,
@@ -21,7 +24,7 @@ const options = {
   keys: ["name", "bases.name", "bases.base"],
   useExtendedSearch: true,
   ignoreFieldNorm: true,
-  minMatchCharLength: 1,
+  minMatchCharLength: 2,
   distance: 160,
   threshold: 0.6,
 };
@@ -38,7 +41,7 @@ function getItemKey(
 export default function Rules() {
   const [searchTerm, setSearchTerm] = createSignal("");
   const [expandedRules, setExpandedRules] = createSignal<string[]>([]);
-  let scrollContainerRef: HTMLDivElement | null = null;
+  let scrollContainerRef: HTMLDivElement | undefined;
 
   const searchIndex = createMemo(() => {
     return new Fuse(store.filter?.rules || [], options);
@@ -83,17 +86,39 @@ export default function Rules() {
     return items;
   });
 
+  /* Sticky Header Logic */
+  /* Sticky Header Logic */
+  const stickyIndexes = createMemo(() => {
+    return filteredItems()
+      .map((item, index) => ("actions" in item.item ? index : null))
+      .filter((val): val is number => val !== null);
+  });
+
+  const [activeStickyIndex, setActiveStickyIndex] = createSignal(0);
+
   const virtualizer = createVirtualizer({
     get count() {
       return filteredItems().length;
     },
-    getScrollElement: () => scrollContainerRef,
+    getScrollElement: () => scrollContainerRef || null,
     getItemKey: (idx: number) => filteredItems()[idx].key,
     estimateSize: (idx: number) => {
       const entry = filteredItems()[idx];
       return "actions" in entry.item ? 50 : 40;
     },
     overscan: 10,
+    rangeExtractor: (range) => {
+      const active =
+        [...stickyIndexes()]
+          .reverse()
+          .find((index) => range.startIndex >= index) ?? 0;
+
+      setActiveStickyIndex(active);
+
+      const next = new Set([active, ...defaultRangeExtractor(range)]);
+
+      return [...next].sort((a, b) => a - b);
+    },
   });
 
   function setExpanded(id: string, enabled: boolean) {
@@ -113,7 +138,7 @@ export default function Rules() {
   return (
     <DragDropProvider onDragEnd={onDragEnd} collisionDetector={closestCenter}>
       <DragDropSensors />
-      <div class='p-1 flex flex-col gap-1 overflow-y-auto m-1'>
+      <div class='p-1 flex flex-col gap-1 h-full m-1'>
         <SortableProvider
           ids={store.filter?.rules.map((rule) => rule.id) ?? []}
         >
@@ -122,15 +147,9 @@ export default function Rules() {
               <TextFieldInput type='text' placeholder={"Search for rules..."} />
             </TextField>
           </div>
-          <div
-            ref={scrollContainerRef}
-            style={{
-              height: "100%",
-              overflow: "auto",
-            }}
-          >
+          <div ref={scrollContainerRef} class='overflow-y-auto'>
             <ul
-              class='flex flex-col overflow-y-auto relative w-full'
+              class='flex flex-col relative w-full'
               style={{
                 height: `${virtualizer.getTotalSize()}px`,
               }}
@@ -146,7 +165,15 @@ export default function Rules() {
                       ref={virtualizer.measureElement}
                       class='absolute top-0 left-0 w-full pr-1'
                       style={{
-                        transform: `translateY(${virtualItem.start}px)`,
+                        ...(activeStickyIndex() === virtualItem.index
+                          ? {
+                              position: "sticky",
+                              "z-index": 1,
+                            }
+                          : {
+                              position: "absolute",
+                              transform: `translateY(${virtualItem.start}px)`,
+                            }),
                       }}
                     >
                       {(() => {
