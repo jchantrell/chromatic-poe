@@ -283,9 +283,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
       </div>
 
       {props.rule && !props.rule.conditions.length ? (
-        <div class='text-center py-8 text-muted-foreground'>
-          No conditions. Click "Edit Conditions" to start.
-        </div>
+        <div class='text-center py-8 text-muted-foreground'>No conditions.</div>
       ) : (
         <div class='space-y-4 pb-2 flex flex-col items-start overflow-y-auto overflow-x-hidden w-full flex-1 min-h-0 pr-1 scrollbar-thumb-neutral-600'>
           <For each={props.rule.conditions}>
@@ -303,7 +301,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
               });
               if (!condition) return null;
               return (
-                <div class='bg-muted-foreground/30 border border-primary-foreground w-fit flex gap-4 items-center justify-between rounded-lg'>
+                <div class='bg-primary-foreground border border-accent w-fit flex gap-4 items-center justify-between rounded-lg'>
                   <div class='flex gap-2 items-center py-2 px-4'>
                     <Label class='text-md text-nowrap'>
                       {conditionType.label}

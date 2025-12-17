@@ -141,11 +141,11 @@ export default function Rules() {
   return (
     <DragDropProvider onDragEnd={onDragEnd} collisionDetector={closestCenter}>
       <DragDropSensors />
-      <div class='p-1 flex flex-col gap-1 h-full m-1'>
+      <div class='flex flex-col gap-1 h-full m-1 pb-2'>
         <SortableProvider
           ids={store.filter?.rules.map((rule) => rule.id) ?? []}
         >
-          <div>
+          <div class='px-1 outline-none'>
             <TextField value={searchTerm()} onChange={setSearchTerm}>
               <TextFieldInput type='text' placeholder={"Search for rules..."} />
             </TextField>
@@ -158,20 +158,20 @@ export default function Rules() {
               }}
             >
               <For each={virtualizer.getVirtualItems()}>
-                {(virtualItem) => {
-                  const entry = () => filteredItems()[virtualItem.index];
+                {(virtual) => {
+                  const entry = () => filteredItems()[virtual.index];
                   const currentEntry = entry();
 
                   return (
                     <div
-                      data-index={virtualItem.index}
-                      data-key={virtualItem.key}
+                      data-index={virtual.index}
+                      data-key={virtual.key}
                       ref={(el) =>
                         queueMicrotask(() => virtualizer.measureElement(el))
                       }
-                      class='absolute top-0 left-0 w-full pr-1'
+                      class='absolute top-0 left-0 w-full overflow-x-hidden pr-1'
                       style={{
-                        ...(activeStickyIndex() === virtualItem.index &&
+                        ...(activeStickyIndex() === virtual.index &&
                         currentEntry &&
                         "actions" in currentEntry.item &&
                         expandedRules().includes(currentEntry.item.id)
@@ -181,7 +181,7 @@ export default function Rules() {
                             }
                           : {
                               position: "absolute",
-                              transform: `translateY(${virtualItem.start}px)`,
+                              transform: `translateY(${virtual.start}px)`,
                             }),
                       }}
                     >

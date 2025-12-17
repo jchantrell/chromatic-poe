@@ -226,7 +226,7 @@ export default function RuleEditor() {
   if (!store.activeRule) return null;
 
   return (
-    <div class='inset-0 size-full flex flex-col items-center bg-muted/80 overflow-hidden'>
+    <div class='inset-0 size-full flex flex-col items-center bg-muted/80 overflow-hidden flex-1 min-h-0 @container'>
       <div class='w-full pt-2 pl-2 shrink-0'>
         <Tooltip text={"Close rule editor"}>
           <button
@@ -240,21 +240,26 @@ export default function RuleEditor() {
             <CloseIcon />
           </button>
         </Tooltip>
+        <span class='ml-3 text-xl w-full justify-center'>
+          Editing {store.activeRule.name}
+        </span>
       </div>
-      <div class='px-5 size-full flex flex-col overflow-hidden gap-1'>
-        <div class='flex justify-center items-center min-h-[60px] shrink-0'>
-          <DropPreview rule={store.activeRule} dynamicSize />
-        </div>
-        <div class='flex gap-5 flex-1 min-h-0 p-2 @container'>
-          <div class='flex flex-col gap-2 w-full @3xl:max-w-xl flex-1 min-h-0'>
-            <div class='shrink-0'>
-              <RuleActions />
+      <div class='flex justify-between w-full flex-1 min-h-0 pb-2'>
+        <div class='px-5 flex flex-col overflow-hidden gap-1 @xl:max-w-xl w-full flex-1 min-h-0'>
+          <div class='flex items-center min-h-[60px] shrink-0 gap-10'>
+            <DropPreview rule={store.activeRule} dynamicSize />
+          </div>
+          <div class='flex gap-5 p-2 flex-1 min-h-0'>
+            <div class='flex flex-col gap-2 w-full flex-1 min-h-0'>
+              <div class='shrink-0'>
+                <RuleActions />
+              </div>
+              <ConditionManager rule={store.activeRule} />
             </div>
-            <ConditionManager rule={store.activeRule} />
           </div>
-          <div class='flex-1 min-h-0 hidden @3xl:flex'>
-            <RulePreview />
-          </div>
+        </div>
+        <div class='flex-1 min-h-0 hidden @2xl:flex pr-2'>
+          <RulePreview />
         </div>
       </div>
     </div>

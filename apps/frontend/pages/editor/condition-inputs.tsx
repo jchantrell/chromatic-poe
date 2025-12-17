@@ -99,7 +99,7 @@ export function SelectInput(props: {
   });
 
   return (
-    <div class='grid items-center'>
+    <div class='flex'>
       <Dialog>
         <DialogTrigger
           variant='default'
@@ -216,10 +216,7 @@ export function ToggleInput(props: {
         <For each={conditionTypes[props.key].options}>
           {(option) => {
             return (
-              <ToggleGroupItem
-                class='data-pressed:bg-neutral-900 bg-neutral-900/25 border border-accent'
-                value={option}
-              >
+              <ToggleGroupItem class='border border-accent' value={option}>
                 {option}
               </ToggleGroupItem>
             );
