@@ -18,7 +18,6 @@ import {
   ContextMenuTrigger,
 } from "@app/ui/context-menu";
 import { Dialog, DialogContent, DialogTrigger } from "@app/ui/dialog";
-import { createSortable, useDragDropContext } from "@thisbeyond/solid-dnd";
 import { createEffect, createSignal, onMount } from "solid-js";
 import { DropPreview } from "./drop-preview";
 import { ItemPicker } from "./item-picker";
@@ -34,8 +33,6 @@ export default function Rule(props: {
   const [selected, setSelected] = createSignal<boolean>(false);
   const [hovered, setHovered] = createSignal(false);
   const [previewWidth, setPreviewWidth] = createSignal(0);
-  const sortable = createSortable(props.rule.id, props.rule);
-  const [state] = useDragDropContext();
 
   let previewRef: HTMLDivElement | undefined;
   function onMouseDown(e: MouseEvent) {
@@ -131,102 +128,91 @@ export default function Rule(props: {
   });
 
   return (
-    <div
-      use:sortable
-      class='sortable'
-      classList={{
-        "opacity-25": sortable.isActiveDraggable,
-        "transition-transform": !!state.active.draggable,
-      }}
-    >
-      <Dialog>
-        <ContextMenu>
-          <ContextMenuTrigger>
-            <div>
+    <Dialog>
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <div
+            class={`h-12 w-full flex cursor-pointer items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()}`}
+            onMouseOut={() => setHovered(false)}
+            onMouseOver={() => setHovered(true)}
+            onFocus={() => null}
+            onBlur={() => null}
+            ref={previewRef}
+          >
+            <div class='m-1 flex items-center w-full'>
               <div
-                class={`h-12 w-full flex cursor-pointer items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()}`}
-                onMouseOut={() => setHovered(false)}
-                onMouseOver={() => setHovered(true)}
-                onFocus={() => null}
-                onBlur={() => null}
-                ref={previewRef}
+                class='text-xl p-1 flex w-full items-center'
+                onMouseUp={onMouseDown}
               >
-                <div class='m-1 flex items-center w-full'>
-                  <div
-                    class='text-xl p-1 flex w-full items-center'
-                    onMouseUp={onMouseDown}
-                  >
-                    <div
-                      class={`w-16 flex items-center mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
-                    >
-                      {props.rule.show ? (
-                        <Badge variant='success'>Show</Badge>
-                      ) : (
-                        <Badge variant='error'>Hide</Badge>
-                      )}
-                    </div>
-                    <input
-                      class={`bg-transparent py-1 px-2 border-none field-sizing-content ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"} `}
-                      type='text'
-                      value={props.rule.name}
-                      onChange={handleNameChange}
-                    />
-                  </div>
+                <div
+                  class={`w-16 flex items-center mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
+                >
+                  {props.rule.show ? (
+                    <Badge variant='success'>Show</Badge>
+                  ) : (
+                    <Badge variant='error'>Hide</Badge>
+                  )}
                 </div>
-                <div class='flex items-center max-w-min'>
-                  <div
-                    class={`flex text-nowrap items-center justify-center border mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
-                    style={{
-                      display:
-                        previewWidth() >= MIN_PREVIEW_WIDTH ? "flex" : "none",
-                    }}
-                  >
-                    <DropPreview rule={props.rule} showIcon iconScale={3} />
-                  </div>
-                  <div
-                    class={`flex items-center h-11 p-1 ${!props.rule.bases.length ? "opacity-0" : "hover:text-accent-foreground/60"}`}
-                    onMouseDown={(e: MouseEvent) => {
-                      e.stopPropagation();
-                      if (!props.rule.bases.length) return;
-                      if (e.button === 0 && !e.shiftKey) {
-                        props.setExpanded(props.rule.id, !props.expanded);
-                      }
-                    }}
-                  >
-                    {props.expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                  </div>
-                </div>
+                <input
+                  class={`bg-transparent py-1 px-2 border-none field-sizing-content ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"} `}
+                  type='text'
+                  value={props.rule.name}
+                  onChange={handleNameChange}
+                />
               </div>
             </div>
-          </ContextMenuTrigger>
-          <ContextMenuPortal>
-            <ContextMenuContent class='w-48'>
-              <DialogTrigger
-                as={ContextMenuItem}
-                disabled={!itemIndex.searchIndex}
+            <div class='flex items-center max-w-min'>
+              <div
+                class={`flex text-nowrap items-center justify-center border mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
+                style={{
+                  display:
+                    previewWidth() >= MIN_PREVIEW_WIDTH ? "flex" : "none",
+                }}
               >
-                <div class='flex justify-between items-center w-full'>
-                  Edit Items
-                </div>
-              </DialogTrigger>
-              <ContextMenuItem onMouseDown={handleActive}>
-                <span>{props.rule.enabled ? "Disable" : "Enable"}</span>
-                <ContextMenuShortcut>⇧+LClick</ContextMenuShortcut>
-              </ContextMenuItem>
-              <ContextMenuItem onMouseDown={handleDuplicate}>
-                <span>Duplicate</span>
-              </ContextMenuItem>
-              <ContextMenuItem onMouseDown={handleDelete}>
-                <span>Delete</span>
-              </ContextMenuItem>
-            </ContextMenuContent>
-          </ContextMenuPortal>
-        </ContextMenu>
+                <DropPreview rule={props.rule} showIcon iconScale={3} />
+              </div>
+              <div
+                class={`flex items-center h-11 p-1 ${!props.rule.bases.length ? "opacity-0" : "hover:text-accent-foreground/60"}`}
+                onMouseDown={(e: MouseEvent) => {
+                  e.stopPropagation();
+                  if (!props.rule.bases.length) return;
+                  if (e.button === 0 && !e.shiftKey) {
+                    props.setExpanded(props.rule.id, !props.expanded);
+                  }
+                }}
+              >
+                {props.expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+              </div>
+            </div>
+          </div>
+        </ContextMenuTrigger>
+        <ContextMenuPortal>
+          <ContextMenuContent class='w-48'>
+            <DialogTrigger
+              as={ContextMenuItem}
+              disabled={!itemIndex.searchIndex}
+            >
+              <div class='flex justify-between items-center w-full'>
+                Edit Items
+              </div>
+            </DialogTrigger>
+            <ContextMenuItem onMouseDown={handleActive}>
+              <span>{props.rule.enabled ? "Disable" : "Enable"}</span>
+              <ContextMenuShortcut>⇧+LClick</ContextMenuShortcut>
+            </ContextMenuItem>
+            <ContextMenuItem onMouseDown={handleDuplicate}>
+              <span>Duplicate</span>
+            </ContextMenuItem>
+            <ContextMenuItem onMouseDown={handleDelete}>
+              <span>Delete</span>
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenuPortal>
+      </ContextMenu>
 
-        <DialogContent class='sm:max-w-[600px] overflow-y-visible'>
-          <ItemPicker rule={props.rule} />
-        </DialogContent>
-      </Dialog>
-    </div>
+      <DialogContent class='sm:max-w-[600px] overflow-y-visible'>
+        <ItemPicker rule={props.rule} />
+      </DialogContent>
+    </Dialog>
   );
 }

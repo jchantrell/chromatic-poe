@@ -8,14 +8,16 @@ import {
 } from "@tanstack/solid-virtual";
 import {
   closestCenter,
+  createSortable,
   DragDropProvider,
   DragDropSensors,
   DragOverlay,
   SortableProvider,
+  useDragDropContext,
   type DragEvent,
 } from "@thisbeyond/solid-dnd";
 import Fuse from "fuse.js";
-import { createMemo, createSignal, For } from "solid-js";
+import { createEffect, createMemo, createSignal, For } from "solid-js";
 import CreateRule from "./create-rule";
 import Item from "./item";
 import Rule from "./rule-menu-entry";
@@ -29,17 +31,31 @@ const options = {
   threshold: 0.6,
 };
 
-function getItemKey(
-  item: FilterRule | FilterItem,
-  parentRuleId?: string,
-): string {
-  return "actions" in item
-    ? `rule-${item.id}`
-    : `item-${parentRuleId}-${item.name}`;
+function SortableRule(props: {
+  rule: FilterRule;
+  expanded: boolean;
+  setExpanded: (id: string, expanded: boolean) => void;
+}) {
+  const sortable = createSortable(props.rule.id, props.rule);
+  const [state] = useDragDropContext();
+
+  return (
+    <div
+      use:sortable
+      class='sortable'
+      classList={{
+        "opacity-25": sortable.isActiveDraggable,
+        "transition-transform": !!state.active.draggable,
+      }}
+    >
+      <Rule {...props} />
+    </div>
+  );
 }
 
 export default function Rules() {
   const [searchTerm, setSearchTerm] = createSignal("");
+  const [isMoving, setMoving] = createSignal<string | null>(null);
   const [expandedRules, setExpandedRules] = createSignal<string[]>([]);
   let scrollContainerRef: HTMLDivElement | undefined;
 
@@ -119,6 +135,15 @@ export default function Rules() {
     },
   });
 
+  function getItemKey(
+    item: FilterRule | FilterItem,
+    parentRuleId?: string,
+  ): string {
+    return "actions" in item
+      ? `rule-${item.id}`
+      : `item-${parentRuleId}-${item.name}`;
+  }
+
   function setExpanded(id: string, enabled: boolean) {
     if (!enabled) {
       setExpandedRules(expandedRules().filter((entry) => entry !== id));
@@ -132,14 +157,27 @@ export default function Rules() {
     }
   }
 
+  function onDragStart({ draggable }: DragEvent) {
+    setMoving(draggable.id as string);
+  }
+
   function onDragEnd({ draggable, droppable }: DragEvent) {
     if (draggable && droppable && store.filter) {
       moveRule(store.filter, String(draggable.id), String(droppable.id));
     }
+    setMoving(null);
   }
 
+  createEffect(() => {
+    console.log(isMoving());
+  });
+
   return (
-    <DragDropProvider onDragEnd={onDragEnd} collisionDetector={closestCenter}>
+    <DragDropProvider
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      collisionDetector={closestCenter}
+    >
       <DragDropSensors />
       <div class='flex flex-col gap-1 h-full m-1 pb-2'>
         <SortableProvider
@@ -160,7 +198,6 @@ export default function Rules() {
               <For each={virtualizer.getVirtualItems()}>
                 {(virtual) => {
                   const entry = () => filteredItems()[virtual.index];
-                  const currentEntry = entry();
 
                   return (
                     <div
@@ -172,9 +209,7 @@ export default function Rules() {
                       class='absolute top-0 left-0 w-full overflow-x-hidden pr-1'
                       style={{
                         ...(activeStickyIndex() === virtual.index &&
-                        currentEntry &&
-                        "actions" in currentEntry.item &&
-                        expandedRules().includes(currentEntry.item.id)
+                        expandedRules().includes(entry().ruleId)
                           ? {
                               position: "sticky",
                               "z-index": 1,
@@ -190,7 +225,7 @@ export default function Rules() {
                         if (!currentEntry) return null;
 
                         return "actions" in currentEntry.item ? (
-                          <Rule
+                          <SortableRule
                             rule={currentEntry.item as FilterRule}
                             expanded={expandedRules().includes(
                               currentEntry.item.id,
@@ -216,7 +251,15 @@ export default function Rules() {
       <DragOverlay>
         {(draggable) => {
           if (!draggable) return null;
-          return <div class='sortable cursor-grab'>{draggable.data.name}</div>;
+          return (
+            <div class='sortable cursor-grab'>
+              <Rule
+                rule={draggable.data as FilterRule}
+                expanded={false}
+                setExpanded={setExpanded}
+              />
+            </div>
+          );
         }}
       </DragOverlay>
     </DragDropProvider>
