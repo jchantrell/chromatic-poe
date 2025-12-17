@@ -17,7 +17,7 @@ import {
   type DragEvent,
 } from "@thisbeyond/solid-dnd";
 import Fuse from "fuse.js";
-import { createEffect, createMemo, createSignal, For } from "solid-js";
+import { createEffect, createMemo, createSignal, For, Index } from "solid-js";
 import CreateRule from "./create-rule";
 import Item from "./item";
 import Rule from "./rule-menu-entry";
@@ -195,54 +195,41 @@ export default function Rules() {
                 height: `${virtualizer.getTotalSize()}px`,
               }}
             >
-              <For each={virtualizer.getVirtualItems()}>
-                {(virtual) => {
-                  const entry = () => filteredItems()[virtual.index];
-
-                  return (
-                    <div
-                      data-index={virtual.index}
-                      data-key={virtual.key}
-                      ref={(el) =>
-                        queueMicrotask(() => virtualizer.measureElement(el))
-                      }
-                      class='absolute top-0 left-0 w-full overflow-x-hidden pr-1'
-                      style={{
-                        ...(activeStickyIndex() === virtual.index &&
-                        expandedRules().includes(entry().ruleId)
-                          ? {
-                              position: "sticky",
-                              "z-index": 1,
-                            }
-                          : {
-                              position: "absolute",
-                              transform: `translateY(${virtual.start}px)`,
-                            }),
-                      }}
-                    >
-                      {(() => {
-                        const currentEntry = entry();
-                        if (!currentEntry) return null;
-
-                        return "actions" in currentEntry.item ? (
-                          <SortableRule
-                            rule={currentEntry.item as FilterRule}
-                            expanded={expandedRules().includes(
-                              currentEntry.item.id,
-                            )}
-                            setExpanded={setExpanded}
-                          />
-                        ) : (
-                          <Item
-                            item={currentEntry.item as FilterItem}
-                            setHovered={() => null}
-                          />
-                        );
-                      })()}
-                    </div>
-                  );
-                }}
-              </For>
+              {virtualizer.getVirtualItems().map((virtualItem) => {
+                const item = filteredItems()[virtualItem.index];
+                return (
+                  <div
+                    data-key={item.key}
+                    style={{
+                      position:
+                        activeStickyIndex() === virtualItem.index
+                          ? "sticky"
+                          : "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: `${virtualItem.size}px`,
+                      transform:
+                        activeStickyIndex() === virtualItem.index
+                          ? ``
+                          : `translateY(${virtualItem.start}px)`,
+                      "z-index":
+                        activeStickyIndex() === virtualItem.index ? `1` : `0`,
+                      padding: "0 8px",
+                    }}
+                  >
+                    {"actions" in item.item ? (
+                      <SortableRule
+                        rule={item.item}
+                        expanded={expandedRules().includes(item.item.id)}
+                        setExpanded={setExpanded}
+                      />
+                    ) : (
+                      <Item item={item.item} setHovered={() => null} />
+                    )}
+                  </div>
+                );
+              })}
             </ul>
           </div>
         </SortableProvider>
