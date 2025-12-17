@@ -19,6 +19,7 @@ export enum TableNames {
   Stats = "Stats",
   AttributeRequirements = "AttributeRequirements",
   MinimapIcons = "MinimapIcons",
+  HeistObjectives = "HeistObjectives",
 }
 
 export const TABLES = Object.values(TableNames);
@@ -58,6 +59,8 @@ WITH ITEMS AS (
 
   ${TableNames.BaseItemTypes}.Height as 'height',
   ${TableNames.BaseItemTypes}.Width as 'width',
+
+  ${TableNames.HeistObjectives}.Name as 'heistObj',
 
   ${TableNames.ItemClasses}.CanBeCorrupted as corruptable,
   (CASE
@@ -102,10 +105,14 @@ WITH ITEMS AS (
   LEFT JOIN ${TableNames.CurrencyItems}
   ON ${TableNames.BaseItemTypes}._index = ${TableNames.CurrencyItems}.BaseItemTypesKey
 
-  WHERE ${TableNames.BaseItemTypes}.Name != '' AND ${TableNames.BaseItemTypes}.Name IS NOT NULL
-)
+  LEFT JOIN ${TableNames.HeistObjectives}
+  ON ${TableNames.BaseItemTypes}._index = ${TableNames.HeistObjectives}.BaseItemType
 
--- Weapons
+  WHERE ${TableNames.BaseItemTypes}.Name != '' AND ${TableNames.BaseItemTypes}.Name IS NOT NULL
+),
+
+JEJI AS (
+
 SELECT DISTINCT
 name,
 'Weapons' AS category,
@@ -117,8 +124,6 @@ FROM ITEMS
 WHERE category IN ('Two Hand Sword', 'Two Hand Axe', 'Two Hand Mace', 'One Hand Sword', 'One Hand Axe', 'One Hand Mace', 'Bow', 'Crossbow', 'Wand', 'Staff', 'Claw', 'Sceptre', 'Spear', 'Dagger')
 
 UNION ALL
-
--- Offhands
 SELECT DISTINCT
 name,
 'Off-hands' AS category,
@@ -144,8 +149,6 @@ FROM ITEMS
 WHERE category IN ('Shield', 'Foci', 'Quiver') 
 
 UNION ALL
-
--- Armour
 SELECT DISTINCT
 name,
 'Armour' AS category,
@@ -175,8 +178,6 @@ FROM ITEMS
 WHERE category IN ('Helmet', 'Body Armour', 'Boots', 'Gloves')
 
 UNION ALL
-
--- Jewellery
 SELECT DISTINCT
 name,
 'Jewellery' AS category,
@@ -188,8 +189,6 @@ FROM ITEMS
 WHERE category IN ('Ring', 'Amulet', 'Belt')
 
 UNION ALL
-
--- Flasks
 SELECT DISTINCT
 name,
 'Flasks' AS category,
@@ -201,8 +200,6 @@ FROM ITEMS
 WHERE category IN ('Flask', 'Tincture') 
 
 UNION ALL
-
--- Jewels
 SELECT DISTINCT
 name,
 'Jewels' AS category,
@@ -230,8 +227,6 @@ FROM ITEMS
 WHERE category IN ('Jewel', 'Abyss Jewel')
 
 UNION ALL
-
--- Pieces
 SELECT DISTINCT
 name,
 'Uniques' AS category,
@@ -242,10 +237,7 @@ ${extraFields}
 FROM ITEMS
 WHERE class = 'Pieces'
 
-
 UNION ALL
-
--- Gems
 SELECT DISTINCT
 name,
 'Gems' AS category,
@@ -283,8 +275,6 @@ FROM ITEMS
 WHERE category IN ('Skill Gem', 'Support Gem') AND name NOT LIKE '%]%' AND name NOT IN ('Coming Soon', 'Shroud', 'WIP Support', 'Vaal Soul Harvesting')
 
 UNION ALL
-
--- Lifeforce
 SELECT DISTINCT
 name,
 'Currency' AS category,
@@ -296,8 +286,6 @@ FROM ITEMS
 WHERE exchangeCategory = 'Lifeforce'
 
 UNION ALL
-
--- Divination Cards
 SELECT DISTINCT
 name,
 'Divination Cards' AS category,
@@ -313,8 +301,6 @@ FROM ITEMS
 WHERE class = 'Divination Cards'
 
 UNION ALL
-
--- Maps
 SELECT DISTINCT
 name,
 'Maps' AS category,
@@ -336,8 +322,6 @@ FROM ITEMS
 WHERE class = 'Maps' AND name != 'The Shaper''s Realm'
 
 UNION ALL
-
--- Scarabs
 SELECT DISTINCT
 name,
 'Scarabs' as category,
@@ -349,8 +333,6 @@ FROM ITEMS
 WHERE exchangeCategory = 'Scarabs'
 
 UNION ALL
-
--- Fragments
 SELECT DISTINCT
 name,
 'Fragments' AS category,
@@ -359,12 +341,21 @@ null as type,
 price AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE exchangeCategory = 'Fragments'
-
+WHERE exchangeCategory = 'Fragments' AND exchangeSubCategory != 'Embers of the Allflame'
 
 UNION ALL
+SELECT
+name,
+'Fragments' AS category,
+'Embers of the Allflame',
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name LIKE 'Allflame Ember of%'
+-- OR class IN ('Embers of the Allflame')
 
--- Heist
+UNION ALL
 SELECT DISTINCT
 name,
 'Leagues' as category,
@@ -600,7 +591,7 @@ null as type,
 price AS score, 
 ${extraFields}
 FROM ITEMS
-WHERE name = 'Forbidden Tome'
+WHERE name = 'Forbidden Tome' OR class in ('Sanctum Research')
 
 UNION ALL
 
@@ -737,7 +728,6 @@ ${extraFields}
 FROM ITEMS
 WHERE class = 'Corpses'
 
-
 UNION ALL
 
 -- Vault Keys
@@ -750,6 +740,255 @@ price AS score,
 ${extraFields}
 FROM ITEMS
 WHERE class = 'Vault Keys'
+
+UNION ALL
+SELECT
+name,
+'Leagues' AS category,
+'Keepers' AS class,
+class as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class IN ('Grafts', 'Wombgifts')
+
+
+UNION ALL
+SELECT
+name,
+'Scarabs' AS category,
+'Legacy' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Map Fragments' AND name LIKE '%Scarab%'
+
+UNION ALL
+SELECT
+name,
+'Fragments' AS category,
+'Legacy' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Map Fragments' AND (name LIKE '% Lure' OR name LIKE ' ''s Key%')
+
+UNION ALL
+SELECT
+name,
+'Fragments' AS category,
+'Ritual Fragments' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name = 'Blood-filled Vessel'
+
+UNION ALL
+SELECT
+name,
+'Weapons' AS category,
+'Fishing Rods' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name = 'Fishing Rod'
+
+UNION ALL
+SELECT
+name,
+'Quest' AS category,
+'Pantheon' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class IN ('Pantheon Souls')
+
+UNION ALL
+SELECT
+name,
+'Quest' AS category,
+'Watchstones' as class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class IN ('Atlas Upgrade Items')
+
+UNION ALL
+SELECT
+name,
+'Quest' AS category,
+'Miscellaneous' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name IN ('Serpent Extract')
+
+UNION ALL
+SELECT
+name,
+'Quest' AS category,
+'Labyrinth' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class IN ('Labyrinth Trinkets', 'Labyrinth Items')
+
+UNION ALL
+SELECT
+name,
+'Quest' AS category,
+'Incursion' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Incursion Items'
+
+UNION ALL
+SELECT
+name,
+'Fragments' AS category,
+'Miscellaneous' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Misc Map Items'
+
+UNION ALL
+SELECT
+name,
+'Currency' AS category,
+'Scouting Reports' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name LIKE '%Scouting Report%'
+
+UNION ALL
+SELECT
+name,
+'Leagues' AS category,
+'Tattoos' AS class,
+'Legacy' as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name LIKE '%Tattoo%'
+AND class = 'Stackable Currency'
+AND exchangeCategory IS NULL
+
+UNION ALL
+SELECT
+name,
+'Leagues' AS category,
+'Omens' AS class,
+'Legacy' as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name LIKE 'Omen of%'
+AND class = 'Stackable Currency'
+AND exchangeCategory IS NULL
+
+UNION ALL
+SELECT
+name,
+'Currency' AS category,
+'Miscellaneous' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Stackable Currency'
+AND exchangeCategory IS NULL
+AND name NOT LIKE 'Omen of%'
+AND name NOT LIKE '%Tattoo%'
+AND name NOT LIKE '%[%'
+AND name != 'Fine Delirium Orb'
+
+UNION ALL
+SELECT
+name,
+'Leagues' AS category,
+'Heist' AS class,
+'Quest Contracts' as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name LIKE 'Contract: %'
+AND class = 'Quest Items'
+
+UNION ALL
+SELECT
+name,
+'Quest' AS category,
+'Legacy' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Quest Items'
+AND (
+  name LIKE 'Shaper''s Orb%'
+  OR name LIKE 'Memory Fragment%'
+  OR name IN ('Elder''s Orb', 'The Shaper''s Key')
+  )
+
+UNION ALL
+SELECT
+name,
+'Leagues' AS category,
+'Heist' AS class,
+'Heist Targets' as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Quest Items'
+AND heistObj IS NOT NULL
+
+UNION ALL
+SELECT
+name,
+'Quest' AS category,
+'Common' AS class,
+null as type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE class = 'Quest Items'
+AND NOT (
+  name LIKE 'Shaper''s Orb%'
+  OR name LIKE 'Memory Fragment%'
+  OR name IN ('Elder''s Orb', 'The Shaper''s Key')
+  )
+AND heistObj IS NULL
+
+)
+
+SELECT * FROM JEJI
+UNION ALL
+SELECT
+name,
+'Unknown' AS category,
+class,
+null type,
+price AS score, 
+${extraFields}
+FROM ITEMS
+WHERE name NOT IN (SELECT name FROM JEJI)
+AND name NOT LIKE '%[%'
+AND name NOT IN ('Archnemesis Mod', 'Wrapped Gift', 'The Shaper''s Realm')
+AND class NOT IN ('Instance Local Items', 'Microtransactions', 'Hidden Items')
 `;
 
 export const V2_ITEMS_QUERY = `
@@ -1242,11 +1481,15 @@ WHERE class = 'Vault Keys'
 
 const V1_UNIQUES_QUERY = `
 SELECT DISTINCT
-${TableNames.Words}.Text as name,
+(CASE
+  WHEN ${TableNames.Words}.Text != ${TableNames.Words}.Text2
+  THEN ${TableNames.Words}.Text2
+  ELSE ${TableNames.Words}.Text
+END) AS name,
 'Uniques' as category,
 ${TableNames.UniqueStashTypes}.Name as class,
 null as type,
-0 AS score, 
+0 AS score, -- dust value maybe?
 Visuals.DDSFile as art,
 null as height,
 null as width,
@@ -1261,11 +1504,18 @@ LEFT JOIN ${TableNames.ItemVisualIdentity} AS Visuals
 ON ${TableNames.UniqueStashLayout}.ItemVisualIdentityKey = Visuals._index
 WHERE ${TableNames.UniqueStashLayout}.IsAlternateArt = 0 AND
 ${TableNames.UniqueStashLayout}.RenamedVersion IS NULL
+AND ${TableNames.Words}.Text NOT IN ('Bloodboil', 'Iron Heart', 'Contract: Jamanra''s Rest')
+AND ${TableNames.Words}.Text2 NOT IN ('Irresistible Temptation')
+ORDER BY name
 `;
 
 const V2_UNIQUES_QUERY = `
 SELECT DISTINCT
-${TableNames.Words}.Text as name,
+(CASE
+  WHEN ${TableNames.Words}.Text != ${TableNames.Words}.Text2
+  THEN ${TableNames.Words}.Text2
+  ELSE ${TableNames.Words}.Text
+END) AS name,
 'Uniques' as category,
 ${TableNames.UniqueStashTypes}.Name as class,
 null as type,
