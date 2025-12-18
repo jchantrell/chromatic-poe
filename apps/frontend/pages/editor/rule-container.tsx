@@ -17,7 +17,7 @@ import {
   useDragDropContext,
 } from "@thisbeyond/solid-dnd";
 import Fuse from "fuse.js";
-import { createEffect, createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal } from "solid-js";
 import CreateRule from "./create-rule";
 import Item from "./item";
 import Rule from "./rule-menu-entry";
@@ -55,7 +55,6 @@ function SortableRule(props: {
 
 export default function Rules() {
   const [searchTerm, setSearchTerm] = createSignal("");
-  const [isMoving, setMoving] = createSignal<string | null>(null);
   const [expandedRules, setExpandedRules] = createSignal<string[]>([]);
   let scrollContainerRef: HTMLDivElement | undefined;
 
@@ -157,27 +156,14 @@ export default function Rules() {
     }
   }
 
-  function onDragStart({ draggable }: DragEvent) {
-    setMoving(draggable.id as string);
-  }
-
   function onDragEnd({ draggable, droppable }: DragEvent) {
     if (draggable && droppable && store.filter) {
       moveRule(store.filter, String(draggable.id), String(droppable.id));
     }
-    setMoving(null);
   }
 
-  createEffect(() => {
-    console.log(isMoving());
-  });
-
   return (
-    <DragDropProvider
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      collisionDetector={closestCenter}
-    >
+    <DragDropProvider onDragEnd={onDragEnd} collisionDetector={closestCenter}>
       <DragDropSensors />
       <div class='flex flex-col gap-1 h-full m-1 pb-2'>
         <SortableProvider
