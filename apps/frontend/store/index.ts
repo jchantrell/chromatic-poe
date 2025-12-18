@@ -16,6 +16,11 @@ interface Store {
   appNeedsRestart: boolean;
   patchLoaded: boolean;
   poeCurrentVersions: { poe1: string; poe2: string } | null;
+  iconSpritesheet: {
+    url: string | undefined;
+    height: number;
+    width: number;
+  };
 }
 
 export const store = createMutable<Store>({
@@ -29,6 +34,11 @@ export const store = createMutable<Store>({
   appNeedsRestart: false,
   patchLoaded: false,
   poeCurrentVersions: null,
+  iconSpritesheet: {
+    url: undefined,
+    height: 0,
+    width: 0,
+  },
 });
 
 export function removeFilter(filter: Filter) {
@@ -69,12 +79,20 @@ export async function setSounds(sounds: Sound[]) {
   store.sounds = sounds;
 }
 
+export function setIconSpritesheet(data: {
+  url: string | undefined;
+  height: number;
+  width: number;
+}) {
+  store.iconSpritesheet = data;
+}
+
 export async function refreshSounds() {
   if (!store.initialised) {
     return;
   }
   console.log("Refreshing sounds...");
-  const [err, cachedSounds] = await to(chromatic.getSounds());
+  const [err, cachedSounds] = await to(chromatic.getSounds(1));
   if (err) {
     toast.error("Cannot find sounds folder. Does it exist?");
     setSounds([]);

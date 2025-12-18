@@ -10,7 +10,7 @@ import {
 import BeamPicker from "@app/pages/editor/beam-picker";
 import ColorPicker from "@app/pages/editor/color-picker";
 import MapIconPicker from "@app/pages/editor/map-icon-picker";
-import { store } from "@app/store";
+import { setActiveRule, store } from "@app/store";
 import { Checkbox } from "@app/ui/checkbox";
 import { Label } from "@app/ui/label";
 import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
@@ -225,24 +225,36 @@ function RuleActions() {
 export default function RuleEditor() {
   if (!store.activeRule) return null;
 
+  function handleNameChange(e: Event) {
+    if (e.target instanceof HTMLInputElement && store.activeRule) {
+      store.activeRule.name = e.target.value;
+    }
+  }
+
+  function setActiveRuleToNone() {
+    setActiveRule(null);
+  }
+
   return (
     <div class='inset-0 size-full flex flex-col items-center bg-muted/80 overflow-hidden flex-1 min-h-0 @container'>
-      <div class='w-full pt-2 pl-2 shrink-0'>
+      <div class='w-full p-1 shrink-0 flex'>
+        <span class='text-xl w-full justify-center'>
+          <input
+            class={`bg-transparent py-1 px-2  mt-1 ml-2 border-none field-sizing-content`}
+            type='text'
+            value={store.activeRule.name}
+            onChange={handleNameChange}
+          />
+        </span>
         <Tooltip text={"Close rule editor"}>
           <button
             type='button'
-            class='p-1 flex items-center justify-center w-6 h-6 bg-muted text-center cursor-pointer rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-expanded:bg-accent data-expanded:text-muted-foreground
-            '
-            onMouseDown={() => {
-              store.activeRule = null;
-            }}
+            class='p-0.5 mr-1 flex items-center border border-muted-foreground/60 justify-center w-6 h-6 bg-secondary text-center cursor-pointer rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-expanded:bg-accent data-expanded:text-muted-foreground'
+            onMouseDown={setActiveRuleToNone}
           >
             <CloseIcon />
           </button>
         </Tooltip>
-        <span class='ml-3 text-xl w-full justify-center'>
-          Editing {store.activeRule.name}
-        </span>
       </div>
       <div class='flex justify-between w-full flex-1 min-h-0 pb-2'>
         <div class='px-5 flex flex-col overflow-hidden gap-1 @xl:max-w-xl w-full flex-1 min-h-0'>

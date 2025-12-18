@@ -5,24 +5,14 @@ import {
   setMapIconSize,
 } from "@app/lib/commands";
 import { dat } from "@app/lib/dat";
-import { SHEET_HEIGHT, SHEET_WIDTH } from "@app/lib/minimap";
 import { store } from "@app/store";
 import { Popover, PopoverContent, PopoverTrigger } from "@app/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@app/ui/radio-group";
-import {
-  createEffect,
-  createResource,
-  createSignal,
-  For,
-  on,
-  onMount,
-} from "solid-js";
+import { createEffect, createSignal, For, on, onMount } from "solid-js";
 
 const PREVIEW_SCALE = 2; // magic number
 
 export function MinimapIcon(props: {
-  sheet?: string;
-  sheetHeight?: number;
   size: IconSize;
   scale: number;
   color: Color;
@@ -31,11 +21,11 @@ export function MinimapIcon(props: {
   return (
     <div
       style={{
-        "background-image": `url(${props.sheet})`,
+        "background-image": `url(${store.iconSpritesheet.url})`,
         height: `calc(64px / ${props.scale})`,
         width: `calc(64px / ${props.scale})`,
         "background-position": `calc(-${dat.minimap.coords?.[props.color][props.shape][props.size].x}px / ${props.scale}) calc(-${dat.minimap.coords?.[props.color][props.shape][props.size].y}px / ${props.scale})`,
-        "background-size": `calc(${SHEET_WIDTH}px / ${props.scale}) calc(${props.sheetHeight}px / ${props.scale})`,
+        "background-size": `calc(${store.iconSpritesheet.width}px / ${props.scale}) calc(${store.iconSpritesheet.height}px / ${props.scale})`,
       }}
     />
   );
@@ -53,22 +43,6 @@ function MapIconPicker() {
   const [color, setColor] = createSignal<Color>(
     store.activeRule?.actions.icon?.color || Color.Red,
   );
-
-  const [icons] = createResource(async () => {
-    const url = await dat.getArt("minimap");
-    const img = new Image();
-
-    await new Promise((res, rej) => {
-      img.onload = res;
-      img.onerror = rej;
-      img.src = url || "";
-    });
-
-    const width = img.naturalWidth;
-    const height = img.naturalHeight;
-
-    return { url, height, width };
-  });
 
   onMount(() => {
     window.addEventListener("resize", () => {
@@ -121,8 +95,6 @@ function MapIconPicker() {
             {store.activeRule?.actions.icon?.enabled ? (
               <PopoverTrigger class='cursor-pointer'>
                 <MinimapIcon
-                  sheet={icons()?.url}
-                  sheetHeight={icons()?.height}
                   scale={PREVIEW_SCALE}
                   size={store.activeRule.actions.icon.size}
                   shape={store.activeRule.actions.icon.shape}
@@ -150,8 +122,6 @@ function MapIconPicker() {
                       }}
                     >
                       <MinimapIcon
-                        sheet={icons()?.url}
-                        sheetHeight={icons()?.height}
                         scale={scale()}
                         color={color()}
                         size={size()}

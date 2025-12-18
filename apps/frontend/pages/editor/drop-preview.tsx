@@ -1,6 +1,5 @@
-import { dat } from "@app/lib/dat";
 import type { FilterRule } from "@app/lib/filter";
-import { createResource } from "solid-js";
+import { store } from "@app/store";
 import { MinimapIcon } from "./map-icon-picker";
 
 export function DropPreview(props: {
@@ -10,22 +9,6 @@ export function DropPreview(props: {
   iconScale?: number;
 }) {
   if (!props.rule) return null;
-
-  const [icons] = createResource(async () => {
-    const url = await dat.getArt("minimap");
-    const img = new Image();
-
-    await new Promise((res, rej) => {
-      img.onload = res;
-      img.onerror = rej;
-      img.src = url || "";
-    });
-
-    const width = img.naturalWidth;
-    const height = img.naturalHeight;
-
-    return { url, height, width };
-  });
 
   return (
     <div
@@ -41,10 +24,10 @@ export function DropPreview(props: {
       }}
     >
       <div class='mr-1'>
-        {props.rule.actions.icon?.enabled && props.showIcon ? (
+        {props.rule.actions?.icon?.enabled && props.showIcon ? (
           <MinimapIcon
-            sheet={icons()?.url}
-            sheetHeight={icons()?.height}
+            sheet={store.iconSpritesheet.url}
+            sheetHeight={store.iconSpritesheet.height}
             scale={props?.iconScale || 2}
             size={props.rule.actions.icon?.size}
             shape={props.rule.actions.icon?.shape}

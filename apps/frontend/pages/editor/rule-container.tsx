@@ -11,13 +11,13 @@ import {
   createSortable,
   DragDropProvider,
   DragDropSensors,
+  type DragEvent,
   DragOverlay,
   SortableProvider,
   useDragDropContext,
-  type DragEvent,
 } from "@thisbeyond/solid-dnd";
 import Fuse from "fuse.js";
-import { createEffect, createMemo, createSignal, For, Index } from "solid-js";
+import { createEffect, createMemo, createSignal } from "solid-js";
 import CreateRule from "./create-rule";
 import Item from "./item";
 import Rule from "./rule-menu-entry";
@@ -200,6 +200,7 @@ export default function Rules() {
                 return (
                   <div
                     data-key={item.key}
+                    class='pr-1'
                     style={{
                       position:
                         activeStickyIndex() === virtualItem.index
@@ -211,11 +212,10 @@ export default function Rules() {
                       height: `${virtualItem.size}px`,
                       transform:
                         activeStickyIndex() === virtualItem.index
-                          ? ``
+                          ? ""
                           : `translateY(${virtualItem.start}px)`,
                       "z-index":
-                        activeStickyIndex() === virtualItem.index ? `1` : `0`,
-                      padding: "0 8px",
+                        activeStickyIndex() === virtualItem.index ? 1 : 0,
                     }}
                   >
                     {"actions" in item.item ? (

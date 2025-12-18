@@ -4,11 +4,16 @@ import type { Item } from "@app/lib/filter";
 import { itemIndex } from "@app/lib/items";
 import { type Mod, modIndex } from "@app/lib/mods";
 import { to } from "@app/lib/utils";
-import { setFilter, setPatchLoaded, store } from "@app/store";
+import {
+  setFilter,
+  setIconSpritesheet,
+  setPatchLoaded,
+  store,
+} from "@app/store";
 import { Resizable, ResizableHandle, ResizablePanel } from "@app/ui/resizable";
 import { useColorMode } from "@kobalte/core";
 import { useParams } from "@solidjs/router";
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, onMount } from "solid-js";
 import { toast } from "solid-sonner";
 import Preview from "./filter-preview";
 import Rules from "./rule-container";
@@ -84,6 +89,17 @@ export default function Editor() {
       console.error("Failed to load data", dataError);
       return;
     }
+
+    const url = await dat.getArt("minimap");
+    const img = new Image();
+    await new Promise((res, rej) => {
+      img.onload = res;
+      img.onerror = rej;
+      img.src = url || "";
+    });
+    const width = img.naturalWidth;
+    const height = img.naturalHeight;
+    setIconSpritesheet({ url, height, width });
 
     if (gameVersion === 1) {
       itemIndex.initV1(data.items as Item[], patch);

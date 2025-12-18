@@ -29,19 +29,27 @@ export default function Rule(props: {
   expanded: boolean;
   setExpanded: (id: string, expanded: boolean) => void;
 }) {
-  const [editNameActive, setEditNameActive] = createSignal(false);
   const [selected, setSelected] = createSignal<boolean>(false);
   const [hovered, setHovered] = createSignal(false);
   const [previewWidth, setPreviewWidth] = createSignal(0);
 
   let previewRef: HTMLDivElement | undefined;
-  function onMouseDown(e: MouseEvent) {
+
+  function setRuleActive(e: MouseEvent) {
     e.stopPropagation();
     if (e.button === 0 && !e.shiftKey) {
       store.activeRule = props.rule;
     }
     if (e.button === 0 && e.shiftKey) {
       handleActive();
+    }
+  }
+
+  function setExpanded(e: MouseEvent) {
+    e.stopPropagation();
+    if (!props.rule.bases.length) return;
+    if (e.button === 0 && !e.shiftKey) {
+      props.setExpanded(props.rule.id, !props.expanded);
     }
   }
 
@@ -112,10 +120,6 @@ export default function Rule(props: {
     addParentRefs([props.rule]);
   });
 
-  createEffect(() => {
-    setEditNameActive(store.activeRule?.id === props.rule.id);
-  });
-
   onMount(() => {
     if (!previewRef) return;
 
@@ -132,18 +136,18 @@ export default function Rule(props: {
       <ContextMenu>
         <ContextMenuTrigger>
           <div
-            class={`h-12 w-full flex cursor-pointer items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()}`}
+            class={`h-12 w-full flex items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()}`}
             onMouseOut={() => setHovered(false)}
             onMouseOver={() => setHovered(true)}
             onFocus={() => null}
             onBlur={() => null}
             ref={previewRef}
           >
-            <div class='m-1 flex items-center w-full'>
-              <div
-                class='text-xl p-1 flex w-full items-center'
-                onMouseUp={onMouseDown}
-              >
+            <div
+              class='m-1 flex items-center w-full text-xl p-1 cursor-pointer'
+              onMouseUp={setRuleActive}
+            >
+              <div class='text-xl p-1 flex w-full items-center'>
                 <div
                   class={`w-16 flex items-center mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
                 >
@@ -154,10 +158,11 @@ export default function Rule(props: {
                   )}
                 </div>
                 <input
-                  class={`bg-transparent py-1 px-2 border-none field-sizing-content ${editNameActive() ? "pointer-events-auto" : "pointer-events-none"} `}
+                  class={`bg-transparent py-1 px-2 border-none field-sizing-content`}
                   type='text'
                   value={props.rule.name}
                   onChange={handleNameChange}
+                  onMouseUp={(evt) => evt.stopPropagation()}
                 />
               </div>
             </div>
@@ -173,13 +178,7 @@ export default function Rule(props: {
               </div>
               <div
                 class={`flex items-center h-11 p-1 ${!props.rule.bases.length ? "opacity-0" : "hover:text-accent-foreground/60"}`}
-                onMouseDown={(e: MouseEvent) => {
-                  e.stopPropagation();
-                  if (!props.rule.bases.length) return;
-                  if (e.button === 0 && !e.shiftKey) {
-                    props.setExpanded(props.rule.id, !props.expanded);
-                  }
-                }}
+                onMouseDown={setExpanded}
               >
                 {props.expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
               </div>
