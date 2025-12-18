@@ -1,38 +1,31 @@
-name: 'Release'
+name: Release
 
 on:
   push:
-    tags:
-      - "v*.*.*"
-
-defaults:
-  run:
-    shell: bash
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    branches:
+      - main
 
 jobs:
-  generate-changelog:
-    name: Generate changelog
-    runs-on: ubuntu-22.04
+  manage-release:
+    name: 'Manage Release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
     outputs:
-      release_body: ${{ steps.git-cliff.outputs.content }}
+      release_created: ${{ steps.release.outputs.release_created }}
+      release_description: ${{ steps.release.outputs.body }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: googleapis/release-please-action@v4
+        id: release
         with:
-          fetch-depth: 0
-      - name: Generate a changelog
-        uses: orhun/git-cliff-action@v3
-        id: git-cliff
-        with:
-          config: cliff.toml
-          args: -vv --latest --no-exec --github-repo ${{ github.repository }}
+          manifest-file: release-please-manifest.json
 
-  build:
-    needs: generate-changelog
+  deploy:
+    needs: manage-release
+    if: needs.manage-release.outputs.release_created == 'true'
     permissions:
       contents: write
       pages: write
@@ -59,25 +52,18 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf imagemagick
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
           pnpm config set script-shell "/usr/bin/bash"
-
-      - name: Install latest ImageMagick
-        if: matrix.platform == 'ubuntu-22.04'
-        uses: mfinelli/setup-imagemagick@v5
-        with:
-          cache: true
 
       - name: Install Windows build dependencies
         if: matrix.platform == 'windows-latest'
         run: |
-          choco install -y imagemagick
           pnpm config set script-shell "C:\\Program Files\\git\\bin\\bash.exe"
 
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: lts/*
           cache: 'pnpm'
 
       - name: Install Rust
@@ -90,19 +76,18 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Extract and migrate game files
-        run: ./ci/setup.sh
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
 
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-
         with:
-          tagName: v__VERSION__
-          releaseName: 'Chromatic PoE v__VERSION__'
-          releaseBody: "${{ needs.generate-changelog.outputs.release_body }}"
+          tagName: ${{ needs.manage-release.outputs.tag_name }}
+          releaseName: 'Chromatic PoE ${{ needs.manage-release.outputs.tag_name }}'
+          releaseBody: "${{ needs.manage-release.outputs.release_description }}"
           releaseDraft: false
           prerelease: false
           includeUpdaterJson: true
