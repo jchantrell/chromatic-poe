@@ -66,7 +66,7 @@ export default function SoundManager() {
             displayName: file.name,
             id: file.name,
             path: `sounds/${file.name}`,
-            data: new Blob([file]),
+            data: file,
             type: "custom",
           });
           continue;
@@ -75,7 +75,7 @@ export default function SoundManager() {
           setSounds(
             store.sounds.map((sound) =>
               sound.id === exists.id
-                ? { ...sound, data: new Blob([file]), type: "custom" }
+                ? { ...sound, data: file, type: "custom" }
                 : sound,
             ),
           );

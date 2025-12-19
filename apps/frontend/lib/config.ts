@@ -2,7 +2,7 @@ import { alphabeticalSort, stringifyJSON, to } from "@app/lib/utils";
 import { setInitialised, setLocale, store } from "@app/store";
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
-import { documentDir, homeDir } from "@tauri-apps/api/path";
+import { documentDir, homeDir, sep } from "@tauri-apps/api/path";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   exists,
@@ -273,17 +273,12 @@ class Chromatic {
     if (this.runtime === "web") {
       const filename = `${filter.name}.filter`;
       const blob = new Blob([filter.serialize()], { type: "text" });
-      if (window.navigator?.msSaveOrOpenBlob) {
-        window.navigator.msSaveBlob(blob, filename);
-      } else {
-        const elem = window.document.createElement("a");
-        elem.href = window.URL.createObjectURL(blob);
-        elem.download = filename;
-        document.body.appendChild(elem);
-        elem.click();
-        document.body.removeChild(elem);
-      }
-      toast("Exported filter. Check your downloads folder.");
+      const elem = window.document.createElement("a");
+      elem.href = window.URL.createObjectURL(blob);
+      elem.download = filename;
+      document.body.appendChild(elem);
+      elem.click();
+      document.body.removeChild(elem);
     }
   }
 
@@ -371,18 +366,25 @@ class Chromatic {
     if (this.runtime === "desktop") {
       const dir = await this.getAssumedPoeDirectory(version);
       if (!dir) return [];
-      const soundDir = `${dir}/sounds`;
-      const files = await this.getAllFiles(soundDir, "text");
+      const soundDir = `${dir}${this.sep()}sounds`;
+      const files = await this.getAllFiles(soundDir, "binary");
       return files
-        .filter((file) => file.name.endsWith(".wav")) // TODO: support more files
-        .map((f) => ({
-          ...f,
-          path: f.name,
-          displayName: f.name,
-          id: f.name,
-          type: "custom",
-          data: new Blob(), // FIXME:
-        }));
+        .filter((file) => /\.(wav|mp3|ogg)$/i.test(file.name))
+        .map((f) => {
+          const ext = f.name.split(".").pop()?.toLowerCase();
+          let type = "audio/wav";
+          if (ext === "mp3") type = "audio/mpeg";
+          if (ext === "ogg") type = "audio/ogg";
+
+          return {
+            ...f,
+            path: f.name,
+            displayName: f.name,
+            id: f.name,
+            type: "custom",
+            data: new Blob([f.data], { type }),
+          };
+        });
     }
 
     return sounds;
@@ -455,6 +457,14 @@ class Chromatic {
     if (this.runtime === "web") {
       if (navigator.userAgent.toLowerCase().indexOf("win") > -1) return "\r\n";
       return "\n";
+    }
+  }
+
+  sep() {
+    if (this.runtime === "desktop") return sep();
+    if (this.runtime === "web") {
+      if (navigator.userAgent.toLowerCase().indexOf("win") > -1) return "\\";
+      return "/";
     }
   }
 }
