@@ -27,15 +27,13 @@ function BeamPicker() {
   });
 
   function handleChange(key: "temp" | "color", value: boolean | Color) {
-    console.log(key, value);
-    if (key === "temp") {
+    if (!store.filter || !store.activeRule) return;
+    if (key === "temp" && typeof value === "boolean") {
       setBeamTemp(store.filter, store.activeRule, value);
     }
-    if (key === "color") {
+    if (key === "color" && typeof value !== "boolean") {
       setBeamColor(store.filter, store.activeRule, value);
     }
-
-    console.log(store.activeRule?.actions.beam);
   }
 
   return (
@@ -68,7 +66,7 @@ function BeamPicker() {
           <div class='flex max-w-[200px]'>
             <div class='flex flex-col w-full items-center justify-center py-1 mx-1'>
               <div class='flex'>
-                <Label for='temp-beam'>Temp</Label>
+                <Label>Temp</Label>
                 <Checkbox
                   id='temp-beam'
                   class='ml-1'

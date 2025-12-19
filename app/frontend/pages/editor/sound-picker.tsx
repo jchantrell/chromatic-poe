@@ -164,10 +164,12 @@ export default function SoundPicker() {
   return (
     <>
       <div class='flex text-nowrap items-center h-6'>
-        <Label class='w-[94px]' for='beam'>
-          Alert Sound
-        </Label>
-        <Checkbox id='beam' onChange={handleActive} checked={active()} />
+        <Label class='w-[94px]'>Alert Sound</Label>
+        <Checkbox
+          id='sound-picker'
+          onChange={handleActive}
+          checked={active()}
+        />
         <div class='flex grow-0'>
           {active() && (
             <Tooltip text='Edit sound file'>

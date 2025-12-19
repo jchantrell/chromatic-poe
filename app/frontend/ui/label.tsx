@@ -2,10 +2,10 @@ import { cn } from "@app/lib/utils";
 import type { Component, ComponentProps } from "solid-js";
 import { splitProps } from "solid-js";
 
-const Label: Component<ComponentProps<"label">> = (props) => {
+const Label: Component<ComponentProps<"span">> = (props) => {
   const [local, others] = splitProps(props, ["class"]);
   return (
-    <label
+    <span
       class={cn(
         "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
         local.class,
