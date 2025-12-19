@@ -262,7 +262,7 @@ class Chromatic {
       const version = filter.poePatch.startsWith("3") ? 1 : 2;
       const dir = await this.getAssumedPoeDirectory(version);
       if (!dir) return;
-      const path = `${dir}/${filter.name}.filter`;
+      const path = `${dir}${this.sep()}${filter.name}.filter`;
       await writeTextFile(path, filter.serialize());
       setTimeout(async () => {
         await invoke("reload");
