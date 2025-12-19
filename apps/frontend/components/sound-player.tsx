@@ -2,7 +2,7 @@ import { BASE_URL } from "@app/app";
 import Tooltip from "@app/components/tooltip";
 import { VolumeIcon } from "@app/icons";
 import type { Sound } from "@app/lib/sounds";
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, onCleanup } from "solid-js";
 
 export default function SoundPlayer(props: {
   sound: Sound | null;
@@ -12,7 +12,6 @@ export default function SoundPlayer(props: {
   id?: string | null;
 }) {
   let audioRef: HTMLAudioElement | undefined;
-  const [source, setSource] = createSignal(getSource(props.sound));
   const validAudio =
     props.sound?.data instanceof File ||
     props.sound?.data instanceof Blob ||
@@ -40,10 +39,20 @@ export default function SoundPlayer(props: {
   }
 
   createEffect(() => {
-    setSource(getSource(props.sound));
+    const src = getSource(props.sound);
+
     if (audioRef) {
-      audioRef.src = source();
+      audioRef.src = src;
     }
+
+    onCleanup(() => {
+      if (
+        src &&
+        (props.sound?.data instanceof File || props.sound?.data instanceof Blob)
+      ) {
+        URL.revokeObjectURL(src);
+      }
+    });
   });
 
   return (
@@ -64,10 +73,6 @@ export default function SoundPlayer(props: {
       {validAudio && (
         <audio ref={audioRef}>
           <track kind='captions' />
-          <source
-            src={source()}
-            type={`audio/${props.sound?.path?.split(".")[1]}` || "audio/wav"}
-          />
         </audio>
       )}
     </div>
