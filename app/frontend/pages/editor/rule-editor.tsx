@@ -2,10 +2,10 @@ import Tooltip from "@app/components/tooltip";
 import { CloseIcon } from "@app/icons";
 import { Color, IconSize, Shape } from "@app/lib/action";
 import {
-    setBeamEnabled,
-    setDropSoundEnabled,
-    setDropSoundToggle,
-    setMapIconEnabled,
+  setBeamEnabled,
+  setDropSoundEnabled,
+  setDropSoundToggle,
+  setMapIconEnabled,
 } from "@app/lib/commands";
 import BeamPicker from "@app/pages/editor/beam-picker";
 import ColorPicker from "@app/pages/editor/color-picker";
@@ -242,6 +242,7 @@ export default function RuleEditor() {
           <input
             class={`bg-transparent py-1 px-3  mt-1 ml-2 border-none min-w-0 flex-1`}
             type='text'
+            spellcheck={false}
             value={store.activeRule.name}
             onChange={handleNameChange}
           />

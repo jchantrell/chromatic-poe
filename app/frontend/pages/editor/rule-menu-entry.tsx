@@ -22,8 +22,6 @@ import { createEffect, createSignal, onMount } from "solid-js";
 import { DropPreview } from "./drop-preview";
 import { ItemPicker } from "./item-picker";
 
-const MIN_PREVIEW_WIDTH = 550;
-
 export default function Rule(props: {
   rule: FilterRule;
   expanded: boolean;
@@ -31,7 +29,6 @@ export default function Rule(props: {
 }) {
   const [selected, setSelected] = createSignal<boolean>(false);
   const [hovered, setHovered] = createSignal(false);
-  const [previewWidth, setPreviewWidth] = createSignal(0);
 
   let previewRef: HTMLDivElement | undefined;
 
@@ -120,17 +117,6 @@ export default function Rule(props: {
     addParentRefs([props.rule]);
   });
 
-  onMount(() => {
-    if (!previewRef) return;
-
-    const observer = new ResizeObserver((entries) => {
-      setPreviewWidth(entries[0].contentRect.width);
-    });
-
-    observer.observe(previewRef);
-    return () => observer.disconnect();
-  });
-
   return (
     <Dialog>
       <ContextMenu>
@@ -161,6 +147,7 @@ export default function Rule(props: {
                   id={props.rule.id}
                   class='bg-transparent py-1 px-2 border-none min-w-0 field-sizing-content max-w-full'
                   type='text'
+                  spellcheck={false}
                   value={props.rule.name}
                   onChange={handleNameChange}
                   onMouseUp={(evt) => evt.stopPropagation()}
@@ -173,7 +160,6 @@ export default function Rule(props: {
             >
               <div
                 class={`hidden @sm:flex text-nowrap items-center justify-center border mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
-                style={{}}
               >
                 <DropPreview rule={props.rule} showIcon iconScale={3} />
               </div>
