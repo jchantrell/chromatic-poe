@@ -2,10 +2,10 @@ import Tooltip from "@app/components/tooltip";
 import { CloseIcon } from "@app/icons";
 import { Color, IconSize, Shape } from "@app/lib/action";
 import {
-  setBeamEnabled,
-  setDropSoundEnabled,
-  setDropSoundToggle,
-  setMapIconEnabled,
+    setBeamEnabled,
+    setDropSoundEnabled,
+    setDropSoundToggle,
+    setMapIconEnabled,
 } from "@app/lib/commands";
 import BeamPicker from "@app/pages/editor/beam-picker";
 import ColorPicker from "@app/pages/editor/color-picker";
@@ -238,9 +238,9 @@ export default function RuleEditor() {
   return (
     <div class='inset-0 size-full flex flex-col items-center bg-muted/80 overflow-hidden flex-1 min-h-0 @container'>
       <div class='w-full p-1 shrink-0 flex'>
-        <span class='text-xl w-full justify-center'>
+        <span class='text-xl w-full justify-center flex'>
           <input
-            class={`bg-transparent py-1 px-2  mt-1 ml-2 border-none field-sizing-content`}
+            class={`bg-transparent py-1 px-3  mt-1 ml-2 border-none min-w-0 flex-1`}
             type='text'
             value={store.activeRule.name}
             onChange={handleNameChange}
