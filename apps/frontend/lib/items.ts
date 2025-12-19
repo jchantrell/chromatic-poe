@@ -119,14 +119,14 @@ class ItemIndex {
     return hierarchy;
   }
 
-  search(args: string): FuseResult<Item>[] {
+  search(...args: Parameters<Fuse<Item>["search"]>): FuseResult<Item>[] {
     if (!this.searchIndex) {
       return [];
     }
-    if (!args || (typeof args === "string" && !args.length)) {
+    if (!args || (typeof args[0] === "string" && !args[0].length)) {
       return this.searchIndex.search({ name: "!1234567890" });
     }
-    return this.searchIndex.search(args);
+    return this.searchIndex.search(...args);
   }
 }
 

@@ -1,4 +1,4 @@
-export function LoadCircleIcon(props: any) {
+export function LoadCircleIcon(props: { class?: string }) {
   return (
     <svg
       xmlns='http://www.w3.org/2000/svg'

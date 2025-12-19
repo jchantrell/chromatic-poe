@@ -274,7 +274,7 @@ function readBit(data: Uint8Array, pos: { boff: number }) {
 function readBits(data: Uint8Array, pos: { boff: number }, k: number) {
   let out = 0,
     ok = k;
-  while (k != 0) {
+  while (k !== 0) {
     out = out | (readBit(data, pos) << (ok - k));
     k--;
   }
@@ -282,24 +282,24 @@ function readBits(data: Uint8Array, pos: { boff: number }, k: number) {
 }
 
 function rotate(sqr: Uint8Array, rot: number) {
-  if (rot == 0) return;
+  if (rot === 0) return;
   for (let i = 0; i < 64; i += 4) {
     let r = sqr[i];
     let g = sqr[i + 1];
     let b = sqr[i + 2];
     let a = sqr[i + 3];
 
-    if (rot == 1) {
+    if (rot === 1) {
       const t = a;
       a = r;
       r = t;
     }
-    if (rot == 2) {
+    if (rot === 2) {
       const t = a;
       a = g;
       g = t;
     }
-    if (rot == 3) {
+    if (rot === 3) {
       const t = a;
       a = b;
       b = t;
@@ -323,9 +323,7 @@ function write4x4(
   for (let y = 0; y < 4; y++) {
     if (sy + y >= h) continue;
 
-    // Calculate start index for 'a' (large buffer)
     const si = ((sy + y) * w + sx) << 2;
-    // Calculate 'b' (tile buffer) index
     const ti = y << 4;
 
     for (let x = 0; x < 4; x++) {
@@ -357,7 +355,7 @@ export function decodeBC7(
     [0, 21, 43, 64],
     [0, 9, 18, 27, 37, 46, 55, 64],
     [0, 4, 9, 13, 17, 21, 26, 30, 34, 38, 43, 47, 51, 55, 60, 64],
-  ] as number[][]; // Added type cast for TS
+  ] as number[][];
 
   const subs = [null, null, _subs2, _subs3];
   const ancs = [null, null, _anch2, _anch3];
@@ -365,12 +363,12 @@ export function decodeBC7(
   for (let y = 0; y < height; y += 4) {
     for (let x = 0; x < width; x += 4) {
       let mode = 0;
-      while (((data[offset] >> mode) & 1) != 1) mode++;
+      while (((data[offset] >> mode) & 1) !== 1) mode++;
 
       pos.boff = (offset << 3) + mode + 1;
 
-      const rot = mode == 4 || mode == 5 ? readBits(data, pos, 2) : 0;
-      const indx = mode == 4 ? readBits(data, pos, 1) : 0;
+      const rot = mode === 4 || mode === 5 ? readBits(data, pos, 2) : 0;
+      const indx = mode === 4 ? readBits(data, pos, 1) : 0;
 
       const prtlen = [4, 6, 6, 6, 0, 0, 0, 6][mode];
       const parti = readBits(data, pos, prtlen);
@@ -380,49 +378,48 @@ export function decodeBC7(
       const plen = [1, 1, 0, 1, 0, 0, 1, 1][mode];
       const pnts = [6, 4, 6, 4, 2, 2, 2, 4][mode];
 
-      // Use a Float32Array for colors as they get normalized to 0-1
       const clr = new Float32Array(4 * pnts);
       const rawClr = new Int32Array(4 * pnts);
 
       for (let i = 0; i < 4; i++) {
-        const len = i == 3 ? alen : clen;
+        const len = i === 3 ? alen : clen;
         for (let j = 0; j < pnts; j++)
           rawClr[i * pnts + j] = readBits(data, pos, len);
       }
 
       for (let j = 0; j < pnts; j++) {
-        if (mode == 1 && (j & 1) == 1) pos.boff--; // Ps shared per subset
+        if (mode === 1 && (j & 1) === 1) pos.boff--;
         const bit = readBits(data, pos, plen);
         for (let i = 0; i < 3; i++)
           rawClr[i * pnts + j] = (rawClr[i * pnts + j] << plen) | bit;
-        if (alen != 0)
+        if (alen !== 0)
           rawClr[3 * pnts + j] = (rawClr[3 * pnts + j] << plen) | bit;
       }
       clen += plen;
-      if (alen != 0) alen += plen;
+      if (alen !== 0) alen += plen;
 
       for (let i = 0; i < 4; i++) {
-        const len = i == 3 ? alen : clen;
-        const cf = len == 0 ? 0 : 1 / ((1 << len) - 1);
+        const len = i === 3 ? alen : clen;
+        const cf = len === 0 ? 0 : 1 / ((1 << len) - 1);
         for (let j = 0; j < pnts; j++)
           clr[i * pnts + j] = rawClr[i * pnts + j] * cf;
       }
-      if (alen == 0) for (let j = 0; j < pnts; j++) clr[3 * pnts + j] = 1;
+      if (alen === 0) for (let j = 0; j < pnts; j++) clr[3 * pnts + j] = 1;
 
-      const scnt = [3, 2, 3, 2, 1, 1, 1, 2][mode]; // subset count
+      const scnt = [3, 2, 3, 2, 1, 1, 1, 2][mode];
       let cind = [3, 3, 2, 2, 2, 2, 4, 2][mode];
       let aind = [0, 0, 0, 0, 3, 2, 0, 0][mode];
 
       let smap = "0000000000000000";
       let anci = [0, 0, 0];
-      if (scnt != 1) {
+      if (scnt !== 1) {
         smap = subs[scnt]![parti];
         anci = ancs[scnt]![parti];
       }
 
       let coff = pos.boff;
       let aoff = coff + 16 * cind - scnt;
-      if (indx == 1) {
+      if (indx === 1) {
         const t = coff;
         coff = aoff;
         aoff = t;
@@ -436,7 +433,7 @@ export function decodeBC7(
 
       for (let i = 0; i < 64; i += 4) {
         const ss = smap.charCodeAt(i >> 2) - 48;
-        const first = anci[ss] == i >> 2 ? 1 : 0;
+        const first = anci[ss] === i >> 2 ? 1 : 0;
         const code = readBits(data, pos, cind - first);
 
         const f = cint[code] / 64;
@@ -458,10 +455,10 @@ export function decodeBC7(
       cint = intp[aind]!;
       pos.boff = aoff;
 
-      if (aind != 0)
+      if (aind !== 0)
         for (let i = 0; i < 64; i += 4) {
           const ss = smap.charCodeAt(i >> 2) - 48;
-          const first = anci[ss] == i >> 2 ? 1 : 0;
+          const first = anci[ss] === i >> 2 ? 1 : 0;
           const code = readBits(data, pos, aind - first);
 
           const f = cint[code] / 64;

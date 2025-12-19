@@ -42,7 +42,7 @@ export default function SoundPicker() {
     store.activeRule?.actions.sound?.volume || 100,
   );
   const [path, setPath] = createSignal<Sound | null>(
-    findSound(store.activeRule?.actions.sound?.path) || null,
+    findSound(store.activeRule?.actions.sound?.path) ?? null,
   );
 
   const [sound, setSound] = createSignal<Sound | null>(null);
@@ -71,7 +71,7 @@ export default function SoundPicker() {
     path:
       | {
           value: string;
-          path: string;
+          path?: string;
           type: "custom" | "default" | "cached";
         }
       | undefined,
@@ -169,58 +169,54 @@ export default function SoundPicker() {
         </Label>
         <Checkbox id='beam' onChange={handleActive} checked={active()} />
         <div class='flex grow-0'>
-          {active() ? (
-            <>
-              <Tooltip text='Edit sound file'>
-                <Combobox<Sound, Category>
-                  options={sounds}
-                  optionValue='id'
-                  optionTextValue='displayName'
-                  optionLabel='displayName'
-                  optionGroupChildren='options'
-                  placeholder='Select sound…'
-                  onChange={setPath}
-                  value={path()}
-                  class='overflow-y-auto'
-                  itemComponent={(props) => (
-                    <ComboboxItem item={props.item}>
-                      <ComboboxItemLabel>
-                        {props.item.rawValue.displayName}
-                      </ComboboxItemLabel>
-                      <ComboboxItemIndicator />
-                    </ComboboxItem>
-                  )}
-                  sectionComponent={(props) => (
-                    <ComboboxSection>
-                      {props.section.rawValue.label}
-                    </ComboboxSection>
-                  )}
-                >
-                  <ComboboxControl aria-label='Sound'>
-                    <div class='h-10 w-10 flex items-center justify-center'>
-                      {sound() ? (
-                        <SoundPlayer
-                          sound={sound()}
-                          volume={volume() / 300}
-                          size={10}
-                        />
-                      ) : (
-                        <SoundPlayer
-                          sound={null}
-                          volume={volume() / 300}
-                          size={10}
-                        />
-                      )}
-                    </div>
-                    <ComboboxInput />
-                    <ComboboxTrigger />
-                  </ComboboxControl>
-                  <ComboboxContent />
-                </Combobox>
-              </Tooltip>
-            </>
-          ) : (
-            <></>
+          {active() && (
+            <Tooltip text='Edit sound file'>
+              <Combobox<Sound, Category>
+                options={sounds}
+                optionValue='id'
+                optionTextValue='displayName'
+                optionLabel='displayName'
+                optionGroupChildren='options'
+                placeholder='Select sound…'
+                onChange={setPath}
+                value={path()}
+                class='overflow-y-auto'
+                itemComponent={(props) => (
+                  <ComboboxItem item={props.item}>
+                    <ComboboxItemLabel>
+                      {props.item.rawValue.displayName}
+                    </ComboboxItemLabel>
+                    <ComboboxItemIndicator />
+                  </ComboboxItem>
+                )}
+                sectionComponent={(props) => (
+                  <ComboboxSection>
+                    {props.section.rawValue.label}
+                  </ComboboxSection>
+                )}
+              >
+                <ComboboxControl aria-label='Sound'>
+                  <div class='h-10 w-10 flex items-center justify-center'>
+                    {sound() ? (
+                      <SoundPlayer
+                        sound={sound()}
+                        volume={volume() / 300}
+                        size={10}
+                      />
+                    ) : (
+                      <SoundPlayer
+                        sound={null}
+                        volume={volume() / 300}
+                        size={10}
+                      />
+                    )}
+                  </div>
+                  <ComboboxInput />
+                  <ComboboxTrigger />
+                </ComboboxControl>
+                <ComboboxContent />
+              </Combobox>
+            </Tooltip>
           )}
         </div>
       </div>

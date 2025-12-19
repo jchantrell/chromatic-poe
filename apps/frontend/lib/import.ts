@@ -80,7 +80,9 @@ function parseCondition(condition: string): ParsedFilterCondition {
   const [contentPart] = condition.split("#").map((part) => part.trim());
   const parts = contentPart.trim().split(/\s+/);
 
-  const hasOperator = parts.length > 1 && VALID_OPERATORS.includes(parts[1]);
+  const hasOperator =
+    parts.length > 1 &&
+    VALID_OPERATORS.includes(parts[1] as Exclude<Operator, Operator.NONE>);
   let value = hasOperator
     ? parseValue(parts.slice(2).join(" "))
     : parseValue(parts.slice(1).join(" "));
@@ -280,7 +282,7 @@ export async function importFilter(raw: string) {
       if (property === "WaystoneTier") {
         conditions.push(
           createCondition(ConditionKey.MAP_TIER, {
-            operator,
+            operator: operator as Operator,
             value: Number(value),
           }),
         );
@@ -298,8 +300,8 @@ export async function importFilter(raw: string) {
 
       conditions.push(
         createCondition(camelCase(property) as ConditionKey, {
-          operator,
-          value,
+          operator: operator as Operator,
+          value: value as any,
         }),
       );
     }
@@ -311,7 +313,6 @@ export async function importFilter(raw: string) {
       if (itemBase) {
         itemBases.push({
           name: itemBase.name,
-          itemClass: itemBase.itemClass,
           category: itemBase.category,
           base: itemBase.base,
           enabled: true,

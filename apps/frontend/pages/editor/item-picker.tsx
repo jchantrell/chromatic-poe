@@ -135,7 +135,7 @@ function Node(props: {
               <img
                 class='mr-1 h-6 max-w-full pointer-events-none'
                 alt={`${props.node.data?.name} icon`}
-                src={art()}
+                src={art() || undefined}
               />
             </figure>
           )}

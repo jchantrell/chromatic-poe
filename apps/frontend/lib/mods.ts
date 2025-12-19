@@ -1,4 +1,5 @@
 import Fuse, { type FuseResult } from "fuse.js";
+import { R } from "node_modules/@kobalte/core/dist/menu-sub-trigger-3cc2d986";
 import type { BundleManager } from "./bundle";
 import type { Database } from "./db";
 import type { IDBManager } from "./idb";
@@ -73,6 +74,12 @@ const POE2_STAT_FILES = [
   "data/statdescriptions/sanctum_relic_stat_descriptions.csd",
 ];
 
+type StatDescription = {
+  description: string;
+  language: string;
+  flags?: string;
+};
+
 type ItFileDefinition = {
   extends?: string;
   tag?: string;
@@ -91,7 +98,7 @@ export interface Mod {
   name: string;
   id: string;
   tags: string[];
-  type?: string;
+  type: string;
   position?: "prefix" | "suffix" | "affix";
   bases?: string[];
   stats: ModStats[][];
@@ -143,14 +150,12 @@ export class ModManager {
     const tagsTable = await this.db.query(
       `SELECT _index, Id FROM "${patch}_Tags"`,
     );
-    const tagsMap = Object.fromEntries(
-      tagsTable.map((t: any) => [t._index, t.Id]),
-    );
+    const tagsMap = Object.fromEntries(tagsTable.map((t) => [t._index, t.Id]));
     const itemClasses = await this.db.query(
       `SELECT _index, Name FROM "${patch}_ItemClasses"`,
     );
     const classesMap = Object.fromEntries(
-      itemClasses.map((t: any) => [t._index, t.Name]),
+      itemClasses.map((t) => [t._index, t.Name]),
     );
     const hierarchy = await this.buildHierarchy(patch, baseItems, gameVersion);
 
@@ -159,14 +164,12 @@ export class ModManager {
     const statsTable = await this.db.query(
       `SELECT _index, Id FROM "${patch}_Stats"`,
     );
-    const statsMap = Object.fromEntries(
-      statsTable.map((s: any) => [s._index, s]),
-    );
+    const statsMap = Object.fromEntries(statsTable.map((s) => [s._index, s]));
     const modTypes = await this.db.query(
       `SELECT _index, Name FROM "${patch}_ModType"`,
     );
     const modTypesMap = Object.fromEntries(
-      modTypes.map((t: any) => [t._index, t.Name]),
+      modTypes.map((t) => [t._index, t.Name]),
     );
     let itemMods: Record<string, SingleMod>;
     if (gameVersion === 2) {
@@ -243,10 +246,7 @@ export class ModManager {
   }
 
   async getStatDescriptions(patch: string) {
-    const lookup: Record<
-      string,
-      Array<{ description: string; language: string; flags?: string }>
-    > = {};
+    const lookup: Record<string, StatDescription[]> = {};
 
     const gameVersion = patch.startsWith("3") ? 1 : 2;
 
@@ -262,7 +262,10 @@ export class ModManager {
     return lookup;
   }
 
-  parseStatDescriptionFile(content: string, lookup: Record<string, any[]>) {
+  parseStatDescriptionFile(
+    content: string,
+    lookup: Record<string, StatDescription[]>,
+  ) {
     const sections = content.split(/\n(?=description|no_description)/);
 
     for (const section of sections) {
@@ -317,7 +320,7 @@ export class ModManager {
   }
 
   formatDescription(
-    descriptions: { description: string; flags?: string[]; language: string }[],
+    descriptions: StatDescription[],
     values: [number, number][],
   ): string {
     if (!descriptions.length || !values.length) return "";
@@ -376,7 +379,7 @@ export class ModManager {
 
   async buildHierarchy(
     patch: string,
-    baseItems: any[],
+    baseItems: { InheritsFrom: "string" }[],
     gameVersion: number,
   ): Promise<ItFileHierarchy> {
     const inheritsFroms = new Set<string>();
@@ -421,23 +424,21 @@ export class ModManager {
     inheritsFroms.add(filePath);
     processed.add(filePath);
 
-    try {
-      const pathName = `${filePath}.it`.toLowerCase();
-      const contentUint8 = await this.loader.getFileContents(patch, pathName);
-      const decoder = new TextDecoder("utf-16le");
-      const content = decoder.decode(contentUint8);
-      const def = this.parseItFile(content);
+    const pathName = `${filePath}.it`.toLowerCase();
+    const contentUint8 = await this.loader.getFileContents(patch, pathName);
+    const decoder = new TextDecoder("utf-16le");
+    const content = decoder.decode(contentUint8);
+    const def = this.parseItFile(content);
 
-      if (def.extends) {
-        await this.recursivelyFetchInheritsFromFiles(
-          patch,
-          def.extends,
-          inheritsFroms,
-          processed,
-          gameVersion,
-        );
-      }
-    } catch (e) {}
+    if (def.extends) {
+      await this.recursivelyFetchInheritsFromFiles(
+        patch,
+        def.extends,
+        inheritsFroms,
+        processed,
+        gameVersion,
+      );
+    }
   }
 
   parseItFile(content: string): ItFileDefinition {
@@ -489,14 +490,14 @@ export class ModManager {
   }
 
   async extractPoE1(
-    statDescriptions: any,
+    statDescriptions: Record<string, StatDescription[]>,
     hierarchy: ItFileHierarchy,
-    baseItems: any[],
-    tagsMap: any,
-    classesMap: any,
-    modsTable: any[],
-    statsMap: any,
-    modTypesMap: any,
+    baseItems: { [key: string]: unknown }[],
+    tagsMap: Record<string, unknown>,
+    classesMap: Record<string, unknown>,
+    modsTable: Record<string, unknown>[],
+    statsMap: Record<string, string>,
+    modTypesMap: Record<string, unknown>,
   ): Promise<Record<string, SingleMod>> {
     const itemMods: Record<string, SingleMod> = {};
 
@@ -547,7 +548,7 @@ export class ModManager {
         const nextStat = statsMapped[i + 1];
         const statDescription = statDescriptions[stat.Id];
         const descs = statDescription
-          ? statDescription.filter((desc: any) => desc.language === "English")
+          ? statDescription.filter((desc) => desc.language === "English")
           : [];
 
         if (nextStat && i + 1 < statsMapped.length) {

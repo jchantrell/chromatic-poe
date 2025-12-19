@@ -6,11 +6,9 @@ import {
   ConditionKey,
   type Conditions,
   conditionGroupColors,
-  conditionIndex,
   conditionTypes,
   createCondition,
   Operator,
-  type SearchableCondition,
 } from "@app/lib/condition";
 import type { FilterRule } from "@app/lib/filter";
 import { modIndex } from "@app/lib/mods";
@@ -34,7 +32,8 @@ import {
 import { Separator } from "@app/ui/separator";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
-import { createEffect, createSignal, For, onMount } from "solid-js";
+import Fuse from "fuse.js";
+import { createEffect, createMemo, createSignal, For } from "solid-js";
 import {
   CheckboxInput,
   SelectInput,
@@ -42,6 +41,17 @@ import {
   ToggleInput,
 } from "./condition-inputs";
 import { ItemPicker } from "./item-picker";
+
+const options = {
+  keys: ["label", "group", "description", "options"],
+  useExtendedSearch: true,
+  ignoreFieldNorm: true,
+  minMatchCharLength: 1,
+  distance: 160,
+  threshold: 0.6,
+};
+
+type FilteredConditionKey = Exclude<ConditionKey, ConditionKey.BASE_TYPE>;
 
 const operators = [
   Operator.NONE,
@@ -54,12 +64,27 @@ const operators = [
 
 export default function ConditionManager(props: { rule: FilterRule }) {
   const [searchTerm, setSearchTerm] = createSignal("");
-  const [filteredConditions, setFilteredConditions] = createSignal<
-    SearchableCondition[]
-  >([]);
   const [filteredConditionGroups, setFilteredConditionGroups] = createSignal<
     ConditionGroup[]
   >([]);
+
+  const searchIndex = createMemo(() => {
+    return new Fuse(
+      Object.entries(conditionTypes).map(([key, value]) => ({
+        key: key as ConditionKey,
+        ...value,
+      })) || [],
+      options,
+    );
+  });
+
+  const filteredConditions = createMemo(() => {
+    return searchIndex()
+      .search(
+        searchTerm() !== "" ? `'${searchTerm()}` : { label: "!1234567890" },
+      )
+      .map((result) => result.item);
+  });
 
   function addCondition(condition: ConditionKey) {
     if (store.filter) {
@@ -133,12 +158,6 @@ export default function ConditionManager(props: { rule: FilterRule }) {
   }
 
   createEffect(() => {
-    setFilteredConditions(
-      conditionIndex.search(searchTerm()).map((result) => result.item),
-    );
-  });
-
-  createEffect(() => {
     setFilteredConditionGroups(
       Array.from(
         new Set(
@@ -147,19 +166,6 @@ export default function ConditionManager(props: { rule: FilterRule }) {
             .map((condition) => condition.group),
         ),
       ),
-    );
-  });
-
-  onMount(() => {
-    conditionIndex.setConditions(
-      Object.entries(conditionTypes).map(([key, value]) => ({
-        key: key as ConditionKey,
-        ...value,
-      })),
-    );
-
-    setFilteredConditions(
-      conditionIndex.search(`${searchTerm()}`).map((result) => result.item),
     );
   });
 
@@ -203,7 +209,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                   return (
                     <div class='flex flex-col gap-1 mb-2'>
                       <Label
-                        class={`text-md h-4 mb-1 ${conditionGroupColors[group]}`}
+                        class={`text-md h-4 mb-1 ${conditionGroupColors[group as keyof typeof conditionGroupColors]}`}
                       >
                         {group}
                       </Label>
@@ -334,8 +340,8 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                     <div class='ml-2'>
                       {conditionType.type === "slider" && (
                         <SliderInput
-                          key={condition.key}
-                          value={condition.value}
+                          key={condition.key as FilteredConditionKey}
+                          value={condition.value as number}
                           onChange={(v) => {
                             updateCondition(condition, "value", v);
                           }}
@@ -343,8 +349,8 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                       )}
                       {conditionType.type === "select" && (
                         <SelectInput
-                          key={condition.key}
-                          value={condition.value}
+                          key={condition.key as FilteredConditionKey}
+                          value={condition.value as string[]}
                           index={getIndex(condition.key)}
                           groupKey={getGroupKey(condition.key)}
                           onChange={(v) => {
@@ -354,8 +360,8 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                       )}
                       {conditionType.type === "text-list" && (
                         <ToggleInput
-                          key={condition.key}
-                          value={condition.value}
+                          key={condition.key as FilteredConditionKey}
+                          value={condition.value as string[]}
                           onChange={(v) => {
                             updateCondition(condition, "value", v);
                           }}
@@ -363,8 +369,8 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                       )}
                       {conditionType.type === "checkbox" && (
                         <CheckboxInput
-                          key={condition.key}
-                          value={condition.value}
+                          key={condition.key as FilteredConditionKey}
+                          value={condition.value as boolean}
                           onChange={(v) => {
                             updateCondition(condition, "value", v);
                           }}

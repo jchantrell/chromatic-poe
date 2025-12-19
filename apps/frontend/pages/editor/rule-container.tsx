@@ -23,7 +23,7 @@ import Item from "./item";
 import Rule from "./rule-menu-entry";
 
 const options = {
-  keys: ["name", "bases.name", "bases.base"],
+  keys: [{ name: "name", weight: 3 }, "bases.name", "bases.base"],
   useExtendedSearch: true,
   ignoreFieldNorm: true,
   minMatchCharLength: 2,

@@ -1,6 +1,5 @@
 import { SettingsIcon } from "@app/icons";
 import chromatic from "@app/lib/config";
-import { dat } from "@app/lib/dat";
 import { checkForUpdate, relaunchApp } from "@app/lib/update";
 import { to } from "@app/lib/utils";
 import { store } from "@app/store";
@@ -14,29 +13,14 @@ import {
   DialogTrigger,
 } from "@app/ui/dialog";
 import { Label } from "@app/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@app/ui/select";
 import { Separator } from "@app/ui/separator";
 import { TextField, TextFieldLabel } from "@app/ui/text-field";
 import { createSignal, onMount } from "solid-js";
 import { toast } from "solid-sonner";
-import { ChooseDirectory } from "./choose-dir";
 import Theme from "./theme";
 
 export function Settings() {
   const [version, setVersion] = createSignal("0.0.0");
-
-  const [versions, setVersions] = createSignal<
-    { value: string; label: string }[]
-  >([]);
-  const [selectedVersion, setSelectedVersion] = createSignal<string | null>(
-    null,
-  );
 
   async function handleUpdate() {
     const [err] = await to(checkForUpdate());
@@ -49,18 +33,6 @@ export function Settings() {
 
   onMount(async () => {
     setVersion(await chromatic.getVersion());
-
-    const [err, v] = await to(dat.fetchPoeVersions());
-    if (err) {
-      return;
-    }
-    if (v) {
-      setVersions([
-        { value: v.poe1, label: `PoE 1 (${v.poe1})` },
-        { value: v.poe2, label: `PoE 2 (${v.poe2})` },
-      ]);
-      if (!selectedVersion()) setSelectedVersion(v.poe1);
-    }
   });
 
   return (

@@ -1,6 +1,6 @@
 import { CloseIcon } from "@app/icons";
 import { type ConditionKey, conditionTypes } from "@app/lib/condition";
-import type { modIndex } from "@app/lib/mods";
+import type { modIndex, SearchableMod } from "@app/lib/mods";
 import { Badge } from "@app/ui/badge";
 import { Button } from "@app/ui/button";
 import { Checkbox } from "@app/ui/checkbox";
@@ -24,7 +24,7 @@ type FilteredConditionKey = Exclude<ConditionKey, ConditionKey.BASE_TYPE>;
 export function SliderInput(props: {
   key: FilteredConditionKey;
   value: number;
-  onChange: (...rest: unknown[]) => void;
+  onChange: (value: number) => void;
 }) {
   return (
     <Slider
@@ -42,7 +42,9 @@ export function SliderInput(props: {
           type='number'
           class='text-center'
           value={props.value}
-          onInput={(v) => props.onChange(Number(v.target.value))}
+          onInput={(v) =>
+            props.onChange(Number((v.target as HTMLInputElement).value))
+          }
         />
       </TextField>
       <div class='flex w-[150px]'>
@@ -59,11 +61,11 @@ export function SelectInput(props: {
   key: FilteredConditionKey;
   index: typeof modIndex;
   groupKey: string;
-  onChange: (...rest: unknown[]) => void;
+  onChange: (value: string[]) => void;
 }) {
   const [searchTerm, setSearchTerm] = createSignal("");
-  const [filteredGroups, setFilteredGroups] = createSignal<unknown[]>([]);
-  const [filtered, setFiltered] = createSignal<unknown[]>([]);
+  const [filteredGroups, setFilteredGroups] = createSignal<string[]>([]);
+  const [filtered, setFiltered] = createSignal<SearchableMod[]>([]);
   const debouncedSetFiltered = debounce(setFiltered, 200);
 
   function handleClick(name: string) {
@@ -79,13 +81,17 @@ export function SelectInput(props: {
       props.index
         .search(`${searchTerm()}`)
         .map((result) => result.item)
-        .sort((a, b) => a.type.localeCompare(b.type)),
+        .sort((a: SearchableMod, b: SearchableMod) =>
+          a.type.localeCompare(b.type),
+        ),
     );
   });
 
   createMemo(() => {
     setFilteredGroups(
-      Array.from(new Set(filtered().map((entry) => entry[props.groupKey]))),
+      Array.from(
+        new Set(filtered().map((entry) => entry[props.groupKey] as string)),
+      ),
     );
   });
 
@@ -94,7 +100,9 @@ export function SelectInput(props: {
       props.index
         .search(`${searchTerm()}`)
         .map((result) => result.item)
-        .sort((a, b) => a.type.localeCompare(b.type)),
+        .sort((a: SearchableMod, b: SearchableMod) =>
+          a.type.localeCompare(b.type),
+        ),
     );
   });
 
@@ -203,7 +211,7 @@ export function SelectInput(props: {
 export function ToggleInput(props: {
   value: string[];
   key: FilteredConditionKey;
-  onChange: (...rest: unknown[]) => void;
+  onChange: (value: string[]) => void;
 }) {
   return (
     <div class='space-y-2'>
@@ -230,7 +238,7 @@ export function ToggleInput(props: {
 export function CheckboxInput(props: {
   value: boolean;
   key: FilteredConditionKey;
-  onChange: (...rest: unknown[]) => void;
+  onChange: (value: boolean) => void;
 }) {
   return (
     <Switch

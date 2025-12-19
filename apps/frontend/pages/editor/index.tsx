@@ -13,7 +13,7 @@ import {
 import { Resizable, ResizableHandle, ResizablePanel } from "@app/ui/resizable";
 import { useColorMode } from "@kobalte/core";
 import { useParams } from "@solidjs/router";
-import { createEffect, createSignal, onMount } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import { toast } from "solid-sonner";
 import Preview from "./filter-preview";
 import Rules from "./rule-container";

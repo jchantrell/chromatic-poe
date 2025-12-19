@@ -180,10 +180,14 @@ export function formatBytes(bytes: number, decimals = 2) {
   return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
 
+type RecursiveObject = {
+  [key: string]: RecursiveObject | unknown;
+};
+
 export function recursivelySetKeys(
-  object: Record<string, any>,
+  object: RecursiveObject,
   path: (string | null)[],
-  value: object,
+  value: unknown,
 ) {
   let schema = object;
   for (let i = 0; i < path.length - 1; i++) {
@@ -195,7 +199,7 @@ export function recursivelySetKeys(
     if (!schema[entry] && !sameKey) {
       schema[entry] = {};
     }
-    schema = sameKey ? schema : schema[entry];
+    schema = sameKey ? schema : (schema[entry] as RecursiveObject);
   }
   schema[path[path.length - 1] as string] = value;
 }

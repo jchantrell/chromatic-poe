@@ -145,9 +145,56 @@ type BaseConditionValue = {
   group: ConditionGroup;
 };
 
+export interface ConditionData {
+  [ConditionKey.BASE_TYPE]: string[];
+  [ConditionKey.HEIGHT]: number;
+  [ConditionKey.WIDTH]: number;
+  [ConditionKey.ITEM_LEVEL]: number;
+  [ConditionKey.QUALITY]: number;
+  [ConditionKey.GEM_LEVEL]: number;
+  [ConditionKey.MAP_TIER]: number;
+  [ConditionKey.CORRUPTED_MODS]: number;
+  [ConditionKey.AREA_LEVEL]: number;
+  [ConditionKey.DROP_LEVEL]: number;
+  [ConditionKey.STACK_SIZE]: number;
+  [ConditionKey.SEARING_EXARCH_IMPLICIT]: number;
+  [ConditionKey.EATER_IMPLICIT]: number;
+  [ConditionKey.BASE_DEFENCE_PERCENTILE]: number;
+  [ConditionKey.BASE_ARMOUR]: number;
+  [ConditionKey.BASE_EVASION]: number;
+  [ConditionKey.BASE_ENERGY_SHIELD]: number;
+  [ConditionKey.BASE_WARD]: number;
+  [ConditionKey.LINKED_SOCKETS]: number;
+  [ConditionKey.SOCKETS]: number;
+  [ConditionKey.SOCKET_GROUP]: string;
+  [ConditionKey.CLASSES]: string[];
+  [ConditionKey.ENCHANTMENT_PASSIVE_NUM]: number;
+  [ConditionKey.ENCHANTMENT_PASSIVE_NODE]: string[];
+  [ConditionKey.RARITY]: Rarity[];
+  [ConditionKey.INFLUENCE]: Influence[];
+  [ConditionKey.EXPLICIT_MOD]: string[];
+  [ConditionKey.ENCHANTMENT]: string[];
+  [ConditionKey.ARCHNEMESIS_MOD]: string[];
+  [ConditionKey.TRANSFIGURED_GEM]: boolean;
+  [ConditionKey.ELDER_MAP]: boolean;
+  [ConditionKey.SHAPED_MAP]: boolean;
+  [ConditionKey.BLIGHTED_MAP]: boolean;
+  [ConditionKey.UBER_BLIGHTED_MAP]: boolean;
+  [ConditionKey.HAS_IMPLICIT_MOD]: boolean;
+  [ConditionKey.IDENTIFIED]: boolean;
+  [ConditionKey.SCOURGED]: boolean;
+  [ConditionKey.FRACTURED]: boolean;
+  [ConditionKey.MIRRORED]: boolean;
+  [ConditionKey.CORRUPTED]: boolean;
+  [ConditionKey.ANY_ENCHANTMENT]: boolean;
+  [ConditionKey.SYNTHESISED]: boolean;
+  [ConditionKey.REPLICA]: boolean;
+  [ConditionKey.CRUCIBLE_TREE]: boolean;
+}
+
 type ConditionValues<K extends ConditionKey> = BaseConditionValue & {
   type: ConditionInputType;
-  defaultValue: Extract<Conditions, { key: K }>["value"];
+  defaultValue: ConditionData[K];
   min?: number;
   max?: number;
   options?: string[];
@@ -1243,13 +1290,15 @@ export function createCondition<
   K extends ConditionKeys,
   I extends Instance<ConditionConstructors[K]>,
 >(kind: K, ...args: ConstructorParameters<ConditionConstructors[K]>): I {
-  return new conditionConstructors[kind](...args);
+  const Ctor = conditionConstructors[kind];
+  // @ts-expect-error - TS cannot verify that the constructor matches the key because of the generic K
+  return new Ctor(...args);
 }
 
 export function convertRawToConditions(objs: Conditions[]): Conditions[] {
   const conditions: Conditions[] = [];
   for (const condition of objs) {
-    conditions.push(createCondition(condition.key, condition));
+    conditions.push(createCondition(condition.key, condition as any));
   }
   return conditions;
 }
