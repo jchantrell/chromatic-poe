@@ -5,12 +5,12 @@
       "extra-files": [
         {
           "type": "toml",
-          "path": "apps/backend/Cargo.toml",
+          "path": "app/tauri/Cargo.toml",
           "jsonpath": "$.package.version"
         },
         {
           "type": "json",
-          "path": "apps/backend/tauri.conf.json",
+          "path": "app/tauri/tauri.conf.json",
           "jsonpath": "$.version"
         }
       ]

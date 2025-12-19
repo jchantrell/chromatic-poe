@@ -3,7 +3,7 @@ import plugin from "tailwindcss/plugin";
 /**@type {import("tailwindcss").Config} */
 module.exports = {
   darkMode: ["class", '[data-kb-theme="dark"]'],
-  content: ["./apps/frontend/**/*.{ts,tsx}", "./packages/**/*.{ts,tsx}"],
+  content: ["./app/frontend/**/*.{ts,tsx}", "./packages/**/*.{ts,tsx}"],
   theme: {
     container: {
       center: true,

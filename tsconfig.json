@@ -20,10 +20,10 @@
     "experimentalDecorators": true,
     "baseUrl": "./",
     "paths": {
-      "@app/*": ["./apps/frontend/*"],
+      "@app/*": ["./app/frontend/*"],
     }
   },
-  "include": ["apps/frontend"],
+  "include": ["app/frontend"],
   "references": [
     {
       "path": "./tsconfig.node.json"

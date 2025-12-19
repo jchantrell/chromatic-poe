@@ -1,4 +1,4 @@
-# ![Chromatic PoE](./apps/backend/icons/Square44x44Logo.png) Chromatic PoE 
+# ![Chromatic PoE](./app/tauri/icons/Square44x44Logo.png) Chromatic PoE 
 
 [![](https://img.shields.io/github/downloads/jchantrell/chromatic-poe/total?label=Downloads)](https://github.com/jchantrell/chromatic-poe/releases)
 [![](https://user-images.githubusercontent.com/4292308/153364565-7a545d26-e617-4a33-a919-ff90d8feda3d.svg)](https://discord.gg/vYCrRq9aeU)

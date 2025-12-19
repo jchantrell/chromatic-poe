@@ -22,7 +22,7 @@ import { createEffect, createSignal, onMount } from "solid-js";
 import { DropPreview } from "./drop-preview";
 import { ItemPicker } from "./item-picker";
 
-const MIN_PREVIEW_WIDTH = 500;
+const MIN_PREVIEW_WIDTH = 550;
 
 export default function Rule(props: {
   rule: FilterRule;
@@ -136,7 +136,7 @@ export default function Rule(props: {
       <ContextMenu>
         <ContextMenuTrigger>
           <div
-            class={`grid grid-cols-[minmax(300px,_1fr)_auto] items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()}`}
+            class={`grid grid-cols-[minmax(200px,_1fr)_auto] items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()} @container`}
             onMouseOut={() => setHovered(false)}
             onMouseOver={() => setHovered(true)}
             onFocus={() => null}
@@ -172,11 +172,8 @@ export default function Rule(props: {
               onMouseUp={setRuleActive}
             >
               <div
-                class={`flex text-nowrap items-center justify-center border mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
-                style={{
-                  display:
-                    previewWidth() >= MIN_PREVIEW_WIDTH ? "flex" : "none",
-                }}
+                class={`hidden @sm:flex text-nowrap items-center justify-center border mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
+                style={{}}
               >
                 <DropPreview rule={props.rule} showIcon iconScale={3} />
               </div>
