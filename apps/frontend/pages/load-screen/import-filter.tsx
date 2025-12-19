@@ -12,7 +12,7 @@ import {
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
 import { TextField, TextFieldInput, TextFieldLabel } from "@app/ui/text-field";
 import { ToggleGroup, ToggleGroupItem } from "@app/ui/toggle-group";
-import { createSignal, For, onMount } from "solid-js";
+import { createEffect, createSignal, For } from "solid-js";
 import { toast } from "solid-sonner";
 
 export default function ImportFilter() {
@@ -71,7 +71,7 @@ export default function ImportFilter() {
     setVersion(number);
   }
 
-  onMount(async () => {
+  createEffect(async () => {
     const filters = await chromatic.listImportableFilters(version());
     if (filters) {
       setImportableFilters(filters);
