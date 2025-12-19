@@ -203,7 +203,7 @@ class Chromatic {
   }
 
   windowsPoeDirectory(docPath: string, version: 1 | 2): string {
-    return `${docPath}\\Documents\\My Games\\Path of Exile${version === 2 ? " 2" : ""}`;
+    return `${docPath}\\My Games\\Path of Exile${version === 2 ? " 2" : ""}`;
   }
 
   linuxPoeDirectory(
