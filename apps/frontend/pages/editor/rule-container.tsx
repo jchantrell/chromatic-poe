@@ -127,9 +127,7 @@ export default function Rules() {
           .find((index) => range.startIndex >= index) ?? 0;
 
       setActiveStickyIndex(active);
-
       const next = new Set([active, ...defaultRangeExtractor(range)]);
-
       return [...next].sort((a, b) => a - b);
     },
   });
@@ -169,7 +167,7 @@ export default function Rules() {
         <SortableProvider
           ids={store.filter?.rules.map((rule) => rule.id) ?? []}
         >
-          <div class='px-1 outline-none'>
+          <div class='outline-none'>
             <TextField value={searchTerm()} onChange={setSearchTerm}>
               <TextFieldInput type='text' placeholder={"Search for rules..."} />
             </TextField>
@@ -186,31 +184,30 @@ export default function Rules() {
             >
               {virtualizer.getVirtualItems().map((virtualItem) => {
                 const item = filteredItems()[virtualItem.index];
+                const expanded = expandedRules().includes(item.ruleId);
+                const sticky =
+                  activeStickyIndex() === virtualItem.index && expanded;
+
                 return (
                   <div
                     data-key={item.key}
                     class='pr-1'
                     style={{
-                      position:
-                        activeStickyIndex() === virtualItem.index
-                          ? "sticky"
-                          : "absolute",
+                      position: sticky ? "sticky" : "absolute",
                       top: 0,
                       left: 0,
                       width: "100%",
                       height: `${virtualItem.size}px`,
-                      transform:
-                        activeStickyIndex() === virtualItem.index
-                          ? ""
-                          : `translateY(${virtualItem.start}px)`,
-                      "z-index":
-                        activeStickyIndex() === virtualItem.index ? 1 : 0,
+                      transform: sticky
+                        ? ""
+                        : `translateY(${virtualItem.start}px)`,
+                      "z-index": sticky ? 1 : 0,
                     }}
                   >
                     {"actions" in item.item ? (
                       <SortableRule
                         rule={item.item}
-                        expanded={expandedRules().includes(item.item.id)}
+                        expanded={expanded}
                         setExpanded={setExpanded}
                       />
                     ) : (
