@@ -242,6 +242,7 @@ export default function RuleEditor() {
           <input
             class={`bg-transparent py-1 px-3  mt-1 ml-2 border-none min-w-0 flex-1`}
             type='text'
+            id={`${store.activeRule.id}-editor`}
             spellcheck={false}
             value={store.activeRule.name}
             onChange={handleNameChange}
