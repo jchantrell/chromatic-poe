@@ -58,7 +58,7 @@ export default function Rule(props: {
       return "";
     }
     if (hovered() || selected()) {
-      return "border-2 border-accent";
+      return "border-1 border-accent";
     }
 
     return "border border-accent";
@@ -136,7 +136,7 @@ export default function Rule(props: {
       <ContextMenu>
         <ContextMenuTrigger>
           <div
-            class={`h-12 w-full flex items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()}`}
+            class={`grid grid-cols-[minmax(300px,_1fr)_auto] items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()}`}
             onMouseOut={() => setHovered(false)}
             onMouseOver={() => setHovered(true)}
             onFocus={() => null}
@@ -144,10 +144,10 @@ export default function Rule(props: {
             ref={previewRef}
           >
             <div
-              class='m-1 flex items-center w-full text-xl p-1 cursor-pointer'
+              class='m-1 flex items-center min-w-0 text-xl cursor-pointer'
               onMouseUp={setRuleActive}
             >
-              <div class='text-xl p-1 flex w-full items-center'>
+              <div class='text-xl p-1 flex w-full min-w-0 items-center'>
                 <div
                   class={`w-16 flex items-center mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
                 >
@@ -158,7 +158,8 @@ export default function Rule(props: {
                   )}
                 </div>
                 <input
-                  class={`bg-transparent py-1 px-2 border-none min-w-0 flex-1`}
+                  id={props.rule.id}
+                  class='bg-transparent py-1 px-2 border-none min-w-0 field-sizing-content max-w-full'
                   type='text'
                   value={props.rule.name}
                   onChange={handleNameChange}
@@ -182,6 +183,7 @@ export default function Rule(props: {
               <div
                 class={`flex items-center h-11 p-1 ${!props.rule.bases.length ? "opacity-0" : "hover:text-accent-foreground/60"}`}
                 onMouseDown={setExpanded}
+                onMouseUp={(e) => e.stopPropagation()}
               >
                 {props.expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
               </div>

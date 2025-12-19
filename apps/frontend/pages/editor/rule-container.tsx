@@ -174,9 +174,12 @@ export default function Rules() {
               <TextFieldInput type='text' placeholder={"Search for rules..."} />
             </TextField>
           </div>
-          <div ref={scrollContainerRef} class='overflow-y-auto'>
+          <div
+            ref={scrollContainerRef}
+            class='overflow-y-auto overflow-x-hidden'
+          >
             <ul
-              class='flex flex-col relative w-full'
+              class='flex flex-col relative w-full h-full'
               style={{
                 height: `${virtualizer.getTotalSize()}px`,
               }}
