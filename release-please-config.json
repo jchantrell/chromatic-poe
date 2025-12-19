@@ -3,7 +3,16 @@
     ".": {
       "release-type": "node",
       "extra-files": [
-        "apps/backend/Cargo.toml"
+        {
+          "type": "toml",
+          "path": "apps/backend/Cargo.toml",
+          "jsonpath": "$.package.version"
+        },
+        {
+          "type": "json",
+          "path": "apps/backend/tauri.conf.json",
+          "jsonpath": "$.version"
+        }
       ]
     }
   }
