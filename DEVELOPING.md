@@ -23,13 +23,13 @@ After these steps have been completed, you can the dev server using `pnpm dev` a
 
 ## Frontend with SolidJS
 
-> Located in `apps/frontend`
+> Located in `app/frontend`
 
 If you haven't used SolidJS before, it is a UI library that is similar to React. This project heavily utilises Solid's stores which are similar to Immer/Redux or mobx, where I've lent pretty heavily into the latter (mutability over immutability) as it makes behaviours like undo/redos, recursive changes, etc. much simpler to work with.
 
 ## Backend with Tauri
 
-> Located in `apps/backend`
+> Located in `app/tauri`
 
 Tauri takes the SolidJS frontend application and wraps it with [WebView](https://v2.tauri.app/reference/webview-versions/). Tauri's [documentation](https://tauri.app/start/) will provide a more comprehensive overview of the backend ecosystem, but in summary...
 
@@ -41,6 +41,6 @@ The project uses these Tauri plugins:
 - `Updater` (automatic updates based on GitHub action + JSON in each release)
 - `Process` (used for automatic updates)
 
-`apps/backend/capabilities/default.json` defines the permissions that the program has on the system it's installed on, which is enforced by the Tauri runtime. Tauri's documentation provides a really good overview of capabilities [here](https://tauri.app/security/) and [here](https://tauri.app/reference/acl/capability/).
+`app/tauri/capabilities/default.json` defines the permissions that the program has on the system it's installed on, which is enforced by the Tauri runtime. Tauri's documentation provides a really good overview of capabilities [here](https://tauri.app/security/) and [here](https://tauri.app/reference/acl/capability/).
 
  As an example, Chromatic can only access and manipulate files within [AppConfig](https://tauri.app/reference/javascript/api/namespacepath/#appconfig) (e.g. `C:\Users\Username\AppData\Roaming\chromatic`) and [Home](https://tauri.app/reference/javascript/api/namespacepath/#home) (e.g. `C:\Users\Username\`) on Windows systems.

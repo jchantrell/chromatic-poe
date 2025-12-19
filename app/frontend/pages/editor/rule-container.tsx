@@ -127,7 +127,9 @@ export default function Rules() {
           .find((index) => range.startIndex >= index) ?? 0;
 
       setActiveStickyIndex(active);
+
       const next = new Set([active, ...defaultRangeExtractor(range)]);
+
       return [...next].sort((a, b) => a - b);
     },
   });

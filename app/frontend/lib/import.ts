@@ -427,7 +427,7 @@ export async function importFilter(raw: string) {
 
     const convertedRule: FilterRule = {
       id: ulid(),
-      name: rule.comment ?? "Imported",
+      name: rule.comment ?? "",
       show: rule.type === "Show",
       enabled: true,
       conditions: conditions,

@@ -14,7 +14,7 @@ export default defineConfig(async ({ mode }) => {
     ],
     resolve: {
       alias: {
-        "@app": path.resolve(__dirname, "./apps/frontend"),
+        "@app": path.resolve(__dirname, "./app/frontend"),
       },
     },
     define: {
@@ -33,7 +33,7 @@ export default defineConfig(async ({ mode }) => {
           }
         : undefined,
       watch: {
-        ignored: ["**/apps/backend/**"],
+        ignored: ["**/app/tauri/**"],
       },
     },
     optimizeDeps: {
