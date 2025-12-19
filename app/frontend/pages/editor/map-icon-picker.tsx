@@ -62,21 +62,27 @@ function MapIconPicker() {
   createEffect(
     on(size, () => {
       if (store.filter && store.activeRule?.actions.icon) {
-        setMapIconSize(store.filter, store.activeRule, size());
+        if (store.activeRule.actions.icon.size !== size()) {
+          setMapIconSize(store.filter, store.activeRule, size());
+        }
       }
     }),
   );
   createEffect(
     on(color, () => {
       if (store.filter && store.activeRule?.actions.icon) {
-        setMapIconColor(store.filter, store.activeRule, color());
+        if (store.activeRule.actions.icon.color !== color()) {
+          setMapIconColor(store.filter, store.activeRule, color());
+        }
       }
     }),
   );
   createEffect(
     on(shape, () => {
       if (store.filter && store.activeRule?.actions.icon) {
-        setMapIconShape(store.filter, store.activeRule, shape());
+        if (store.activeRule.actions.icon.shape !== shape()) {
+          setMapIconShape(store.filter, store.activeRule, shape());
+        }
       }
     }),
   );
@@ -96,7 +102,7 @@ function MapIconPicker() {
               <PopoverTrigger class='cursor-pointer'>
                 <MinimapIcon
                   scale={PREVIEW_SCALE}
-                  size={store.activeRule.actions.icon.size}
+                  size={store.activeRule.actions.icon?.size}
                   shape={store.activeRule.actions.icon.shape}
                   color={store.activeRule.actions.icon?.color}
                 />
