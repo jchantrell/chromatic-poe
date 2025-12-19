@@ -1,21 +1,21 @@
 import { ChevronDownIcon, ChevronUpIcon } from "@app/icons";
 import {
-    addParentRefs,
-    deleteRule,
-    duplicateRule,
-    setEntryActive,
+  addParentRefs,
+  deleteRule,
+  duplicateRule,
+  setEntryActive,
 } from "@app/lib/commands";
 import type { FilterRule } from "@app/lib/filter";
 import { itemIndex } from "@app/lib/items";
 import { store } from "@app/store";
 import { Badge } from "@app/ui/badge";
 import {
-    ContextMenu,
-    ContextMenuContent,
-    ContextMenuItem,
-    ContextMenuPortal,
-    ContextMenuShortcut,
-    ContextMenuTrigger,
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuPortal,
+  ContextMenuShortcut,
+  ContextMenuTrigger,
 } from "@app/ui/context-menu";
 import { Dialog, DialogContent, DialogTrigger } from "@app/ui/dialog";
 import { createEffect, createSignal, onMount } from "solid-js";
@@ -166,7 +166,10 @@ export default function Rule(props: {
                 />
               </div>
             </div>
-            <div class='flex items-center max-w-min'>
+            <div
+              class='flex items-center max-w-min cursor-pointer'
+              onMouseUp={setRuleActive}
+            >
               <div
                 class={`flex text-nowrap items-center justify-center border mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
                 style={{
