@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.4.9](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.4.8...chromatic-poe-v0.4.9) (2025-12-19)
+
+
+### Bug Fixes
+
+* ensure all cfg files update on release ([b103266](https://github.com/jchantrell/chromatic-poe/commit/b103266d1c5d150f91433044453df103d7450f11))
+
 ## [0.4.8](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.4.7...chromatic-poe-v0.4.8) (2025-12-19)
 
 
