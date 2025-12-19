@@ -162,7 +162,7 @@ function TopBar() {
 function Main() {
   return (
     <main
-      class='rounded-tl-2xl bg-primary-foreground absolute inset-0'
+      class='rounded-tl-xl bg-primary-foreground absolute inset-0'
       onContextMenu={(e) => e.preventDefault()}
     >
       <Router>
