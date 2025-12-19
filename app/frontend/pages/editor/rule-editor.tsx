@@ -259,7 +259,7 @@ export default function RuleEditor() {
         </Tooltip>
       </div>
       <div class='flex justify-between w-full flex-1 min-h-0 pb-2'>
-        <div class='px-5 flex flex-col overflow-hidden gap-1 @xl:max-w-xl w-full flex-1 min-h-0'>
+        <div class='px-5 flex flex-col overflow-hidden gap-1  @2xl:max-w-xl w-full flex-1 min-h-0'>
           <div class='flex items-center min-h-[60px] shrink-0 gap-10'>
             <DropPreview rule={store.activeRule} dynamicSize />
           </div>

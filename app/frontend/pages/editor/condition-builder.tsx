@@ -291,27 +291,27 @@ export default function ConditionManager(props: { rule: FilterRule }) {
       {props.rule && !props.rule.conditions.length ? (
         <div class='text-center py-8 text-muted-foreground'>No conditions.</div>
       ) : (
-        <div class='space-y-4 pb-2 flex flex-col items-start overflow-y-auto overflow-x-hidden w-full flex-1 min-h-0 pr-1 scrollbar-thumb-neutral-600'>
-          <For each={props.rule.conditions}>
-            {(condition) => {
-              const conditionType = conditionTypes[condition.key];
-              const EXCLUDED_OPERATORS = [Operator.GTE, Operator.LTE];
-              const filteredOperators = operators.filter((op) => {
-                if (
-                  condition.key === ConditionKey.SOCKETS &&
-                  EXCLUDED_OPERATORS.includes(op)
-                ) {
-                  return false;
-                }
-                return true;
-              });
-              if (!condition) return null;
-              return (
-                <div class='bg-primary-foreground border border-accent w-fit flex gap-4 items-center justify-between rounded-lg'>
-                  <div class='flex gap-2 items-center py-2 px-4'>
-                    <Label class='text-md text-nowrap'>
-                      {conditionType.label}
-                    </Label>
+        <div class='space-y-4 pb-2 pr-1 flex flex-col items-start overflow-y-auto overflow-x-hidden w-full flex-1 min-h-0 scrollbar-thumb-neutral-600'>
+          {props.rule.conditions.map((condition) => {
+            const conditionType = conditionTypes[condition.key];
+            const EXCLUDED_OPERATORS = [Operator.GTE, Operator.LTE];
+            const filteredOperators = operators.filter((op) => {
+              if (
+                condition.key === ConditionKey.SOCKETS &&
+                EXCLUDED_OPERATORS.includes(op)
+              ) {
+                return false;
+              }
+              return true;
+            });
+            if (!condition) return null;
+            return (
+              <div class='bg-primary-foreground border border-accent rounded-lg flex flex-wrap items-center gap-1 px-2 size-fit'>
+                <Label class='text-md text-wrap font-medium pt-1 pl-1'>
+                  {conditionType.label}
+                </Label>
+                <div class='flex items-center'>
+                  <div class='flex items-center'>
                     {"operator" in condition && condition.operator && (
                       <div class='w-full'>
                         <Select
@@ -337,7 +337,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                         </Select>
                       </div>
                     )}
-                    <div class='ml-2'>
+                    <div class='p-2 ml-1'>
                       {conditionType.type === "slider" && (
                         <SliderInput
                           key={condition.key as FilteredConditionKey}
@@ -388,9 +388,9 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                     </div>
                   </Button>
                 </div>
-              );
-            }}
-          </For>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
