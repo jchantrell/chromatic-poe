@@ -23,7 +23,7 @@ import Item from "./item";
 import Rule from "./rule-menu-entry";
 
 const options = {
-  keys: [{ name: "name", weight: 3 }, "bases.name", "bases.base"],
+  keys: ["name", "bases.name", "bases.base"],
   useExtendedSearch: true,
   ignoreFieldNorm: true,
   minMatchCharLength: 2,
@@ -76,7 +76,7 @@ export default function Rules() {
       rules = store.filter?.rules || [];
     } else {
       rules = searchIndex()
-        .search(term)
+        .search(`'${term}`)
         .map((result) => result.item);
     }
 
