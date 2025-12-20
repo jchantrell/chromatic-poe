@@ -1,4 +1,33 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.5.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.4.9...chromatic-poe-v0.5.0) (2025-12-20)
+
+
+### Features
+
+* allow importable filters list to toggle between versions ([c886b16](https://github.com/jchantrell/chromatic-poe/commit/c886b1628c116abf5d4cdd96a671229b14fbb812))
+* increase fuzzy search accuracy for rules ([7e98605](https://github.com/jchantrell/chromatic-poe/commit/7e9860599d1f8c6020762cefe8fe7d80aa34492d))
+* more improvements to rule editor layout ([4b5b9c7](https://github.com/jchantrell/chromatic-poe/commit/4b5b9c7af5d58f61e7216e311da1bc516252d537))
+* rule should only be sticky if it's expanded ([2211dd7](https://github.com/jchantrell/chromatic-poe/commit/2211dd7df271dfdf03d77fd847e145a8028c5415))
+* virtualised scrolling for filter preview ([32f19a7](https://github.com/jchantrell/chromatic-poe/commit/32f19a7f54604209b9981def9f860d5de6682aa1))
+
+
+### Bug Fixes
+
+* add minor offset to rule list to prevent scrollbar ([44c963c](https://github.com/jchantrell/chromatic-poe/commit/44c963c6db826c20b6bad3fc96b2c38bba79f289))
+* all browser warnings ([0695f45](https://github.com/jchantrell/chromatic-poe/commit/0695f45373df09ca737706b02c8273b4fba535eb))
+* dont spellcheck rule names ([3f21810](https://github.com/jchantrell/chromatic-poe/commit/3f218105291678e1a49ef4129f691cbb310d20d1))
+* imported sounds on desktop ([0093c1c](https://github.com/jchantrell/chromatic-poe/commit/0093c1c5e9efc97d820233e767ca7400d9b65355))
+* layout issues for extremely long rule names ([c8b423b](https://github.com/jchantrell/chromatic-poe/commit/c8b423bcabd12a512af998009842bcd81f640fee))
+* rule menu entry flex behaviour ([c4679ce](https://github.com/jchantrell/chromatic-poe/commit/c4679ce619b5d0fe185b3780103e23e7a2d29ec1))
+* rule menu entry preview should be clickable ([ae092a4](https://github.com/jchantrell/chromatic-poe/commit/ae092a46f226b684a24448ffb0af5877b3cb65ba))
+* use correct separator for OS when writing filter ([361caf9](https://github.com/jchantrell/chromatic-poe/commit/361caf97a93ad266631d09a7ffa2b87148fc6481))
+* windows poe dir path ([39b01ac](https://github.com/jchantrell/chromatic-poe/commit/39b01ac7d9a256a871f287529e5c707b735a648b))
+
+
+### Performance Improvements
+
+* only update rule map icon when it changes ([e19550a](https://github.com/jchantrell/chromatic-poe/commit/e19550a9ee9019848ab9fdd7a7800522c4f4db85))
+
 ## [0.4.9](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.4.8...chromatic-poe-v0.4.9) (2025-12-19)
 
 
