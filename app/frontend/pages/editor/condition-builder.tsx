@@ -170,8 +170,8 @@ export default function ConditionManager(props: { rule: FilterRule }) {
   });
 
   return (
-    <div class='space-y-4 flex flex-col w-full flex-1 min-h-0 overflow-hidden'>
-      <div class='flex flex-wrap gap-3 items-center w-full'>
+    <div class='space-y-2 flex flex-col w-full flex-1 min-h-0 overflow-hidden'>
+      <div class='flex flex-wrap gap-3 items-center w-full bg-primary-foreground/20 border border-accent rounded-xl px-2 py-1'>
         <Dialog>
           <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
             Edit Items
@@ -291,102 +291,81 @@ export default function ConditionManager(props: { rule: FilterRule }) {
       {props.rule && !props.rule.conditions.length ? (
         <div class='text-center py-8 text-muted-foreground'>No conditions.</div>
       ) : (
-        <div class='space-y-4 pb-2 pr-1 flex flex-col items-start overflow-y-auto overflow-x-hidden w-full flex-1 min-h-0 scrollbar-thumb-neutral-600'>
+        <div class='space-y-2 pb-2 pr-1 flex flex-col items-start overflow-y-auto overflow-x-hidden w-full flex-1 min-h-0 scrollbar-thumb-neutral-600'>
           {props.rule.conditions.map((condition) => {
             const conditionType = conditionTypes[condition.key];
-            const EXCLUDED_OPERATORS = [Operator.GTE, Operator.LTE];
-            const filteredOperators = operators.filter((op) => {
-              if (
-                condition.key === ConditionKey.SOCKETS &&
-                EXCLUDED_OPERATORS.includes(op)
-              ) {
-                return false;
-              }
-              return true;
-            });
             if (!condition) return null;
             return (
-              <div class='bg-primary-foreground border border-accent rounded-lg flex flex-wrap items-center gap-1 px-2 size-fit'>
-                <Label class='text-md text-wrap font-medium pt-1 pl-1'>
-                  {conditionType.label}
-                </Label>
-                <div class='flex items-center'>
-                  <div class='flex items-center'>
-                    {"operator" in condition && condition.operator && (
-                      <div class='w-full'>
-                        <Select
-                          value={condition.operator}
-                          onChange={(value) => {
-                            if (value) {
-                              updateCondition(condition, "operator", value);
-                            }
-                          }}
-                          options={filteredOperators}
-                          itemComponent={(props) => (
-                            <SelectItem item={props.item}>
-                              {props.item.rawValue}
-                            </SelectItem>
-                          )}
-                        >
-                          <SelectTrigger class='w-[70px] bg-muted'>
-                            <SelectValue<string>>
-                              {(state) => state.selectedOption()}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent />
-                        </Select>
-                      </div>
+              <div class='bg-primary-foreground border border-accent rounded-xl flex flex-wrap items-center px-2 w-full @container'>
+                <div class='max-w-full @md:max-w-22 w-full px-2 pt-1'>
+                  <Label class='text-md text-wrap font-bold'>
+                    {conditionType.label}
+                  </Label>
+                </div>
+                <div class='flex items-center p-0.5'>
+                  {"operator" in condition && condition.operator && (
+                    <Select
+                      value={condition.operator}
+                      onChange={(value) => {
+                        if (value) {
+                          updateCondition(condition, "operator", value);
+                        }
+                      }}
+                      options={operators.filter((o) => o != "")}
+                      itemComponent={(props) => (
+                        <SelectItem item={props.item}>
+                          {props.item.rawValue}
+                        </SelectItem>
+                      )}
+                    >
+                      <SelectTrigger class='w-[70px] bg-accent'>
+                        <SelectValue<string>>
+                          {(state) => state.selectedOption()}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent />
+                    </Select>
+                  )}
+                  <div class='p-2 ml-1'>
+                    {conditionType.type === "slider" && (
+                      <SliderInput
+                        key={condition.key as FilteredConditionKey}
+                        value={condition.value as number}
+                        onChange={(v) => {
+                          updateCondition(condition, "value", v);
+                        }}
+                      />
                     )}
-                    <div class='p-2 ml-1'>
-                      {conditionType.type === "slider" && (
-                        <SliderInput
-                          key={condition.key as FilteredConditionKey}
-                          value={condition.value as number}
-                          onChange={(v) => {
-                            updateCondition(condition, "value", v);
-                          }}
-                        />
-                      )}
-                      {conditionType.type === "select" && (
-                        <SelectInput
-                          key={condition.key as FilteredConditionKey}
-                          value={condition.value as string[]}
-                          index={getIndex(condition.key)}
-                          groupKey={getGroupKey(condition.key)}
-                          onChange={(v) => {
-                            updateCondition(condition, "value", v);
-                          }}
-                        />
-                      )}
-                      {conditionType.type === "text-list" && (
-                        <ToggleInput
-                          key={condition.key as FilteredConditionKey}
-                          value={condition.value as string[]}
-                          onChange={(v) => {
-                            updateCondition(condition, "value", v);
-                          }}
-                        />
-                      )}
-                      {conditionType.type === "checkbox" && (
-                        <CheckboxInput
-                          key={condition.key as FilteredConditionKey}
-                          value={condition.value as boolean}
-                          onChange={(v) => {
-                            updateCondition(condition, "value", v);
-                          }}
-                        />
-                      )}
-                    </div>
+                    {conditionType.type === "select" && (
+                      <SelectInput
+                        key={condition.key as FilteredConditionKey}
+                        value={condition.value as string[]}
+                        index={getIndex(condition.key)}
+                        groupKey={getGroupKey(condition.key)}
+                        onChange={(v) => {
+                          updateCondition(condition, "value", v);
+                        }}
+                      />
+                    )}
+                    {conditionType.type === "text-list" && (
+                      <ToggleInput
+                        key={condition.key as FilteredConditionKey}
+                        value={condition.value as string[]}
+                        onChange={(v) => {
+                          updateCondition(condition, "value", v);
+                        }}
+                      />
+                    )}
+                    {conditionType.type === "checkbox" && (
+                      <CheckboxInput
+                        key={condition.key as FilteredConditionKey}
+                        value={condition.value as boolean}
+                        onChange={(v) => {
+                          updateCondition(condition, "value", v);
+                        }}
+                      />
+                    )}
                   </div>
-                  <Button
-                    variant='ghost'
-                    onMouseDown={() => removeCondition(condition)}
-                    class='h-full'
-                  >
-                    <div class='h-6 w-6'>
-                      <CloseIcon />
-                    </div>
-                  </Button>
                 </div>
               </div>
             );
