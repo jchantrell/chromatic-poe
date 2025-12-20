@@ -76,9 +76,7 @@ function ToggleMapIcon() {
 
   return (
     <div class='flex text-nowrap items-center h-6'>
-      <Label class='w-[94px]' for='icon'>
-        Map Icon
-      </Label>
+      <Label class='w-[94px]'>Map Icon</Label>
       <Checkbox
         id='icon'
         class='mr-2'
@@ -120,9 +118,7 @@ function ToggleBeam() {
 
   return (
     <div class='flex text-nowrap items-center h-6'>
-      <Label class='w-[94px]' for='beam'>
-        Beam
-      </Label>
+      <Label class='w-[94px]'>Beam</Label>
       <Checkbox id='beam' onChange={handleBeam} checked={beamActive()} />
       <div class='flex grow-0'>
         {store.activeRule?.actions.beam?.enabled ? (
@@ -161,9 +157,7 @@ function ToggleDropSound() {
 
   return (
     <div class='flex text-nowrap items-center h-6'>
-      <Label class='w-[94px]' for='dropSound'>
-        Drop Sound
-      </Label>
+      <Label class='w-[94px]'>Drop Sound</Label>
       <Tooltip text='Enable/Disable Native Drop Sound'>
         <Checkbox
           id='dropSound'
@@ -259,13 +253,13 @@ export default function RuleEditor() {
         </Tooltip>
       </div>
       <div class='flex justify-between w-full flex-1 min-h-0 pb-2'>
-        <div class='px-5 flex flex-col overflow-hidden gap-1  @2xl:max-w-xl w-full flex-1 min-h-0'>
+        <div class='px-5 flex flex-col overflow-hidden gap-1 @2xl:max-w-xl w-full flex-1 min-h-0'>
           <div class='flex items-center min-h-[60px] shrink-0 gap-10'>
             <DropPreview rule={store.activeRule} dynamicSize />
           </div>
           <div class='flex gap-5 p-2 flex-1 min-h-0'>
             <div class='flex flex-col gap-2 w-full flex-1 min-h-0'>
-              <div class='shrink-0'>
+              <div class='shrink-0 bg-primary-foreground/20 border border-accent rounded-xl px-2 py-1'>
                 <RuleActions />
               </div>
               <ConditionManager rule={store.activeRule} />

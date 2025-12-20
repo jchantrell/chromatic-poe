@@ -1,4 +1,3 @@
-import Fuse, { type FuseResult } from "fuse.js";
 import { createMutable } from "solid-js/store";
 import { itemIndex } from "./items";
 

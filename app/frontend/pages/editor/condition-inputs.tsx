@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@app/ui/dialog";
 import { Separator } from "@app/ui/separator";
-import { Slider, SliderThumb, SliderTrack } from "@app/ui/slider";
+import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
 import { ToggleGroup, ToggleGroupItem } from "@app/ui/toggle-group";
@@ -35,12 +35,12 @@ export function SliderInput(props: {
       getValueLabel={(params) => {
         return `${params.values[0]}`;
       }}
-      class='space-y-3 w-[150px]'
+      class='space-y-2 w-[160px]'
     >
       <TextField>
         <TextFieldInput
           type='number'
-          class='text-center'
+          class='text-center border border-accent h-7'
           value={props.value}
           onInput={(v) =>
             props.onChange(Number((v.target as HTMLInputElement).value))
@@ -48,8 +48,9 @@ export function SliderInput(props: {
         />
       </TextField>
       <div class='flex w-[150px]'>
-        <SliderTrack>
-          <SliderThumb class='border-2 border-primary bg-secondary' />
+        <SliderTrack class='bg-accent'>
+          <SliderFill class='bg-neutral-400' />
+          <SliderThumb class='size-4' />
         </SliderTrack>
       </div>
     </Slider>
@@ -246,8 +247,8 @@ export function CheckboxInput(props: {
       onChange={(checked) => props.onChange(checked)}
       class='flex items-center space-x-2'
     >
-      <SwitchControl>
-        <SwitchThumb />
+      <SwitchControl class='bg-accent'>
+        <SwitchThumb class='bg-primary-foreground' />
       </SwitchControl>
     </Switch>
   );
