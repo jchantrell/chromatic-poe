@@ -7,7 +7,9 @@ import {
   ExitIcon,
   HouseIcon,
   MinimiseIcon,
+  RedoIcon,
   SaveIcon,
+  UndoIcon,
 } from "@app/icons";
 import chromatic from "@app/lib/config";
 import { dat } from "@app/lib/dat";
@@ -95,13 +97,40 @@ function TopBar() {
       class='w-full flex justify-between items-center h-12'
       data-tauri-drag-region
     >
-      <div class='flex items-center justify-between w-full gap-2'>
+      <div
+        class='flex items-center justify-between w-full gap-2'
+        data-tauri-drag-region
+      >
         {store.filter ? (
           <>
             <div class='ml-2 font-semibold text-xl mr-4 flex '>
               {store.filter?.name} (PoE {store.filter.poeVersion})
             </div>
             <div>
+              <Tooltip text={`Undo (Ctrl + ${UNDO_KEY.toUpperCase()})`}>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  disabled={!store.filter.undoStack.length}
+                  onMouseUp={() => {
+                    store.filter?.undo();
+                  }}
+                >
+                  <UndoIcon />
+                </Button>
+              </Tooltip>
+              <Tooltip text={`Redo (Ctrl + ${REDO_KEY.toUpperCase()})`}>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  disabled={!store.filter.redoStack.length}
+                  onMouseUp={() => {
+                    store.filter?.redo();
+                  }}
+                >
+                  <RedoIcon />
+                </Button>
+              </Tooltip>
               <Tooltip text={`Save (Ctrl + ${SAVE_KEY.toUpperCase()})`}>
                 <Button
                   variant='ghost'
