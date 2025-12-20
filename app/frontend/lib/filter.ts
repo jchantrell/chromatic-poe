@@ -156,6 +156,12 @@ export class Filter {
     const changes = this.redoStack.shift();
     if (changes) {
       const updatedState = this.applyChanges(changes);
+      for (let i = 0; i < updatedState.length; i++) {
+        updatedState[i] = {
+          ...updatedState[i],
+          conditions: convertRawToConditions(updatedState[i].conditions),
+        };
+      }
       const diff = this.diff(clone(this.rules), updatedState);
       modifyMutable(this.rules, reconcile(updatedState));
       addParentRefs(this.rules); // FIX: this is wasteful
