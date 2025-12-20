@@ -1,6 +1,6 @@
 import { store } from "@app/store";
 import { createVirtualizer } from "@tanstack/solid-virtual";
-import { createMemo, For } from "solid-js";
+import { createMemo } from "solid-js";
 
 export default function Preview() {
   return (
@@ -38,25 +38,23 @@ function VirtualPreview() {
           position: "relative",
         }}
       >
-        <For each={virtualizer.getVirtualItems()}>
-          {(virtualRow) => (
-            <div
-              data-index={virtualRow.index}
-              ref={(el) => queueMicrotask(() => virtualizer.measureElement(el))}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                transform: `translateY(${virtualRow.start}px)`,
-                "white-space": "pre-wrap",
-                "overflow-wrap": "anywhere",
-              }}
-            >
-              {lines()[virtualRow.index] || "\u00A0"}
-            </div>
-          )}
-        </For>
+        {virtualizer.getVirtualItems().map((virtualRow) => (
+          <div
+            data-index={virtualRow.index}
+            ref={(el) => queueMicrotask(() => virtualizer.measureElement(el))}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              transform: `translateY(${virtualRow.start}px)`,
+              "white-space": "pre-wrap",
+              "overflow-wrap": "anywhere",
+            }}
+          >
+            {lines()[virtualRow.index] || "\u00A0"}
+          </div>
+        ))}
       </div>
     </div>
   );
