@@ -181,7 +181,7 @@ export default function Rules() {
             <ul
               class='flex flex-col relative w-full h-full'
               style={{
-                height: `${virtualizer.getTotalSize()}px`,
+                height: `${virtualizer.getTotalSize() + 4}px`,
               }}
             >
               {virtualizer.getVirtualItems().map((virtualItem) => {
