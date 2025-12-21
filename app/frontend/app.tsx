@@ -101,7 +101,7 @@ function TopBar() {
         class='flex items-center justify-between w-full gap-2'
         data-tauri-drag-region
       >
-        {store.filter ? (
+        {store.filter && (
           <>
             <div class='ml-2 font-semibold text-xl mr-4 flex '>
               {store.filter?.name} (PoE {store.filter.poeVersion})
@@ -156,7 +156,7 @@ function TopBar() {
               </Tooltip>
             </div>
           </>
-        ) : null}
+        )}
       </div>
       <div class='flex'>
         {chromatic.runtime === "desktop" && (
