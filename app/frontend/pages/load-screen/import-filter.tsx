@@ -40,6 +40,7 @@ export default function ImportFilter() {
     }
     const filter = await generateFilter(name(), version(), raw());
     await filter.save();
+    store.filters.push(filter);
     setDialogOpen(false);
   }
 

@@ -28,6 +28,7 @@ export default function CreateFilter() {
       return;
     }
     const filter = await generateFilter(name(), version());
+    store.filters.push(filter);
     await filter.save();
     setDialogOpen(false);
   }

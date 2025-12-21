@@ -88,7 +88,6 @@ export class Filter {
     if (params.undoStack) this.undoStack = params.undoStack;
     if (params.redoStack) this.redoStack = params.redoStack;
 
-    addFilter(this);
     addParentRefs(this.rules);
     createMutable(this);
   }

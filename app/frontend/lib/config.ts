@@ -248,12 +248,13 @@ class Chromatic {
 
   async getAllFilters() {
     const db = await this.db.getInstance();
-    const filters = await db.getAll("filters");
-    for (const filter of filters) {
+    const rawFilters = await db.getAll("filters");
+    const filters: Filter[] = [];
+    for (const filter of rawFilters) {
       filter.lastUpdated = new Date(filter.lastUpdated);
-      new Filter(filter);
+      filters.push(new Filter(filter));
     }
-
+    store.filters = filters;
     store.filters.sort(alphabeticalSort((filter) => filter.name));
   }
 
