@@ -1,4 +1,18 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.6.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.5.0...chromatic-poe-v0.6.0) (2025-12-23)
+
+
+### Features
+
+* undo/redo buttons in app bar ([a2aa415](https://github.com/jchantrell/chromatic-poe/commit/a2aa41559c8e7b6cdab3c96789fe0fb812dad69a))
+
+
+### Bug Fixes
+
+* avoid caching in filter preview ([a61ea8f](https://github.com/jchantrell/chromatic-poe/commit/a61ea8fe3d371dc78115b17152ecf5b86e0b5454))
+* load filters together on page load ([e0197c9](https://github.com/jchantrell/chromatic-poe/commit/e0197c9f8116aad04f01feb584660d6f4338cb48))
+* redo action shouldnt reapply raw condition ([6164053](https://github.com/jchantrell/chromatic-poe/commit/61640538dc026b09754ae7b4b7e1527d331c06bc))
+
 ## [0.5.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.4.9...chromatic-poe-v0.5.0) (2025-12-20)
 
 
