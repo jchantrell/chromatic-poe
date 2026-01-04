@@ -7,25 +7,33 @@ import { IDBBatchAtomicVFS } from "wa-sqlite/src/examples/IDBBatchAtomicVFS.js";
 export class Database {
   sqlite3: SQLiteAPI | null = null;
   db: number | null = null;
+  private initPromise: Promise<void> | null = null;
 
   async init() {
-    const module = await SQLiteESMFactory({
-      locateFile: () => wasmUrl,
-    });
-    this.sqlite3 = SQLite.Factory(module);
+    if (this.db) return;
+    if (this.initPromise) return this.initPromise;
 
-    const vfs = new IDBBatchAtomicVFS("chromatic-poe-db");
-    await vfs.isReady;
+    this.initPromise = (async () => {
+      const module = await SQLiteESMFactory({
+        locateFile: () => wasmUrl,
+      });
+      this.sqlite3 = SQLite.Factory(module);
 
-    this.sqlite3.vfs_register(vfs, true);
+      const vfs = new IDBBatchAtomicVFS("chromatic-poe-db");
+      await vfs.isReady;
 
-    this.db = await this.sqlite3.open_v2(
-      "chromatic.db",
-      SQLite.SQLITE_OPEN_READWRITE |
-        SQLite.SQLITE_OPEN_CREATE |
-        SQLite.SQLITE_OPEN_URI,
-      vfs.name,
-    );
+      this.sqlite3.vfs_register(vfs, true);
+
+      this.db = await this.sqlite3.open_v2(
+        "chromatic.db",
+        SQLite.SQLITE_OPEN_READWRITE |
+          SQLite.SQLITE_OPEN_CREATE |
+          SQLite.SQLITE_OPEN_URI,
+        vfs.name,
+      );
+    })();
+
+    await this.initPromise;
   }
 
   async exec(sql: string) {
