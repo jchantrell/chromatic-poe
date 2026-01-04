@@ -58,7 +58,10 @@ export class ArtManager {
       for (let i = 0; i < missing.length; i++) {
         const item = missing[i];
         if (onProgress) {
-          onProgress((i / missing.length) * 100, `Downloading ${item.name}`);
+          onProgress(
+            (i / missing.length) * 100,
+            `Downloading assets: ${item.name}`,
+          );
         }
         try {
           const cacheKey = `${gameVersion}/${item.name}`;

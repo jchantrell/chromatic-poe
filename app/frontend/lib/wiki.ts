@@ -27,18 +27,17 @@ export class WikiManager {
     offset: number,
     results: unknown[],
   ): Promise<Unique[]> {
-    const gameVersion = patch.startsWith("3") ? 1 : 2;
-    const proxyUrl =
-      import.meta.env.VITE_CORS_PROXY_URL || "https://corsproxy.io/?";
-    const targetUrl = `https://www.poe${gameVersion === 2 ? "2" : ""}wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&offset=${offset}`;
-    const url = `${proxyUrl}${encodeURIComponent(targetUrl)}`;
+    const targetUrl = `https://www.poe${patch.startsWith("4") ? "2" : ""}wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&offset=${offset}`;
 
-    const req = await fetch(url, {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
+    const req = await fetch(
+      `${import.meta.env.VITE_PROXY_API_HOST}?url=${encodeURIComponent(targetUrl)}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
       },
-    });
+    );
     const res = await req.json();
     if (res.cargoquery.length) {
       return this.queryWiki(patch, offset + 50, [

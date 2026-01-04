@@ -16,6 +16,7 @@ import { toast } from "solid-sonner";
 import { Filter } from "./filter";
 import { IDBManager } from "./idb";
 import { DEFAULT_FILTER_SOUNDS, type Sound } from "./sounds";
+import { dat, DatManager } from "./dat";
 
 function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
   try {

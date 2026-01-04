@@ -9,9 +9,7 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(async ({ mode }) => {
   const config = {
     publicDir: "assets",
-    plugins: [
-      solid(),
-    ],
+    plugins: [solid()],
     resolve: {
       alias: {
         "@app": path.resolve(__dirname, "./app/frontend"),

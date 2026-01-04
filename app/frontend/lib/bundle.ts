@@ -4,7 +4,7 @@ import {
   readIndexBundle,
 } from "pathofexile-dat/bundles.js";
 import type { IDBManager } from "./idb";
-import { withRetries } from "./utils";
+import { to, withRetries } from "./utils";
 
 const BUNDLE_DIR = "Bundles2";
 
@@ -28,31 +28,27 @@ export class BundleManager {
     };
   }
 
-  getCdnUrl(patch: string) {
-    const isPoe2 = patch.startsWith("4.");
-    const baseUrl = isPoe2
-      ? "https://patch-poe2.poecdn.com"
-      : "https://patch.poecdn.com";
-    const proxyUrl =
-      import.meta.env.VITE_CORS_PROXY_URL || "https://corsproxy.io/?";
-    return `${proxyUrl}${encodeURIComponent(baseUrl)}`;
-  }
-
   async fetchFile(patch: string, name: string): Promise<ArrayBuffer> {
     const db = await this.db.getInstance();
     const cacheKey = `${patch}/${name}`;
 
-    try {
-      const cached = await db.get("bundles", cacheKey);
-      if (cached) return cached;
-    } catch (e) {
-      console.warn("Failed to read from cache", e);
+    const [err, cached] = await to(db.get("bundles", cacheKey));
+
+    if (err) {
+      console.warn("Failed to read from cache", err);
     }
+
+    if (cached) return cached;
 
     console.log(`Loading from CDN: ${name} ...`);
     return await withRetries(async () => {
       const webpath = `/${patch}/${BUNDLE_DIR}/${name}`;
-      const response = await fetch(`${this.getCdnUrl(patch)}/${webpath}`);
+      const cdnUrl = patch.startsWith("4.")
+        ? "https://patch-poe2.poecdn.com"
+        : "https://patch.poecdn.com";
+      const response = await fetch(
+        `${`${import.meta.env.VITE_PROXY_API_HOST}?url=${encodeURIComponent(cdnUrl)}`}/${webpath}`,
+      );
 
       if (!response.ok) {
         throw new Error(
@@ -62,11 +58,11 @@ export class BundleManager {
 
       const buffer = await response.arrayBuffer();
 
-      try {
-        await db.put("bundles", buffer, cacheKey);
-      } catch (e) {
-        console.warn("Failed to write to cache", e);
+      const [err] = await to(db.put("bundles", buffer, cacheKey));
+      if (err) {
+        console.warn("Failed to write to cache", err);
       }
+
       return buffer;
     });
   }
