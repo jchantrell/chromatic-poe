@@ -2,6 +2,7 @@ import Fuse, { type FuseResult } from "fuse.js";
 import type { BundleManager } from "./bundle";
 import type { Database } from "./db";
 import type { IDBManager } from "./idb";
+import { to } from "./utils";
 
 const MODIFIABLE_CLASSES = [
   "Life Flasks",
@@ -399,13 +400,20 @@ export class ModManager {
     const hierarchy: ItFileHierarchy = {};
     for (const inheritsFrom of inheritsFroms) {
       const pathName = `${inheritsFrom}.it`.toLowerCase();
-      try {
-        const contentUint8 = await this.loader.getFileContents(patch, pathName);
-        const decoder = new TextDecoder("utf-16le");
-        const content = decoder.decode(contentUint8);
-        hierarchy[inheritsFrom] = this.parseItFile(content);
-      } catch (e) {
-        console.warn(`Failed to parse .it file: ${pathName}`, e);
+      const [err] = await to(
+        (async () => {
+          const contentUint8 = await this.loader.getFileContents(
+            patch,
+            pathName,
+          );
+          const decoder = new TextDecoder("utf-16le");
+          const content = decoder.decode(contentUint8);
+          hierarchy[inheritsFrom] = this.parseItFile(content);
+        })(),
+      );
+
+      if (err) {
+        console.warn(`Failed to parse .it file: ${pathName}`, err);
       }
     }
     return hierarchy;

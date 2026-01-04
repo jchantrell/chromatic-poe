@@ -131,11 +131,11 @@ export const withRetries = async <
   let attempt = 1;
 
   const execute = async (): Promise<ReturnType<F>> => {
-    try {
-      return fn();
-    } catch (error) {
+    const [err, res] = await to(fn() as Promise<ReturnType<F>>);
+
+    if (err) {
       if (attempt >= attempts) {
-        throw error;
+        throw err;
       }
 
       const delay = baseDelay * 2 ** attempt;
@@ -149,6 +149,8 @@ export const withRetries = async <
 
       return execute();
     }
+
+    return res;
   };
 
   return execute();

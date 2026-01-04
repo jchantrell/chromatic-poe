@@ -3,6 +3,7 @@ import SQLiteESMFactory from "wa-sqlite/dist/wa-sqlite-async.mjs";
 import wasmUrl from "wa-sqlite/dist/wa-sqlite-async.wasm?url";
 // @ts-ignore
 import { IDBBatchAtomicVFS } from "wa-sqlite/src/examples/IDBBatchAtomicVFS.js";
+import { to } from "./utils";
 
 export class Database {
   sqlite3: SQLiteAPI | null = null;
@@ -148,12 +149,17 @@ export class Database {
 
   async transaction(callback: () => Promise<void>) {
     await this.exec("BEGIN TRANSACTION");
-    try {
-      await callback();
-      await this.exec("COMMIT");
-    } catch (e) {
+
+    const [err] = await to(
+      (async () => {
+        await callback();
+        await this.exec("COMMIT");
+      })(),
+    );
+
+    if (err) {
       await this.exec("ROLLBACK");
-      throw e;
+      throw err;
     }
   }
 
