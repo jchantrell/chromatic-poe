@@ -1,7 +1,7 @@
 import {
-  decompressSliceInBundle,
-  getFileInfo,
-  readIndexBundle,
+    decompressSliceInBundle,
+    getFileInfo,
+    readIndexBundle,
 } from "pathofexile-dat/bundles.js";
 import type { IDBManager } from "./idb";
 import { to, withRetries } from "./utils";
@@ -25,19 +25,23 @@ export class BundleManager {
     if (this.initPromise) return this.initPromise;
 
     this.initPromise = (async () => {
-      try {
-        console.log("Loading bundles index...");
-        const indexBin = await this.fetchFile(patch, "_.index.bin");
-        const indexBundle = decompressSliceInBundle(new Uint8Array(indexBin));
-        const _index = readIndexBundle(indexBundle);
-        this.index = {
-          bundlesInfo: _index.bundlesInfo,
-          filesInfo: _index.filesInfo,
-        };
-        this.loadedPatch = patch;
-      } finally {
-        this.initPromise = null;
-      }
+      const [err] = await to(
+        (async () => {
+          console.log("Loading bundles index...");
+          const indexBin = await this.fetchFile(patch, "_.index.bin");
+          const indexBundle = decompressSliceInBundle(new Uint8Array(indexBin));
+          const _index = readIndexBundle(indexBundle);
+          this.index = {
+            bundlesInfo: _index.bundlesInfo,
+            filesInfo: _index.filesInfo,
+          };
+          this.loadedPatch = patch;
+        })(),
+      );
+
+      this.initPromise = null;
+
+      if (err) throw err;
     })();
 
     await this.initPromise;

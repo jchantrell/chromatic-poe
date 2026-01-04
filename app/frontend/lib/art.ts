@@ -4,6 +4,7 @@ import { decodeBC7 } from "./bc7";
 import type { BundleManager } from "./bundle";
 import { parseDds } from "./dds";
 import type { IDBManager } from "./idb";
+import { to } from "./utils";
 
 const TINCTURE_SUFFIX = [
   "UniquePrismatic.dds",
@@ -63,22 +64,29 @@ export class ArtManager {
             `Downloading assets: ${item.name}`,
           );
         }
-        try {
-          const cacheKey = `${gameVersion}/${item.name}`;
-          const ddsBuffer = await this.loader.getFileContents(patch, item.path);
-          const pngBlob = await this.convertDDSToPNG(
-            ddsBuffer,
-            item.path,
-            gameVersion,
-          );
+        const [err] = await to(
+          (async () => {
+            const cacheKey = `${gameVersion}/${item.name}`;
+            const ddsBuffer = await this.loader.getFileContents(
+              patch,
+              item.path,
+            );
+            const pngBlob = await this.convertDDSToPNG(
+              ddsBuffer,
+              item.path,
+              gameVersion,
+            );
 
-          if (pngBlob) {
-            await db.put("images", pngBlob, cacheKey);
-            const url = URL.createObjectURL(pngBlob);
-            this.urlCache.set(cacheKey, url);
-          }
-        } catch (e) {
-          console.warn(`Failed to process art: ${item.path}`, e);
+            if (pngBlob) {
+              await db.put("images", pngBlob, cacheKey);
+              const url = URL.createObjectURL(pngBlob);
+              this.urlCache.set(cacheKey, url);
+            }
+          })(),
+        );
+
+        if (err) {
+          console.warn(`Failed to process art: ${item.path}`, err);
         }
       }
 

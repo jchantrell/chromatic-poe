@@ -111,93 +111,97 @@ export class DatManager {
     if (this.extractPromise) return this.extractPromise;
 
     this.extractPromise = (async () => {
-      try {
-        if (onProgress) onProgress(0, "Initialising...");
-        await this.loader.init(patch);
+      const [err] = await to(
+        (async () => {
+          if (onProgress) onProgress(0, "Initialising...");
+          await this.loader.init(patch);
 
-        // tables
-        const tablesExist = await this.db.query(
-          "SELECT version FROM _metadata WHERE version = ? AND key = ?",
-          [patch, "tables"],
-        );
-        if (!tablesExist.length) {
-          console.log(
-            `Tables for ${patch} not found in DB or mismatch. Fetching from game servers...`,
+          // tables
+          const tablesExist = await this.db.query(
+            "SELECT version FROM _metadata WHERE version = ? AND key = ?",
+            [patch, "tables"],
           );
-          for (let i = 0; i < TABLES.length; i++) {
-            const tableName = TABLES[i];
-            if (onProgress) {
-              const percent = (i / TABLES.length) * 60;
-              onProgress(percent, `Extracting ${tableName}...`);
+          if (!tablesExist.length) {
+            console.log(
+              `Tables for ${patch} not found in DB or mismatch. Fetching from game servers...`,
+            );
+            for (let i = 0; i < TABLES.length; i++) {
+              const tableName = TABLES[i];
+              if (onProgress) {
+                const percent = (i / TABLES.length) * 60;
+                onProgress(percent, `Extracting ${tableName}...`);
+              }
+              console.log(`Processing ${tableName}...`);
+              const [err] = await to(this.importTable(patch, tableName));
+              if (err) {
+                console.warn(`Failed to process ${tableName}`, err);
+              }
             }
-            console.log(`Processing ${tableName}...`);
-            const [err] = await to(this.importTable(patch, tableName));
-            if (err) {
-              console.warn(`Failed to process ${tableName}`, err);
-            }
+            await this.db.run(
+              "INSERT OR REPLACE INTO _metadata (version, key, date) VALUES (?, ?, ?)",
+              [patch, "tables", Date.now()],
+            );
           }
-          await this.db.run(
-            "INSERT OR REPLACE INTO _metadata (version, key, date) VALUES (?, ?, ?)",
-            [patch, "tables", Date.now()],
-          );
-        }
 
-        // minimap
-        const minimapExists = await this.db.query(
-          "SELECT version FROM _metadata WHERE version = ? AND key = ?",
-          [patch, "minimap"],
-        );
-        if (!minimapExists.length) {
-          if (onProgress) onProgress(60, "Extracting minimap icons...");
-          const minimap = await this.db.query(getQuery(patch, "minimap"));
-          await this.minimap.extract(
-            patch,
-            minimap as unknown as { Id: string }[],
+          // minimap
+          const minimapExists = await this.db.query(
+            "SELECT version FROM _metadata WHERE version = ? AND key = ?",
+            [patch, "minimap"],
           );
-          await this.db.run(
-            "INSERT OR REPLACE INTO _metadata (version, key, date) VALUES (?, ?, ?)",
-            [patch, "minimap", Date.now()],
-          );
-        }
+          if (!minimapExists.length) {
+            if (onProgress) onProgress(60, "Extracting minimap icons...");
+            const minimap = await this.db.query(getQuery(patch, "minimap"));
+            await this.minimap.extract(
+              patch,
+              minimap as unknown as { Id: string }[],
+            );
+            await this.db.run(
+              "INSERT OR REPLACE INTO _metadata (version, key, date) VALUES (?, ?, ?)",
+              [patch, "minimap", Date.now()],
+            );
+          }
 
-        // mods
-        const modsExists = await this.db.query(
-          "SELECT version FROM _metadata WHERE version = ? AND key = ?",
-          [patch, "mods"],
-        );
-        if (!modsExists.length) {
-          if (onProgress) onProgress(65, "Extracting items mods...");
-          await this.mods.extract(patch, (percent, msg) => {
-            if (onProgress) {
-              const weighted = 65 + percent * 0.3;
-              onProgress(weighted, msg);
-            }
-          });
-          await this.db.run(
-            "INSERT OR REPLACE INTO _metadata (version, key, date) VALUES (?, ?, ?)",
-            [patch, "mods", Date.now()],
+          // mods
+          const modsExists = await this.db.query(
+            "SELECT version FROM _metadata WHERE version = ? AND key = ?",
+            [patch, "mods"],
           );
-        }
+          if (!modsExists.length) {
+            if (onProgress) onProgress(65, "Extracting items mods...");
+            await this.mods.extract(patch, (percent, msg) => {
+              if (onProgress) {
+                const weighted = 65 + percent * 0.3;
+                onProgress(weighted, msg);
+              }
+            });
+            await this.db.run(
+              "INSERT OR REPLACE INTO _metadata (version, key, date) VALUES (?, ?, ?)",
+              [patch, "mods", Date.now()],
+            );
+          }
 
-        // uniques
-        const uniquesExists = await this.db.query(
-          "SELECT version FROM _metadata WHERE version = ? AND key = ?",
-          [patch, "uniques"],
-        );
-        if (!uniquesExists.length) {
-          console.log("Querying wiki for unique bases...");
-          if (onProgress) onProgress(95, "Querying wiki for uniques...");
-          await this.wiki.queryWiki(patch, 0, []);
-          await this.db.run(
-            "INSERT OR REPLACE INTO _metadata (version, key, date) VALUES (?, ?, ?)",
-            [patch, "uniques", Date.now()],
+          // uniques
+          const uniquesExists = await this.db.query(
+            "SELECT version FROM _metadata WHERE version = ? AND key = ?",
+            [patch, "uniques"],
           );
-        }
+          if (!uniquesExists.length) {
+            console.log("Querying wiki for unique bases...");
+            if (onProgress) onProgress(95, "Querying wiki for uniques...");
+            await this.wiki.queryWiki(patch, 0, []);
+            await this.db.run(
+              "INSERT OR REPLACE INTO _metadata (version, key, date) VALUES (?, ?, ?)",
+              [patch, "uniques", Date.now()],
+            );
+          }
 
-        if (onProgress) onProgress(100, "Finished");
-      } finally {
-        this.extractPromise = null;
-      }
+          if (onProgress) onProgress(100, "Finished");
+        })(),
+      );
+
+      this.extractPromise = null;
+
+      if (err) throw err;
     })();
 
     await this.extractPromise;
@@ -248,14 +252,15 @@ export class DatManager {
       }
 
       for (const path of paths) {
-        try {
-          content = await this.loader.getFileContents(patch, path);
-          if (content) {
-            usedExt = ext;
-            console.log(`Found ${path}`);
-            break;
-          }
-        } catch (_e) {}
+        const [err, res] = await to(this.loader.getFileContents(patch, path));
+        if (err) continue;
+
+        content = res;
+        if (content) {
+          usedExt = ext;
+          console.log(`Found ${path}`);
+          break;
+        }
       }
     }
 
