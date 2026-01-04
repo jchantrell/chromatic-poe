@@ -13,19 +13,34 @@ export class BundleManager {
     bundlesInfo: Uint8Array;
     filesInfo: Uint8Array;
   };
+  private loadedPatch: string | null = null;
+  private initPromise: Promise<void> | null = null;
 
   constructor(private db: IDBManager) {}
 
   async init(patch: string) {
     if (!patch) return;
-    console.log("Loading bundles index...");
-    const indexBin = await this.fetchFile(patch, "_.index.bin");
-    const indexBundle = decompressSliceInBundle(new Uint8Array(indexBin));
-    const _index = readIndexBundle(indexBundle);
-    this.index = {
-      bundlesInfo: _index.bundlesInfo,
-      filesInfo: _index.filesInfo,
-    };
+
+    if (this.loadedPatch === patch && this.index) return;
+    if (this.initPromise) return this.initPromise;
+
+    this.initPromise = (async () => {
+      try {
+        console.log("Loading bundles index...");
+        const indexBin = await this.fetchFile(patch, "_.index.bin");
+        const indexBundle = decompressSliceInBundle(new Uint8Array(indexBin));
+        const _index = readIndexBundle(indexBundle);
+        this.index = {
+          bundlesInfo: _index.bundlesInfo,
+          filesInfo: _index.filesInfo,
+        };
+        this.loadedPatch = patch;
+      } finally {
+        this.initPromise = null;
+      }
+    })();
+
+    await this.initPromise;
   }
 
   async fetchFile(patch: string, name: string): Promise<ArrayBuffer> {

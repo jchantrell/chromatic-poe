@@ -35,9 +35,9 @@ import { Route, Router } from "@solidjs/router";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { createSignal, type JSXElement, onMount } from "solid-js";
 import { toast } from "solid-sonner";
-import { to } from "./lib/utils";
 import "./app.css";
 import { input } from "./lib/input";
+import { to } from "./lib/utils";
 
 export const BASE_URL = import.meta.env.BASE_URL;
 export const storageManager = createLocalStorageManager("theme");
@@ -263,6 +263,7 @@ function App() {
       return;
     }
     setPoeCurrentVersions(currentVersions);
+    await dat.ensureDbInitialized();
     await chromatic.init();
     await chromatic.getAllFilters();
     setInitialised(true);
