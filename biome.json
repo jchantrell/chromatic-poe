@@ -35,7 +35,13 @@
     }
   },
   "files": {
-    "includes": ["app/frontend/**/*.ts", "app/frontend/**/*.tsx"]
+    "includes": [
+      "**",
+      "!/**/dist",
+      "!/**/node_modules",
+      "!app/proxy/.wrangler",
+      "!app/tauri/target"
+    ]
   },
   "assist": {
     "actions": {

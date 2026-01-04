@@ -21,5 +21,5 @@ export * from "./settings";
 export * from "./sun";
 export * from "./tick";
 export * from "./trash";
-export * from "./volume";
 export * from "./undo";
+export * from "./volume";

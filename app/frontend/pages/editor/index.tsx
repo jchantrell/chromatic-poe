@@ -48,6 +48,8 @@ export default function Editor() {
 
     const patch = store.filter.poePatch;
 
+    await dat.init(patch);
+
     if (itemIndex.patch !== filterVersion) {
       itemIndex.searchIndex = null;
     }

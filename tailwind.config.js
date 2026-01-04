@@ -14,7 +14,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        fontin: ["Fontin", "sans-serif"]
+        fontin: ["Fontin", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -128,7 +128,7 @@ module.exports = {
             },
           }),
         },
-        { values: theme("colors"), type: "color" }
+        { values: theme("colors"), type: "color" },
       );
     }),
   ],

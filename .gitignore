@@ -1,6 +1,8 @@
 dist
 node_modules
-chromatic.db
+.env
+.wrangler
+app/tauri/target
 external
 .cache
 assets/poe1/minimap.json

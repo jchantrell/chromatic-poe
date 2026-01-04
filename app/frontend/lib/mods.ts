@@ -1,5 +1,4 @@
 import Fuse, { type FuseResult } from "fuse.js";
-import { R } from "node_modules/@kobalte/core/dist/menu-sub-trigger-3cc2d986";
 import type { BundleManager } from "./bundle";
 import type { Database } from "./db";
 import type { IDBManager } from "./idb";

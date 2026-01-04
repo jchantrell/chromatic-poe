@@ -41,7 +41,6 @@ export class DatManager {
     onProgress?: (percent: number, msg: string) => void,
   ) {
     this.patch = patch;
-    await this.initDb();
 
     const items = await this.getItems(patch, onProgress);
     const mods = await this.getMods(patch);
@@ -87,7 +86,9 @@ export class DatManager {
     return await this.mods.getMods(patch);
   }
 
-  private async initDb() {
+  async init(patch: string) {
+    this.patch = patch;
+
     if (this.db.db) return;
 
     await this.db.init();
@@ -102,7 +103,6 @@ export class DatManager {
     onProgress?: (percent: number, msg: string) => void,
   ) {
     this.patch = patch;
-    await this.initDb();
 
     if (onProgress) onProgress(0, "Initialising...");
     await this.loader.init(patch);
@@ -188,10 +188,9 @@ export class DatManager {
 
   async importSchema() {
     console.log("Fetching schema...");
-    const proxyUrl =
-      import.meta.env.VITE_CORS_PROXY_URL || "https://corsproxy.io/?";
-    const url = `${proxyUrl}${encodeURIComponent(SCHEMA_URL)}`;
-    const response = await fetch(url);
+    const response = await fetch(
+      `${import.meta.env.VITE_PROXY_API_HOST}?url=${encodeURIComponent(SCHEMA_URL)}`,
+    );
     this.schema = await response.json();
   }
 
