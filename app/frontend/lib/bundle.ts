@@ -1,7 +1,7 @@
 import {
-    decompressSliceInBundle,
-    getFileInfo,
-    readIndexBundle,
+  decompressSliceInBundle,
+  getFileInfo,
+  readIndexBundle,
 } from "pathofexile-dat/bundles.js";
 import type { IDBManager } from "./idb";
 import { to, withRetries } from "./utils";
@@ -47,6 +47,8 @@ export class BundleManager {
     await this.initPromise;
   }
 
+  private pendingRequests = new Map<string, Promise<ArrayBuffer>>();
+
   async fetchFile(patch: string, name: string): Promise<ArrayBuffer> {
     const db = await this.db.getInstance();
     const cacheKey = `${patch}/${name}`;
@@ -59,14 +61,18 @@ export class BundleManager {
 
     if (cached) return cached;
 
+    if (this.pendingRequests.has(cacheKey)) {
+      return this.pendingRequests.get(cacheKey)!;
+    }
+
     console.log(`Loading from CDN: ${name} ...`);
-    return await withRetries(async () => {
+    const promise = withRetries(async () => {
       const webpath = `/${patch}/${BUNDLE_DIR}/${name}`;
       const cdnUrl = patch.startsWith("4.")
         ? "https://patch-poe2.poecdn.com"
         : "https://patch.poecdn.com";
       const response = await fetch(
-        `${`${import.meta.env.VITE_PROXY_API_HOST}?url=${encodeURIComponent(cdnUrl)}`}/${webpath}`,
+        `${import.meta.env.VITE_PROXY_API_HOST}?url=${encodeURIComponent(cdnUrl)}/${webpath}`,
       );
 
       if (!response.ok) {
@@ -84,6 +90,14 @@ export class BundleManager {
 
       return buffer;
     });
+
+    this.pendingRequests.set(cacheKey, promise);
+
+    try {
+      return await promise;
+    } finally {
+      this.pendingRequests.delete(cacheKey);
+    }
   }
 
   async getFileContents(patch: string, fullPath: string): Promise<Uint8Array> {

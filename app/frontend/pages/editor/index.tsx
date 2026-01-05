@@ -13,7 +13,7 @@ import {
 import { Resizable, ResizableHandle, ResizablePanel } from "@app/ui/resizable";
 import { useColorMode } from "@kobalte/core";
 import { useParams } from "@solidjs/router";
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, onCleanup } from "solid-js";
 import { toast } from "solid-sonner";
 import Preview from "./filter-preview";
 import Rules from "./rule-container";
@@ -70,6 +70,11 @@ export default function Editor() {
     let toastId: string | number | undefined;
     let hasShownToast = false;
 
+    // cleanup previous toast if effect re-runs
+    onCleanup(() => {
+      if (toastId) toast.dismiss(toastId);
+    });
+
     const [dataError, data] = await to(
       dat.load(patch, (p, m) => {
         if (!hasShownToast) {
@@ -83,6 +88,7 @@ export default function Editor() {
 
         if (p === 100) {
           toast.dismiss(toastId);
+          toastId = undefined; // prevent cleanup from dismissing again
         }
       }),
     );
