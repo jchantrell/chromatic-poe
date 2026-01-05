@@ -20,7 +20,11 @@ export function Progress(props: ProgressProps) {
         class='w-[300px] space-y-1'
       >
         <div class='flex justify-between'>
-          <ProgressLabel>{props.message()}</ProgressLabel>
+          <ProgressLabel class='truncate flex-1 min-w-0 mr-2'>
+            {props.message().length > 35
+              ? `${props.message().slice(0, 35)}..`
+              : props.message()}
+          </ProgressLabel>
           <ProgressValueLabel />
         </div>
       </Atomic>

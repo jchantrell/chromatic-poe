@@ -22,9 +22,9 @@ const Progress = <T extends ValidComponent = "div">(
   );
 };
 
-const ProgressLabel: Component<ProgressPrimitive.ProgressLabelProps> = (
-  props,
-) => {
+const ProgressLabel: Component<
+  ProgressPrimitive.ProgressLabelProps & { class?: string }
+> = (props) => {
   return <ProgressPrimitive.Label as={Label} {...props} />;
 };
 
