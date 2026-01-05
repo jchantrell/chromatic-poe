@@ -757,7 +757,7 @@ class IdentifiedCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `Identified ${this.value}`;
+    return `Identified ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -771,7 +771,7 @@ class CorruptedCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `Corrupted ${this.value}`;
+    return `Corrupted ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1000,7 +1000,7 @@ class TransfiguredGemCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `TransfiguredGem "${this.value}"`;
+    return `TransfiguredGem ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1014,7 +1014,7 @@ class ElderMapCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `ElderMap ${this.value}`;
+    return `ElderMap ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1028,7 +1028,7 @@ class ShapedMapCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `ShapedMap ${this.value}`;
+    return `ShapedMap ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1042,7 +1042,7 @@ class BlightedMapCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `BlightedMap ${this.value}`;
+    return `BlightedMap ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1056,7 +1056,7 @@ class UberBlightedMapCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `UberBlightedMap "${this.value}"`;
+    return `UberBlightedMap ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1070,7 +1070,7 @@ class HasImplicitModCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `HasImplicitMod ${this.value}`;
+    return `HasImplicitMod ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1084,7 +1084,7 @@ class ScourgedCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `Scourged ${this.value}`;
+    return `Scourged ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1098,7 +1098,7 @@ class FracturedCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `FracturedItem ${this.value}`;
+    return `FracturedItem ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1112,7 +1112,7 @@ class MirroredCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `Mirrored ${this.value}`;
+    return `Mirrored ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1126,7 +1126,7 @@ class AnyEnchantmentCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `AnyEnchantment ${this.value}`;
+    return `AnyEnchantment ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1140,7 +1140,7 @@ class SynthesisedCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `SynthesisedItem ${this.value}`;
+    return `SynthesisedItem ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1154,7 +1154,7 @@ class ReplicaCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `Replica ${this.value}`;
+    return `Replica ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1168,7 +1168,7 @@ class CrucibleTreeCondition implements BoolCondition {
   }
 
   serialize(): string {
-    return `HasCruciblePassiveTree ${this.value}`;
+    return `HasCruciblePassiveTree ${this.value ? "True" : "False"}`;
   }
 }
 
