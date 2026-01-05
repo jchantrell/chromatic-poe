@@ -119,19 +119,17 @@ export async function to<T, U = Error>(
     });
 }
 
-export const withRetries = async <
-  F extends (...arg: unknown[]) => ReturnType<F>,
->(
-  fn: F,
+export const withRetries = async <T>(
+  fn: () => Promise<T>,
   description?: string,
-): Promise<ReturnType<F>> => {
+): Promise<T> => {
   const attempts = 3;
   const baseDelay = 1000;
 
   let attempt = 1;
 
-  const execute = async (): Promise<ReturnType<F>> => {
-    const [err, res] = await to(fn() as Promise<ReturnType<F>>);
+  const execute = async (): Promise<T> => {
+    const [err, res] = await to(fn());
 
     if (err) {
       if (attempt >= attempts) {
@@ -150,7 +148,7 @@ export const withRetries = async <
       return execute();
     }
 
-    return res;
+    return res as T;
   };
 
   return execute();

@@ -37,6 +37,7 @@ export class DatManager {
   patch!: string;
   private initPromise: Promise<void> | null = null;
   private extractPromise: Promise<void> | null = null;
+  private loadPromises = new Map<string, Promise<any>>();
 
   async load(
     patch: string,
@@ -44,10 +45,24 @@ export class DatManager {
   ) {
     this.patch = patch;
 
-    const items = await this.getItems(patch, onProgress);
-    const mods = await this.getMods(patch);
-    const minimap = await this.minimap.getIcons(patch);
-    return { items, mods, minimap };
+    if (this.loadPromises.has(patch)) {
+      return this.loadPromises.get(patch);
+    }
+
+    const promise = (async () => {
+      const items = await this.getItems(patch, onProgress);
+      const mods = await this.getMods(patch);
+      const minimap = await this.minimap.getIcons(patch);
+      return { items, mods, minimap };
+    })();
+
+    this.loadPromises.set(patch, promise);
+
+    try {
+      return await promise;
+    } finally {
+      this.loadPromises.delete(patch);
+    }
   }
 
   async getItems(
