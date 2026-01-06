@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.8.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.8.1...chromatic-poe-v0.8.2) (2026-01-06)
+
+
+### Bug Fixes
+
+* Don't draft release ([8eda5ff](https://github.com/jchantrell/chromatic-poe/commit/8eda5ff96c824af20208adc954e43ebe9c9d74b4))
+
 ## [0.8.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.8.0...chromatic-poe-v0.8.1) (2026-01-06)
 
 
