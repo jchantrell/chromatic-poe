@@ -1,4 +1,12 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.8.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.2...chromatic-poe-v0.8.0) (2026-01-06)
+
+
+### Features
+
+* Support all newly added conditions ([5475349](https://github.com/jchantrell/chromatic-poe/commit/54753491f6fa98c8f45e3c59f639662511eaba08))
+* Support importing mods and enchant conditions ([f1c090e](https://github.com/jchantrell/chromatic-poe/commit/f1c090e858c9b23c2ea921ee2aa0903d259157a6))
+
 ## [0.7.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.1...chromatic-poe-v0.7.2) (2026-01-06)
 
 
