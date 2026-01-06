@@ -11,7 +11,7 @@ import {
   Operator,
 } from "@app/lib/condition";
 import type { FilterRule } from "@app/lib/filter";
-import { modIndex, enchantIndex } from "@app/lib/mods";
+import { enchantIndex, modIndex } from "@app/lib/mods";
 import { store } from "@app/store";
 import { Button } from "@app/ui/button";
 import {
