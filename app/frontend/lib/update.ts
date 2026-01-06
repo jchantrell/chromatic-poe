@@ -72,6 +72,9 @@ export async function updateApplication(): Promise<boolean> {
             action: {
               label: "Restart",
               onClick: async () => {
+                if (store.filter) {
+                  await store.filter.save();
+                }
                 await relaunch();
               },
             },
