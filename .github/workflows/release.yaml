@@ -30,7 +30,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "id=$(gh release view ${{ steps.release.outputs.tag_name }} --json databaseId --jq .databaseId)" >> $GITHUB_OUTPUT
+          echo "id=$(gh release view ${{ steps.release.outputs.tag_name }} --repo ${{ github.repository }} --json databaseId --jq .databaseId)" >> $GITHUB_OUTPUT
 
   deploy-proxy:
     needs: manage-release
