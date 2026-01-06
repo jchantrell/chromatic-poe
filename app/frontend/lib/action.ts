@@ -119,10 +119,10 @@ export function alertSound(
   filePath: string,
   type: "custom" | "default" | "cached",
   allowMissingFile: boolean,
-  volume: number,
+  volume?: number,
 ) {
   if (type === "custom" || type === "cached") {
-    return `CustomAlertSound${allowMissingFile ? "Optional" : ""} "${filePath}" ${volume}`;
+    return `CustomAlertSound${allowMissingFile ? "Optional" : ""} "${filePath}" ${volume ? volume : ""}`;
   }
   return `PlayAlertSound ${filePath} ${volume}`;
 }

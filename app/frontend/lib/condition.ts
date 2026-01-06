@@ -167,6 +167,7 @@ export interface ConditionData {
   [ConditionKey.QUALITY]: number;
   [ConditionKey.GEM_LEVEL]: number;
   [ConditionKey.MAP_TIER]: number;
+  [ConditionKey.WAYSTONE_TIER]: number;
   [ConditionKey.CORRUPTED_MODS]: number;
   [ConditionKey.AREA_LEVEL]: number;
   [ConditionKey.DROP_LEVEL]: number;

@@ -293,7 +293,8 @@ export async function importFilter(raw: string) {
       }
 
       let newCondition: Conditions | undefined;
-      const boolValue = (val: any) => val === "True" || val === true;
+      const boolValue = (val: unknown) =>
+        val === "True" || val === "true" || val === true;
 
       switch (property) {
         case "Replica":
@@ -459,8 +460,8 @@ export async function importFilter(raw: string) {
         actions.sound = {
           enabled: true,
           path: {
-            value: String(action.params[0]),
-            path: String(action.params[0]),
+            value: String(action.params[0]).replace(/^["']|["']$/g, ""),
+            path: String(action.params[0]).replace(/^["']|["']$/g, ""),
             type: "custom",
           },
           volume:
@@ -473,7 +474,7 @@ export async function importFilter(raw: string) {
         actions.sound = {
           enabled: true,
           path: {
-            value: String(action.params[0]),
+            value: String(action.params[0]).replace(/^["']|["']$/g, ""),
             path: "",
             type: "default",
           },
