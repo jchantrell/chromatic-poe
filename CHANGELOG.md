@@ -1,4 +1,23 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.7.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.1...chromatic-poe-v0.7.2) (2026-01-06)
+
+
+### Bug Fixes
+
+* Add cloudflare account ID to wrangler config ([1a8bab4](https://github.com/jchantrell/chromatic-poe/commit/1a8bab473dfee4c7850a173364056e2efd86f53e))
+* Add gh-pages and tauri env files ([28b5afe](https://github.com/jchantrell/chromatic-poe/commit/28b5afee367e86fffc1959e2f63cf4ce60466f6c))
+* Add last-release-sha for manual starting point ([d2f945e](https://github.com/jchantrell/chromatic-poe/commit/d2f945e9ce0d6ee9fd34ddd97dda73e289c8d204))
+* Add tauri localhost origin to proxy ([8572d78](https://github.com/jchantrell/chromatic-poe/commit/8572d78688195586b6ab1bb3d64ab580f8843bf2))
+* GH release name ([ca4229b](https://github.com/jchantrell/chromatic-poe/commit/ca4229b494845cebe3c04d6be9bdc23b00b3a26b))
+* Make tauri action and release-please play nice ([2a907fc](https://github.com/jchantrell/chromatic-poe/commit/2a907fc5b8eaa7aabd2acdb3e0392cca54cfe61c))
+* Must specify GH repo when retrieving release ID ([f9d79d2](https://github.com/jchantrell/chromatic-poe/commit/f9d79d286ad0aafe597856d18b3117462f14d48a))
+* Remove last-release-sha ([2848dfd](https://github.com/jchantrell/chromatic-poe/commit/2848dfd248fce6d77b77eee78a5e47d2cf86a3d2))
+
+
+### Reverts
+
+* Use correct wrangler syntax in GHA ([94d4501](https://github.com/jchantrell/chromatic-poe/commit/94d45015a8b9832f1f1380c7d43c2d5b9c113553))
+
 ## [0.7.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.0...chromatic-poe-v0.7.1) (2026-01-06)
 
 
