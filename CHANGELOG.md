@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.7.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.0...chromatic-poe-v0.7.1) (2026-01-06)
+
+
+### Bug Fixes
+
+* add proxy urls in env files ([95488b9](https://github.com/jchantrell/chromatic-poe/commit/95488b911c315a04c4ae0d75183726676376742f))
+
 ## [0.7.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.6.0...chromatic-poe-v0.7.0) (2026-01-06)
 
 
