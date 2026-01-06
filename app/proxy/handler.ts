@@ -3,6 +3,7 @@ const ALLOWED_ORIGINS = [
   /^http:\/\/localhost(:\d+)?$/,
   /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
   /^tauri:\/\/localhost$/,
+  /^https?:\/\/tauri\.localhost$/,
 ];
 
 const ALLOWED_DOMAINS = [
