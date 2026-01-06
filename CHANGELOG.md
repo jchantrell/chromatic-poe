@@ -1,4 +1,19 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.7.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.1...chromatic-poe-v0.7.2) (2026-01-06)
+
+
+### Bug Fixes
+
+* Add cloudflare account ID to wrangler config ([0082370](https://github.com/jchantrell/chromatic-poe/commit/0082370a2cc9ff043d3a1046cdfbfe17512f7bdf))
+* Add last-release-sha for manual starting point ([97043d9](https://github.com/jchantrell/chromatic-poe/commit/97043d9c9833d5d4f1723433b12504f6799cbb1b))
+* GH release name ([295383c](https://github.com/jchantrell/chromatic-poe/commit/295383c5567413984d63426e64c13c34b7d67f5f))
+* Make tauri action and release-please play nice ([f257946](https://github.com/jchantrell/chromatic-poe/commit/f257946d19f6269fff33e27d824ffc6b54391a34))
+
+
+### Reverts
+
+* Use correct wrangler syntax in GHA ([94f15da](https://github.com/jchantrell/chromatic-poe/commit/94f15daa2f93c3a342bec03f3264c026712b6cf1))
+
 ## [0.7.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.0...chromatic-poe-v0.7.1) (2026-01-06)
 
 
