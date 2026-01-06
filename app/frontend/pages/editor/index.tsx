@@ -2,7 +2,7 @@ import { Progress } from "@app/components/progress";
 import { dat } from "@app/lib/dat";
 import type { Item } from "@app/lib/filter";
 import { itemIndex } from "@app/lib/items";
-import { type Mod, modIndex, enchantIndex } from "@app/lib/mods";
+import { enchantIndex, type Mod, modIndex } from "@app/lib/mods";
 import { to } from "@app/lib/utils";
 import {
   setFilter,

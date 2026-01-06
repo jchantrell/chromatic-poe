@@ -1,6 +1,6 @@
 import { CloseIcon } from "@app/icons";
 import { type ConditionKey, conditionTypes } from "@app/lib/condition";
-import type { modIndex, enchantIndex, SearchableMod } from "@app/lib/mods";
+import type { enchantIndex, modIndex, SearchableMod } from "@app/lib/mods";
 import { Badge } from "@app/ui/badge";
 import { Button } from "@app/ui/button";
 import { Checkbox } from "@app/ui/checkbox";
