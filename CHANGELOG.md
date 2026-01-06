@@ -1,4 +1,21 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.7.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.6.0...chromatic-poe-v0.7.0) (2026-01-06)
+
+
+### Features
+
+* cloudflare worker cors proxy ([89f6f6b](https://github.com/jchantrell/chromatic-poe/commit/89f6f6bcfca60444e4524b8864dffd5eb78c895b))
+* enchant mod support ([138cc17](https://github.com/jchantrell/chromatic-poe/commit/138cc17ce7fe04f5ad621b0eed05c2a4af5a526f))
+* more granular app init progress bar ([8c9c0ce](https://github.com/jchantrell/chromatic-poe/commit/8c9c0cec2d64796700eee5efd47c8ecb7c7a9581))
+
+
+### Bug Fixes
+
+* application init race condition ([f57448d](https://github.com/jchantrell/chromatic-poe/commit/f57448db8d8e4297c5a85367fd23511468f2bbc3))
+* make bool conditions serialise to correct syntax ([17da584](https://github.com/jchantrell/chromatic-poe/commit/17da5840881c67fb7b71b28047f6e0f83b6875c7))
+* more init race conditions ([aa6c32d](https://github.com/jchantrell/chromatic-poe/commit/aa6c32d64b90a701298d554721faba8ba973d3ae))
+* truncate progress toast msg ([0e8acf8](https://github.com/jchantrell/chromatic-poe/commit/0e8acf85645c2251e604b4b5b5c711da9508f148))
+
 ## [0.6.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.5.0...chromatic-poe-v0.6.0) (2025-12-23)
 
 
