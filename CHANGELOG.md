@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.7.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.1...chromatic-poe-v0.7.2) (2026-01-06)
+
+
+### Bug Fixes
+
+* Add cloudflare account ID to wrangler config ([0082370](https://github.com/jchantrell/chromatic-poe/commit/0082370a2cc9ff043d3a1046cdfbfe17512f7bdf))
+
 ## [0.7.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.0...chromatic-poe-v0.7.1) (2026-01-06)
 
 
