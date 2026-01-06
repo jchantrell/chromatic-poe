@@ -1,4 +1,17 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.8.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.8.0...chromatic-poe-v0.8.1) (2026-01-06)
+
+
+### Bug Fixes
+
+* Don't draft release ([744ce38](https://github.com/jchantrell/chromatic-poe/commit/744ce38162f9fdb425bf52fb235e49e99c75150d))
+* Explicitly create git tag in release workflow ([52ef88d](https://github.com/jchantrell/chromatic-poe/commit/52ef88ddd64e3669db9fd67cb998dcf88f4be487))
+
+
+### Reverts
+
+* "fix: Don't draft release" ([bcc4244](https://github.com/jchantrell/chromatic-poe/commit/bcc424464639476ce2f70462baaa8d7369e9f925))
+
 ## [0.8.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.2...chromatic-poe-v0.8.0) (2026-01-06)
 
 
