@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "chromatic-poe-proxy",
+  "account_id": "1accea4de414749ccd97072a80720550",
   "main": "./handler.ts",
   "compatibility_date": "2026-01-03",
   "routes": [
