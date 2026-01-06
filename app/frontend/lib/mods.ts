@@ -4,6 +4,45 @@ import type { Database } from "./db";
 import type { IDBManager } from "./idb";
 import { to } from "./utils";
 
+enum GenType {
+  UNUSED_0,
+  PREFIX,
+  SUFFIX,
+  UNIQUE,
+  NEMESIS,
+  CORRUPTED,
+  BLOODLINES,
+  TORMENT,
+  TEMPEST,
+  TALISMAN,
+  ENCHANTMENT,
+  ESSENCE,
+  UNUSED_1,
+  BESTIARY,
+  DELVE_AREA,
+  SYNTHESIS_A,
+  SYNTHESIS_GLOBALS,
+  SYNTHESIS_BONUS,
+  BLIGHT,
+  BLIGHT_TOWER,
+  MONSTER_AFFLICTION,
+  FLASK_ENCHANTMENT_ENKINDLING,
+  FLASK_ENCHANTMENT_INSTILLING,
+  EXPEDITION_LOGBOOK,
+  SCOURGE_UPSIDE,
+  SCOURGE_DOWNSIDE,
+  SCOURGE_MAP,
+  UNUSED_2,
+  EXARCH_IMPLICIT,
+  EATER_IMPLICIT,
+  UNUSED_3,
+  WEAPON_TREE,
+  WEAPON_TREE_RECOMBINED,
+  UNUSED_4,
+  NECROPOLIS_HAUNTED,
+  NECROPOLIS_DEVOTED,
+}
+
 const MODIFIABLE_CLASSES = [
   "Life Flasks",
   "Mana Flasks",
@@ -99,7 +138,7 @@ export interface Mod {
   id: string;
   tags: string[];
   type: string;
-  position?: "prefix" | "suffix" | "affix";
+  position?: "prefix" | "suffix" | "affix" | "enchant";
   bases?: string[];
   stats: ModStats[][];
   domain?: number;
@@ -160,7 +199,9 @@ export class ModManager {
     const hierarchy = await this.buildHierarchy(patch, baseItems, gameVersion);
 
     if (onProgress) onProgress(20, "Extracting mods...");
-    const modsTable = await this.db.query(`SELECT * FROM "${patch}_Mods"`);
+    const modsTable = await this.db.query(
+      `SELECT * FROM "${patch}_Mods" WHERE GenerationType IN(${GenType.PREFIX}, ${GenType.SUFFIX}, ${GenType.ENCHANTMENT}, ${GenType.BLIGHT_TOWER}, ${GenType.FLASK_ENCHANTMENT_ENKINDLING}, ${GenType.FLASK_ENCHANTMENT_INSTILLING})`,
+    );
     const statsTable = await this.db.query(
       `SELECT _index, Id FROM "${patch}_Stats"`,
     );
@@ -204,7 +245,7 @@ export class ModManager {
         name: string;
         id: string;
         label: string;
-        position: "prefix" | "suffix" | "affix";
+        position: "prefix" | "suffix" | "affix" | "enchant";
         stats: { label: string; description: string }[][];
         tags: string[];
         bases: string[];
@@ -532,11 +573,18 @@ export class ModManager {
         .filter((tag: string) => tag && !tag.endsWith("_damage"));
 
       const position =
-        mod.GenerationType === 1
+        parseInt(mod.GenerationType as string) === GenType.PREFIX
           ? "prefix"
-          : mod.GenerationType === 2
+          : parseInt(mod.GenerationType as string) === GenType.SUFFIX
             ? "suffix"
-            : "affix";
+            : [
+                  GenType.ENCHANTMENT,
+                  GenType.FLASK_ENCHANTMENT_INSTILLING,
+                  GenType.FLASK_ENCHANTMENT_ENKINDLING,
+                  GenType.BLIGHT_TOWER,
+                ].includes(parseInt(mod.GenerationType as string))
+              ? "enchant"
+              : "affix";
 
       const allStats: { label: string; description: string }[] = [];
       const statsMapped = [
@@ -686,11 +734,18 @@ export class ModManager {
         .filter((tag: string) => tag && !tag.endsWith("_damage"));
 
       const position =
-        mod.GenerationType === 1
+        parseInt(mod.GenerationType as string) === GenType.PREFIX
           ? "prefix"
-          : mod.GenerationType === 2
+          : parseInt(mod.GenerationType as string) === GenType.SUFFIX
             ? "suffix"
-            : "affix";
+            : [
+                  GenType.ENCHANTMENT,
+                  GenType.FLASK_ENCHANTMENT_INSTILLING,
+                  GenType.FLASK_ENCHANTMENT_ENKINDLING,
+                  GenType.BLIGHT_TOWER,
+                ].includes(parseInt(mod.GenerationType as string))
+              ? "enchant"
+              : "affix";
 
       const allStats: { label: string; description: string }[] = [];
       const statsMapped = [mod.Stat1, mod.Stat2, mod.Stat3, mod.Stat4]
@@ -828,19 +883,24 @@ class ModIndex {
 
   init(mods: Mod[]) {
     this.setMods(
-      mods.map((mod) => ({
-        ...mod,
-        searchStats: mod.stats ? mod.stats.flat() : [],
-      })) as SearchableMod[],
+      mods
+        .filter(
+          (mod) =>
+            mod.position &&
+            ["prefix", "suffix", "affix"].includes(mod.position),
+        )
+        .map((mod) => ({
+          ...mod,
+          searchStats: mod.stats ? mod.stats.flat() : [],
+        })) as SearchableMod[],
     );
   }
 
   setMods(mods: SearchableMod[]) {
     const options = {
-      keys: ["name", "tags", "bases", "searchStats.description"],
+      keys: ["name", "searchStats.description"],
       useExtendedSearch: true,
-      ignoreFieldNorm: true,
-      minMatchCharLength: 1,
+      minMatchCharLength: 2,
       distance: 160,
       threshold: 0.6,
     };
@@ -852,7 +912,42 @@ class ModIndex {
   ): FuseResult<SearchableMod>[] {
     // handle empty search
     if (!args || (typeof args === "string" && !args.length)) {
-      console.log("empty search");
+      return this.searchIndex.search({ name: "!1234567890" });
+    }
+    return this.searchIndex.search(`'${args}`);
+  }
+}
+
+class EnchantIndex {
+  searchIndex!: Fuse<SearchableMod>;
+
+  init(mods: Mod[]) {
+    this.setMods(
+      mods
+        .filter((mod) => mod.position === "enchant")
+        .map((mod) => ({
+          ...mod,
+          searchStats: mod.stats ? mod.stats.flat() : [],
+        })) as SearchableMod[],
+    );
+  }
+
+  setMods(mods: SearchableMod[]) {
+    const options = {
+      keys: ["name", "searchStats.description"],
+      useExtendedSearch: true,
+      minMatchCharLength: 2,
+      distance: 160,
+      threshold: 0.6,
+    };
+    this.searchIndex = new Fuse(mods, options);
+  }
+
+  search(
+    args: Parameters<typeof this.searchIndex.search>[0],
+  ): FuseResult<SearchableMod>[] {
+    // handle empty search
+    if (!args || (typeof args === "string" && !args.length)) {
       return this.searchIndex.search({ name: "!1234567890" });
     }
     return this.searchIndex.search(`'${args}`);
@@ -860,3 +955,4 @@ class ModIndex {
 }
 
 export const modIndex = new ModIndex();
+export const enchantIndex = new EnchantIndex();
