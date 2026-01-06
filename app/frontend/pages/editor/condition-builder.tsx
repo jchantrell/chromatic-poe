@@ -11,7 +11,7 @@ import {
   Operator,
 } from "@app/lib/condition";
 import type { FilterRule } from "@app/lib/filter";
-import { modIndex } from "@app/lib/mods";
+import { modIndex, enchantIndex } from "@app/lib/mods";
 import { store } from "@app/store";
 import { Button } from "@app/ui/button";
 import {
@@ -143,6 +143,8 @@ export default function ConditionManager(props: { rule: FilterRule }) {
     switch (key) {
       case ConditionKey.EXPLICIT_MOD:
         return modIndex;
+      case ConditionKey.ENCHANTMENT:
+        return enchantIndex;
       default:
         throw new Error("Unspported condition key");
     }
@@ -151,6 +153,8 @@ export default function ConditionManager(props: { rule: FilterRule }) {
   function getGroupKey(key: ConditionKey) {
     switch (key) {
       case ConditionKey.EXPLICIT_MOD:
+        return "type";
+      case ConditionKey.ENCHANTMENT:
         return "type";
       default:
         throw new Error("Unspported condition key");
@@ -297,12 +301,10 @@ export default function ConditionManager(props: { rule: FilterRule }) {
             if (!condition) return null;
             return (
               <div class='bg-primary-foreground border border-accent rounded-xl flex flex-wrap items-center px-2 w-full @container'>
-                <div class='max-w-full @md:max-w-22 w-full px-2 pt-1'>
-                  <Label class='text-md text-wrap font-bold'>
-                    {conditionType.label}
-                  </Label>
+                <div class='max-w-full w-full px-2 pt-1'>
+                  <Label class='text-md font-bold'>{conditionType.label}</Label>
                 </div>
-                <div class='flex items-center p-0.5'>
+                <div class='flex gap-1 items-center p-2'>
                   {"operator" in condition && condition.operator && (
                     <Select
                       value={condition.operator}
@@ -311,7 +313,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                           updateCondition(condition, "operator", value);
                         }
                       }}
-                      options={operators.filter((o) => o != "")}
+                      options={operators.filter((o) => o !== "")}
                       itemComponent={(props) => (
                         <SelectItem item={props.item}>
                           {props.item.rawValue}
@@ -326,7 +328,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                       <SelectContent />
                     </Select>
                   )}
-                  <div class='p-2 ml-1'>
+                  <div>
                     {conditionType.type === "slider" && (
                       <SliderInput
                         key={condition.key as FilteredConditionKey}

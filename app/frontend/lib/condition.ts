@@ -463,9 +463,10 @@ export const conditionTypes: AllConditionTypes = {
   },
   [ConditionKey.ENCHANTMENT]: {
     label: "Enchantments",
-    description: `A list of enchantments the item has (e.g. "Enchantment Bane Damage 2")`,
+    description:
+      'A list of enchantments the item has (e.g. "Enchantment Bane Damage 2")',
     group: ConditionGroup.MODS,
-    type: ConditionInputType.TEXT_LIST,
+    type: ConditionInputType.SELECT,
     defaultValue: [],
   },
   [ConditionKey.ANY_ENCHANTMENT]: {

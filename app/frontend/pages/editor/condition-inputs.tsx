@@ -1,6 +1,6 @@
 import { CloseIcon } from "@app/icons";
 import { type ConditionKey, conditionTypes } from "@app/lib/condition";
-import type { modIndex, SearchableMod } from "@app/lib/mods";
+import type { modIndex, enchantIndex, SearchableMod } from "@app/lib/mods";
 import { Badge } from "@app/ui/badge";
 import { Button } from "@app/ui/button";
 import { Checkbox } from "@app/ui/checkbox";
@@ -60,7 +60,7 @@ export function SliderInput(props: {
 export function SelectInput(props: {
   value: string[];
   key: FilteredConditionKey;
-  index: typeof modIndex;
+  index: typeof modIndex | typeof enchantIndex;
   groupKey: string;
   onChange: (value: string[]) => void;
 }) {
@@ -112,7 +112,7 @@ export function SelectInput(props: {
       <Dialog>
         <DialogTrigger
           variant='default'
-          class='text-md font-semibold'
+          class='text-md font-semibold mr-1'
           as={Button<"button">}
         >
           Edit
@@ -186,20 +186,24 @@ export function SelectInput(props: {
           </div>
         </DialogContent>
       </Dialog>
-      <div class='max-h-32 mt-2 items-center grid grid-cols-2 gap-1 overflow-y-auto overflow-x-hidden rounded-md'>
+      <div class='max-h-32 p-1 flex flex-wrap gap-1 overflow-y-auto overflow-x-hidden rounded-md'>
         <For each={props.value}>
           {(v) => {
             return (
-              <div class='flex justify-between items-center bg-muted rounded-md'>
-                <Badge variant='secondary'>{v}</Badge>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  class='w-4 h-6 mr-1'
-                  onClick={() => handleClick(v)}
-                >
-                  <CloseIcon />
-                </Button>
+              <div class='flex w-fit justify-between items-center bg-accent rounded-md'>
+                <Badge class='bg-accent' variant='secondary'>
+                  {v}
+                </Badge>
+                <div class='flex'>
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    class='w-4 h-full mr-1 bg-accent min-h-0'
+                    onClick={() => handleClick(v)}
+                  >
+                    <CloseIcon />
+                  </Button>
+                </div>
               </div>
             );
           }}

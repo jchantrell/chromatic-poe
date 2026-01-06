@@ -234,9 +234,11 @@ export class Filter {
     const eol = chromatic.eol();
     const block = show ? Block.show : Block.hide;
     const conditionText = serializeConditions(conditions)
+      .filter((condition) => condition !== "")
       .map((condition) => `  ${condition}${eol}`)
       .join("");
     const actionText = serializeActions(actions)
+      .filter((action) => action !== "")
       .map((action) => `  ${action}${eol}`)
       .join("");
 
