@@ -18,7 +18,7 @@ export class BundleManager {
 
   constructor(private db: IDBManager) {}
 
-  async init(patch: string) {
+  async init(patch: string, onProgress?: (percent: number) => void) {
     if (!patch) return;
 
     if (this.loadedPatch === patch && this.index) return;
@@ -28,7 +28,11 @@ export class BundleManager {
       const [err] = await to(
         (async () => {
           console.log("Loading bundles index...");
-          const indexBin = await this.fetchFile(patch, "_.index.bin");
+          const indexBin = await this.fetchFile(
+            patch,
+            "_.index.bin",
+            onProgress,
+          );
           const indexBundle = decompressSliceInBundle(new Uint8Array(indexBin));
           const _index = readIndexBundle(indexBundle);
           this.index = {
@@ -49,7 +53,11 @@ export class BundleManager {
 
   private pendingRequests = new Map<string, Promise<ArrayBuffer>>();
 
-  async fetchFile(patch: string, name: string): Promise<ArrayBuffer> {
+  async fetchFile(
+    patch: string,
+    name: string,
+    onProgress?: (percent: number) => void,
+  ): Promise<ArrayBuffer> {
     const db = await this.db.getInstance();
     const cacheKey = `${patch}/${name}`;
 
@@ -81,7 +89,34 @@ export class BundleManager {
         );
       }
 
-      const buffer = await response.arrayBuffer();
+      const contentLength = response.headers.get("Content-Length");
+      const total = contentLength ? Number.parseInt(contentLength, 10) : 0;
+
+      let buffer: ArrayBuffer;
+
+      if (response.body && onProgress && total) {
+        const reader = response.body.getReader();
+        const chunks: Uint8Array[] = [];
+        let loaded = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          loaded += value.length;
+          onProgress((loaded / total) * 100);
+        }
+
+        const combined = new Uint8Array(loaded);
+        let offset = 0;
+        for (const chunk of chunks) {
+          combined.set(chunk, offset);
+          offset += chunk.length;
+        }
+        buffer = combined.buffer;
+      } else {
+        buffer = await response.arrayBuffer();
+      }
 
       const [err] = await to(db.put("bundles", buffer, cacheKey));
       if (err) {

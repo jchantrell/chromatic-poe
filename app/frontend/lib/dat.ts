@@ -1,5 +1,5 @@
-import { SCHEMA_URL, type SchemaFile, ValidFor } from "pathofexile-dat-schema";
 import { readColumn, readDatFile } from "pathofexile-dat/dat.js";
+import { SCHEMA_URL, type SchemaFile, ValidFor } from "pathofexile-dat-schema";
 import { ArtManager } from "./art";
 import { BundleManager } from "./bundle";
 import { Database } from "./db";
@@ -128,8 +128,10 @@ export class DatManager {
     this.extractPromise = (async () => {
       const [err] = await to(
         (async () => {
-          if (onProgress) onProgress(0, "Initialising...");
-          await this.loader.init(patch);
+          if (onProgress) onProgress(0, "Downloading bundles...");
+          await this.loader.init(patch, (percent) => {
+            if (onProgress) onProgress(percent * 0.1, "Downloading bundles...");
+          });
 
           // tables
           const tablesExist = await this.db.query(
@@ -143,7 +145,7 @@ export class DatManager {
             for (let i = 0; i < TABLES.length; i++) {
               const tableName = TABLES[i];
               if (onProgress) {
-                const percent = (i / TABLES.length) * 60;
+                const percent = 10 + (i / TABLES.length) * 40;
                 onProgress(percent, `Extracting ${tableName}...`);
               }
               console.log(`Processing ${tableName}...`);
@@ -164,7 +166,7 @@ export class DatManager {
             [patch, "minimap"],
           );
           if (!minimapExists.length) {
-            if (onProgress) onProgress(60, "Extracting minimap icons...");
+            if (onProgress) onProgress(50, "Extracting minimap icons...");
             const minimap = await this.db.query(getQuery(patch, "minimap"));
             await this.minimap.extract(
               patch,
@@ -182,10 +184,10 @@ export class DatManager {
             [patch, "mods"],
           );
           if (!modsExists.length) {
-            if (onProgress) onProgress(65, "Extracting items mods...");
+            if (onProgress) onProgress(60, "Extracting items mods...");
             await this.mods.extract(patch, (percent, msg) => {
               if (onProgress) {
-                const weighted = 65 + percent * 0.3;
+                const weighted = 60 + percent * 0.2;
                 onProgress(weighted, msg);
               }
             });
@@ -202,8 +204,21 @@ export class DatManager {
           );
           if (!uniquesExists.length) {
             console.log("Querying wiki for unique bases...");
-            if (onProgress) onProgress(95, "Querying wiki for uniques...");
-            await this.wiki.queryWiki(patch, 0, []);
+            if (onProgress) onProgress(80, "Querying wiki for uniques...");
+
+            const expectedUniques = (await this.db.query(
+              getQuery(patch, "uniques"),
+            )) as unknown[];
+
+            await this.wiki.queryWiki(patch, 0, [], (count) => {
+              if (onProgress) {
+                const percent = Math.min(
+                  20,
+                  (count / expectedUniques.length) * 20,
+                );
+                onProgress(80 + percent, `Querying wiki for uniques...`);
+              }
+            });
             await this.db.run(
               "INSERT OR REPLACE INTO _metadata (version, key, date) VALUES (?, ?, ?)",
               [patch, "uniques", Date.now()],
