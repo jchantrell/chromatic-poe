@@ -1,6 +1,5 @@
 dist
 node_modules
-.env
 .wrangler
 external
 .cache
