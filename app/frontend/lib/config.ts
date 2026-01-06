@@ -13,10 +13,10 @@ import {
 import { openPath } from "@tauri-apps/plugin-opener";
 import { eol, locale, platform } from "@tauri-apps/plugin-os";
 import { toast } from "solid-sonner";
+import { DatManager, dat } from "./dat";
 import { Filter } from "./filter";
 import { IDBManager } from "./idb";
 import { DEFAULT_FILTER_SOUNDS, type Sound } from "./sounds";
-import { dat, DatManager } from "./dat";
 
 function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
   try {

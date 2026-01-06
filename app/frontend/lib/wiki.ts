@@ -26,6 +26,7 @@ export class WikiManager {
     patch: string,
     offset: number,
     results: unknown[],
+    onProgress?: (count: number) => void,
   ): Promise<Unique[]> {
     const targetUrl = `https://www.poe${patch.startsWith("4") ? "2" : ""}wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&offset=${offset}`;
 
@@ -40,10 +41,13 @@ export class WikiManager {
     );
     const res = await req.json();
     if (res.cargoquery.length) {
-      return this.queryWiki(patch, offset + 50, [
-        ...results,
-        ...res.cargoquery,
-      ]);
+      if (onProgress) onProgress(results.length + res.cargoquery.length);
+      return this.queryWiki(
+        patch,
+        offset + 50,
+        [...results, ...res.cargoquery],
+        onProgress,
+      );
     }
 
     const uniques: Unique[] = [];
