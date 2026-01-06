@@ -1,6 +1,7 @@
 {
   "packages": {
     ".": {
+      "draft": true,
       "release-type": "node",
       "component": "chromatic-poe",
       "extra-files": [
