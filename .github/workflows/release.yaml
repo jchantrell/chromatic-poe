@@ -24,16 +24,6 @@ jobs:
         id: release
         with:
           manifest-file: release-please-manifest.json
-      - name: Checkout code
-        if: steps.release.outputs.release_created == 'true'
-        uses: actions/checkout@v4
-      - name: Create and push tag
-        if: steps.release.outputs.release_created == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a ${{ steps.release.outputs.tag_name }} -m "Release ${{ steps.release.outputs.tag_name }}"
-          git push origin ${{ steps.release.outputs.tag_name }}
       - name: Get release ID
         if: steps.release.outputs.release_created == 'true'
         id: get_release_id
