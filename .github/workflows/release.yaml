@@ -23,7 +23,29 @@ jobs:
         with:
           manifest-file: release-please-manifest.json
 
-  deploy:
+  deploy-proxy:
+    needs: manage-release
+    if: needs.manage-release.outputs.release_created == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: app/proxy
+          command: deploy --config wrangler.jsonc
+
+  deploy-app:
     needs: manage-release
     if: needs.manage-release.outputs.release_created == 'true'
     permissions:
