@@ -2,5 +2,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "chromatic-poe-proxy",
   "main": "./handler.ts",
-  "compatibility_date": "2026-01-03"
+  "compatibility_date": "2026-01-03",
+  "routes": [
+    {
+      "pattern": "chromatic-poe-proxy.jchantrell.dev",
+      "custom_domain": true
+    }
+  ]
 }
