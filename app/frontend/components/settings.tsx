@@ -18,6 +18,9 @@ import { TextField, TextFieldLabel } from "@app/ui/text-field";
 import { createSignal, onMount } from "solid-js";
 import { toast } from "solid-sonner";
 import Theme from "./theme";
+import { openUrl } from "@tauri-apps/plugin-opener";
+
+const GITHUB_ISSUE_URL = "https://github.com/jchantrell/chromatic-poe/issues";
 
 export function Settings() {
   const [version, setVersion] = createSignal("0.0.0");
@@ -28,6 +31,12 @@ export function Settings() {
       toast.error("Failed to check for updates.", {
         description: err as unknown as string,
       });
+    }
+  }
+
+  async function openGitHubIssues() {
+    if (chromatic.runtime === "desktop") {
+      await openUrl(GITHUB_ISSUE_URL);
     }
   }
 
@@ -49,7 +58,7 @@ export function Settings() {
             <Label aria-disabled={true} class='text-right'>
               Autosave
             </Label>
-            <Checkbox disabled checked={true} />
+            <Checkbox disabled checked={false} />
           </TextField>
         </div>
         <Separator />
@@ -63,24 +72,37 @@ export function Settings() {
           </TextField>
         </div>
         <Separator />
-        <div class='py-4 flex items-center justify-center'>
-          <div class='flex items-center gap-1 pb-1'>
-            <Label>Current Version</Label>
-            {version()}
+        <div class='py-4 flex items-center justify-center gap-8'>
+          <div class='flex flex-col items-center gap-1'>
+            <span>Version: {version()}</span>
+            {chromatic.runtime === "desktop" && (
+              <div class='flex items-center justify-center'>
+                {!store.appNeedsRestart ? (
+                  <Button variant='secondary' onClick={handleUpdate}>
+                    Check for updates
+                  </Button>
+                ) : (
+                  <Button variant='secondary' onClick={relaunchApp}>
+                    Restart now
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
-          {chromatic.runtime === "desktop" ? (
-            <div class='flex items-center justify-center'>
-              {!store.appNeedsRestart ? (
-                <Button variant='secondary' onClick={handleUpdate}>
-                  Check for Updates
-                </Button>
-              ) : (
-                <Button variant='secondary' onClick={relaunchApp}>
-                  Restart Now
-                </Button>
-              )}
-            </div>
-          ) : null}
+          <div class='flex flex-col items-center gap-1'>
+            <span>Found a bug?</span>
+            <Button variant='secondary'>
+              <a
+                class='size-full flex items-center justify-center'
+                href={GITHUB_ISSUE_URL}
+                target='_blank'
+                rel='noopener noreferrer'
+                onClick={openGitHubIssues}
+              >
+                Create an issue
+              </a>
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
