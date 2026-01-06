@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.7.5](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.4...chromatic-poe-v0.7.5) (2026-01-06)
+
+
+### Bug Fixes
+
+* Add tag handling flag to release-please ([83e217d](https://github.com/jchantrell/chromatic-poe/commit/83e217d4536c3de5669f479438a7b0bf10f5edbf))
+
 ## [0.7.4](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.3...chromatic-poe-v0.7.4) (2026-01-06)
 
 
