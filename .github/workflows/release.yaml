@@ -17,6 +17,7 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       release_description: ${{ steps.release.outputs.body }}
       tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -108,7 +109,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ needs.manage-release.outputs.tag_name }}
-          releaseName: 'Chromatic PoE ${{ needs.manage-release.outputs.tag_name }}'
+          releaseName: 'Chromatic PoE ${{ needs.manage-release.outputs.version}}'
           releaseBody: "${{ needs.manage-release.outputs.release_description }}"
           releaseDraft: false
           prerelease: false
