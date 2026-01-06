@@ -136,9 +136,3 @@ jobs:
       - name: Deploy to GitHub Pages
         if: matrix.platform == 'ubuntu-22.04'
         uses: actions/deploy-pages@v4
-
-      - name: Publish
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release edit ${{ needs.manage-release.outputs.tag_name }} --draft=false
