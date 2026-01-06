@@ -1,4 +1,12 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.7.3](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.2...chromatic-poe-v0.7.3) (2026-01-06)
+
+
+### Bug Fixes
+
+* Add gh-pages and tauri env files ([d966845](https://github.com/jchantrell/chromatic-poe/commit/d966845bf3892bbba2b6ddf7d358768569347865))
+* Add tauri localhost origin to proxy ([75b6bd3](https://github.com/jchantrell/chromatic-poe/commit/75b6bd3fad3cdf8ab763f62ede561d86450c16bf))
+
 ## [0.7.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.1...chromatic-poe-v0.7.2) (2026-01-06)
 
 
