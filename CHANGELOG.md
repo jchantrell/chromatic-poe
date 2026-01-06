@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.7.4](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.3...chromatic-poe-v0.7.4) (2026-01-06)
+
+
+### Bug Fixes
+
+* Allow tauri action to manage GH release ([4e6bce2](https://github.com/jchantrell/chromatic-poe/commit/4e6bce2adcc5151134e6e1c0bd77b64e635a406a))
+
 ## [0.7.3](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.7.2...chromatic-poe-v0.7.3) (2026-01-06)
 
 
