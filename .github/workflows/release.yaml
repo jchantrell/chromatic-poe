@@ -42,7 +42,8 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pnpm deploy:proxy
+          workingDirectory: app/proxy
+          command: deploy --config wrangler.jsonc
 
   deploy-app:
     needs: manage-release
