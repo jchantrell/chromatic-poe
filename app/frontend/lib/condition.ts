@@ -1,3 +1,4 @@
+import { ValidFor } from "pathofexile-dat-schema";
 import { createMutable } from "solid-js/store";
 import { itemIndex } from "./items";
 
@@ -13,6 +14,7 @@ interface Condition<T> {
   value: T;
   operator?: Operator;
   serialize(): string;
+  validFor?: ValidFor;
 }
 
 interface ValueCondition<T> extends Condition<T> {
@@ -68,6 +70,7 @@ export enum ConditionKey {
   QUALITY = "quality",
   GEM_LEVEL = "gemLevel",
   MAP_TIER = "mapTier",
+  WAYSTONE_TIER = "waystoneTier",
   CORRUPTED_MODS = "corruptedMods",
   AREA_LEVEL = "areaLevel",
   DROP_LEVEL = "dropLevel",
@@ -105,6 +108,17 @@ export enum ConditionKey {
   SYNTHESISED = "synthesisedItem",
   REPLICA = "replica",
   CRUCIBLE_TREE = "hasCruciblePassiveTree",
+  ALTERNATE_QUALITY = "alternateQuality",
+  ALWAYS_SHOW = "alwaysShow",
+  ELDER_ITEM = "elderItem",
+  FOULBORN = "foulborn",
+  HAS_VAAL_UNIQUE_MOD = "hasVaalUniqueMod",
+  IS_VAAL_UNIQUE = "isVaalUnique",
+  MEMORY_STRANDS = "memoryStrands",
+  SHAPER_ITEM = "shaperItem",
+  TWICE_CORRUPTED = "twiceCorrupted",
+  UNIDENTIFIED_ITEM_TIER = "unidentifiedItemTier",
+  ZANA_MEMORY = "zanaMemory",
 }
 
 export enum ConditionGroup {
@@ -142,6 +156,7 @@ type BaseConditionValue = {
   label: string;
   description: string;
   group: ConditionGroup;
+  validFor?: ValidFor;
 };
 
 export interface ConditionData {
@@ -189,6 +204,17 @@ export interface ConditionData {
   [ConditionKey.SYNTHESISED]: boolean;
   [ConditionKey.REPLICA]: boolean;
   [ConditionKey.CRUCIBLE_TREE]: boolean;
+  [ConditionKey.ALTERNATE_QUALITY]: boolean;
+  [ConditionKey.ALWAYS_SHOW]: boolean;
+  [ConditionKey.ELDER_ITEM]: boolean;
+  [ConditionKey.FOULBORN]: boolean;
+  [ConditionKey.HAS_VAAL_UNIQUE_MOD]: boolean;
+  [ConditionKey.IS_VAAL_UNIQUE]: boolean;
+  [ConditionKey.MEMORY_STRANDS]: number;
+  [ConditionKey.SHAPER_ITEM]: boolean;
+  [ConditionKey.TWICE_CORRUPTED]: boolean;
+  [ConditionKey.UNIDENTIFIED_ITEM_TIER]: number;
+  [ConditionKey.ZANA_MEMORY]: boolean;
 }
 
 type ConditionValues<K extends ConditionKey> = BaseConditionValue & {
@@ -203,6 +229,7 @@ type AllConditionTypes = {
   [key in ConditionKey]: ConditionValues<key>;
 };
 
+// @ts-expect-error - TS struggles with generic indexing here
 export const conditionTypes: AllConditionTypes = {
   [ConditionKey.BASE_TYPE]: {
     label: "Bases",
@@ -303,6 +330,17 @@ export const conditionTypes: AllConditionTypes = {
     defaultValue: 1,
     min: 1,
     max: 17,
+    validFor: ValidFor.PoE1,
+  },
+  [ConditionKey.WAYSTONE_TIER]: {
+    label: "Map Tier",
+    description: "The tier of the waystone",
+    group: ConditionGroup.MAPS,
+    type: ConditionInputType.SLIDER,
+    defaultValue: 1,
+    min: 1,
+    max: 17,
+    validFor: ValidFor.PoE2,
   },
   [ConditionKey.DROP_LEVEL]: {
     label: "Drop Level",
@@ -328,6 +366,7 @@ export const conditionTypes: AllConditionTypes = {
     group: ConditionGroup.MAPS,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.SHAPED_MAP]: {
     label: "Shaped Map",
@@ -335,6 +374,7 @@ export const conditionTypes: AllConditionTypes = {
     group: ConditionGroup.MAPS,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.BLIGHTED_MAP]: {
     label: "Blighted Map",
@@ -342,6 +382,7 @@ export const conditionTypes: AllConditionTypes = {
     group: ConditionGroup.MAPS,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.UBER_BLIGHTED_MAP]: {
     label: "Uber Blighted Map",
@@ -349,6 +390,7 @@ export const conditionTypes: AllConditionTypes = {
     group: ConditionGroup.MAPS,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.BASE_DEFENCE_PERCENTILE]: {
     label: "Defence Percentile",
@@ -358,6 +400,7 @@ export const conditionTypes: AllConditionTypes = {
     defaultValue: 0,
     min: 0,
     max: 100,
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.BASE_ARMOUR]: {
     label: "Armour",
@@ -402,6 +445,7 @@ export const conditionTypes: AllConditionTypes = {
     type: ConditionInputType.TEXT_LIST,
     defaultValue: [],
     options: Object.values(Influence),
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.SEARING_EXARCH_IMPLICIT]: {
     label: "Searing Exarch Implicits",
@@ -411,6 +455,7 @@ export const conditionTypes: AllConditionTypes = {
     defaultValue: 0,
     min: 0,
     max: 4,
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.EATER_IMPLICIT]: {
     label: "Eater of Worlds Implicits",
@@ -420,6 +465,7 @@ export const conditionTypes: AllConditionTypes = {
     defaultValue: 0,
     min: 0,
     max: 4,
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.LINKED_SOCKETS]: {
     label: "Linked Sockets",
@@ -429,6 +475,7 @@ export const conditionTypes: AllConditionTypes = {
     defaultValue: 0,
     min: 0,
     max: 6,
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.SOCKETS]: {
     label: "Sockets",
@@ -445,6 +492,7 @@ export const conditionTypes: AllConditionTypes = {
     group: ConditionGroup.SOCKETS,
     type: ConditionInputType.TEXT,
     defaultValue: "",
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.EXPLICIT_MOD]: {
     label: "Explicit Mods",
@@ -482,6 +530,7 @@ export const conditionTypes: AllConditionTypes = {
     group: ConditionGroup.GEAR,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.REPLICA]: {
     label: "Replica",
@@ -489,6 +538,7 @@ export const conditionTypes: AllConditionTypes = {
     group: ConditionGroup.GEAR,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.MIRRORED]: {
     label: "Mirrored",
@@ -510,6 +560,7 @@ export const conditionTypes: AllConditionTypes = {
     group: ConditionGroup.GEAR,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.CRUCIBLE_TREE]: {
     label: "Crucible Tree",
@@ -517,20 +568,22 @@ export const conditionTypes: AllConditionTypes = {
     group: ConditionGroup.GEAR,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
+    validFor: ValidFor.PoE1,
   },
-  [ConditionKey.ARCHNEMESIS_MOD]: {
-    label: "Archnemesis Mods",
-    description: "A list of Archnemesis mods the item has (e.g. 'Toxic')",
-    group: ConditionGroup.MODS,
-    type: ConditionInputType.TEXT_LIST,
-    defaultValue: [],
-  },
+  // [ConditionKey.ARCHNEMESIS_MOD]: {
+  //   label: "Archnemesis Mods",
+  //   description: "A list of Archnemesis mods the item has (e.g. 'Toxic')",
+  //   group: ConditionGroup.MODS,
+  //   type: ConditionInputType.TEXT_LIST,
+  //   defaultValue: [],
+  // },
   [ConditionKey.TRANSFIGURED_GEM]: {
     label: "Transfigured Gem",
     description: "Whether the item is a transfigured gem",
     group: ConditionGroup.GEMS,
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.CORRUPTED_MODS]: {
     label: "Corrupted Mods",
@@ -548,6 +601,7 @@ export const conditionTypes: AllConditionTypes = {
     type: ConditionInputType.TEXT_LIST,
     defaultValue: [],
     options: [],
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.ENCHANTMENT_PASSIVE_NUM]: {
     label: "Enchantment Passive Count",
@@ -558,6 +612,99 @@ export const conditionTypes: AllConditionTypes = {
     defaultValue: 0,
     min: 0,
     max: 12,
+    validFor: ValidFor.PoE1,
+  },
+  [ConditionKey.ALTERNATE_QUALITY]: {
+    label: "Alternate Quality",
+    description: "Whether the item has Alternate Quality",
+    group: ConditionGroup.GENERAL,
+    type: ConditionInputType.CHECKBOX,
+    defaultValue: false,
+    validFor: ValidFor.PoE1,
+  },
+  [ConditionKey.ALWAYS_SHOW]: {
+    label: "Always Show",
+    description: "Whether the item is always shown",
+    group: ConditionGroup.GENERAL,
+    type: ConditionInputType.CHECKBOX,
+    defaultValue: false,
+    validFor: ValidFor.PoE2,
+  },
+  [ConditionKey.ELDER_ITEM]: {
+    label: "Elder Item",
+    description: "Whether the item is an Elder item",
+    group: ConditionGroup.GEAR,
+    type: ConditionInputType.CHECKBOX,
+    defaultValue: false,
+    validFor: ValidFor.PoE1,
+  },
+  [ConditionKey.FOULBORN]: {
+    label: "Foulborn",
+    description: "Whether the item is Foulborn",
+    group: ConditionGroup.GEAR,
+    type: ConditionInputType.CHECKBOX,
+    defaultValue: false,
+    validFor: ValidFor.PoE1,
+  },
+  [ConditionKey.HAS_VAAL_UNIQUE_MOD]: {
+    label: "Has Vaal Unique Mod",
+    description: "Whether the item has a Vaal Unique Mod",
+    group: ConditionGroup.MODS,
+    type: ConditionInputType.CHECKBOX,
+    defaultValue: false,
+    validFor: ValidFor.PoE2,
+  },
+  [ConditionKey.IS_VAAL_UNIQUE]: {
+    label: "Is Vaal Unique",
+    description: "Whether the item is a Vaal Unique",
+    group: ConditionGroup.GEAR,
+    type: ConditionInputType.CHECKBOX,
+    defaultValue: false,
+    validFor: ValidFor.PoE2,
+  },
+  [ConditionKey.MEMORY_STRANDS]: {
+    label: "Memory Strands",
+    description: "The amount of Memory Strands the item has",
+    group: ConditionGroup.GEAR,
+    type: ConditionInputType.SLIDER,
+    defaultValue: 0,
+    min: 0,
+    max: 100,
+    validFor: ValidFor.PoE1,
+  },
+  [ConditionKey.SHAPER_ITEM]: {
+    label: "Shaper Item",
+    description: "Whether the item is a Shaper item",
+    group: ConditionGroup.GEAR,
+    type: ConditionInputType.CHECKBOX,
+    defaultValue: false,
+    validFor: ValidFor.PoE1,
+  },
+  [ConditionKey.TWICE_CORRUPTED]: {
+    label: "Twice Corrupted",
+    description: "Whether the item is Twice Corrupted",
+    group: ConditionGroup.GEAR,
+    type: ConditionInputType.CHECKBOX,
+    defaultValue: false,
+    validFor: ValidFor.PoE2,
+  },
+  [ConditionKey.UNIDENTIFIED_ITEM_TIER]: {
+    label: "Unidentified Item Tier",
+    description: "The tier of the unidentified item",
+    group: ConditionGroup.GENERAL,
+    type: ConditionInputType.SLIDER,
+    defaultValue: 1,
+    min: 1,
+    max: 5,
+    validFor: ValidFor.PoE2,
+  },
+  [ConditionKey.ZANA_MEMORY]: {
+    label: "Zana Memory",
+    description: "Whether the item is a Zana Memory",
+    group: ConditionGroup.MAPS,
+    type: ConditionInputType.CHECKBOX,
+    defaultValue: false,
+    validFor: ValidFor.PoE1,
   },
 };
 
@@ -639,8 +786,8 @@ class GemLevelCondition implements ValueCondition<number> {
   }
 }
 
-class MapTierCondition implements ValueCondition<number> {
-  readonly key = ConditionKey.MAP_TIER;
+class WaystoneTierCondition implements ValueCondition<number> {
+  readonly key = ConditionKey.WAYSTONE_TIER;
   readonly type = ConditionType.VALUE;
   operator: Operator;
   value: number;
@@ -652,6 +799,22 @@ class MapTierCondition implements ValueCondition<number> {
 
   serialize(): string {
     return `WaystoneTier ${this.operator} ${this.value}`;
+  }
+}
+class MapTierCondition implements ValueCondition<number> {
+  readonly key = ConditionKey.MAP_TIER;
+  readonly type = ConditionType.VALUE;
+  operator: Operator;
+  value: number;
+  constructor(opts?: { operator?: Operator; value?: number }) {
+    this.operator = opts?.operator ?? Operator.EXACT;
+    this.value =
+      opts?.value ?? (conditionTypes[this.key].defaultValue as number);
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return `MapTier ${this.operator} ${this.value}`;
   }
 }
 
@@ -773,6 +936,177 @@ class CorruptedCondition implements BoolCondition {
 
   serialize(): string {
     return `Corrupted ${this.value ? "True" : "False"}`;
+  }
+}
+
+class AlternateQualityCondition implements BoolCondition {
+  readonly key = ConditionKey.ALTERNATE_QUALITY;
+  readonly type = ConditionType.BOOL;
+  value: boolean;
+  validFor: ValidFor = ValidFor.PoE1;
+  constructor(opts?: { value?: boolean }) {
+    this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return `AlternateQuality ${this.value ? "True" : "False"}`;
+  }
+}
+
+class AlwaysShowCondition implements BoolCondition {
+  readonly key = ConditionKey.ALWAYS_SHOW;
+  readonly type = ConditionType.BOOL;
+  value: boolean;
+  validFor: ValidFor = ValidFor.PoE2;
+  constructor(opts?: { value?: boolean }) {
+    this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return `AlwaysShow ${this.value ? "True" : "False"}`;
+  }
+}
+
+class ElderItemCondition implements BoolCondition {
+  readonly key = ConditionKey.ELDER_ITEM;
+  readonly type = ConditionType.BOOL;
+  value: boolean;
+  validFor: ValidFor = ValidFor.PoE1;
+  constructor(opts?: { value?: boolean }) {
+    this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return `ElderItem ${this.value ? "True" : "False"}`;
+  }
+}
+
+class FoulbornCondition implements BoolCondition {
+  readonly key = ConditionKey.FOULBORN;
+  readonly type = ConditionType.BOOL;
+  value: boolean;
+  validFor: ValidFor = ValidFor.PoE1;
+  constructor(opts?: { value?: boolean }) {
+    this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return `Foulborn ${this.value ? "True" : "False"}`;
+  }
+}
+
+class HasVaalUniqueModCondition implements BoolCondition {
+  readonly key = ConditionKey.HAS_VAAL_UNIQUE_MOD;
+  readonly type = ConditionType.BOOL;
+  value: boolean;
+  validFor: ValidFor = ValidFor.PoE2;
+  constructor(opts?: { value?: boolean }) {
+    this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return `HasVaalUniqueMod ${this.value ? "True" : "False"}`;
+  }
+}
+
+class IsVaalUniqueCondition implements BoolCondition {
+  readonly key = ConditionKey.IS_VAAL_UNIQUE;
+  readonly type = ConditionType.BOOL;
+  value: boolean;
+  validFor: ValidFor = ValidFor.PoE2;
+  constructor(opts?: { value?: boolean }) {
+    this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return `IsVaalUnique ${this.value ? "True" : "False"}`;
+  }
+}
+
+class MemoryStrandsCondition implements ValueCondition<number> {
+  readonly key = ConditionKey.MEMORY_STRANDS;
+  readonly type = ConditionType.VALUE;
+  operator: Operator;
+  value: number;
+  validFor: ValidFor = ValidFor.PoE1;
+
+  constructor(opts?: { operator?: Operator; value?: number }) {
+    this.operator = opts?.operator ?? Operator.EXACT;
+    this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return `MemoryStrands ${this.operator ? `${this.operator} ` : ""}${this.value}`;
+  }
+}
+
+class ShaperItemCondition implements BoolCondition {
+  readonly key = ConditionKey.SHAPER_ITEM;
+  readonly type = ConditionType.BOOL;
+  value: boolean;
+  validFor: ValidFor = ValidFor.PoE1;
+  constructor(opts?: { value?: boolean }) {
+    this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return `ShaperItem ${this.value ? "True" : "False"}`;
+  }
+}
+
+class TwiceCorruptedCondition implements BoolCondition {
+  readonly key = ConditionKey.TWICE_CORRUPTED;
+  readonly type = ConditionType.BOOL;
+  value: boolean;
+  validFor: ValidFor = ValidFor.PoE2;
+  constructor(opts?: { value?: boolean }) {
+    this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return `TwiceCorrupted ${this.value ? "True" : "False"}`;
+  }
+}
+
+class UnidentifiedItemTierCondition implements ValueCondition<number> {
+  readonly key = ConditionKey.UNIDENTIFIED_ITEM_TIER;
+  readonly type = ConditionType.VALUE;
+  operator: Operator;
+  value: number;
+  validFor: ValidFor = ValidFor.PoE2;
+
+  constructor(opts?: { operator?: Operator; value?: number }) {
+    this.operator = opts?.operator ?? Operator.EXACT;
+    this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return `UnidentifiedItemTier ${this.operator ? `${this.operator} ` : ""}${this.value}`;
+  }
+}
+
+class ZanaMemoryCondition implements BoolCondition {
+  readonly key = ConditionKey.ZANA_MEMORY;
+  readonly type = ConditionType.BOOL;
+  value: boolean;
+  validFor: ValidFor = ValidFor.PoE1;
+  constructor(opts?: { value?: boolean }) {
+    this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return `ZanaMemory ${this.value ? "True" : "False"}`;
   }
 }
 
@@ -1238,6 +1572,7 @@ const conditionConstructors = verifyConstructors({
   [ConditionKey.QUALITY]: QualityCondition,
   [ConditionKey.GEM_LEVEL]: GemLevelCondition,
   [ConditionKey.MAP_TIER]: MapTierCondition,
+  [ConditionKey.WAYSTONE_TIER]: WaystoneTierCondition,
   [ConditionKey.AREA_LEVEL]: AreaLevelCondition,
   [ConditionKey.DROP_LEVEL]: DropLevelCondition,
   [ConditionKey.STACK_SIZE]: StackSizeCondition,
@@ -1276,6 +1611,17 @@ const conditionConstructors = verifyConstructors({
   [ConditionKey.SOCKETS]: SocketsCondition,
   [ConditionKey.CLASSES]: ClassesCondition,
   [ConditionKey.CORRUPTED_MODS]: CorruptedModsCondition,
+  [ConditionKey.ALTERNATE_QUALITY]: AlternateQualityCondition,
+  [ConditionKey.ALWAYS_SHOW]: AlwaysShowCondition,
+  [ConditionKey.ELDER_ITEM]: ElderItemCondition,
+  [ConditionKey.FOULBORN]: FoulbornCondition,
+  [ConditionKey.HAS_VAAL_UNIQUE_MOD]: HasVaalUniqueModCondition,
+  [ConditionKey.IS_VAAL_UNIQUE]: IsVaalUniqueCondition,
+  [ConditionKey.MEMORY_STRANDS]: MemoryStrandsCondition,
+  [ConditionKey.SHAPER_ITEM]: ShaperItemCondition,
+  [ConditionKey.TWICE_CORRUPTED]: TwiceCorruptedCondition,
+  [ConditionKey.UNIDENTIFIED_ITEM_TIER]: UnidentifiedItemTierCondition,
+  [ConditionKey.ZANA_MEMORY]: ZanaMemoryCondition,
 });
 
 type ConditionConstructors = typeof conditionConstructors;

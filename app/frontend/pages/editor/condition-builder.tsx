@@ -1,14 +1,14 @@
 import Tooltip from "@app/components/tooltip";
-import { CloseIcon, PlusIcon } from "@app/icons";
+import { PlusIcon } from "@app/icons";
 import { excuteCmd } from "@app/lib/commands";
 import {
   ConditionGroup,
-  ConditionKey,
-  type Conditions,
   conditionGroupColors,
+  ConditionKey,
   conditionTypes,
   createCondition,
   Operator,
+  type Conditions,
 } from "@app/lib/condition";
 import type { FilterRule } from "@app/lib/filter";
 import { enchantIndex, modIndex } from "@app/lib/mods";
@@ -33,6 +33,7 @@ import { Separator } from "@app/ui/separator";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
 import Fuse from "fuse.js";
+import { ValidFor } from "pathofexile-dat-schema";
 import { createEffect, createMemo, createSignal, For } from "solid-js";
 import {
   CheckboxInput,
@@ -70,10 +71,18 @@ export default function ConditionManager(props: { rule: FilterRule }) {
 
   const searchIndex = createMemo(() => {
     return new Fuse(
-      Object.entries(conditionTypes).map(([key, value]) => ({
-        key: key as ConditionKey,
-        ...value,
-      })) || [],
+      Object.entries(conditionTypes)
+        .filter(([_, condition]) => {
+          if (!store.filter) return true;
+          return (
+            store.filter.poeVersion === condition.validFor ||
+            !condition.validFor
+          );
+        })
+        .map(([key, value]) => ({
+          key: key as ConditionKey,
+          ...value,
+        })) || [],
       options,
     );
   });

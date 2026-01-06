@@ -272,9 +272,10 @@ export async function importFilter(raw: string) {
         );
         continue;
       }
+
       if (property === "WaystoneTier") {
         conditions.push(
-          createCondition(ConditionKey.MAP_TIER, {
+          createCondition(ConditionKey.WAYSTONE_TIER, {
             operator: operator as Operator,
             value: Number(value),
           }),
@@ -288,6 +289,84 @@ export async function importFilter(raw: string) {
             value: value === "true",
           }),
         );
+        continue;
+      }
+
+      let newCondition: Conditions | undefined;
+      const boolValue = (val: any) => val === "True" || val === true;
+
+      switch (property) {
+        case "Replica":
+          newCondition = createCondition(ConditionKey.REPLICA, {
+            value: boolValue(value),
+          });
+          break;
+        case "HasCruciblePassiveTree":
+          newCondition = createCondition(ConditionKey.CRUCIBLE_TREE, {
+            value: boolValue(value),
+          });
+          break;
+        case "AlternateQuality":
+          newCondition = createCondition(ConditionKey.ALTERNATE_QUALITY, {
+            value: boolValue(value),
+          });
+          break;
+        case "AlwaysShow":
+          newCondition = createCondition(ConditionKey.ALWAYS_SHOW, {
+            value: boolValue(value),
+          });
+          break;
+        case "ElderItem":
+          newCondition = createCondition(ConditionKey.ELDER_ITEM, {
+            value: boolValue(value),
+          });
+          break;
+        case "Foulborn":
+          newCondition = createCondition(ConditionKey.FOULBORN, {
+            value: boolValue(value),
+          });
+          break;
+        case "HasVaalUniqueMod":
+          newCondition = createCondition(ConditionKey.HAS_VAAL_UNIQUE_MOD, {
+            value: boolValue(value),
+          });
+          break;
+        case "IsVaalUnique":
+          newCondition = createCondition(ConditionKey.IS_VAAL_UNIQUE, {
+            value: boolValue(value),
+          });
+          break;
+        case "MemoryStrands":
+          newCondition = createCondition(ConditionKey.MEMORY_STRANDS, {
+            operator: operator as Operator,
+            value: Number(value),
+          });
+          break;
+        case "ShaperItem":
+          newCondition = createCondition(ConditionKey.SHAPER_ITEM, {
+            value: boolValue(value),
+          });
+          break;
+        case "TwiceCorrupted":
+          newCondition = createCondition(ConditionKey.TWICE_CORRUPTED, {
+            value: boolValue(value),
+          });
+          break;
+        case "UnidentifiedItemTier":
+          newCondition = createCondition(ConditionKey.UNIDENTIFIED_ITEM_TIER, {
+            operator: operator as Operator,
+            value: Number(value),
+          });
+          break;
+        case "ZanaMemory":
+          newCondition = createCondition(ConditionKey.ZANA_MEMORY, {
+            value: boolValue(value),
+          });
+          break;
+      }
+
+      if (newCondition) {
+        conditions.push(newCondition);
         continue;
       }
 
