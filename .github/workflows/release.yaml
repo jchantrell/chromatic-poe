@@ -18,11 +18,19 @@ jobs:
       release_description: ${{ steps.release.outputs.body }}
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
+      id: ${{ steps.get_release_id.outputs.id }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
           manifest-file: release-please-manifest.json
+      - name: Get release ID
+        if: steps.release.outputs.release_created == 'true'
+        id: get_release_id
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "id=$(gh release view ${{ steps.release.outputs.tag_name }} --json databaseId --jq .databaseId)" >> $GITHUB_OUTPUT
 
   deploy-proxy:
     needs: manage-release
@@ -108,9 +116,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ needs.manage-release.outputs.tag_name }}
-          releaseName: 'Chromatic PoE ${{ needs.manage-release.outputs.version}}'
-          releaseBody: "${{ needs.manage-release.outputs.release_description }}"
+          releaseId: ${{ needs.manage-release.outputs.id }}
           releaseDraft: false
           prerelease: false
           includeUpdaterJson: true
