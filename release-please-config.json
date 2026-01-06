@@ -4,6 +4,7 @@
       "skip-github-release": true,
       "release-type": "node",
       "component": "chromatic-poe",
+      "include-component-in-tag": true,
       "extra-files": [
         {
           "type": "toml",
