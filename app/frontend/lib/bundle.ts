@@ -1,8 +1,9 @@
 import {
-  decompressSliceInBundle,
-  getFileInfo,
-  readIndexBundle,
+    decompressSliceInBundle,
+    getFileInfo,
+    readIndexBundle,
 } from "pathofexile-dat/bundles.js";
+import { proxyFetch } from "./fetch";
 import type { IDBManager } from "./idb";
 import { to, withRetries } from "./utils";
 
@@ -79,8 +80,8 @@ export class BundleManager {
       const cdnUrl = patch.startsWith("4.")
         ? "https://patch-poe2.poecdn.com"
         : "https://patch.poecdn.com";
-      const response = await fetch(
-        `${import.meta.env.VITE_PROXY_API_HOST}?url=${encodeURIComponent(cdnUrl)}/${webpath}`,
+      const response = await proxyFetch(
+        `${cdnUrl}${webpath}`,
       );
 
       if (!response.ok) {

@@ -1,4 +1,5 @@
 import { toast } from "solid-sonner";
+import { proxyFetch } from "./fetch";
 import type { IDBManager } from "./idb";
 
 export type Unique = {
@@ -30,15 +31,12 @@ export class WikiManager {
   ): Promise<Unique[]> {
     const targetUrl = `https://www.poe${patch.startsWith("4") ? "2" : ""}wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&offset=${offset}`;
 
-    const req = await fetch(
-      `${import.meta.env.VITE_PROXY_API_HOST}?url=${encodeURIComponent(targetUrl)}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+    const req = await proxyFetch(targetUrl, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
       },
-    );
+    });
     const res = await req.json();
     if (res.cargoquery.length) {
       if (onProgress) onProgress(results.length + res.cargoquery.length);

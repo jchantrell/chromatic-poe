@@ -1,8 +1,9 @@
-import { readColumn, readDatFile } from "pathofexile-dat/dat.js";
 import { SCHEMA_URL, type SchemaFile, ValidFor } from "pathofexile-dat-schema";
+import { readColumn, readDatFile } from "pathofexile-dat/dat.js";
 import { ArtManager } from "./art";
 import { BundleManager } from "./bundle";
 import { Database } from "./db";
+import { proxyFetch } from "./fetch";
 import type { Item } from "./filter";
 import { IDBManager } from "./idb";
 import { MinimapManager } from "./minimap";
@@ -239,9 +240,7 @@ export class DatManager {
 
   async importSchema() {
     console.log("Fetching schema...");
-    const response = await fetch(
-      `${import.meta.env.VITE_PROXY_API_HOST}?url=${encodeURIComponent(SCHEMA_URL)}`,
-    );
+    const response = await proxyFetch(SCHEMA_URL);
     this.schema = await response.json();
   }
 
