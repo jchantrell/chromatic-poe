@@ -33,7 +33,6 @@ import { Separator } from "@app/ui/separator";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
 import Fuse from "fuse.js";
-import { ValidFor } from "pathofexile-dat-schema";
 import { createEffect, createMemo, createSignal, For } from "solid-js";
 import {
   CheckboxInput,
@@ -314,28 +313,42 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                   <Label class='text-md font-bold'>{conditionType.label}</Label>
                 </div>
                 <div class='flex gap-1 items-center p-2'>
-                  {"operator" in condition && condition.operator && (
-                    <Select
-                      value={condition.operator}
-                      onChange={(value) => {
-                        if (value) {
-                          updateCondition(condition, "operator", value);
-                        }
+                  {"operator" in condition &&
+                    condition.operator !== undefined && (
+                      <Select
+                        value={condition.operator}
+                        onChange={(value) => {
+                          if (value) {
+                            updateCondition(condition, "operator", value);
+                          }
+                        }}
+                        options={operators}
+                        itemComponent={(props) => (
+                          <SelectItem item={props.item}>
+                            {props.item.rawValue === ""
+                              ? "None"
+                              : props.item.rawValue}
+                          </SelectItem>
+                        )}
+                      >
+                        <SelectTrigger class='w-[70px] bg-accent'>
+                          <SelectValue<string>>
+                            {(state) => state.selectedOption()}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent />
+                      </Select>
+                    )}
+                  {condition.key === ConditionKey.EXPLICIT_MOD && (
+                    <TextField
+                      class='w-20'
+                      value={String((condition as any).stack ?? 1)}
+                      onChange={(v) => {
+                        updateCondition(condition as any, "stack", Number(v));
                       }}
-                      options={operators.filter((o) => o !== "")}
-                      itemComponent={(props) => (
-                        <SelectItem item={props.item}>
-                          {props.item.rawValue}
-                        </SelectItem>
-                      )}
                     >
-                      <SelectTrigger class='w-[70px] bg-accent'>
-                        <SelectValue<string>>
-                          {(state) => state.selectedOption()}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent />
-                    </Select>
+                      <TextFieldInput type='number' />
+                    </TextField>
                   )}
                   <div>
                     {conditionType.type === "slider" && (

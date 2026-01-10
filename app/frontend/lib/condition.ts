@@ -1287,14 +1287,28 @@ class ExplicitModCondition implements ListCondition<string> {
   readonly key = ConditionKey.EXPLICIT_MOD;
   readonly type = ConditionType.LIST;
   value: string[];
-  constructor(opts?: { value?: string[] }) {
+  operator: Operator;
+  stack: number;
+
+  constructor(opts?: {
+    value?: string[];
+    operator?: Operator;
+    stack?: number;
+  }) {
     this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    this.operator = opts?.operator ?? Operator.NONE;
+    this.stack = opts?.stack ?? 1;
     createMutable(this);
   }
 
   serialize(): string {
     if (!this.value.length) return "";
-    return `HasExplicitMod ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
+    const prefix =
+      this.operator !== Operator.NONE
+        ? `HasExplicitMod ${this.operator} ${this.stack}`
+        : "HasExplicitMod";
+
+    return `${prefix} ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
   }
 }
 

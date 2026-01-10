@@ -26,7 +26,12 @@ interface ParsedFilterRule {
 interface ParsedFilterCondition {
   property: string;
   operator: string | null;
-  value: string | number | boolean | string[];
+  value:
+    | string
+    | number
+    | boolean
+    | string[]
+    | { stack: number; mods: string[] };
 }
 
 const VALID_OPERATORS = [
@@ -79,6 +84,55 @@ function replaceClass(
 function parseCondition(condition: string): ParsedFilterCondition {
   const [contentPart] = condition.split("#").map((part) => part.trim());
   const parts = contentPart.trim().split(/\s+/);
+
+  if (parts[0] === "HasExplicitMod") {
+    const isOperator = VALID_OPERATORS.includes(
+      parts[1] as Exclude<Operator, Operator.NONE>,
+    );
+
+    let operator: string | undefined;
+    let stack: number | undefined;
+    let modString: string | undefined;
+
+    if (isOperator) {
+      operator = parts[1];
+      stack = Number(parts[2]);
+      if (!Number.isNaN(stack)) {
+        modString = parts.slice(3).join(" ");
+      }
+    } else {
+      // Check if parts[1] starts with an operator (e.g. ">=1")
+      // Sort operators by length descending to match longest first (e.g. ">=" before ">")
+      const sortedOperators = [...VALID_OPERATORS].sort(
+        (a, b) => b.length - a.length,
+      );
+      const matchedOp = sortedOperators.find((op) => parts[1].startsWith(op));
+
+      if (matchedOp) {
+        const potentialStack = parts[1].slice(matchedOp.length);
+        if (
+          potentialStack.length > 0 &&
+          !Number.isNaN(Number(potentialStack))
+        ) {
+          operator = matchedOp;
+          stack = Number(potentialStack);
+          modString = parts.slice(2).join(" ");
+        }
+      }
+    }
+
+    if (operator && stack !== undefined && modString !== undefined) {
+      const mods = parseValue(modString);
+      return {
+        property: parts[0],
+        operator,
+        value: {
+          stack,
+          mods: Array.isArray(mods) ? mods : [String(mods)],
+        },
+      };
+    }
+  }
 
   const hasOperator =
     parts.length > 1 &&
@@ -264,7 +318,9 @@ export async function importFilter(raw: string) {
         continue;
       }
       if (property === "Class") {
-        const classes = getClasses(value) as string[];
+        const classes = getClasses(
+          value as number | string | boolean | string[],
+        ) as string[];
         conditions.push(
           createCondition(ConditionKey.CLASSES, {
             value: classes,
@@ -368,6 +424,34 @@ export async function importFilter(raw: string) {
 
       if (newCondition) {
         conditions.push(newCondition);
+        continue;
+      }
+
+      if (property === "HasExplicitMod") {
+        let stack: number | undefined;
+        let mods: string[] = [];
+
+        if (
+          typeof value === "object" &&
+          value !== null &&
+          !Array.isArray(value) &&
+          "stack" in value
+        ) {
+          stack = (value as any).stack;
+          mods = (value as any).mods;
+        } else if (Array.isArray(value)) {
+          mods = value;
+        } else if (typeof value === "string") {
+          mods = [value];
+        }
+
+        conditions.push(
+          createCondition(ConditionKey.EXPLICIT_MOD, {
+            operator: operator as Operator,
+            value: mods,
+            stack,
+          }),
+        );
         continue;
       }
 
