@@ -50,7 +50,7 @@ function BeamPicker() {
             {store.activeRule?.actions.beam?.enabled ? (
               <PopoverTrigger class='size-full p-3'>
                 <div
-                  class='h-5 w-6 rounded-md border border-accent hover:border-primary cursor-pointer'
+                  class='h-5 w-6 rounded-xl border border-accent hover:border-primary cursor-pointer'
                   style={{ background: `${colors[color()]}` }}
                 />
               </PopoverTrigger>
@@ -79,7 +79,7 @@ function BeamPicker() {
                   {(color) => {
                     return (
                       <button
-                        class='w-full h-4 rounded-lg border border-accent hover:border-primary'
+                        class='w-full h-4 rounded-xs border border-accent hover:border-primary'
                         type='button'
                         style={{ background: color[1] }}
                         onClick={() => {

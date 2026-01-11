@@ -9,8 +9,8 @@ import {
   DialogTrigger,
 } from "@app/ui/dialog";
 import { TextField, TextFieldInput, TextFieldLabel } from "@app/ui/text-field";
-import { ToggleGroup, ToggleGroupItem } from "@app/ui/toggle-group";
-import { createSignal, For } from "solid-js";
+import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
+import { createSignal } from "solid-js";
 import { toast } from "solid-sonner";
 
 export default function CreateFilter() {
@@ -65,24 +65,18 @@ export default function CreateFilter() {
             <div class='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mr-2'>
               PoE Version
             </div>
-            <ToggleGroup
-              onChange={(v) => setVersion(Number(v))}
-              value={version().toString()}
-              class='flex flex-wrap'
+            <div class='text-md font-semibold'>1</div>
+            <Switch
+              checked={version() === 2}
+              onChange={(checked) => {
+                setVersion(checked ? 2 : 1);
+              }}
             >
-              <For each={[1, 2]}>
-                {(option) => {
-                  return (
-                    <ToggleGroupItem
-                      class='data-pressed:bg-neutral-700 bg-neutral-700/20 border border-accent'
-                      value={option.toString()}
-                    >
-                      {option}
-                    </ToggleGroupItem>
-                  );
-                }}
-              </For>
-            </ToggleGroup>
+              <SwitchControl class='bg-neutral-300 data-checked:bg-neutral-300'>
+                <SwitchThumb />
+              </SwitchControl>
+            </Switch>
+            <div class='text-md font-semibold'>2</div>
           </div>
           <Button
             class='text-center cursor-pointer grid  max-w-sm rounded-lg items-center border p-0'

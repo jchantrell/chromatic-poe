@@ -7,7 +7,14 @@ import {
 import { dat } from "@app/lib/dat";
 import { store } from "@app/store";
 import { Popover, PopoverContent, PopoverTrigger } from "@app/ui/popover";
-import { RadioGroup, RadioGroupItem } from "@app/ui/radio-group";
+import {
+  Slider,
+  SliderFill,
+  SliderThumb,
+  SliderTrack,
+  SliderLabel,
+  SliderValueLabel,
+} from "@app/ui/slider";
 import { createEffect, createSignal, For, on, onMount } from "solid-js";
 
 const PREVIEW_SCALE = 2; // magic number
@@ -113,10 +120,10 @@ function MapIconPicker() {
           </div>
         </div>
         <PopoverContent
-          class='w-fit flex flex-col items-center p-1 bg-neutral-900 border-accent'
+          class='w-fit flex flex-col items-center p-1 bg-secondary border-accent'
           onMouseLeave={() => setOpen(false)}
         >
-          <div class='flex max-w-[200px]'>
+          <div class='flex w-32 max-w-64'>
             <div class='flex flex-col items-center'>
               {dat.minimap?.coords?.[color()] ? (
                 <For each={Object.entries(dat.minimap.coords[color()])}>
@@ -141,17 +148,28 @@ function MapIconPicker() {
               )}
             </div>
             <div class='flex flex-col w-full items-center justify-center py-1 mx-1'>
-              <RadioGroup value={size()} onChange={setSize} class='flex'>
-                <For each={[IconSize.Small, IconSize.Medium, IconSize.Large]}>
-                  {(size) => <RadioGroupItem value={size} />}
-                </For>
-              </RadioGroup>
+              <Slider
+                minValue={0}
+                maxValue={2}
+                defaultValue={[0]}
+                class='space-y-3 p-1'
+                value={[size() as unknown as number]}
+              >
+                <div class='flex w-full justify-between'>
+                  <SliderLabel>Size</SliderLabel>
+                  <SliderValueLabel />
+                </div>
+                <SliderTrack>
+                  <SliderFill />
+                  <SliderThumb />
+                </SliderTrack>
+              </Slider>
               <div class='grid gap-1 size-full mt-2'>
                 <For each={Object.entries(colors)}>
                   {(color) => {
                     return (
                       <button
-                        class='w-full rounded-lg border border-accent hover:border-primary cursor-pointer'
+                        class='w-full rounded-xs border border-muted hover:border-accent-foreground cursor-pointer'
                         type='button'
                         style={{ background: color[1] }}
                         onClick={() => {
