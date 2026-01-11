@@ -53,24 +53,32 @@ export function Settings() {
         <DialogHeader>
           <DialogTitle>General</DialogTitle>
         </DialogHeader>
-        <div class='grid py-2'>
+        <section class='grid py-2'>
           <TextField class='grid grid-cols-4 items-center gap-4'>
             <Label aria-disabled={true} class='text-right'>
               Autosave
             </Label>
             <Checkbox disabled checked={false} />
           </TextField>
-        </div>
+        </section>
         <Separator />
         <DialogHeader>
           <DialogTitle>Display</DialogTitle>
         </DialogHeader>
-        <div class='grid py-4'>
+        <section class='grid py-4'>
           <TextField class='grid grid-cols-4 items-center gap-4'>
             <TextFieldLabel class='text-right'>Theme</TextFieldLabel>
             <Theme />
           </TextField>
-        </div>
+        </section>
+        <Separator />
+        <section class='grid py-4'>
+          <DialogTitle>Data</DialogTitle>
+          <div>
+            <div>PoE 1 - {store.poeCurrentVersions?.poe1}</div>
+            <div>PoE 2 - {store.poeCurrentVersions?.poe2}</div>
+          </div>
+        </section>
         <Separator />
         <div class='py-4 flex items-center justify-center gap-8'>
           <div class='flex flex-col items-center gap-1'>

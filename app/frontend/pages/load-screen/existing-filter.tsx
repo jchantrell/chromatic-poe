@@ -94,7 +94,7 @@ export default function ExistingFilter(props: { filter: Filter }) {
         </DialogContent>
       </Dialog>
       <Dialog open={nameDialogOpen()} onOpenChange={setNameDialogOpen}>
-        <DialogContent class='max-w-[400px] p-1 bg-primary-foreground rounded-lg select-none'>
+        <DialogContent class='max-w-[400px] p-1 bg-secondary/60 rounded-lg select-none'>
           <TextField
             class='flex items-center gap-4'
             onChange={setUpdateName}
@@ -106,16 +106,19 @@ export default function ExistingFilter(props: { filter: Filter }) {
           >
             <TextFieldInput
               value={updateName()}
-              class='col-span-3 bg-primary-foreground'
+              class='col-span-3 bg-secondary'
               type='text'
             />
           </TextField>
         </DialogContent>
       </Dialog>
       <Dialog open={deleteDialogOpen()} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent class='max-w-[400px] p-1 bg-primary-foreground rounded-lg select-none flex flex-col items-center'>
+        <DialogContent class='max-w-[400px] p-1 bg-secondary/80 rounded-lg select-none flex flex-col items-center'>
           <div class='grid gap-4 py-4'>
-            <div>You sure you want to delete {name()}?</div>
+            <div class='text-wrap'>
+              You sure you want to delete{" "}
+              <span class='font-bold'>{name()}</span>?
+            </div>
             <Button onClick={deleteFilter} variant='destructive'>
               Yes
             </Button>
@@ -127,7 +130,7 @@ export default function ExistingFilter(props: { filter: Filter }) {
           <a href={`${BASE_URL}${props.filter.name}`}>
             <Button
               class='flex text-left justify-between w-full rounded-t-lg p-0'
-              variant='secondary'
+              variant='ghost'
             >
               <div class='ml-2'>
                 <div class='text-primary'>

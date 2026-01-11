@@ -117,7 +117,7 @@ export function SelectInput(props: {
         >
           Edit
         </DialogTrigger>
-        <DialogContent class='sm:max-w-[600px] overflow-y-visible'>
+        <DialogContent class='sm:max-w-150 overflow-y-visible'>
           <DialogHeader>
             <DialogTitle>
               Selecting {conditionTypes[props.key].label} values

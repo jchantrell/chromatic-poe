@@ -312,10 +312,11 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                 <div class='max-w-full w-full px-2 pt-1'>
                   <Label class='text-md font-bold'>{conditionType.label}</Label>
                 </div>
-                <div class='flex gap-1 items-center p-2'>
+                <div class='flex gap-1 p-2'>
                   {"operator" in condition &&
                     condition.operator !== undefined && (
                       <Select
+                        class='mr-1'
                         value={condition.operator}
                         onChange={(value) => {
                           if (value) {
@@ -331,7 +332,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                           </SelectItem>
                         )}
                       >
-                        <SelectTrigger class='w-[70px] bg-accent'>
+                        <SelectTrigger class='w-17.5 bg-accent'>
                           <SelectValue<string>>
                             {(state) => state.selectedOption()}
                           </SelectValue>

@@ -66,7 +66,7 @@ function Link(props: {
 function SideBar() {
   return (
     <nav
-      class='flex flex-col items-center justify-between py-2.5'
+      class='flex flex-col items-center justify-between bg-muted py-2.5'
       data-tauri-drag-region
     >
       <div class='flex flex-col gap-2'>
@@ -94,7 +94,7 @@ function SideBar() {
 function TopBar() {
   return (
     <nav
-      class='w-full flex justify-between items-center h-12'
+      class='w-full flex justify-between items-center bg-muted h-12'
       data-tauri-drag-region
     >
       <div
@@ -103,7 +103,7 @@ function TopBar() {
       >
         {store.filter && (
           <>
-            <div class='ml-2 font-semibold text-xl mr-4 flex '>
+            <div class='ml-2 text-xl mr-4 flex '>
               {store.filter?.name} (PoE {store.filter.poeVersion})
             </div>
             <div>

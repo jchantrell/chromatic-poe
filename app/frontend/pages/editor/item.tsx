@@ -45,10 +45,13 @@ export function Visual(props: { item: FilterItem; class?: string }) {
       }}
     >
       <Image item={props.item} />
-      <div class='pointer-events-none text-lg'>
+      <div class='pointer-events-none text-lg text-nowrap'>
         {props.item.name}
         {props.item.category === "Uniques" && (
-          <span class='ml-1 text-xs text-neutral-400'> {props.item.base}</span>
+          <span class='ml-1 text-xs text-secondary-foreground/50'>
+            {" "}
+            {props.item.base}
+          </span>
         )}
       </div>
     </div>
