@@ -230,7 +230,7 @@ export default function RuleEditor() {
   }
 
   return (
-    <div class='inset-0 size-full flex flex-col items-center bg-muted/80 overflow-hidden flex-1 min-h-0 @container'>
+    <div class='inset-0 size-full flex flex-col items-center bg-secondary/50 overflow-hidden flex-1 min-h-0 @container'>
       <div class='w-full p-1 shrink-0 flex'>
         <span class='text-xl w-full justify-center flex'>
           <input

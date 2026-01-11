@@ -169,9 +169,13 @@ export default function Rules() {
         <SortableProvider
           ids={store.filter?.rules.map((rule) => rule.id) ?? []}
         >
-          <div class='outline-none'>
+          <div class='border border-accent'>
             <TextField value={searchTerm()} onChange={setSearchTerm}>
-              <TextFieldInput type='text' placeholder={"Search for rules..."} />
+              <TextFieldInput
+                type='text'
+                placeholder={"Search for rules..."}
+                class='focus-visible:ring-0 focus-visible:ring-offset-0 border-none'
+              />
             </TextField>
           </div>
           <div

@@ -61,17 +61,6 @@ export default function Rule(props: {
     return "border border-accent";
   }
 
-  function getBgColor() {
-    if (!props.rule.enabled) {
-      return "bg-muted/50";
-    }
-    if (hovered() || selected()) {
-      return "bg-secondary";
-    }
-
-    return "bg-muted";
-  }
-
   function getTextColor() {
     if (!props.rule.enabled) {
       return "text-muted-foreground/20";
@@ -122,7 +111,7 @@ export default function Rule(props: {
       <ContextMenu>
         <ContextMenuTrigger>
           <div
-            class={`grid grid-cols-[minmax(200px,_1fr)_auto] items-center justify-between text-accent-foreground select-none ${getBgColor()} ${getTextColor()} ${getBorderColor()} @container`}
+            class={`grid grid-cols-[minmax(200px,_1fr)_auto] items-center justify-between text-accent-foreground select-none bg-secondary ${getTextColor()} ${getBorderColor()} @container`}
             onMouseOut={() => setHovered(false)}
             onMouseOver={() => setHovered(true)}
             onFocus={() => null}

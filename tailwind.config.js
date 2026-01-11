@@ -17,54 +17,61 @@ module.exports = {
         fontin: ["Fontin", "sans-serif"],
       },
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: "rgb(from var(--border) r g b / <alpha-value>)",
+        input: "rgb(from var(--input) r g b / <alpha-value>)",
+        ring: "rgb(from var(--ring) r g b / <alpha-value>)",
+        background: "rgb(from var(--background) r g b / <alpha-value>)",
+        foreground: "rgb(from var(--foreground) r g b / <alpha-value>)",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "rgb(from var(--primary) r g b / <alpha-value>)",
+          foreground:
+            "rgb(from var(--primary-foreground) r g b / <alpha-value>)",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "rgb(from var(--secondary) r g b / <alpha-value>)",
+          foreground:
+            "rgb(from var(--secondary-foreground) r g b / <alpha-value>)",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "rgb(from var(--destructive) r g b / <alpha-value>)",
+          foreground:
+            "rgb(from var(--destructive-foreground) r g b / <alpha-value>)",
         },
         info: {
-          DEFAULT: "hsl(var(--info))",
-          foreground: "hsl(var(--info-foreground))",
+          DEFAULT: "rgb(from var(--info) r g b / <alpha-value>)",
+          foreground: "rgb(from var(--info-foreground) r g b / <alpha-value>)",
         },
         success: {
-          DEFAULT: "hsl(var(--success))",
-          foreground: "hsl(var(--success-foreground))",
+          DEFAULT: "rgb(from var(--success) r g b / <alpha-value>)",
+          foreground:
+            "rgb(from var(--success-foreground) r g b / <alpha-value>)",
         },
         warning: {
-          DEFAULT: "hsl(var(--warning))",
-          foreground: "hsl(var(--warning-foreground))",
+          DEFAULT: "rgb(from var(--warning) r g b / <alpha-value>)",
+          foreground:
+            "rgb(from var(--warning-foreground) r g b / <alpha-value>)",
         },
         error: {
-          DEFAULT: "hsl(var(--error))",
-          foreground: "hsl(var(--error-foreground))",
+          DEFAULT: "rgb(from var(--error) r g b / <alpha-value>)",
+          foreground: "rgb(from var(--error-foreground) r g b / <alpha-value>)",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "rgb(from var(--muted) r g b / <alpha-value>)",
+          foreground: "rgb(from var(--muted-foreground) r g b / <alpha-value>)",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "rgb(from var(--accent) r g b / <alpha-value>)",
+          foreground:
+            "rgb(from var(--accent-foreground) r g b / <alpha-value>)",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "rgb(from var(--popover) r g b / <alpha-value>)",
+          foreground:
+            "rgb(from var(--popover-foreground) r g b / <alpha-value>)",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "rgb(from var(--card) r g b / <alpha-value>)",
+          foreground: "rgb(from var(--card-foreground) r g b / <alpha-value>)",
         },
       },
       borderRadius: {
