@@ -1,4 +1,18 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.9.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.8.2...chromatic-poe-v0.9.0) (2026-01-12)
+
+
+### Features
+
+* Add GH issue link to settings dialog ([c5ba98d](https://github.com/jchantrell/chromatic-poe/commit/c5ba98d2750ff4f0f18a7deacfd324da53eb4e67))
+
+
+### Bug Fixes
+
+* HasExplictMod import and operator ([ffb0991](https://github.com/jchantrell/chromatic-poe/commit/ffb0991a9615707b42bad14dd2116975fe1756b3))
+* Remove double quotes on imported sound paths ([e6ba27f](https://github.com/jchantrell/chromatic-poe/commit/e6ba27f386d40d4e755bfefe9e9350b606bc15e6))
+* Save filter before app restart ([4257a72](https://github.com/jchantrell/chromatic-poe/commit/4257a72a345f5cd17f5e1c82eb12b4d75edc3be7))
+
 ## [0.8.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.8.1...chromatic-poe-v0.8.2) (2026-01-06)
 
 
