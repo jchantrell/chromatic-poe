@@ -165,11 +165,11 @@ export default function Rules() {
   return (
     <DragDropProvider onDragEnd={onDragEnd} collisionDetector={closestCenter}>
       <DragDropSensors />
-      <div class='flex flex-col gap-1 h-full m-1 pb-2'>
+      <div class='flex flex-col h-full m-1 pb-2'>
         <SortableProvider
           ids={store.filter?.rules.map((rule) => rule.id) ?? []}
         >
-          <div class='border border-accent'>
+          <div class='border border-accent mb-1'>
             <TextField value={searchTerm()} onChange={setSearchTerm}>
               <TextFieldInput
                 type='text'
@@ -197,7 +197,6 @@ export default function Rules() {
                 return (
                   <div
                     data-key={item.key}
-                    class='pr-1'
                     style={{
                       position: sticky ? "sticky" : "absolute",
                       top: 0,

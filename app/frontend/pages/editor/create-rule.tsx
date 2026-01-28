@@ -27,7 +27,7 @@ function CreateRule() {
 
   return (
     <Button
-      class='text-2xl border border-accent rounded-none mr-1'
+      class='text-2xl border border-accent rounded-none'
       onClick={() => handleCreate()}
       variant='secondary'
     >
