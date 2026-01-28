@@ -1,15 +1,5 @@
-import { setEntryActive } from "@app/lib/commands";
 import { dat } from "@app/lib/dat";
 import type { FilterItem } from "@app/lib/filter";
-import { store } from "@app/store";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuPortal,
-  ContextMenuShortcut,
-  ContextMenuTrigger,
-} from "@app/ui/context-menu";
 import type { Setter } from "solid-js";
 import { createSignal, onMount } from "solid-js";
 
@@ -36,13 +26,7 @@ function Image(props: { item: FilterItem }) {
 export function Visual(props: { item: FilterItem; class?: string }) {
   return (
     <div
-      class={`p-1 px-2 ${props.item.enabled ? "text-primary" : "text-primary/25"} cursor-pointer border items-center flex select-none ${props.class}`}
-      onMouseDown={(e) => {
-        e.stopPropagation();
-        if (e.button === 0 && e.shiftKey && store.filter) {
-          setEntryActive(store.filter, props.item, !props.item.enabled);
-        }
-      }}
+      class={`p-1 px-2 text-primary cursor-pointer border items-center flex select-none ${props.class}`}
     >
       <Image item={props.item} />
       <div class='pointer-events-none text-lg text-nowrap'>
@@ -62,27 +46,9 @@ export default function Item(props: {
   item: FilterItem;
   setHovered: Setter<boolean>;
 }) {
-  function handleActive() {
-    if (store.filter) {
-      setEntryActive(store.filter, props.item, !props.item.enabled);
-    }
-  }
-
   return (
     <li>
-      <ContextMenu>
-        <ContextMenuTrigger>
-          <Visual class='hover:border-accent' item={props.item} />
-        </ContextMenuTrigger>
-        <ContextMenuPortal>
-          <ContextMenuContent class='w-48'>
-            <ContextMenuItem onMouseDown={handleActive}>
-              <span>{props.item.enabled ? "Disable" : "Enable"}</span>
-              <ContextMenuShortcut>⇧+LClick</ContextMenuShortcut>
-            </ContextMenuItem>
-          </ContextMenuContent>
-        </ContextMenuPortal>
-      </ContextMenu>
+      <Visual class='hover:border-accent' item={props.item} />
     </li>
   );
 }
