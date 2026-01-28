@@ -17,6 +17,19 @@
     "process:default",
     "opener:default",
     {
+      "identifier": "http:default",
+      "allow": [
+        "http://patch.poecdn.com/*",
+        "https://patch.poecdn.com/*",
+        "http://patch-poe2.poecdn.com/*",
+        "https://patch-poe2.poecdn.com/*",
+        "https://www.poewiki.net/w/api.php?*",
+        "https://www.poe2wiki.net/w/api.php?*",
+        "https://poe-versions.obsoleet.org/*",
+        "https://github.com/poe-tool-dev/dat-schema/releases/download/*"
+      ]
+    },
+    {
       "identifier": "opener:allow-open-path",
       "allow": [
         {
