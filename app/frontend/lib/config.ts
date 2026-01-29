@@ -1,9 +1,10 @@
 import { alphabeticalSort, stringifyJSON, to } from "@app/lib/utils";
-import { setInitialised, setLocale, store } from "@app/store";
+import { setInitialised, setLocale, setSettingsOpen, store } from "@app/store";
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { documentDir, homeDir, sep } from "@tauri-apps/api/path";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import {
   exists,
   readDir,
@@ -13,7 +14,6 @@ import {
 import { openPath } from "@tauri-apps/plugin-opener";
 import { eol, locale, platform } from "@tauri-apps/plugin-os";
 import { toast } from "solid-sonner";
-import { DatManager, dat } from "./dat";
 import { Filter } from "./filter";
 import { IDBManager } from "./idb";
 import { DEFAULT_FILTER_SOUNDS, type Sound } from "./sounds";
@@ -35,6 +35,8 @@ type SemVer = {
 
 export interface ChromaticConfiguration {
   version: string;
+  poe1Directory?: string | null;
+  poe2Directory?: string | null;
 }
 
 export async function autosave() {
@@ -241,10 +243,55 @@ class Chromatic {
     return null;
   }
 
-  async updatePoeDirectory(path: string) {
-    const updated = { ...this.config, poeDirectory: path };
+  async getPoeDirectory(version: 1 | 2): Promise<string | null> {
+    const os = platform();
+
+    // Windows: always auto-detect (static location)
+    if (os === "windows") {
+      const docPath = await documentDir();
+      return this.windowsPoeDirectory(docPath, version);
+    }
+
+    // Linux: use user-configured directory, fallback to auto-detect
+    if (os === "linux") {
+      const userConfigured =
+        version === 1 ? this.config.poe1Directory : this.config.poe2Directory;
+
+      if (userConfigured) {
+        return userConfigured;
+      }
+
+      // Fallback to auto-detection
+      return this.getAssumedPoeDirectory(version);
+    }
+
+    return null;
+  }
+
+  async pickPoeDirectory(version: 1 | 2): Promise<string | null> {
+    const selected = await openDialog({
+      directory: true,
+      multiple: false,
+      title: `Select Path of Exile${version === 2 ? " 2" : ""} Directory`,
+    });
+    return selected;
+  }
+
+  async setPoeDirectory(version: 1 | 2, path: string | null) {
+    const key = version === 1 ? "poe1Directory" : "poe2Directory";
+    const updated = { ...this.config, [key]: path };
     await this.writeConfig(updated);
-    return { poeDirectory: path, config: this.config };
+  }
+
+  showDirectoryRequiredToast(version: 1 | 2) {
+    toast.error(`PoE${version} directory not configured`, {
+      description: "Set your Path of Exile directory in settings.",
+      action: {
+        label: "Open Settings",
+        onClick: () => setSettingsOpen(true),
+      },
+      duration: 6000,
+    });
   }
 
   async getAllFilters() {
@@ -262,8 +309,13 @@ class Chromatic {
   async writeFilter(filter: Filter) {
     if (this.runtime === "desktop") {
       const version = filter.poePatch.startsWith("3") ? 1 : 2;
-      const dir = await this.getAssumedPoeDirectory(version);
-      if (!dir) return;
+      const dir = await this.getPoeDirectory(version);
+      if (!dir) {
+        if (platform() === "linux") {
+          this.showDirectoryRequiredToast(version);
+        }
+        return;
+      }
       const path = `${dir}${this.sep()}${filter.name}.filter`;
       await writeTextFile(path, filter.serialize());
       setTimeout(async () => {
@@ -366,8 +418,13 @@ class Chromatic {
     }
 
     if (this.runtime === "desktop") {
-      const dir = await this.getAssumedPoeDirectory(version);
-      if (!dir) return [];
+      const dir = await this.getPoeDirectory(version);
+      if (!dir) {
+        if (platform() === "linux") {
+          this.showDirectoryRequiredToast(version);
+        }
+        return [];
+      }
       const soundDir = `${dir}${this.sep()}sounds`;
       const files = await this.getAllFiles(soundDir, "binary");
       return files
@@ -412,17 +469,20 @@ class Chromatic {
   ): Promise<{ name: string; data: string }[]> {
     if (this.runtime === "web") return [];
 
-    const dir = await this.getAssumedPoeDirectory(version);
-    if (dir) {
-      const files = await this.getAllFiles(dir, "text");
-      return files.filter(
-        (file) =>
-          file.name.endsWith(".filter") &&
-          !store.filters.some((filter) => filter.name === file.name),
-      );
+    const dir = await this.getPoeDirectory(version);
+    if (!dir) {
+      if (platform() === "linux") {
+        this.showDirectoryRequiredToast(version);
+      }
+      return [];
     }
 
-    return [];
+    const files = await this.getAllFiles(dir, "text");
+    return files.filter(
+      (file) =>
+        file.name.endsWith(".filter") &&
+        !store.filters.some((filter) => filter.name === file.name),
+    );
   }
 
   async getAllFiles<T extends "text" | "binary">(

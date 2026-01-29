@@ -21,6 +21,7 @@ interface Store {
     height: number;
     width: number;
   };
+  settingsOpen: boolean;
 }
 
 export const store = createMutable<Store>({
@@ -39,6 +40,7 @@ export const store = createMutable<Store>({
     height: 0,
     width: 0,
   },
+  settingsOpen: false,
 });
 
 export function removeFilter(filter: Filter) {
@@ -85,6 +87,10 @@ export function setIconSpritesheet(data: {
   width: number;
 }) {
   store.iconSpritesheet = data;
+}
+
+export function setSettingsOpen(open: boolean) {
+  store.settingsOpen = open;
 }
 
 export async function refreshSounds() {

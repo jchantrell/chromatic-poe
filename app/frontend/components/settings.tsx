@@ -2,7 +2,7 @@ import { SettingsIcon } from "@app/icons";
 import chromatic from "@app/lib/config";
 import { checkForUpdate, relaunchApp } from "@app/lib/update";
 import { to } from "@app/lib/utils";
-import { store } from "@app/store";
+import { setSettingsOpen, store } from "@app/store";
 import { Button } from "@app/ui/button";
 import { Checkbox } from "@app/ui/checkbox";
 import {
@@ -14,16 +14,60 @@ import {
 } from "@app/ui/dialog";
 import { Label } from "@app/ui/label";
 import { Separator } from "@app/ui/separator";
-
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { createSignal, onMount } from "solid-js";
+import { platform } from "@tauri-apps/plugin-os";
+import { createSignal, onMount, Show } from "solid-js";
 import { toast } from "solid-sonner";
 import Theme from "./theme";
 
 const GITHUB_ISSUE_URL = "https://github.com/jchantrell/chromatic-poe/issues";
 
+function truncatePath(path: string | null | undefined, maxLength = 30): string {
+  if (!path) return "Not set";
+  if (path.length <= maxLength) return path;
+  return `...${path.slice(-maxLength)}`;
+}
+
+function DirectoryPicker(props: {
+  label: string;
+  value: string | null | undefined;
+  onPick: () => void;
+  onClear: () => void;
+}) {
+  return (
+    <div class='flex items-center justify-between py-1'>
+      <Label class='text-sm text-foreground'>{props.label}</Label>
+      <div class='flex items-center gap-2'>
+        <span
+          class='text-xs text-muted-foreground truncate max-w-[150px]'
+          title={props.value ?? "Not set"}
+        >
+          {truncatePath(props.value)}
+        </span>
+        <Button variant='outline' size='sm' onClick={props.onPick}>
+          {props.value ? "Change" : "Set"}
+        </Button>
+        <Show when={props.value}>
+          <Button variant='ghost' size='sm' onClick={props.onClear}>
+            Clear
+          </Button>
+        </Show>
+      </div>
+    </div>
+  );
+}
+
 export function Settings() {
   const [version, setVersion] = createSignal("0.0.0");
+  const [poe1Dir, setPoe1Dir] = createSignal<string | null | undefined>(
+    chromatic.config?.poe1Directory,
+  );
+  const [poe2Dir, setPoe2Dir] = createSignal<string | null | undefined>(
+    chromatic.config?.poe2Directory,
+  );
+
+  const isLinux = () =>
+    chromatic.runtime === "desktop" && platform() === "linux";
 
   async function handleUpdate() {
     const [err] = await to(checkForUpdate());
@@ -40,12 +84,37 @@ export function Settings() {
     }
   }
 
+  async function handlePickDirectory(poeVersion: 1 | 2) {
+    const path = await chromatic.pickPoeDirectory(poeVersion);
+    if (path) {
+      await chromatic.setPoeDirectory(poeVersion, path);
+      if (poeVersion === 1) {
+        setPoe1Dir(path);
+      } else {
+        setPoe2Dir(path);
+      }
+      toast.success(`PoE${poeVersion} directory set`);
+    }
+  }
+
+  async function handleClearDirectory(poeVersion: 1 | 2) {
+    await chromatic.setPoeDirectory(poeVersion, null);
+    if (poeVersion === 1) {
+      setPoe1Dir(null);
+    } else {
+      setPoe2Dir(null);
+    }
+    toast(`PoE${poeVersion} directory cleared`);
+  }
+
   onMount(async () => {
     setVersion(await chromatic.getVersion());
+    setPoe1Dir(chromatic.config?.poe1Directory);
+    setPoe2Dir(chromatic.config?.poe2Directory);
   });
 
   return (
-    <Dialog>
+    <Dialog open={store.settingsOpen} onOpenChange={setSettingsOpen}>
       <DialogTrigger variant='ghost' as={Button<"button">}>
         <SettingsIcon />
       </DialogTrigger>
@@ -75,6 +144,29 @@ export function Settings() {
         </section>
 
         <Separator class='bg-border/50' />
+
+        {/* Directories Section - Linux Only */}
+        <Show when={isLinux()}>
+          <section class='space-y-3'>
+            <h3 class='text-sm font-medium text-muted-foreground'>
+              Directories
+            </h3>
+            <DirectoryPicker
+              label='Path of Exile 1'
+              value={poe1Dir()}
+              onPick={() => handlePickDirectory(1)}
+              onClear={() => handleClearDirectory(1)}
+            />
+            <DirectoryPicker
+              label='Path of Exile 2'
+              value={poe2Dir()}
+              onPick={() => handlePickDirectory(2)}
+              onClear={() => handleClearDirectory(2)}
+            />
+          </section>
+
+          <Separator class='bg-border/50' />
+        </Show>
 
         {/* Versions Section */}
         <section class='space-y-3'>

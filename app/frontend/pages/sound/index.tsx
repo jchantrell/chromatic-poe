@@ -16,7 +16,6 @@ import {
 } from "@app/ui/slider";
 import { platform } from "@tauri-apps/plugin-os";
 import { createSignal, For, onMount } from "solid-js";
-import { toast } from "solid-sonner";
 
 function SoundFile(props: {
   sound: Sound;
@@ -112,9 +111,9 @@ export default function SoundManager() {
   }
 
   async function openSoundDir() {
-    const dir = await chromatic.getAssumedPoeDirectory(2);
+    const dir = await chromatic.getPoeDirectory(2);
     if (!dir) {
-      toast.error("Could not locate PoE directory");
+      // Toast is already shown by getPoeDirectory on Linux
       return;
     }
     await chromatic.openFileExplorer(dir);
