@@ -255,7 +255,7 @@ class Chromatic {
     // Linux: use user-configured directory, fallback to auto-detect
     if (os === "linux") {
       const userConfigured =
-        version === 1 ? this.config.poe1Directory : this.config.poe2Directory;
+        version === 1 ? this.config?.poe1Directory : this.config?.poe2Directory;
 
       if (userConfigured) {
         return userConfigured;
