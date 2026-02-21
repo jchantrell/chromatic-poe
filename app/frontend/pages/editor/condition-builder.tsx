@@ -1,5 +1,5 @@
 import Tooltip from "@app/components/tooltip";
-import { PlusIcon } from "@app/icons";
+import { CloseIcon, PlusIcon } from "@app/icons";
 import { excuteCmd } from "@app/lib/commands";
 import {
   ConditionGroup,
@@ -308,7 +308,15 @@ export default function ConditionManager(props: { rule: FilterRule }) {
             const conditionType = conditionTypes[condition.key];
             if (!condition) return null;
             return (
-              <div class='bg-primary-foreground border border-accent rounded-xl flex flex-wrap items-center px-2 w-full @container'>
+              <div class='group relative bg-primary-foreground border border-accent rounded-xl flex flex-wrap items-center px-2 w-full @container'>
+                <button
+                  type='button'
+                  class='absolute top-1 right-1 size-5 p-0.5 rounded-md text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10 transition-opacity cursor-pointer'
+                  onClick={() => removeCondition(condition)}
+                  aria-label={`Remove ${conditionType.label}`}
+                >
+                  <CloseIcon />
+                </button>
                 <div class='max-w-full w-full px-2 pt-1'>
                   <Label class='text-md font-bold'>{conditionType.label}</Label>
                 </div>
