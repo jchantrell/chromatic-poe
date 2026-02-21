@@ -1,5 +1,12 @@
 import { alphabeticalSort, stringifyJSON, to } from "@app/lib/utils";
-import { setInitialised, setLocale, setSettingsOpen, store } from "@app/store";
+import {
+  type DependencyStatus,
+  setDependencies,
+  setInitialised,
+  setLocale,
+  setSettingsOpen,
+  store,
+} from "@app/store";
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { documentDir, homeDir, sep } from "@tauri-apps/api/path";
@@ -69,6 +76,13 @@ class Chromatic {
     if (this.tauriWindow) this.tauriWindow.minimize();
   }
 
+  /** Returns true if xdotool and xclip are both available for in-game reload. */
+  hasReloadDependencies(): boolean {
+    const deps = store.dependencies;
+    if (!deps) return false;
+    return deps.xdotool && deps.xclip;
+  }
+
   async init() {
     if (this.config) {
       return;
@@ -91,6 +105,11 @@ class Chromatic {
     setInitialised(true);
     if (this.runtime === "desktop") {
       setLocale(await locale());
+
+      if (platform() === "linux") {
+        const deps = await invoke<DependencyStatus>("check_dependencies");
+        setDependencies(deps);
+      }
     }
   }
 
@@ -181,9 +200,9 @@ class Chromatic {
     currSemVer: SemVer,
     prevSemVer: SemVer,
   ) {
-    // not implemented
     console.log("Upgrade config", { config, currSemVer, prevSemVer });
-    return this.defaultConfig();
+    const defaultConfig = await this.defaultConfig();
+    return { ...defaultConfig, ...config, version: defaultConfig.version };
   }
 
   semVer(version: string): SemVer {
@@ -292,6 +311,7 @@ class Chromatic {
   }
 
   showDirectoryRequiredToast(version: 1 | 2) {
+    if (!store.initialised) return;
     toast.error(`PoE${version} directory not configured`, {
       description: "Set your Path of Exile directory in settings.",
       action: {
@@ -326,9 +346,13 @@ class Chromatic {
       }
       const path = `${dir}${this.sep()}${filter.name}.filter`;
       await writeTextFile(path, filter.serialize());
-      setTimeout(async () => {
-        await invoke("reload");
-      }, 250);
+
+      const canReload = platform() !== "linux" || this.hasReloadDependencies();
+      if (canReload) {
+        setTimeout(async () => {
+          await invoke("reload", { poeVersion: version });
+        }, 250);
+      }
       toast("Wrote filter to PoE directory.");
     }
 
@@ -428,9 +452,6 @@ class Chromatic {
     if (this.runtime === "desktop") {
       const dir = await this.getPoeDirectory(version);
       if (!dir) {
-        if (platform() === "linux") {
-          this.showDirectoryRequiredToast(version);
-        }
         return [];
       }
       const soundDir = `${dir}${this.sep()}sounds`;
