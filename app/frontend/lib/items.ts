@@ -58,7 +58,9 @@ class ItemIndex {
 
     this.hierarchy = this.generateHierarchy(items);
     this.itemTable = itemTable;
-    this.classes = Array.from(classes);
+    // Mutate existing array to preserve references (used by conditionTypes)
+    this.classes.length = 0;
+    this.classes.push(...Array.from(classes).sort());
     this.searchIndex = new Fuse(items, options);
   }
 
@@ -98,7 +100,9 @@ class ItemIndex {
 
     this.hierarchy = this.generateHierarchy(items);
     this.itemTable = itemTable;
-    this.classes = Array.from(classes);
+    // Mutate existing array to preserve references (used by conditionTypes)
+    this.classes.length = 0;
+    this.classes.push(...Array.from(classes).sort());
     this.searchIndex = new Fuse(items, options);
   }
 
