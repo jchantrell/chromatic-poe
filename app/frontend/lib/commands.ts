@@ -1,4 +1,5 @@
 import type { Color, IconSize, Shape } from "@app/lib/action";
+import { convertRawToConditions } from "@app/lib/condition";
 import type { Filter, FilterItem, FilterRule } from "@app/lib/filter";
 import { clone } from "@app/lib/utils";
 import { ulid } from "ulid";
@@ -245,6 +246,9 @@ export function duplicateRule(filter: Filter, rule: FilterRule) {
       if (index !== -1) {
         const duplicatedRule = clone(rule);
         duplicatedRule.id = ulid();
+        duplicatedRule.conditions = convertRawToConditions(
+          duplicatedRule.conditions,
+        );
         filter.rules.splice(index + 1, 0, duplicatedRule);
       }
     }),
