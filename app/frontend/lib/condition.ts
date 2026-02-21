@@ -1265,6 +1265,7 @@ class EnchantmentPassiveNodeCondition implements ListCondition<string> {
   }
 
   serialize(): string {
+    if (!this.value.length) return "";
     return `EnchantmentPassiveNode ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
   }
 }
@@ -1279,6 +1280,7 @@ class InfluenceCondition implements ListCondition<Influence> {
   }
 
   serialize(): string {
+    if (!this.value.length) return "";
     return `HasInfluence ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
   }
 }
@@ -1318,6 +1320,7 @@ class EnchantmentCondition implements ListCondition<string> {
   }
 
   serialize(): string {
+    if (!this.value.length) return "";
     return `HasEnchantment ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
   }
 }
@@ -1332,6 +1335,7 @@ class ArchnemesisModCondition implements ListCondition<string> {
   }
 
   serialize(): string {
+    if (!this.value.length) return "";
     return `ArchnemesisMod ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
   }
 }
