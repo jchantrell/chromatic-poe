@@ -1,8 +1,9 @@
 import { SettingsIcon } from "@app/icons";
 import chromatic from "@app/lib/config";
+import { DEFAULT_FONT, FONT_OPTIONS, type FontOption } from "@app/lib/fonts";
 import { checkForUpdate, relaunchApp } from "@app/lib/update";
 import { to } from "@app/lib/utils";
-import { setSettingsOpen, store } from "@app/store";
+import { setFont, setSettingsOpen, store } from "@app/store";
 import { Button } from "@app/ui/button";
 import { Checkbox } from "@app/ui/checkbox";
 import {
@@ -13,6 +14,13 @@ import {
   DialogTrigger,
 } from "@app/ui/dialog";
 import { Label } from "@app/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@app/ui/select";
 import { Separator } from "@app/ui/separator";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { platform } from "@tauri-apps/plugin-os";
@@ -41,6 +49,46 @@ function DirectoryPicker(props: {
         Change
       </Button>
     </>
+  );
+}
+
+/** Font family selector for the application UI. */
+function FontSelector() {
+  const fontLabels = Object.fromEntries(
+    FONT_OPTIONS.map((f) => [f.value, f.label]),
+  );
+
+  async function handleChange(value: FontOption | null) {
+    const font = value ?? DEFAULT_FONT;
+    setFont(font);
+    await chromatic.setFont(font);
+  }
+
+  return (
+    <Select
+      value={store.font}
+      onChange={handleChange}
+      options={FONT_OPTIONS.map((f) => f.value)}
+      defaultValue={DEFAULT_FONT}
+      itemComponent={(props) => (
+        <SelectItem item={props.item}>
+          <span class={`font-${props.item.rawValue}`}>
+            {fontLabels[props.item.rawValue] ?? props.item.rawValue}
+          </span>
+        </SelectItem>
+      )}
+    >
+      <SelectTrigger aria-label='font' class='w-[180px]'>
+        <SelectValue<string>>
+          {(state) =>
+            state.selectedOption()
+              ? (fontLabels[state.selectedOption()] ?? state.selectedOption())
+              : ""
+          }
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent />
+    </Select>
   );
 }
 
@@ -123,6 +171,8 @@ export function Settings() {
           <div class='grid grid-cols-[6rem_1fr] items-center gap-x-4 gap-y-2'>
             <Label class='text-sm text-foreground'>Theme</Label>
             <Theme />
+            <Label class='text-sm text-foreground'>Font</Label>
+            <FontSelector />
           </div>
         </section>
 

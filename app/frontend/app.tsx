@@ -19,6 +19,7 @@ import LoadScreen from "@app/pages/load-screen";
 import SoundManager from "@app/pages/sound";
 import {
   refreshSounds,
+  setFont,
   setInitialised,
   setPoeCurrentVersions,
   store,
@@ -265,6 +266,9 @@ function App() {
     setPoeCurrentVersions(currentVersions);
     await dat.ensureDbInitialized();
     await chromatic.init();
+    if (chromatic.config?.font) {
+      setFont(chromatic.config.font);
+    }
     await chromatic.getAllFilters();
     setInitialised(true);
     await refreshSounds();
@@ -282,7 +286,9 @@ function App() {
         storageManager={storageManager}
         initialColorMode='dark'
       >
-        <div class='grid h-screen size-full grid-cols-[80px_1fr] fixed inset-0 font-fontin'>
+        <div
+          class={`grid h-screen size-full grid-cols-[80px_1fr] fixed inset-0 font-${store.font}`}
+        >
           <SideBar />
           <div class='size-full flex flex-col'>
             <TopBar />

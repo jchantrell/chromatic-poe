@@ -1,4 +1,5 @@
 import { chromatic } from "@app/lib/config";
+import { DEFAULT_FONT, type FontOption } from "@app/lib/fonts";
 import type { Filter, FilterRule } from "@app/lib/filter";
 import type { Sound } from "@app/lib/sounds";
 import { to } from "@app/lib/utils";
@@ -9,6 +10,7 @@ interface Store {
   activeRule: FilterRule | null;
   filter: Filter | null;
   filters: Filter[];
+  font: FontOption;
   initialised: boolean;
   locale: null | string;
   sounds: Sound[];
@@ -28,6 +30,7 @@ export const store = createMutable<Store>({
   activeRule: null,
   filter: null,
   filters: [],
+  font: DEFAULT_FONT,
   initialised: false,
   locale: null,
   sounds: [],
@@ -87,6 +90,10 @@ export function setIconSpritesheet(data: {
   width: number;
 }) {
   store.iconSpritesheet = data;
+}
+
+export function setFont(font: FontOption) {
+  store.font = font;
 }
 
 export function setSettingsOpen(open: boolean) {

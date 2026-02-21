@@ -33,10 +33,13 @@ type SemVer = {
   patch: number;
 };
 
+import type { FontOption } from "@app/lib/fonts";
+
 export interface ChromaticConfiguration {
   version: string;
   poe1Directory?: string | null;
   poe2Directory?: string | null;
+  font?: FontOption;
 }
 
 export async function autosave() {
@@ -280,6 +283,11 @@ class Chromatic {
   async setPoeDirectory(version: 1 | 2, path: string | null) {
     const key = version === 1 ? "poe1Directory" : "poe2Directory";
     const updated = { ...this.config, [key]: path };
+    await this.writeConfig(updated);
+  }
+
+  async setFont(font: FontOption) {
+    const updated = { ...this.config, font };
     await this.writeConfig(updated);
   }
 

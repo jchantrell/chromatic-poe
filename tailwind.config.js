@@ -4,6 +4,7 @@ import plugin from "tailwindcss/plugin";
 module.exports = {
   darkMode: ["class", '[data-kb-theme="dark"]'],
   content: ["./app/frontend/**/*.{ts,tsx}", "./packages/**/*.{ts,tsx}"],
+  safelist: ["font-fontin", "font-inter", "font-system", "font-mono"],
   theme: {
     container: {
       center: true,
@@ -15,6 +16,21 @@ module.exports = {
     extend: {
       fontFamily: {
         fontin: ["Fontin", "sans-serif"],
+        inter: ["Inter", "system-ui", "sans-serif"],
+        system: [
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "sans-serif",
+        ],
+        mono: [
+          "JetBrains Mono",
+          "Fira Code",
+          "ui-monospace",
+          "SFMono-Regular",
+          "monospace",
+        ],
       },
       colors: {
         border: "rgb(from var(--border) r g b / <alpha-value>)",
