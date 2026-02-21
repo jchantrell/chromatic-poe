@@ -16,44 +16,31 @@ import { Label } from "@app/ui/label";
 import { Separator } from "@app/ui/separator";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { platform } from "@tauri-apps/plugin-os";
-import { createSignal, onMount, Show } from "solid-js";
+import { createEffect, createSignal, on, Show } from "solid-js";
 import { toast } from "solid-sonner";
 import Theme from "./theme";
 
 const GITHUB_ISSUE_URL = "https://github.com/jchantrell/chromatic-poe/issues";
 
-function truncatePath(path: string | null | undefined, maxLength = 30): string {
-  if (!path) return "Not set";
-  if (path.length <= maxLength) return path;
-  return `...${path.slice(-maxLength)}`;
-}
-
 function DirectoryPicker(props: {
   label: string;
   value: string | null | undefined;
   onPick: () => void;
-  onClear: () => void;
 }) {
   return (
-    <div class='flex items-center justify-between py-1'>
+    <>
       <Label class='text-sm text-foreground'>{props.label}</Label>
-      <div class='flex items-center gap-2'>
-        <span
-          class='text-xs text-muted-foreground truncate max-w-[150px]'
-          title={props.value ?? "Not set"}
-        >
-          {truncatePath(props.value)}
-        </span>
-        <Button variant='outline' size='sm' onClick={props.onPick}>
-          {props.value ? "Change" : "Set"}
-        </Button>
-        <Show when={props.value}>
-          <Button variant='ghost' size='sm' onClick={props.onClear}>
-            Clear
-          </Button>
-        </Show>
-      </div>
-    </div>
+      <span
+        class='text-xs text-muted-foreground truncate'
+        style={{ direction: "rtl", "text-align": "left" }}
+        title={props.value ?? "Not set"}
+      >
+        {props.value ?? "Not set"}
+      </span>
+      <Button variant='outline' size='sm' onClick={props.onPick}>
+        Change
+      </Button>
+    </>
   );
 }
 
@@ -97,28 +84,24 @@ export function Settings() {
     }
   }
 
-  async function handleClearDirectory(poeVersion: 1 | 2) {
-    await chromatic.setPoeDirectory(poeVersion, null);
-    if (poeVersion === 1) {
-      setPoe1Dir(null);
-    } else {
-      setPoe2Dir(null);
-    }
-    toast(`PoE${poeVersion} directory cleared`);
-  }
-
-  onMount(async () => {
-    setVersion(await chromatic.getVersion());
-    setPoe1Dir(chromatic.config?.poe1Directory);
-    setPoe2Dir(chromatic.config?.poe2Directory);
-  });
+  createEffect(
+    on(
+      () => store.initialised,
+      async (ready) => {
+        if (!ready) return;
+        setVersion(await chromatic.getVersion());
+        setPoe1Dir(chromatic.config?.poe1Directory);
+        setPoe2Dir(chromatic.config?.poe2Directory);
+      },
+    ),
+  );
 
   return (
     <Dialog open={store.settingsOpen} onOpenChange={setSettingsOpen}>
       <DialogTrigger variant='ghost' as={Button<"button">}>
         <SettingsIcon />
       </DialogTrigger>
-      <DialogContent class='sm:max-w-[425px]'>
+      <DialogContent class='sm:max-w-[550px]'>
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
@@ -126,7 +109,7 @@ export function Settings() {
         {/* General Section */}
         <section class='space-y-3'>
           <h3 class='text-sm font-medium text-muted-foreground'>General</h3>
-          <div class='flex items-center justify-between py-1'>
+          <div class='grid grid-cols-[6rem_1fr] items-center gap-x-4 gap-y-2'>
             <Label class='text-sm text-foreground'>Autosave</Label>
             <Checkbox disabled checked={false} />
           </div>
@@ -137,7 +120,7 @@ export function Settings() {
         {/* Display Section */}
         <section class='space-y-3'>
           <h3 class='text-sm font-medium text-muted-foreground'>Display</h3>
-          <div class='flex items-center justify-between py-1'>
+          <div class='grid grid-cols-[6rem_1fr] items-center gap-x-4 gap-y-2'>
             <Label class='text-sm text-foreground'>Theme</Label>
             <Theme />
           </div>
@@ -151,18 +134,18 @@ export function Settings() {
             <h3 class='text-sm font-medium text-muted-foreground'>
               Directories
             </h3>
-            <DirectoryPicker
-              label='Path of Exile 1'
-              value={poe1Dir()}
-              onPick={() => handlePickDirectory(1)}
-              onClear={() => handleClearDirectory(1)}
-            />
-            <DirectoryPicker
-              label='Path of Exile 2'
-              value={poe2Dir()}
-              onPick={() => handlePickDirectory(2)}
-              onClear={() => handleClearDirectory(2)}
-            />
+            <div class='grid grid-cols-[6rem_1fr_auto] items-center gap-x-4 gap-y-2'>
+              <DirectoryPicker
+                label='Path of Exile 1'
+                value={poe1Dir()}
+                onPick={() => handlePickDirectory(1)}
+              />
+              <DirectoryPicker
+                label='Path of Exile 2'
+                value={poe2Dir()}
+                onPick={() => handlePickDirectory(2)}
+              />
+            </div>
           </section>
 
           <Separator class='bg-border/50' />
@@ -171,25 +154,19 @@ export function Settings() {
         {/* Versions Section */}
         <section class='space-y-3'>
           <h3 class='text-sm font-medium text-muted-foreground'>Versions</h3>
-          <div class='space-y-1'>
-            <div class='flex items-center justify-between text-sm'>
-              <span class='text-foreground'>Chromatic</span>
-              <span class='text-muted-foreground font-mono text-xs'>
-                {version()}
-              </span>
-            </div>
-            <div class='flex items-center justify-between text-sm'>
-              <span class='text-foreground'>Path of Exile 1</span>
-              <span class='text-muted-foreground font-mono text-xs'>
-                {store.poeCurrentVersions?.poe1}
-              </span>
-            </div>
-            <div class='flex items-center justify-between text-sm'>
-              <span class='text-foreground'>Path of Exile 2</span>
-              <span class='text-muted-foreground font-mono text-xs'>
-                {store.poeCurrentVersions?.poe2}
-              </span>
-            </div>
+          <div class='grid grid-cols-[6rem_1fr] items-center gap-x-4 gap-y-1 text-sm'>
+            <span class='text-foreground'>Chromatic</span>
+            <span class='text-muted-foreground font-mono text-xs'>
+              {version()}
+            </span>
+            <span class='text-foreground'>Path of Exile 1</span>
+            <span class='text-muted-foreground font-mono text-xs'>
+              {store.poeCurrentVersions?.poe1}
+            </span>
+            <span class='text-foreground'>Path of Exile 2</span>
+            <span class='text-muted-foreground font-mono text-xs'>
+              {store.poeCurrentVersions?.poe2}
+            </span>
           </div>
         </section>
 
