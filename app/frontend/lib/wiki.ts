@@ -37,6 +37,9 @@ export class WikiManager {
         Accept: "application/json",
       },
     });
+    if (!req.ok) {
+      throw new Error(`Failed to query wiki: ${req.status} ${req.statusText}`);
+    }
     const res = await req.json();
     if (res.cargoquery.length) {
       if (onProgress) onProgress(results.length + res.cargoquery.length);

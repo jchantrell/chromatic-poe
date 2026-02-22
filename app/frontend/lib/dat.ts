@@ -241,6 +241,11 @@ export class DatManager {
   async importSchema() {
     console.log("Fetching schema...");
     const response = await proxyFetch(SCHEMA_URL);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch schema: ${response.status} ${response.statusText}`,
+      );
+    }
     this.schema = await response.json();
   }
 
@@ -478,6 +483,11 @@ export class DatManager {
     poe2: string;
   }> {
     const response = await fetch("https://poe-versions.obsoleet.org/");
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch PoE versions: ${response.status} ${response.statusText}`,
+      );
+    }
     const data = await response.json();
     return {
       poe1: data.poe,
