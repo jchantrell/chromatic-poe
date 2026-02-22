@@ -1,12 +1,5 @@
 import { alphabeticalSort, stringifyJSON, to } from "@app/lib/utils";
-import {
-  type DependencyStatus,
-  setDependencies,
-  setInitialised,
-  setLocale,
-  setSettingsOpen,
-  store,
-} from "@app/store";
+import { setInitialised, setLocale, setSettingsOpen, store } from "@app/store";
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { documentDir, homeDir, sep } from "@tauri-apps/api/path";
@@ -76,13 +69,6 @@ class Chromatic {
     if (this.tauriWindow) this.tauriWindow.minimize();
   }
 
-  /** Returns true if xdotool and xclip are both available for in-game reload. */
-  hasReloadDependencies(): boolean {
-    const deps = store.dependencies;
-    if (!deps) return false;
-    return deps.xdotool && deps.xclip;
-  }
-
   async init() {
     if (this.config) {
       return;
@@ -105,11 +91,6 @@ class Chromatic {
     setInitialised(true);
     if (this.runtime === "desktop") {
       setLocale(await locale());
-
-      if (platform() === "linux") {
-        const deps = await invoke<DependencyStatus>("check_dependencies");
-        setDependencies(deps);
-      }
     }
   }
 
@@ -347,7 +328,7 @@ class Chromatic {
       const path = `${dir}${this.sep()}${filter.name}.filter`;
       await writeTextFile(path, filter.serialize());
 
-      const canReload = platform() !== "linux" || this.hasReloadDependencies();
+      const canReload = platform() !== "linux";
       if (canReload) {
         setTimeout(async () => {
           await invoke("reload", { poeVersion: version });
