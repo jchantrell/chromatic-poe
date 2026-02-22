@@ -117,7 +117,7 @@ export default function Rules() {
     getItemKey: (idx: number) => filteredItems()[idx].key,
     estimateSize: (idx: number) => {
       const entry = filteredItems()[idx];
-      return "actions" in entry.item ? 50 : 40;
+      return "actions" in entry.item ? 54 : 40;
     },
     overscan: 10,
     rangeExtractor: (range) => {

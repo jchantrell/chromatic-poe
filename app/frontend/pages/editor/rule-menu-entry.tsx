@@ -18,7 +18,7 @@ import {
   ContextMenuTrigger,
 } from "@app/ui/context-menu";
 import { Dialog, DialogContent, DialogTrigger } from "@app/ui/dialog";
-import { createEffect, createSignal, onMount } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import { DropPreview } from "./drop-preview";
 import { ItemPicker } from "./item-picker";
 
@@ -54,7 +54,10 @@ export default function Rule(props: {
     if (!props.rule.enabled) {
       return "";
     }
-    if (hovered() || selected()) {
+    if (selected()) {
+      return "border-1 border-ring/30";
+    }
+    if (hovered()) {
       return "border-1 border-accent";
     }
 
@@ -65,10 +68,21 @@ export default function Rule(props: {
     if (!props.rule.enabled) {
       return "text-muted-foreground/20";
     }
-    if (hovered() || selected()) {
+    if (selected()) {
+      return "text-foreground";
+    }
+    if (hovered()) {
       return "text-foreground";
     }
     return "text-foreground/80";
+  }
+
+  function getSelectedStyles() {
+    if (!props.rule.enabled) return "";
+    if (selected()) {
+      return "bg-accent/40";
+    }
+    return "";
   }
 
   function handleNameChange(e: Event) {
@@ -111,7 +125,7 @@ export default function Rule(props: {
       <ContextMenu>
         <ContextMenuTrigger>
           <div
-            class={`grid grid-cols-[minmax(200px,_1fr)_auto] items-center justify-between text-accent-foreground select-none bg-secondary ${getTextColor()} ${getBorderColor()} @container`}
+            class={`grid grid-cols-[minmax(200px,_1fr)_auto] items-center justify-between text-accent-foreground select-none bg-secondary transition-[background-color,box-shadow] duration-150 ${getTextColor()} ${getBorderColor()} ${getSelectedStyles()} @container`}
             onMouseOut={() => setHovered(false)}
             onMouseOver={() => setHovered(true)}
             onFocus={() => null}
