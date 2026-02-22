@@ -150,6 +150,7 @@ export enum ConditionInputType {
   TEXT = "text",
   TEXT_LIST = "text-list",
   CHECKBOX = "checkbox",
+  SOCKET = "socket",
 }
 
 type BaseConditionValue = {
@@ -180,7 +181,7 @@ export interface ConditionData {
   [ConditionKey.BASE_ENERGY_SHIELD]: number;
   [ConditionKey.BASE_WARD]: number;
   [ConditionKey.LINKED_SOCKETS]: number;
-  [ConditionKey.SOCKETS]: number;
+  [ConditionKey.SOCKETS]: string;
   [ConditionKey.SOCKET_GROUP]: string;
   [ConditionKey.CLASSES]: string[];
   [ConditionKey.ENCHANTMENT_PASSIVE_NUM]: number;
@@ -480,19 +481,21 @@ export const conditionTypes: AllConditionTypes = {
   },
   [ConditionKey.SOCKETS]: {
     label: "Sockets",
-    description: "The amount of sockets the item has",
+    description: "Filter by number and/or colours of sockets",
     group: ConditionGroup.SOCKETS,
-    type: ConditionInputType.SLIDER,
-    defaultValue: 0,
-    min: 0,
+    type: ConditionInputType.SOCKET,
+    defaultValue: "1",
+    min: 1,
     max: 6,
   },
   [ConditionKey.SOCKET_GROUP]: {
     label: "Socket Group",
-    description: "The group of sockets the item has (RGBA)",
+    description: "Filter by groups of linked sockets",
     group: ConditionGroup.SOCKETS,
-    type: ConditionInputType.TEXT,
-    defaultValue: "",
+    type: ConditionInputType.SOCKET,
+    defaultValue: "1",
+    min: 1,
+    max: 6,
     validFor: ValidFor.PoE1,
   },
   [ConditionKey.EXPLICIT_MOD]: {
@@ -1538,14 +1541,14 @@ class LinkedSocketsCondition implements ValueCondition<number> {
   }
 }
 
-class SocketsCondition implements ValueCondition<number> {
+class SocketsCondition implements ValueCondition<string> {
   readonly key = ConditionKey.SOCKETS;
   readonly type = ConditionType.VALUE;
   operator: Operator;
-  value: number;
-  constructor(opts?: { operator?: Operator; value?: number }) {
+  value: string;
+  constructor(opts?: { operator?: Operator; value?: string | number }) {
     this.operator = opts?.operator ?? Operator.EXACT;
-    this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    this.value = String(opts?.value ?? conditionTypes[this.key].defaultValue);
     createMutable(this);
   }
 

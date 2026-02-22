@@ -315,6 +315,21 @@ export async function importFilter(raw: string) {
       const { property, operator, value } = condition;
 
       if (property === "SocketGroup") {
+        conditions.push(
+          createCondition(ConditionKey.SOCKET_GROUP, {
+            operator: operator as Operator,
+            value: String(value),
+          }),
+        );
+        continue;
+      }
+      if (property === "Sockets") {
+        conditions.push(
+          createCondition(ConditionKey.SOCKETS, {
+            operator: operator as Operator,
+            value: String(value),
+          }),
+        );
         continue;
       }
       if (property === "Class") {

@@ -11,6 +11,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@app/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@app/ui/select";
 import { Separator } from "@app/ui/separator";
 import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
@@ -255,5 +262,144 @@ export function CheckboxInput(props: {
         <SwitchThumb class='bg-primary-foreground' />
       </SwitchControl>
     </Switch>
+  );
+}
+
+const SOCKET_COLORS = [
+  { value: "R", label: "Red" },
+  { value: "G", label: "Green" },
+  { value: "B", label: "Blue" },
+  { value: "A", label: "Abyss" },
+  { value: "D", label: "Delve" },
+  { value: "W", label: "White" },
+] as const;
+
+type SocketColor = (typeof SOCKET_COLORS)[number]["value"];
+
+/** Parse a socket value like "5GGG" into {count, colors} */
+function parseSocketValue(value: string): {
+  count: number;
+  colors: SocketColor[];
+} {
+  const match = value.match(/^(\d+)([RGBADW]*)$/i);
+  if (!match) return { count: 1, colors: [] };
+  return {
+    count: Math.max(1, Math.min(6, Number(match[1]))),
+    colors: (match[2]?.toUpperCase().split("") ?? []) as SocketColor[],
+  };
+}
+
+/** Serialize {count, colors} back to "5GGG" */
+function serializeSocketValue(count: number, colors: SocketColor[]): string {
+  return `${count}${colors.join("")}`;
+}
+
+export function SocketInput(props: {
+  value: string;
+  key: FilteredConditionKey;
+  onChange: (value: string) => void;
+}) {
+  const initial = parseSocketValue(props.value);
+  const [count, setCount] = createSignal(initial.count);
+  const [colors, setColors] = createSignal<SocketColor[]>(initial.colors);
+
+  function emitChange(c: number, cols: SocketColor[]) {
+    props.onChange(serializeSocketValue(c, cols));
+  }
+
+  function updateCount(raw: number) {
+    const clamped = Math.max(1, Math.min(6, raw));
+    const trimmed = colors().slice(0, clamped);
+    setCount(clamped);
+    setColors(trimmed);
+    emitChange(clamped, trimmed);
+  }
+
+  function updateColor(index: number, color: string) {
+    const current = [...colors()];
+    if (!color) {
+      current.splice(index);
+    } else {
+      current[index] = color as SocketColor;
+    }
+    setColors(current);
+    emitChange(count(), current);
+  }
+
+  return (
+    <div class='flex flex-col gap-1.5'>
+      <SliderInput key={props.key} value={count()} onChange={updateCount} />
+      <div class='flex gap-1.5 flex-wrap'>
+        <SocketColorSelect index={0} colors={colors()} onSelect={updateColor} />
+        {colors()[0] && (
+          <SocketColorSelect
+            index={1}
+            colors={colors()}
+            onSelect={updateColor}
+          />
+        )}
+        {colors()[1] && (
+          <SocketColorSelect
+            index={2}
+            colors={colors()}
+            onSelect={updateColor}
+          />
+        )}
+        {colors()[2] && (
+          <SocketColorSelect
+            index={3}
+            colors={colors()}
+            onSelect={updateColor}
+          />
+        )}
+        {colors()[3] && (
+          <SocketColorSelect
+            index={4}
+            colors={colors()}
+            onSelect={updateColor}
+          />
+        )}
+        {colors()[4] && (
+          <SocketColorSelect
+            index={5}
+            colors={colors()}
+            onSelect={updateColor}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SocketColorSelect(props: {
+  index: number;
+  colors: SocketColor[];
+  onSelect: (index: number, color: string) => void;
+}) {
+  return (
+    <Select<string>
+      value={props.colors[props.index] ?? ""}
+      onChange={(v) => props.onSelect(props.index, v ?? "")}
+      options={["", ...SOCKET_COLORS.map((c) => c.value)]}
+      itemComponent={(itemProps) => (
+        <SelectItem item={itemProps.item}>
+          {itemProps.item.rawValue === ""
+            ? "None"
+            : (SOCKET_COLORS.find((c) => c.value === itemProps.item.rawValue)
+                ?.label ?? itemProps.item.rawValue)}
+        </SelectItem>
+      )}
+    >
+      <SelectTrigger class='w-20 bg-accent h-7 text-xs'>
+        <SelectValue<string>>
+          {(state) => {
+            const val = state.selectedOption();
+            if (!val) return "None";
+            return SOCKET_COLORS.find((c) => c.value === val)?.label ?? val;
+          }}
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent />
+    </Select>
   );
 }

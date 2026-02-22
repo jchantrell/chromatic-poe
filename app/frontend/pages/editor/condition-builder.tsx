@@ -38,6 +38,7 @@ import {
   CheckboxInput,
   SelectInput,
   SliderInput,
+  SocketInput,
   ToggleInput,
 } from "./condition-inputs";
 import { ItemPicker } from "./item-picker";
@@ -384,6 +385,15 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                       <ToggleInput
                         key={condition.key as FilteredConditionKey}
                         value={condition.value as string[]}
+                        onChange={(v) => {
+                          updateCondition(condition, "value", v);
+                        }}
+                      />
+                    )}
+                    {conditionType.type === "socket" && (
+                      <SocketInput
+                        key={condition.key as FilteredConditionKey}
+                        value={condition.value as string}
                         onChange={(v) => {
                           updateCondition(condition, "value", v);
                         }}
