@@ -1,4 +1,34 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.9.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.8.2...chromatic-poe-v0.9.0) (2026-02-22)
+
+
+### Features
+
+* add font selector to display settings ([b70de3c](https://github.com/jchantrell/chromatic-poe/commit/b70de3c774e5e4d66830af6cc265a4e27ef5908c))
+* Add GH issue link to settings dialog ([c5ba98d](https://github.com/jchantrell/chromatic-poe/commit/c5ba98d2750ff4f0f18a7deacfd324da53eb4e67))
+* add hover-to-reveal delete button on condition cards ([05919b9](https://github.com/jchantrell/chromatic-poe/commit/05919b98f9c36e674257ada3b846798274b9be59))
+* add Sockets and SocketGroup condition support ([0f83e60](https://github.com/jchantrell/chromatic-poe/commit/0f83e60075912a1dd56d6585e8d40474456dc64b))
+* add subtle selected state indicator for rule rows ([f097119](https://github.com/jchantrell/chromatic-poe/commit/f097119785f261ab95ee0813a5102ddd4a0bc4b8))
+* dir picker for linux ([079d137](https://github.com/jchantrell/chromatic-poe/commit/079d137bfd5028e1414a47d48735a24b124714a9))
+* few improvements for rule list layout ([cf47b9f](https://github.com/jchantrell/chromatic-poe/commit/cf47b9faf2bfd142f98fb7cd723bf6a203f27fe5))
+* improved settings popover layout ([cf4b603](https://github.com/jchantrell/chromatic-poe/commit/cf4b6032268853ad83a383b65d059409fe5bf3bd))
+* prevent items from being disabled ([c820e0c](https://github.com/jchantrell/chromatic-poe/commit/c820e0cca48d01a9857ec7e70cd31bb07caf3cfe))
+
+
+### Bug Fixes
+
+* adding missing http perms to tauri ([9e3d81b](https://github.com/jchantrell/chromatic-poe/commit/9e3d81b75357ce643a41b267b29ad11928c03ad5))
+* class condition picker ([8b63968](https://github.com/jchantrell/chromatic-poe/commit/8b63968c0b0ea36d9f67cb2d9539a7d955b04e44))
+* HasExplictMod import and operator ([ffb0991](https://github.com/jchantrell/chromatic-poe/commit/ffb0991a9615707b42bad14dd2116975fe1756b3))
+* null check the poe dir ([f08dbe9](https://github.com/jchantrell/chromatic-poe/commit/f08dbe9b4a43ec7b50590533bda8510466dc6ca4))
+* rehydrate conditions after duplicating a rule ([44b7def](https://github.com/jchantrell/chromatic-poe/commit/44b7defb9ea1006b3088b31014ec1e0db2dc22bc))
+* Remove double quotes on imported sound paths ([e6ba27f](https://github.com/jchantrell/chromatic-poe/commit/e6ba27f386d40d4e755bfefe9e9350b606bc15e6))
+* Save filter before app restart ([4257a72](https://github.com/jchantrell/chromatic-poe/commit/4257a72a345f5cd17f5e1c82eb12b4d75edc3be7))
+* skip serialization of list conditions with no selections ([b3fad18](https://github.com/jchantrell/chromatic-poe/commit/b3fad1866193bae891c4b454b465c9c5a58bea8a))
+* suppress directory toast before config is initialized ([20f7694](https://github.com/jchantrell/chromatic-poe/commit/20f769425d1efc2c97aca0a1248d1748ec0e0eeb))
+* throw api error response ([f3b78e9](https://github.com/jchantrell/chromatic-poe/commit/f3b78e9abda93743a0ef3e63dcfe80bd9e51fd08))
+* use raw CSS variable for toast background to prevent transparency ([d6d3044](https://github.com/jchantrell/chromatic-poe/commit/d6d3044daa1913d05517252140e685de5f7d8992))
+
 ## [0.8.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.8.1...chromatic-poe-v0.8.2) (2026-01-06)
 
 
