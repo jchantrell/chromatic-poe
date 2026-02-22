@@ -301,7 +301,7 @@ function App() {
           theme='dark'
           toastOptions={{
             style: {
-              background: "hsl(var(--accent))",
+              background: "var(--accent)",
             },
           }}
         />
