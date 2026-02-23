@@ -8,7 +8,7 @@ import {
 } from "@app/lib/condition";
 import chromatic from "@app/lib/config";
 import { clone } from "@app/lib/utils";
-import { addFilter } from "@app/store";
+import { store } from "@app/store";
 import { applyPatch, compare, type Operation } from "fast-json-patch";
 import { createMutable, modifyMutable, reconcile } from "solid-js/store";
 import { toast } from "solid-sonner";
@@ -18,6 +18,7 @@ import { addParentRefs, type Command } from "./commands";
 import { importFilter } from "./import";
 
 const WRITE_TIMEOUT = 1000;
+const AUTOSAVE_DELAY = 2000;
 
 export enum Block {
   show = "Show",
@@ -89,6 +90,7 @@ export class Filter {
   redoStack: Operation[][] = [];
 
   private lastWriteTime = 0;
+  private autosaveTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(params: {
     name: string;
@@ -159,7 +161,29 @@ export class Filter {
     if (changes.length) {
       this.undoStack.push(changes);
       this.redoStack = [];
+      this.scheduleAutosave();
     }
+  }
+
+  /**
+   * Debounced auto-save: resets on each call, only fires after AUTOSAVE_DELAY ms
+   * of inactivity. Saves to IDB and writes to the game's filter directory silently.
+   */
+  private scheduleAutosave() {
+    if (!store.autosave) return;
+
+    if (this.autosaveTimer) {
+      clearTimeout(this.autosaveTimer);
+    }
+
+    this.autosaveTimer = setTimeout(async () => {
+      this.autosaveTimer = null;
+      this.setLastUpdated(new Date());
+      await chromatic.saveFilter(this, true);
+      if (chromatic.runtime === "desktop") {
+        await chromatic.writeFilter(this, true);
+      }
+    }, AUTOSAVE_DELAY);
   }
 
   diff(prevState: FilterRule[], nextState: FilterRule[]) {

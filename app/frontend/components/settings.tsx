@@ -3,7 +3,7 @@ import chromatic from "@app/lib/config";
 import { DEFAULT_FONT, FONT_OPTIONS, type FontOption } from "@app/lib/fonts";
 import { checkForUpdate, relaunchApp } from "@app/lib/update";
 import { to } from "@app/lib/utils";
-import { setFont, setSettingsOpen, store } from "@app/store";
+import { setAutosave, setFont, setSettingsOpen, store } from "@app/store";
 import { Button } from "@app/ui/button";
 import { Checkbox } from "@app/ui/checkbox";
 import {
@@ -164,7 +164,13 @@ export function Settings() {
           <h3 class='text-sm font-medium text-muted-foreground'>General</h3>
           <div class='grid grid-cols-[6rem_1fr] items-center gap-x-4 gap-y-2'>
             <Label class='text-sm text-foreground'>Autosave</Label>
-            <Checkbox disabled checked={false} />
+            <Checkbox
+              checked={store.autosave}
+              onChange={async (checked) => {
+                setAutosave(checked);
+                await chromatic.setAutosave(checked);
+              }}
+            />
           </div>
         </section>
 

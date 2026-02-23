@@ -8,6 +8,7 @@ import { toast } from "solid-sonner";
 
 interface Store {
   activeRule: FilterRule | null;
+  autosave: boolean;
   filter: Filter | null;
   filters: Filter[];
   font: FontOption;
@@ -28,6 +29,7 @@ interface Store {
 
 export const store = createMutable<Store>({
   activeRule: null,
+  autosave: false,
   filter: null,
   filters: [],
   font: DEFAULT_FONT,
@@ -94,6 +96,10 @@ export function setIconSpritesheet(data: {
 
 export function setFont(font: FontOption) {
   store.font = font;
+}
+
+export function setAutosave(enabled: boolean) {
+  store.autosave = enabled;
 }
 
 export function setSettingsOpen(open: boolean) {

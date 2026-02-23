@@ -41,12 +41,7 @@ export interface ChromaticConfiguration {
   poe2Directory?: string | null;
   font?: FontOption;
   poeladderUsername?: string | null;
-}
-
-export async function autosave() {
-  if (store.filter) {
-    await store.filter.save();
-  }
+  autosave?: boolean;
 }
 
 class Chromatic {
@@ -292,6 +287,11 @@ class Chromatic {
     await this.writeConfig(updated);
   }
 
+  async setAutosave(enabled: boolean) {
+    const updated = { ...this.config, autosave: enabled };
+    await this.writeConfig(updated);
+  }
+
   async setPoeladderUsername(username: string | null) {
     const updated = { ...this.config, poeladderUsername: username };
     await this.writeConfig(updated);
@@ -321,7 +321,7 @@ class Chromatic {
     store.filters.sort(alphabeticalSort((filter) => filter.name));
   }
 
-  async writeFilter(filter: Filter) {
+  async writeFilter(filter: Filter, silent = false) {
     if (this.runtime === "desktop") {
       const version = filter.poePatch.startsWith("3") ? 1 : 2;
       const dir = await this.getPoeDirectory(version);
@@ -340,10 +340,12 @@ class Chromatic {
           await invoke("reload", { poeVersion: version });
         }, 250);
       }
-      toast("Wrote filter to PoE directory.");
+      if (!silent) {
+        toast("Wrote filter to PoE directory.");
+      }
     }
 
-    if (this.runtime === "web") {
+    if (this.runtime === "web" && !silent) {
       const filename = `${filter.name}.filter`;
       const blob = new Blob([filter.serialize()], { type: "text" });
       const elem = window.document.createElement("a");
@@ -355,24 +357,27 @@ class Chromatic {
     }
   }
 
-  async saveFilter(filter: Filter) {
-    toast.promise(
-      async () => {
-        const raw = JSON.parse(
-          stringifyJSON({
-            ...filter,
-            lastUpdated: filter.lastUpdated.toISOString(), // FIXME: just store the ISO string always and convert to date adhoc
-          }),
-        );
-        const db = await this.db.getInstance();
-        await db.put("filters", raw, filter.name);
-      },
-      {
+  async saveFilter(filter: Filter, silent = false) {
+    const doSave = async () => {
+      const raw = JSON.parse(
+        stringifyJSON({
+          ...filter,
+          lastUpdated: filter.lastUpdated.toISOString(), // FIXME: just store the ISO string always and convert to date adhoc
+        }),
+      );
+      const db = await this.db.getInstance();
+      await db.put("filters", raw, filter.name);
+    };
+
+    if (silent) {
+      await doSave();
+    } else {
+      toast.promise(doSave, {
         success: "Saved filter",
         loading: "Saving filter...",
         error: "Failed to save filter",
-      },
-    );
+      });
+    }
   }
 
   async deleteFilter(filter: Filter) {

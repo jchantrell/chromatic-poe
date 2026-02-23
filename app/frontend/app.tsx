@@ -19,6 +19,7 @@ import LoadScreen from "@app/pages/load-screen";
 import SoundManager from "@app/pages/sound";
 import {
   refreshSounds,
+  setAutosave,
   setFont,
   setInitialised,
   setPoeCurrentVersions,
@@ -269,11 +270,13 @@ function App() {
     if (chromatic.config?.font) {
       setFont(chromatic.config.font);
     }
+    if (chromatic.config?.autosave) {
+      setAutosave(true);
+    }
     await chromatic.getAllFilters();
     setInitialised(true);
     await refreshSounds();
     await checkForUpdate();
-    //setInterval(autosave, 15000);
   });
 
   return (
