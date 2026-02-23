@@ -598,6 +598,7 @@ export async function importFilter(raw: string) {
     }
 
     const convertedRule: FilterRule = {
+      type: "standard",
       id: ulid(),
       name: rule.comment ?? "",
       show: rule.type === "Show",

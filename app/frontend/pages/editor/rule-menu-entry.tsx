@@ -1,12 +1,16 @@
+import Tooltip from "@app/components/tooltip";
 import { ChevronDownIcon, ChevronUpIcon } from "@app/icons";
 import {
   addParentRefs,
   deleteRule,
   duplicateRule,
+  refreshUniqueCollectionBases,
   setEntryActive,
 } from "@app/lib/commands";
-import type { FilterRule } from "@app/lib/filter";
+import chromatic from "@app/lib/config";
+import type { FilterRule, UniqueCollectionRule } from "@app/lib/filter";
 import { itemIndex } from "@app/lib/items";
+import { fetchMissingUniques } from "@app/lib/poeladder";
 import { store } from "@app/store";
 import { Badge } from "@app/ui/badge";
 import {
@@ -18,7 +22,8 @@ import {
   ContextMenuTrigger,
 } from "@app/ui/context-menu";
 import { Dialog, DialogContent, DialogTrigger } from "@app/ui/dialog";
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, Show } from "solid-js";
+import { toast } from "solid-sonner";
 import { DropPreview } from "./drop-preview";
 import { ItemPicker } from "./item-picker";
 
@@ -29,6 +34,9 @@ export default function Rule(props: {
 }) {
   const [selected, setSelected] = createSignal<boolean>(false);
   const [hovered, setHovered] = createSignal(false);
+  const [refreshing, setRefreshing] = createSignal(false);
+
+  const isUniqueCollection = () => props.rule.type === "unique-collection";
 
   let previewRef: HTMLDivElement | undefined;
 
@@ -110,6 +118,44 @@ export default function Rule(props: {
     }
   }
 
+  async function handleRefreshUniques(e: MouseEvent) {
+    e.stopPropagation();
+    if (!store.filter || props.rule.type !== "unique-collection") return;
+
+    const username = chromatic.config?.poeladderUsername;
+    if (!username) {
+      toast.error("PoE Ladder username not set", {
+        description: "Set your PoE Ladder username in settings.",
+      });
+      return;
+    }
+
+    const rule = props.rule as UniqueCollectionRule;
+    const league = rule.uniqueCollection.league;
+    if (!league) {
+      toast.error("No league selected", {
+        description: "Open the rule editor and select a league first.",
+      });
+      return;
+    }
+
+    setRefreshing(true);
+    const uniques = await fetchMissingUniques(
+      username,
+      league,
+      rule.uniqueCollection.display,
+    );
+    if (uniques.length > 0) {
+      refreshUniqueCollectionBases(store.filter, rule, uniques);
+      toast.success(
+        `Updated with ${uniques.length} missing unique${uniques.length === 1 ? "" : "s"}`,
+      );
+    } else {
+      toast.info("No missing uniques found for this league");
+    }
+    setRefreshing(false);
+  }
+
   createEffect(() => {
     if (store.activeRule) {
       setSelected(store.activeRule.id === props.rule.id);
@@ -138,13 +184,18 @@ export default function Rule(props: {
             >
               <div class='text-xl p-1 flex w-full min-w-0 items-center'>
                 <div
-                  class={`w-16 flex items-center mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
+                  class={`flex items-center gap-1 mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
                 >
-                  {props.rule.show ? (
-                    <Badge variant='success'>Show</Badge>
-                  ) : (
-                    <Badge variant='error'>Hide</Badge>
-                  )}
+                  <div class='w-16 flex items-center'>
+                    {props.rule.show ? (
+                      <Badge variant='success'>Show</Badge>
+                    ) : (
+                      <Badge variant='error'>Hide</Badge>
+                    )}
+                  </div>
+                  <Show when={isUniqueCollection()}>
+                    <Badge variant='default'>Collection</Badge>
+                  </Show>
                 </div>
                 <input
                   id={`${props.rule.id}-menu`}
@@ -166,6 +217,35 @@ export default function Rule(props: {
               >
                 <DropPreview rule={props.rule} showIcon iconScale={3} />
               </div>
+              <Show when={isUniqueCollection()}>
+                <Tooltip text='Refresh missing uniques'>
+                  <button
+                    type='button'
+                    class='flex items-center h-8 w-8 p-1 justify-center hover:text-accent-foreground/60 cursor-pointer'
+                    onMouseDown={handleRefreshUniques}
+                    onMouseUp={(e) => e.stopPropagation()}
+                    disabled={refreshing()}
+                  >
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      width='16'
+                      height='16'
+                      viewBox='0 0 24 24'
+                      fill='none'
+                      stroke='currentColor'
+                      stroke-width='2'
+                      stroke-linecap='round'
+                      stroke-linejoin='round'
+                      class={refreshing() ? "animate-spin" : ""}
+                    >
+                      <path d='M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8' />
+                      <path d='M3 3v5h5' />
+                      <path d='M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16' />
+                      <path d='M16 16h5v5' />
+                    </svg>
+                  </button>
+                </Tooltip>
+              </Show>
               <div
                 class={`flex items-center h-11 p-1 ${!props.rule.bases.length ? "opacity-0" : "hover:text-accent-foreground/60"}`}
                 onMouseDown={setExpanded}

@@ -13,6 +13,7 @@ const ALLOWED_DOMAINS = [
   /^https:\/\/www\.poe2wiki\.net\/w\/api\.php\?.+/,
   /^https:\/\/poe-versions\.obsoleet\.org\/.*/,
   /^https:\/\/github\.com\/poe-tool-dev\/dat-schema\/releases\/download\/.+/,
+  /^https:\/\/poeladder\.com\/api\/.+/,
 ];
 
 export default {

@@ -15,10 +15,12 @@ import { Checkbox } from "@app/ui/checkbox";
 import { Label } from "@app/ui/label";
 import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
-import { createEffect, createSignal } from "solid-js";
+import type { UniqueCollectionRule } from "@app/lib/filter";
+import { createEffect, createSignal, Show } from "solid-js";
 import ConditionManager from "./condition-builder";
 import { DropPreview } from "./drop-preview";
 import SoundPicker from "./sound-picker";
+import UniqueCollectionManager from "./unique-collection-manager";
 
 function LabelSize() {
   const [size, setSize] = createSignal(32);
@@ -262,7 +264,14 @@ export default function RuleEditor() {
               <div class='shrink-0 bg-primary-foreground/20 border border-accent rounded-xl px-2 py-1'>
                 <RuleActions />
               </div>
-              <ConditionManager rule={store.activeRule} />
+              <Show
+                when={store.activeRule?.type === "unique-collection"}
+                fallback={<ConditionManager rule={store.activeRule!} />}
+              >
+                <UniqueCollectionManager
+                  rule={store.activeRule as UniqueCollectionRule}
+                />
+              </Show>
             </div>
           </div>
         </div>

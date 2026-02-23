@@ -24,6 +24,7 @@ import {
 import { Separator } from "@app/ui/separator";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { platform } from "@tauri-apps/plugin-os";
+import { TextField, TextFieldInput } from "@app/ui/text-field";
 import { createEffect, createSignal, on, Show } from "solid-js";
 import { toast } from "solid-sonner";
 import Theme from "./theme";
@@ -100,6 +101,9 @@ export function Settings() {
   const [poe2Dir, setPoe2Dir] = createSignal<string | null | undefined>(
     chromatic.config?.poe2Directory,
   );
+  const [poeladderUsername, setPoeladderUsername] = createSignal<string>(
+    chromatic.config?.poeladderUsername ?? "",
+  );
 
   const isLinux = () =>
     chromatic.runtime === "desktop" && platform() === "linux";
@@ -140,6 +144,7 @@ export function Settings() {
         setVersion(await chromatic.getVersion());
         setPoe1Dir(chromatic.config?.poe1Directory);
         setPoe2Dir(chromatic.config?.poe2Directory);
+        setPoeladderUsername(chromatic.config?.poeladderUsername ?? "");
       },
     ),
   );
@@ -173,6 +178,25 @@ export function Settings() {
             <Theme />
             <Label class='text-sm text-foreground'>Font</Label>
             <FontSelector />
+          </div>
+        </section>
+
+        <Separator class='bg-border/50' />
+
+        {/* PoE Ladder Section */}
+        <section class='space-y-3'>
+          <h3 class='text-sm font-medium text-muted-foreground'>PoE Ladder</h3>
+          <div class='grid grid-cols-[6rem_1fr] items-center gap-x-4 gap-y-2'>
+            <Label class='text-sm text-foreground'>Username</Label>
+            <TextField
+              value={poeladderUsername()}
+              onChange={async (value) => {
+                setPoeladderUsername(value);
+                await chromatic.setPoeladderUsername(value || null);
+              }}
+            >
+              <TextFieldInput type='text' placeholder='e.g. halfacandan-2678' />
+            </TextField>
           </div>
         </section>
 

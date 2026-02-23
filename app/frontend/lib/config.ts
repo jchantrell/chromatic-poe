@@ -40,6 +40,7 @@ export interface ChromaticConfiguration {
   poe1Directory?: string | null;
   poe2Directory?: string | null;
   font?: FontOption;
+  poeladderUsername?: string | null;
 }
 
 export async function autosave() {
@@ -288,6 +289,11 @@ class Chromatic {
 
   async setFont(font: FontOption) {
     const updated = { ...this.config, font };
+    await this.writeConfig(updated);
+  }
+
+  async setPoeladderUsername(username: string | null) {
+    const updated = { ...this.config, poeladderUsername: username };
     await this.writeConfig(updated);
   }
 

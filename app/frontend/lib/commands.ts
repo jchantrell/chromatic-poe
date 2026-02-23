@@ -1,6 +1,14 @@
+import { DEFAULT_STYLE } from "@app/lib/action";
 import type { Color, IconSize, Shape } from "@app/lib/action";
 import { convertRawToConditions } from "@app/lib/condition";
-import type { Filter, FilterItem, FilterRule } from "@app/lib/filter";
+import type {
+  Filter,
+  FilterItem,
+  FilterRule,
+  UniqueCollectionDisplay,
+  UniqueCollectionRule,
+} from "@app/lib/filter";
+import type { PoeladderUnique } from "@app/lib/poeladder";
 import { clone } from "@app/lib/utils";
 import { ulid } from "ulid";
 
@@ -287,6 +295,82 @@ export function setEntryActive(
       if ("category" in entry && entry.parent) {
         entry.parent.enabled = entry.parent.bases.some((base) => base.enabled);
       }
+    }),
+  );
+}
+
+/** Create a new unique-collection rule with the given league. */
+export function createUniqueCollectionRule(
+  filter: Filter,
+  league: string,
+): UniqueCollectionRule {
+  const rule: UniqueCollectionRule = {
+    type: "unique-collection",
+    id: ulid(),
+    name: "Missing Uniques",
+    show: true,
+    enabled: true,
+    bases: [],
+    conditions: [],
+    actions: clone(DEFAULT_STYLE),
+    continue: false,
+    uniqueCollection: {
+      league,
+      display: "league",
+    },
+  };
+  filter.execute(
+    new Command(() => {
+      filter.rules.push(rule);
+    }),
+  );
+  return rule;
+}
+
+/**
+ * Refresh a unique-collection rule's bases from poeladder API data.
+ * Replaces all bases with the missing uniques and records the refresh time.
+ */
+export function refreshUniqueCollectionBases(
+  filter: Filter,
+  rule: UniqueCollectionRule,
+  uniques: PoeladderUnique[],
+) {
+  filter.execute(
+    new Command(() => {
+      rule.bases = uniques.map((u) => ({
+        name: u.name,
+        enabled: true,
+        base: u.base,
+        category: u.grouping,
+      }));
+      rule.uniqueCollection.lastRefreshed = new Date().toISOString();
+    }),
+  );
+}
+
+/** Update the league on a unique-collection rule. */
+export function setUniqueCollectionLeague(
+  filter: Filter,
+  rule: UniqueCollectionRule,
+  league: string,
+) {
+  filter.execute(
+    new Command(() => {
+      rule.uniqueCollection.league = league;
+    }),
+  );
+}
+
+/** Toggle between league-only and combined display mode. */
+export function setUniqueCollectionDisplay(
+  filter: Filter,
+  rule: UniqueCollectionRule,
+  display: UniqueCollectionDisplay,
+) {
+  filter.execute(
+    new Command(() => {
+      rule.uniqueCollection.display = display;
     }),
   );
 }

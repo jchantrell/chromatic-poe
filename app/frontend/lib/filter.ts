@@ -1,6 +1,8 @@
 import {
   BaseTypeCondition,
   type Conditions,
+  Rarity,
+  RarityCondition,
   convertRawToConditions,
   serializeConditions,
 } from "@app/lib/condition";
@@ -23,7 +25,19 @@ export enum Block {
   continue = "Continue",
 }
 
-export interface FilterRule {
+export type RuleType = "standard" | "unique-collection";
+
+/** Whether to show uniques missing in the selected league only, or combined with standard. */
+export type UniqueCollectionDisplay = "league" | "combined";
+
+/** Metadata for a unique-collection rule that auto-generates conditions from poeladder API. */
+export interface UniqueCollectionConfig {
+  league: string;
+  display: UniqueCollectionDisplay;
+  lastRefreshed?: string;
+}
+
+interface BaseFilterRule {
   id: ReturnType<typeof ulid>;
   name: string;
   show: boolean;
@@ -33,6 +47,17 @@ export interface FilterRule {
   bases: FilterItem[];
   continue: boolean;
 }
+
+export interface StandardRule extends BaseFilterRule {
+  type: "standard";
+}
+
+export interface UniqueCollectionRule extends BaseFilterRule {
+  type: "unique-collection";
+  uniqueCollection: UniqueCollectionConfig;
+}
+
+export type FilterRule = StandardRule | UniqueCollectionRule;
 
 export interface FilterItem {
   name: string;
@@ -80,10 +105,22 @@ export class Filter {
     this.poeVersion = params.poeVersion;
     this.poePatch = params.poePatch;
     this.lastUpdated = params.lastUpdated;
-    this.rules = params.rules.map((rule) => ({
-      ...rule,
-      conditions: convertRawToConditions(rule.conditions),
-    }));
+    this.rules = params.rules.map((rule) => {
+      const migrated = {
+        ...rule,
+        type: rule.type ?? "standard",
+        conditions: convertRawToConditions(rule.conditions),
+      };
+      // Migrate unique-collection rules missing the display field
+      if (
+        migrated.type === "unique-collection" &&
+        "uniqueCollection" in migrated &&
+        !(migrated as UniqueCollectionRule).uniqueCollection.display
+      ) {
+        (migrated as UniqueCollectionRule).uniqueCollection.display = "league";
+      }
+      return migrated;
+    }) as FilterRule[];
 
     if (params.undoStack) this.undoStack = params.undoStack;
     if (params.redoStack) this.redoStack = params.redoStack;
@@ -206,13 +243,32 @@ export class Filter {
   }
 
   convertToText(rule: FilterRule): string {
-    const enabledBases = rule.bases.filter((e) => e.enabled).map((e) => e.base);
-
     const conditions = [...rule.conditions];
-    if (enabledBases.length) {
-      conditions.push(
-        new BaseTypeCondition({ value: Array.from(new Set(enabledBases)) }),
-      );
+
+    if (rule.type === "unique-collection") {
+      // Auto-generate Rarity == Unique
+      conditions.push(new RarityCondition({ value: [Rarity.UNIQUE] }));
+
+      // Auto-generate BaseType from all bases
+      const baseTypes = rule.bases.map((e) => e.base);
+      if (baseTypes.length) {
+        conditions.push(
+          new BaseTypeCondition({
+            value: Array.from(new Set(baseTypes)),
+          }),
+        );
+      }
+    } else {
+      const enabledBases = rule.bases
+        .filter((e) => e.enabled)
+        .map((e) => e.base);
+      if (enabledBases.length) {
+        conditions.push(
+          new BaseTypeCondition({
+            value: Array.from(new Set(enabledBases)),
+          }),
+        );
+      }
     }
 
     return this.createTextBlock(
