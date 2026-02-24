@@ -162,7 +162,7 @@ export function Settings() {
         {/* General Section */}
         <section class='space-y-3'>
           <h3 class='text-sm font-medium text-muted-foreground'>General</h3>
-          <div class='grid grid-cols-[6rem_1fr] items-center gap-x-4 gap-y-2'>
+          <div class='grid grid-cols-[8rem_1fr] items-center gap-x-4 gap-y-2'>
             <Label class='text-sm text-foreground'>Autosave</Label>
             <Checkbox
               checked={store.autosave}
@@ -179,7 +179,7 @@ export function Settings() {
         {/* Display Section */}
         <section class='space-y-3'>
           <h3 class='text-sm font-medium text-muted-foreground'>Display</h3>
-          <div class='grid grid-cols-[6rem_1fr] items-center gap-x-4 gap-y-2'>
+          <div class='grid grid-cols-[8rem_1fr] items-center gap-x-4 gap-y-2'>
             <Label class='text-sm text-foreground'>Theme</Label>
             <Theme />
             <Label class='text-sm text-foreground'>Font</Label>
@@ -192,7 +192,7 @@ export function Settings() {
         {/* PoE Ladder Section */}
         <section class='space-y-3'>
           <h3 class='text-sm font-medium text-muted-foreground'>PoE Ladder</h3>
-          <div class='grid grid-cols-[6rem_1fr] items-center gap-x-4 gap-y-2'>
+          <div class='grid grid-cols-[8rem_1fr] items-center gap-x-4 gap-y-2'>
             <Label class='text-sm text-foreground'>Username</Label>
             <TextField
               value={poeladderUsername()}
@@ -214,7 +214,7 @@ export function Settings() {
             <h3 class='text-sm font-medium text-muted-foreground'>
               Directories
             </h3>
-            <div class='grid grid-cols-[6rem_1fr_auto] items-center gap-x-4 gap-y-2'>
+            <div class='grid grid-cols-[8rem_1fr_auto] items-center gap-x-4 gap-y-2'>
               <DirectoryPicker
                 label='Path of Exile 1'
                 value={poe1Dir()}
@@ -234,7 +234,7 @@ export function Settings() {
         {/* Versions Section */}
         <section class='space-y-3'>
           <h3 class='text-sm font-medium text-muted-foreground'>Versions</h3>
-          <div class='grid grid-cols-[6rem_1fr] items-center gap-x-4 gap-y-1 text-sm'>
+          <div class='grid grid-cols-[8rem_1fr] items-center gap-x-4 gap-y-1 text-sm'>
             <span class='text-foreground'>Chromatic</span>
             <span class='text-muted-foreground font-mono text-xs'>
               {version()}
