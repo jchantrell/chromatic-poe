@@ -1,4 +1,12 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.10.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.10.0...chromatic-poe-v0.10.1) (2026-02-24)
+
+
+### Bug Fixes
+
+* update [@tauri-apps](https://github.com/tauri-apps) JS packages to resolve Channel protocol mismatch ([96e160c](https://github.com/jchantrell/chromatic-poe/commit/96e160c445af05b71f52349cdb1b3c3645ae26a5))
+* widen settings label columns from 6rem to 8rem to prevent text wrapping ([9a88729](https://github.com/jchantrell/chromatic-poe/commit/9a88729a9a636f5c9f29a6de1cf22617dc7cb38f))
+
 ## [0.10.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.9.0...chromatic-poe-v0.10.0) (2026-02-24)
 
 
