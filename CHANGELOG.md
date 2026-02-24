@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.10.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.10.1...chromatic-poe-v0.10.2) (2026-02-24)
+
+
+### Bug Fixes
+
+* align Rust Tauri crate versions with JS packages ([66216cb](https://github.com/jchantrell/chromatic-poe/commit/66216cb1a87f26ab58884e885a1227ef7192f05c))
+
 ## [0.10.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.10.0...chromatic-poe-v0.10.1) (2026-02-24)
 
 
