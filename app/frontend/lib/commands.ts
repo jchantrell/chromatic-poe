@@ -1,4 +1,3 @@
-import { DEFAULT_STYLE } from "@app/lib/action";
 import type { Color, IconSize, Shape } from "@app/lib/action";
 import { convertRawToConditions } from "@app/lib/condition";
 import type {
@@ -216,7 +215,23 @@ export function setColor(
         existingColor.b !== color.b ||
         existingColor.a !== color.a
       ) {
-        rule.actions[key] = color;
+        rule.actions[key] = { ...color, enabled: true };
+      }
+    }),
+  );
+}
+
+/** Toggle a color's enabled flag without losing the stored RGBA values. */
+export function setColorEnabled(
+  filter: Filter,
+  rule: FilterRule,
+  key: "text" | "background" | "border",
+  enabled: boolean,
+) {
+  filter.execute(
+    new Command(() => {
+      if (rule.actions[key]) {
+        rule.actions[key].enabled = enabled;
       }
     }),
   );
@@ -312,7 +327,7 @@ export function createUniqueCollectionRule(
     enabled: true,
     bases: [],
     conditions: [],
-    actions: clone(DEFAULT_STYLE),
+    actions: {},
     continue: false,
     uniqueCollection: {
       league,

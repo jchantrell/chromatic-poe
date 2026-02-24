@@ -1,6 +1,6 @@
-import { camelCase, clone } from "@app/lib/utils";
+import { camelCase } from "@app/lib/utils";
 import { ulid } from "ulid";
-import { type Actions, Color, DEFAULT_STYLE, IconSize, Shape } from "./action";
+import { type Actions, Color, IconSize, Shape } from "./action";
 import {
   ConditionKey,
   type Conditions,
@@ -503,6 +503,7 @@ export async function importFilter(raw: string) {
           g: Number(action.params[1]),
           b: Number(action.params[2]),
           a: action.params[3] ? Number(action.params[3]) : 240,
+          enabled: true,
         };
       }
       if (action.type === "SetBackgroundColor") {
@@ -511,6 +512,7 @@ export async function importFilter(raw: string) {
           g: Number(action.params[1]),
           b: Number(action.params[2]),
           a: action.params[3] ? Number(action.params[3]) : 240,
+          enabled: true,
         };
       }
       if (action.type === "SetBorderColor") {
@@ -519,6 +521,7 @@ export async function importFilter(raw: string) {
           g: Number(action.params[1]),
           b: Number(action.params[2]),
           a: action.params[3] ? Number(action.params[3]) : 240,
+          enabled: true,
         };
       }
       if (action.type === "SetFontSize") {
@@ -585,18 +588,6 @@ export async function importFilter(raw: string) {
               : Number.parseInt(action.params[1]),
         };
       }
-    }
-
-    if (!actions.text) {
-      actions.text = clone(DEFAULT_STYLE.text);
-    }
-
-    if (!actions.border) {
-      actions.border = clone(DEFAULT_STYLE.border);
-    }
-
-    if (!actions.background) {
-      actions.background = clone(DEFAULT_STYLE.background);
     }
 
     const convertedRule: FilterRule = {

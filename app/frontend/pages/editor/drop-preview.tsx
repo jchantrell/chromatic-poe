@@ -1,6 +1,12 @@
+import { DEFAULT_STYLE, type RgbColor } from "@app/lib/action";
 import type { FilterRule } from "@app/lib/filter";
 import { store } from "@app/store";
 import { MinimapIcon } from "./map-icon-picker";
+
+/** Convert an RgbColor to a CSS rgba() string. */
+function rgba(color: RgbColor): string {
+  return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a / 255})`;
+}
 
 export function DropPreview(props: {
   rule?: FilterRule;
@@ -10,13 +16,27 @@ export function DropPreview(props: {
 }) {
   if (!props.rule) return null;
 
+  const text = () =>
+    props.rule!.actions.text?.enabled
+      ? props.rule!.actions.text
+      : DEFAULT_STYLE.text;
+  const border = () =>
+    props.rule!.actions.border?.enabled
+      ? props.rule!.actions.border
+      : undefined;
+  const background = () =>
+    props.rule!.actions.background?.enabled
+      ? props.rule!.actions.background
+      : DEFAULT_STYLE.background;
+
   return (
     <div
-      class='flex text-nowrap items-center justify-center border-[1.5px] min-w-fit max-h-fit px-3'
+      class='flex text-nowrap items-center justify-center min-w-fit max-h-fit px-3'
+      classList={{ "border-[1.5px]": !!border() }}
       style={{
-        color: `rgba(${props.rule.actions.text?.r ?? 0}, ${props.rule.actions.text?.g ?? 0}, ${props.rule.actions.text?.b ?? 0}, ${(props.rule.actions.text?.a ?? 255) / 255})`,
-        "border-color": `rgba(${props.rule.actions.border?.r ?? 0}, ${props.rule.actions.border?.g ?? 0}, ${props.rule.actions.border?.b ?? 0}, ${(props.rule.actions.border?.a ?? 255) / 255})`,
-        "background-color": `rgba(${props.rule.actions.background?.r ?? 0}, ${props.rule.actions.background?.g ?? 0}, ${props.rule.actions.background?.b ?? 0}, ${(props.rule.actions.background?.a ?? 255) / 255})`,
+        color: rgba(text()),
+        "border-color": border() ? rgba(border()!) : undefined,
+        "background-color": rgba(background()),
         "max-width": `${(props.rule.actions.fontSize || 32) * 6}px`,
         "font-size": props.dynamicSize
           ? `${(props.rule.actions.fontSize || 32) / 1.5}px`

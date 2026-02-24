@@ -1,10 +1,14 @@
 import { isDefined } from "@app/lib/utils";
 
 export type RgbColor = { r: number; g: number; b: number; a: number };
+export type ColorAction = RgbColor & { enabled: boolean };
 
+/**
+ * PoE default styling applied when a rule doesn't explicitly set colors.
+ * Used as fallback in previews and serialization omission logic.
+ */
 export const DEFAULT_STYLE = {
-  text: { r: 255, g: 255, b: 255, a: 240 },
-  border: { r: 19, g: 14, b: 6, a: 0 },
+  text: { r: 200, g: 200, b: 200, a: 240 },
   background: { r: 19, g: 14, b: 6, a: 240 },
 };
 
@@ -38,9 +42,9 @@ export const colors = {
 
 export type Actions = {
   fontSize?: number;
-  text?: RgbColor;
-  border?: RgbColor;
-  background?: RgbColor;
+  text?: ColorAction;
+  border?: ColorAction;
+  background?: ColorAction;
   dropSound?: { enabled: boolean; toggle: boolean };
   icon?: { size: IconSize; shape: Shape; color: Color; enabled: boolean };
   beam?: { temp: boolean; color: Color; enabled: boolean };
@@ -139,13 +143,13 @@ export function serializeActions(actions: Actions) {
   if (actions.fontSize) {
     strs.push(setFontSize(actions.fontSize));
   }
-  if (actions.text) {
+  if (actions.text?.enabled) {
     strs.push(setTextColor(actions.text));
   }
-  if (actions.border) {
+  if (actions.border?.enabled) {
     strs.push(setBorderColor(actions.border));
   }
-  if (actions.background) {
+  if (actions.background?.enabled) {
     strs.push(setBackgroundColor(actions.background));
   }
   if (actions.icon?.enabled) {

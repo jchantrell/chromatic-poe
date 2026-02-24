@@ -213,7 +213,7 @@ export default function Rule(props: {
               onMouseUp={setRuleActive}
             >
               <div
-                class={`hidden @sm:flex text-nowrap items-center justify-center border mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
+                class={`hidden @sm:flex text-nowrap items-center justify-center mr-1 ${props.rule.enabled ? "" : "grayscale"}`}
               >
                 <DropPreview rule={props.rule} showIcon iconScale={3} />
               </div>

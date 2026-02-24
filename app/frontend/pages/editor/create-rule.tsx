@@ -1,8 +1,6 @@
-import { DEFAULT_STYLE } from "@app/lib/action";
 import { createRule, createUniqueCollectionRule } from "@app/lib/commands";
 import chromatic from "@app/lib/config";
 import type { FilterRule } from "@app/lib/filter";
-import { clone } from "@app/lib/utils";
 import { setActiveRule, store } from "@app/store";
 import { Button } from "@app/ui/button";
 import {
@@ -28,7 +26,7 @@ function CreateRule() {
       enabled: true,
       bases: [],
       conditions: [],
-      actions: clone(DEFAULT_STYLE),
+      actions: {},
       continue: false,
     };
     createRule(store.filter, rule);
