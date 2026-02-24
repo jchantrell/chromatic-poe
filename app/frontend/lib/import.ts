@@ -4,6 +4,7 @@ import { type Actions, Color, DEFAULT_STYLE, IconSize, Shape } from "./action";
 import {
   ConditionKey,
   type Conditions,
+  Rarity,
   createCondition,
   Operator,
 } from "./condition";
@@ -44,15 +45,6 @@ const VALID_OPERATORS = [
   Operator.GT,
   Operator.GTE,
 ] as const;
-
-function containsExactWord(text: string, searchWord: string): boolean {
-  const regex = new RegExp(`\\b${searchWord}\\b`, "i");
-  return regex.test(text);
-}
-
-function baseExists(name: string) {
-  return itemIndex.findItemByBase(name);
-}
 
 function getClasses(value: number | string | boolean | string[]) {
   if (Array.isArray(value) && value.includes("Logbook")) {
@@ -262,6 +254,7 @@ export async function importFilter(raw: string) {
 
   for (const rule of rules) {
     const basesToAdd = new Set<string>();
+    const rawBases: string[] = [];
     const conditions: Conditions[] = [];
 
     const baseTypeConditions = rule.conditions.filter(
@@ -269,42 +262,31 @@ export async function importFilter(raw: string) {
     );
 
     for (const condition of baseTypeConditions) {
+      const isExact = condition.operator === "==" || condition.operator === "=";
       const bases = condition.value;
-      if (typeof bases === "string") {
-        // exact match
-        if (baseExists(bases)) {
-          basesToAdd.add(bases);
-          continue;
-        }
-        // fuzzy match
-        const fuzzy = itemIndex.search({
-          $and: [{ name: `'${bases.trim()}` }],
-        });
-        for (const result of fuzzy) {
-          if (containsExactWord(result.item.name, bases)) {
-            basesToAdd.add(result.item.name);
-          }
-        }
-      }
+      const baseList = Array.isArray(bases) ? bases : [String(bases)];
 
-      if (Array.isArray(bases)) {
-        for (const base of bases) {
-          // exact match
-          if (baseExists(base)) {
-            basesToAdd.add(base);
-            continue;
-          }
-          // fuzzy match
-          const fuzzy = itemIndex.search({
-            $and: [{ name: `'${base.trim()}` }],
-          });
-          for (const result of fuzzy) {
-            if (containsExactWord(result.item.name, base)) {
-              basesToAdd.add(result.item.name);
-            }
-          }
+      if (isExact) {
+        // Exact match: resolve each entry 1:1 against game data → rule.bases
+        for (const base of baseList) {
+          const trimmed = base.trim();
+          if (!trimmed) continue;
+          const item = itemIndex.findItemByBase(trimmed);
+          basesToAdd.add(item ? item.name : trimmed);
+        }
+      } else {
+        // Substring match: preserve raw strings → RawBaseTypeCondition
+        for (const base of baseList) {
+          const trimmed = base.trim();
+          if (trimmed) rawBases.push(trimmed);
         }
       }
+    }
+
+    if (rawBases.length) {
+      conditions.push(
+        createCondition(ConditionKey.RAW_BASE_TYPE, { value: rawBases }),
+      );
     }
 
     const otherConditions = rule.conditions.filter(
@@ -354,10 +336,12 @@ export async function importFilter(raw: string) {
         continue;
       }
 
-      if (property === "AnyEnchantment") {
+      if (property === "Rarity") {
+        const rarities = Array.isArray(value) ? value : [String(value)];
         conditions.push(
-          createCondition(ConditionKey.ANY_ENCHANTMENT, {
-            value: value === "true",
+          createCondition(ConditionKey.RARITY, {
+            operator: operator as Operator | undefined,
+            value: rarities as Rarity[],
           }),
         );
         continue;
@@ -366,6 +350,15 @@ export async function importFilter(raw: string) {
       let newCondition: Conditions | undefined;
       const boolValue = (val: unknown) =>
         val === "True" || val === "true" || val === true;
+
+      if (property === "AnyEnchantment") {
+        conditions.push(
+          createCondition(ConditionKey.ANY_ENCHANTMENT, {
+            value: boolValue(value),
+          }),
+        );
+        continue;
+      }
 
       switch (property) {
         case "Replica":
@@ -489,6 +482,15 @@ export async function importFilter(raw: string) {
           base: itemBase.base,
           enabled: true,
         });
+      } else {
+        // Preserve unresolved bases as raw strings so they survive round-trip.
+        // Without this, rules lose their BaseType condition and match everything.
+        itemBases.push({
+          name: base,
+          category: "",
+          base: base,
+          enabled: true,
+        });
       }
     }
 
@@ -540,7 +542,7 @@ export async function importFilter(raw: string) {
         actions.beam = {
           enabled: true,
           color: Color[action.params[0] as keyof typeof Color],
-          temp: action.params[1] === "true",
+          temp: action.params[1] === "Temp",
         };
       }
       if (action.type === "DisableDropSound") {

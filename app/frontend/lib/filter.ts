@@ -7,7 +7,7 @@ import {
   serializeConditions,
 } from "@app/lib/condition";
 import chromatic from "@app/lib/config";
-import { clone } from "@app/lib/utils";
+import { clone, to } from "@app/lib/utils";
 import { store } from "@app/store";
 import { applyPatch, compare, type Operation } from "fast-json-patch";
 import { createMutable, modifyMutable, reconcile } from "solid-js/store";
@@ -15,7 +15,9 @@ import { toast } from "solid-sonner";
 import type { ulid } from "ulid";
 import { type Actions, serializeActions } from "./action";
 import { addParentRefs, type Command } from "./commands";
+import { dat } from "./dat";
 import { importFilter } from "./import";
+import { itemIndex } from "./items";
 
 const WRITE_TIMEOUT = 1000;
 const AUTOSAVE_DELAY = 2000;
@@ -331,9 +333,35 @@ export async function generateFilter(
   poeVersion: number,
   raw?: string,
 ): Promise<Filter> {
+  const patch =
+    poeVersion === 2
+      ? (store.poeCurrentVersions?.poe2 ?? "4.0.0")
+      : (store.poeCurrentVersions?.poe1 ?? "3.25");
+
   let rules: FilterRule[] = [];
 
   if (raw) {
+    // Ensure itemIndex is populated before import so BaseType resolution works.
+    // itemIndex is normally initialised in the editor, but import runs on the
+    // load screen before the editor mounts.
+    if (!itemIndex.searchIndex || itemIndex.patch !== patch) {
+      await dat.ensureDbInitialized();
+      const [extractErr] = await to(dat.extract(patch));
+      if (extractErr) {
+        console.error("Failed to extract game data for import", extractErr);
+      }
+      const [loadErr, data] = await to(dat.load(patch));
+      if (loadErr || !data) {
+        console.error("Failed to load game data for import", loadErr);
+      } else {
+        if (poeVersion === 1) {
+          itemIndex.initV1(data.items as Item[], patch);
+        } else {
+          itemIndex.initV2(data.items as Item[], patch);
+        }
+      }
+    }
+
     rules = await importFilter(raw);
   }
 
@@ -341,7 +369,7 @@ export async function generateFilter(
     name,
     chromaticVersion: chromatic.config.version,
     poeVersion,
-    poePatch: poeVersion === 2 ? "4.0.0" : "3.25",
+    poePatch: patch,
     lastUpdated: new Date(),
     rules,
   });

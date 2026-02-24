@@ -64,6 +64,7 @@ export enum Influence {
 
 export enum ConditionKey {
   BASE_TYPE = "baseType",
+  RAW_BASE_TYPE = "rawBaseType",
   HEIGHT = "height",
   WIDTH = "width",
   ITEM_LEVEL = "itemLevel",
@@ -162,6 +163,7 @@ type BaseConditionValue = {
 
 export interface ConditionData {
   [ConditionKey.BASE_TYPE]: string[];
+  [ConditionKey.RAW_BASE_TYPE]: string[];
   [ConditionKey.HEIGHT]: number;
   [ConditionKey.WIDTH]: number;
   [ConditionKey.ITEM_LEVEL]: number;
@@ -236,6 +238,13 @@ export const conditionTypes: AllConditionTypes = {
   [ConditionKey.BASE_TYPE]: {
     label: "Bases",
     description: "A list of item bases",
+    group: ConditionGroup.UNUSED,
+    type: ConditionInputType.TEXT_LIST,
+    defaultValue: [],
+  },
+  [ConditionKey.RAW_BASE_TYPE]: {
+    label: "Bases (Substring)",
+    description: "Raw base type substring match from imported filters",
     group: ConditionGroup.UNUSED,
     type: ConditionInputType.TEXT_LIST,
     defaultValue: [],
@@ -885,6 +894,21 @@ export class BaseTypeCondition implements ListCondition<string> {
   }
 }
 
+export class RawBaseTypeCondition implements ListCondition<string> {
+  readonly key = ConditionKey.RAW_BASE_TYPE;
+  readonly type = ConditionType.LIST;
+  value: string[];
+  constructor(opts: { value: string[] }) {
+    this.value = opts.value;
+    createMutable(this);
+  }
+
+  serialize(): string {
+    if (!this.value.length) return "";
+    return `BaseType ${this.value.map((v) => `"${v}"`).join(" ")}`;
+  }
+}
+
 export class ClassesCondition implements ListCondition<string> {
   readonly key = ConditionKey.CLASSES;
   readonly type = ConditionType.LIST;
@@ -904,14 +928,19 @@ export class RarityCondition implements ListCondition<Rarity> {
   readonly key = ConditionKey.RARITY;
   readonly type = ConditionType.LIST;
   value: Rarity[];
-  constructor(opts?: { value?: Rarity[] }) {
+  operator?: Operator;
+  constructor(opts?: { value?: Rarity[]; operator?: Operator }) {
     this.value = opts?.value ?? conditionTypes[this.key].defaultValue;
+    this.operator = opts?.operator;
     createMutable(this);
   }
 
   serialize(): string {
     if (!this.value.length) return "";
-    return `Rarity ${Operator.EXACT} ${this.value.map((v) => `"${v}"`).join(" ")}`;
+    if (this.operator) {
+      return `Rarity ${this.operator} ${this.value.join(" ")}`;
+    }
+    return `Rarity ${this.value.join(" ")}`;
   }
 }
 
@@ -1284,7 +1313,7 @@ class InfluenceCondition implements ListCondition<Influence> {
 
   serialize(): string {
     if (!this.value.length) return "";
-    return `HasInfluence ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
+    return `HasInfluence ${this.value.join(" ")}`;
   }
 }
 
@@ -1309,7 +1338,7 @@ class ExplicitModCondition implements ListCondition<string> {
   serialize(): string {
     if (!this.value.length) return "";
 
-    return `HasExplicitMod ${this.operator} ${this.stack} ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
+    return `HasExplicitMod ${this.operator}${this.stack} ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
   }
 }
 
@@ -1602,6 +1631,7 @@ const conditionConstructors = verifyConstructors({
   [ConditionKey.BASE_ENERGY_SHIELD]: BaseEnergyShieldCondition,
   [ConditionKey.BASE_WARD]: BaseWardCondition,
   [ConditionKey.BASE_TYPE]: BaseTypeCondition,
+  [ConditionKey.RAW_BASE_TYPE]: RawBaseTypeCondition,
   [ConditionKey.SOCKET_GROUP]: SocketGroupCondition,
   [ConditionKey.ENCHANTMENT_PASSIVE_NODE]: EnchantmentPassiveNodeCondition,
   [ConditionKey.ENCHANTMENT_PASSIVE_NUM]: EnchantmentPassiveNumCondition,

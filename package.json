@@ -13,7 +13,8 @@
     "deploy:proxy": "wrangler deploy --config app/proxy/wrangler.jsonc",
     "proxy": "wrangler dev --config app/proxy/wrangler.jsonc",
     "tauri": "tauri",
-    "icon": "tauri icon packages/assets/tainted-chromatic-icon.png"
+    "icon": "tauri icon packages/assets/tainted-chromatic-icon.png",
+    "filter:roundtrip": "tsx scripts/filter-roundtrip.ts"
   },
   "license": "MIT",
   "dependencies": {
@@ -63,6 +64,7 @@
     "jsdom": "^25.0.1",
     "postcss": "^8.4.47",
     "tailwindcss": "^4.1.18",
+    "tsx": "^4.21.0",
     "typescript": "^5.6.3",
     "vite": "^6.4.1",
     "vite-plugin-solid": "^2.11.10",
