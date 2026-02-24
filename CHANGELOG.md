@@ -1,4 +1,18 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.10.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.9.0...chromatic-poe-v0.10.0) (2026-02-24)
+
+
+### Features
+
+* add dynamic unique collection filter rule via PoE Ladder API ([2f017cc](https://github.com/jchantrell/chromatic-poe/commit/2f017cce9c41edaa860da06b00756bb8037090f3))
+* implement debounced autosave with settings toggle ([00aa69b](https://github.com/jchantrell/chromatic-poe/commit/00aa69ba61a22295dad347877f51afe3dd1d3357))
+* make rule colors optional with toggleable enabled flag ([46efe5b](https://github.com/jchantrell/chromatic-poe/commit/46efe5b1a8f8ba6e025315ed33d4c42abc81b492))
+
+
+### Bug Fixes
+
+* overhaul filter import/export for correct BaseType handling and round-trip fidelity ([0785de9](https://github.com/jchantrell/chromatic-poe/commit/0785de9187dc0992cb77902d07e71952f950fa9c))
+
 ## [0.9.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.8.2...chromatic-poe-v0.9.0) (2026-02-22)
 
 
