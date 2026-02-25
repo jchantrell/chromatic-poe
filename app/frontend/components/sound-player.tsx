@@ -18,54 +18,50 @@ export default function SoundPlayer(props: {
     props.sound?.data instanceof Blob ||
     props.sound?.type === "default";
 
-  function getSource(sound: Sound | null) {
-    if (sound?.data instanceof File) {
-      return URL.createObjectURL(sound.data);
+  function revokeObjectUrl() {
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+      objectUrl = null;
     }
-    if (sound?.data instanceof Blob) {
+  }
+
+  /**
+   * Resolve a blob URL for the sound. For File/Blob data this is instant.
+   * For default sounds served via path, we fetch asynchronously to avoid
+   * blocking the webview on the Tauri asset protocol in production builds.
+   */
+  async function resolveBlobUrl(sound: Sound | null): Promise<string> {
+    if (sound?.data instanceof File || sound?.data instanceof Blob) {
       return URL.createObjectURL(sound.data);
     }
     if (sound?.path) {
-      return `${BASE_URL}${sound.path}`;
+      const res = await fetch(`${BASE_URL}${sound.path}`);
+      const blob = await res.blob();
+      return URL.createObjectURL(blob);
     }
     return "";
   }
 
   /**
-   * Load audio source on demand and play. Avoids eagerly loading all audio
-   * elements which overwhelms the Tauri asset protocol in production builds.
+   * Load audio source on demand and play. Fetches audio data asynchronously
+   * to avoid blocking the Tauri asset protocol in production builds.
    */
   async function handlePlay() {
     if (!audioRef) return;
 
-    const src = getSource(props.sound);
+    revokeObjectUrl();
+
+    const src = await resolveBlobUrl(props.sound);
     if (!src) return;
 
-    // Revoke previous object URL if any
-    if (objectUrl) {
-      URL.revokeObjectURL(objectUrl);
-      objectUrl = null;
-    }
-
-    // Track object URLs for cleanup
-    if (
-      props.sound?.data instanceof File ||
-      props.sound?.data instanceof Blob
-    ) {
-      objectUrl = src;
-    }
-
+    objectUrl = src;
     audioRef.src = src;
     audioRef.volume = props.volume;
     audioRef.currentTime = 0;
     await audioRef.play();
   }
 
-  onCleanup(() => {
-    if (objectUrl) {
-      URL.revokeObjectURL(objectUrl);
-    }
-  });
+  onCleanup(revokeObjectUrl);
 
   return (
     <div class='flex items-center h-full'>
