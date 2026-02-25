@@ -1,4 +1,16 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.10.3](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.10.2...chromatic-poe-v0.10.3) (2026-02-25)
+
+
+### Bug Fixes
+
+* map PlayAlertSound between PoE params and internal sound ids on import/export ([d42a540](https://github.com/jchantrell/chromatic-poe/commit/d42a540c859df9f5a7d0524ed785aec98e57bbaf))
+
+
+### Performance Improvements
+
+* bypass solid proxy in command pattern clone/diff ([6760b68](https://github.com/jchantrell/chromatic-poe/commit/6760b688b1cf9df57326e899dd607d09591e7d89))
+
 ## [0.10.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.10.1...chromatic-poe-v0.10.2) (2026-02-24)
 
 
