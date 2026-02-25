@@ -28,6 +28,24 @@ export interface DefaultSound {
 }
 export type Sound = BlobSound | FileSound | CachedSound | DefaultSound;
 
+/**
+ * Resolve a raw PoE filter param (e.g. "1", "ShAlchemy") to our internal sound id
+ * (e.g. "AlertSound1", "AlertSoundShAlchemy"). Returns the param as-is if no match.
+ */
+export function resolveDefaultSoundId(poeParam: string): string {
+  const match = DEFAULT_FILTER_SOUNDS.find((s) => s.displayName === poeParam);
+  return match ? match.id : poeParam;
+}
+
+/**
+ * Resolve an internal sound id (e.g. "AlertSound1") back to the PoE filter param
+ * (e.g. "1"). Returns the id as-is if no match.
+ */
+export function resolveDefaultSoundDisplayName(id: string): string {
+  const match = DEFAULT_FILTER_SOUNDS.find((s) => s.id === id);
+  return match ? match.displayName : id;
+}
+
 export const DEFAULT_FILTER_SOUNDS: DefaultSound[] = [
   {
     displayName: "1",

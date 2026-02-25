@@ -10,6 +10,7 @@ import {
 } from "./condition";
 import type { FilterItem, FilterRule } from "./filter";
 import { itemIndex } from "./items";
+import { resolveDefaultSoundId } from "./sounds";
 
 interface ParsedFilterAction {
   type: string;
@@ -575,10 +576,11 @@ export async function importFilter(raw: string) {
         };
       }
       if (action.type === "PlayAlertSound") {
+        const rawParam = String(action.params[0]).replace(/^["']|["']$/g, "");
         actions.sound = {
           enabled: true,
           path: {
-            value: String(action.params[0]).replace(/^["']|["']$/g, ""),
+            value: resolveDefaultSoundId(rawParam),
             path: "",
             type: "default",
           },

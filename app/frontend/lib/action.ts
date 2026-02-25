@@ -1,4 +1,5 @@
 import { isDefined } from "@app/lib/utils";
+import { resolveDefaultSoundDisplayName } from "./sounds";
 
 export type RgbColor = { r: number; g: number; b: number; a: number };
 export type ColorAction = RgbColor & { enabled: boolean };
@@ -128,7 +129,7 @@ export function alertSound(
   if (type === "custom" || type === "cached") {
     return `CustomAlertSound${allowMissingFile ? "Optional" : ""} "${filePath}" ${volume ? volume : ""}`;
   }
-  return `PlayAlertSound ${filePath} ${volume}`;
+  return `PlayAlertSound ${resolveDefaultSoundDisplayName(filePath)} ${volume}`;
 }
 export function minimapIcon(size: IconSize, color: Color, shape: Shape) {
   return `MinimapIcon ${getIconSize(size)} ${color} ${shape}`;
