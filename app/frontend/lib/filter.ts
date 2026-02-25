@@ -10,7 +10,12 @@ import chromatic from "@app/lib/config";
 import { clone, to } from "@app/lib/utils";
 import { store } from "@app/store";
 import { applyPatch, compare, type Operation } from "fast-json-patch";
-import { createMutable, modifyMutable, reconcile } from "solid-js/store";
+import {
+  createMutable,
+  modifyMutable,
+  reconcile,
+  unwrap,
+} from "solid-js/store";
 import { toast } from "solid-sonner";
 import type { ulid } from "ulid";
 import { type Actions, serializeActions } from "./action";
@@ -157,9 +162,9 @@ export class Filter {
   }
 
   execute(command: Command) {
-    const currState = clone(this.rules);
-    command.execute(); // currState is mutated
-    const changes = this.diff(currState, this.rules);
+    const currState = clone(unwrap(this.rules));
+    command.execute();
+    const changes = this.diff(currState, unwrap(this.rules));
     if (changes.length) {
       this.undoStack.push(changes);
       this.redoStack = [];
@@ -202,7 +207,7 @@ export class Filter {
     const changes = this.undoStack.pop();
     if (changes) {
       const updatedState = this.applyChanges(changes);
-      const diff = this.diff(clone(this.rules), updatedState);
+      const diff = this.diff(clone(unwrap(this.rules)), updatedState);
       modifyMutable(this.rules, reconcile(updatedState));
 
       if (diff.length) {
@@ -224,7 +229,7 @@ export class Filter {
           conditions: convertRawToConditions(updatedState[i].conditions),
         };
       }
-      const diff = this.diff(clone(this.rules), updatedState);
+      const diff = this.diff(clone(unwrap(this.rules)), updatedState);
       modifyMutable(this.rules, reconcile(updatedState));
       addParentRefs(this.rules); // FIX: this is wasteful
       if (diff.length) {
@@ -234,7 +239,7 @@ export class Filter {
   }
 
   private applyChanges(changes: Operation[]) {
-    const copy = clone(this.rules);
+    const copy = clone(unwrap(this.rules));
     applyPatch(copy, changes);
     return copy;
   }

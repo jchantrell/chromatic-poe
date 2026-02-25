@@ -102,16 +102,21 @@ export default function SoundPicker() {
 
   createMemo(
     on(path, () => {
+      const p = path();
+      const current = store.activeRule?.actions?.sound?.path;
       if (
         store.activeRule?.actions &&
-        path()?.path &&
-        path()?.type &&
-        path()?.id
+        p?.path &&
+        p?.type &&
+        p?.id &&
+        (current?.value !== p.id ||
+          current?.type !== p.type ||
+          current?.path !== p.path)
       ) {
         setSoundPath(store.filter as Filter, store.activeRule, {
-          value: path()?.id as string,
-          path: path()?.path as string,
-          type: path()?.type as "custom" | "default",
+          value: p.id,
+          path: p.path,
+          type: p.type as "custom" | "default",
         });
       }
       setSoundRef();
