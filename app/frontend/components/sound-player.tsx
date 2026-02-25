@@ -2,7 +2,7 @@ import { BASE_URL } from "@app/app";
 import Tooltip from "@app/components/tooltip";
 import { VolumeIcon } from "@app/icons";
 import type { Sound } from "@app/lib/sounds";
-import { createEffect, onCleanup } from "solid-js";
+import { onCleanup } from "solid-js";
 
 export default function SoundPlayer(props: {
   sound: Sound | null;
@@ -12,18 +12,11 @@ export default function SoundPlayer(props: {
   id?: string | null;
 }) {
   let audioRef: HTMLAudioElement | undefined;
+  let objectUrl: string | null = null;
   const validAudio =
     props.sound?.data instanceof File ||
     props.sound?.data instanceof Blob ||
     props.sound?.type === "default";
-
-  async function handlePlay() {
-    if (audioRef) {
-      audioRef.currentTime = 0;
-      audioRef.volume = props.volume;
-      await audioRef.play();
-    }
-  }
 
   function getSource(sound: Sound | null) {
     if (sound?.data instanceof File) {
@@ -38,21 +31,40 @@ export default function SoundPlayer(props: {
     return "";
   }
 
-  createEffect(() => {
-    const src = getSource(props.sound);
+  /**
+   * Load audio source on demand and play. Avoids eagerly loading all audio
+   * elements which overwhelms the Tauri asset protocol in production builds.
+   */
+  async function handlePlay() {
+    if (!audioRef) return;
 
-    if (audioRef) {
-      audioRef.src = src;
+    const src = getSource(props.sound);
+    if (!src) return;
+
+    // Revoke previous object URL if any
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+      objectUrl = null;
     }
 
-    onCleanup(() => {
-      if (
-        src &&
-        (props.sound?.data instanceof File || props.sound?.data instanceof Blob)
-      ) {
-        URL.revokeObjectURL(src);
-      }
-    });
+    // Track object URLs for cleanup
+    if (
+      props.sound?.data instanceof File ||
+      props.sound?.data instanceof Blob
+    ) {
+      objectUrl = src;
+    }
+
+    audioRef.src = src;
+    audioRef.volume = props.volume;
+    audioRef.currentTime = 0;
+    await audioRef.play();
+  }
+
+  onCleanup(() => {
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+    }
   });
 
   return (
