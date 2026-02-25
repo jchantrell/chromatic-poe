@@ -9,7 +9,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@app/ui/dialog";
-import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
 import { TextField, TextFieldInput, TextFieldLabel } from "@app/ui/text-field";
 import { ToggleGroup, ToggleGroupItem } from "@app/ui/toggle-group";
 import { createEffect, createSignal, For } from "solid-js";
@@ -103,21 +102,26 @@ export default function ImportFilter() {
             />
           </TextField>
           <div class='flex items-center gap-2'>
-            <div class='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mr-2'>
-              PoE Version
-            </div>
-            <div class='text-md font-semibold'>1</div>
-            <Switch
-              checked={version() === 2}
-              onChange={(checked) => {
-                handleVersion(checked ? 2 : 1);
+            <div class='text-sm font-medium leading-none mr-2'>PoE Version</div>
+            <ToggleGroup
+              value={String(version())}
+              onChange={(v) => {
+                if (v) handleVersion(Number(v) as 1 | 2);
               }}
             >
-              <SwitchControl class='bg-neutral-300 data-checked:bg-neutral-300'>
-                <SwitchThumb />
-              </SwitchControl>
-            </Switch>
-            <div class='text-md font-semibold'>2</div>
+              <ToggleGroupItem
+                value='1'
+                class='px-3 data-pressed:bg-neutral-700 bg-neutral-700/25 border border-accent'
+              >
+                PoE 1
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value='2'
+                class='px-3 data-pressed:bg-neutral-700 bg-neutral-700/25 border border-accent'
+              >
+                PoE 2
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
 
           {chromatic.runtime === "web" && (

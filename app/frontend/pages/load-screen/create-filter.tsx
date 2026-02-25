@@ -9,14 +9,14 @@ import {
   DialogTrigger,
 } from "@app/ui/dialog";
 import { TextField, TextFieldInput, TextFieldLabel } from "@app/ui/text-field";
-import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@app/ui/toggle-group";
 import { createSignal } from "solid-js";
 import { toast } from "solid-sonner";
 
 export default function CreateFilter() {
   const [name, setName] = createSignal("Chromatic");
   const [dialogOpen, setDialogOpen] = createSignal(false);
-  const [version, setVersion] = createSignal<number>(2);
+  const [version, setVersion] = createSignal<1 | 2>(2);
 
   async function createFilter() {
     if (name() === "") {
@@ -62,21 +62,26 @@ export default function CreateFilter() {
             />
           </TextField>
           <div class='flex items-center gap-2'>
-            <div class='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mr-2'>
-              PoE Version
-            </div>
-            <div class='text-md font-semibold'>1</div>
-            <Switch
-              checked={version() === 2}
-              onChange={(checked) => {
-                setVersion(checked ? 2 : 1);
+            <div class='text-sm font-medium leading-none mr-2'>PoE Version</div>
+            <ToggleGroup
+              value={String(version())}
+              onChange={(v) => {
+                if (v) setVersion(Number(v) as 1 | 2);
               }}
             >
-              <SwitchControl class='bg-neutral-300 data-checked:bg-neutral-300'>
-                <SwitchThumb />
-              </SwitchControl>
-            </Switch>
-            <div class='text-md font-semibold'>2</div>
+              <ToggleGroupItem
+                value='1'
+                class='px-3 data-pressed:bg-neutral-700 bg-neutral-700/25 border border-accent'
+              >
+                PoE 1
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value='2'
+                class='px-3 data-pressed:bg-neutral-700 bg-neutral-700/25 border border-accent'
+              >
+                PoE 2
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
           <Button
             class='text-center cursor-pointer grid  max-w-sm rounded-lg items-center border p-0'
