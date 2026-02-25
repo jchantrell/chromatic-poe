@@ -11,7 +11,6 @@ import {
   createSignal,
   For,
   on,
-  onCleanup,
 } from "solid-js";
 import { createMutable } from "solid-js/store";
 
@@ -172,11 +171,6 @@ export function ItemPicker(props: { rule: FilterRule }) {
     hierarchy: rollup(itemIndex.hierarchy, "Items", props.rule.bases),
   });
 
-  const pendingChanges = {
-    toAdd: [] as FilterItem[],
-    toRemove: new Set<string>(),
-  };
-
   function toggle(node: TreeNode, enabled: boolean): void {
     if (node.enabled === enabled) return;
 
@@ -214,26 +208,34 @@ export function ItemPicker(props: { rule: FilterRule }) {
       collectLeaves(node, leaves);
 
       if (enabled) {
-        const existingNames = new Set(props.rule.bases.map((b) => b.name));
+        const existingKeys = new Set(
+          props.rule.bases.map((b) => `${b.name}|${b.category}`),
+        );
 
-        leaves.forEach((leaf) => {
-          if (!existingNames.has(leaf.data.name)) {
-            pendingChanges.toAdd.push({
+        const toAdd: FilterItem[] = [];
+        for (const leaf of leaves) {
+          const key = `${leaf.data.name}|${leaf.data.category}`;
+          if (!existingKeys.has(key)) {
+            toAdd.push({
               name: leaf.data.name,
               base: leaf.data.base,
               category: leaf.data.category,
               enabled,
             });
-            pendingChanges.toRemove.delete(leaf.data.name);
           }
-        });
+        }
+
+        if (toAdd.length > 0) {
+          props.rule.bases.push(...toAdd);
+        }
       } else {
-        leaves.forEach((leaf) => {
-          pendingChanges.toRemove.add(leaf.data.name);
-          pendingChanges.toAdd = pendingChanges.toAdd.filter(
-            (item) => item.name !== leaf.data.name,
-          );
-        });
+        const toRemove = new Set(
+          leaves.map((leaf) => `${leaf.data.name}|${leaf.data.category}`),
+        );
+
+        props.rule.bases = props.rule.bases.filter(
+          (base) => !toRemove.has(`${base.name}|${base.category}`),
+        );
       }
     });
   }
@@ -250,20 +252,6 @@ export function ItemPicker(props: { rule: FilterRule }) {
       );
     }),
   );
-
-  onCleanup(() => {
-    batch(() => {
-      if (pendingChanges.toAdd.length > 0) {
-        props.rule.bases.push(...pendingChanges.toAdd);
-      }
-
-      if (pendingChanges.toRemove.size > 0) {
-        props.rule.bases = props.rule.bases.filter(
-          (base) => !pendingChanges.toRemove.has(base.name),
-        );
-      }
-    });
-  });
 
   return (
     <div class='p-2'>
