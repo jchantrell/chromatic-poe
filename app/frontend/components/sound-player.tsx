@@ -11,17 +11,23 @@ export default function SoundPlayer(props: {
   highlight?: boolean;
   id?: string | null;
 }) {
-  let audioRef: HTMLAudioElement | undefined;
+  let audio: HTMLAudioElement | null = null;
   let objectUrl: string | null = null;
   const validAudio =
     props.sound?.data instanceof File ||
     props.sound?.data instanceof Blob ||
     props.sound?.type === "default";
 
-  function revokeObjectUrl() {
+  function cleanup() {
     if (objectUrl) {
       URL.revokeObjectURL(objectUrl);
       objectUrl = null;
+    }
+    if (audio) {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+      audio = null;
     }
   }
 
@@ -43,25 +49,22 @@ export default function SoundPlayer(props: {
   }
 
   /**
-   * Load audio source on demand and play. Fetches audio data asynchronously
-   * to avoid blocking the Tauri asset protocol in production builds.
+   * Create audio element on demand and play. Avoids rendering srcless
+   * <audio> elements which trigger GLib errors in WebKitGTK on Linux.
    */
   async function handlePlay() {
-    if (!audioRef) return;
-
-    revokeObjectUrl();
+    cleanup();
 
     const src = await resolveBlobUrl(props.sound);
     if (!src) return;
 
     objectUrl = src;
-    audioRef.src = src;
-    audioRef.volume = props.volume;
-    audioRef.currentTime = 0;
-    await audioRef.play();
+    audio = new Audio(src);
+    audio.volume = props.volume;
+    await audio.play();
   }
 
-  onCleanup(revokeObjectUrl);
+  onCleanup(cleanup);
 
   return (
     <div class='flex items-center h-full'>
@@ -78,11 +81,6 @@ export default function SoundPlayer(props: {
           <VolumeIcon />
         </button>
       </Tooltip>
-      {validAudio && (
-        <audio ref={audioRef}>
-          <track kind='captions' />
-        </audio>
-      )}
     </div>
   );
 }
