@@ -197,7 +197,6 @@ export default function SoundManager() {
           <div class='flex flex-col size-full overflow-y-auto mb-20'>
             <div class='text-lg font-bold'>Custom</div>
             <div class='w-full flex justify-center'>
-              {!init() && <span class='text-center'>Loading...</span>}
               {init() && !store.sounds.length && (
                 <span class='text-center'>No custom sounds found.</span>
               )}
