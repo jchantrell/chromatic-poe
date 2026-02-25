@@ -1,4 +1,12 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.10.4](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.10.3...chromatic-poe-v0.10.4) (2026-02-25)
+
+
+### Bug Fixes
+
+* lazy-load audio src to prevent Tauri prod build freeze on sound page ([6bae992](https://github.com/jchantrell/chromatic-poe/commit/6bae99233ec959c29a0b75afcf68ae0a3b2b6db7))
+* replace Switch with ToggleGroup for PoE version selector ([6be4e14](https://github.com/jchantrell/chromatic-poe/commit/6be4e140f1c8576bdf9e311349583de475297074))
+
 ## [0.10.3](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.10.2...chromatic-poe-v0.10.3) (2026-02-25)
 
 
