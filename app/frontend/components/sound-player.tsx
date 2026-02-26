@@ -4,6 +4,16 @@ import { VolumeIcon } from "@app/icons";
 import type { Sound } from "@app/lib/sounds";
 import { onCleanup } from "solid-js";
 
+/** Shared AudioContext — created once on first user interaction. */
+let audioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext {
+  if (!audioCtx) {
+    audioCtx = new AudioContext();
+  }
+  return audioCtx;
+}
+
 export default function SoundPlayer(props: {
   sound: Sound | null;
   volume: number;
@@ -11,60 +21,73 @@ export default function SoundPlayer(props: {
   highlight?: boolean;
   id?: string | null;
 }) {
-  let audio: HTMLAudioElement | null = null;
-  let objectUrl: string | null = null;
+  let activeSource: AudioBufferSourceNode | null = null;
   const validAudio =
     props.sound?.data instanceof File ||
     props.sound?.data instanceof Blob ||
     props.sound?.type === "default";
 
-  function cleanup() {
-    if (objectUrl) {
-      URL.revokeObjectURL(objectUrl);
-      objectUrl = null;
-    }
-    if (audio) {
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-      audio = null;
-    }
-  }
-
   /**
-   * Resolve a blob URL for the sound. For File/Blob data this is instant.
+   * Fetch the sound as an ArrayBuffer. For File/Blob data we read directly.
    * For default sounds served via path, we fetch asynchronously to avoid
    * blocking the webview on the Tauri asset protocol in production builds.
    */
-  async function resolveBlobUrl(sound: Sound | null): Promise<string> {
+  async function fetchAudioData(
+    sound: Sound | null,
+  ): Promise<ArrayBuffer | null> {
     if (sound?.data instanceof File || sound?.data instanceof Blob) {
-      return URL.createObjectURL(sound.data);
+      return sound.data.arrayBuffer();
     }
     if (sound?.path) {
       const res = await fetch(`${BASE_URL}${sound.path}`);
-      const blob = await res.blob();
-      return URL.createObjectURL(blob);
+      return res.arrayBuffer();
     }
-    return "";
+    return null;
   }
 
   /**
-   * Create audio element on demand and play. Avoids rendering srcless
-   * <audio> elements which trigger GLib errors in WebKitGTK on Linux.
+   * Play sound using Web Audio API. Bypasses HTMLAudioElement entirely,
+   * avoiding GStreamer dependency issues in WebKitGTK/AppImage builds.
    */
   async function handlePlay() {
-    cleanup();
+    // Stop any currently playing instance
+    if (activeSource) {
+      activeSource.stop();
+      activeSource = null;
+    }
 
-    const src = await resolveBlobUrl(props.sound);
-    if (!src) return;
+    const data = await fetchAudioData(props.sound);
+    if (!data) return;
 
-    objectUrl = src;
-    audio = new Audio(src);
-    audio.volume = props.volume;
-    await audio.play();
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") {
+      await ctx.resume();
+    }
+
+    const buffer = await ctx.decodeAudioData(data);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+
+    const gain = ctx.createGain();
+    gain.gain.value = props.volume;
+    source.connect(gain).connect(ctx.destination);
+
+    source.onended = () => {
+      if (activeSource === source) {
+        activeSource = null;
+      }
+    };
+
+    activeSource = source;
+    source.start();
   }
 
-  onCleanup(cleanup);
+  onCleanup(() => {
+    if (activeSource) {
+      activeSource.stop();
+      activeSource = null;
+    }
+  });
 
   return (
     <div class='flex items-center h-full'>
