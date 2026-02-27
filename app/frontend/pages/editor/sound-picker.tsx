@@ -1,5 +1,6 @@
 import SoundPlayer from "@app/components/sound-player";
 import Tooltip from "@app/components/tooltip";
+import { AlertTriangleIcon } from "@app/icons";
 import {
   setSoundEnabled,
   setSoundPath,
@@ -46,6 +47,9 @@ export default function SoundPicker() {
   );
 
   const [sound, setSound] = createSignal<Sound | null>(null);
+  const [missingSoundName, setMissingSoundName] = createSignal<string | null>(
+    null,
+  );
 
   function handleActive(enabled: boolean) {
     setActive(enabled);
@@ -138,14 +142,18 @@ export default function SoundPicker() {
       setPath(null);
       setActive(false);
       setVolume(100);
+      setMissingSoundName(null);
       return;
     }
     if (store.activeRule?.actions.sound.enabled) {
-      const path = findSound(store.activeRule.actions?.sound?.path);
-      if (path) {
-        setPath(path);
+      const soundPath = store.activeRule.actions?.sound?.path;
+      const found = findSound(soundPath);
+      if (found) {
+        setPath(found);
+        setMissingSoundName(null);
       } else {
         setPath(null);
+        setMissingSoundName(soundPath?.value ?? null);
       }
       setActive(store.activeRule.actions.sound?.enabled || false);
       setVolume(store.activeRule.actions.sound?.volume || 100);
@@ -177,7 +185,13 @@ export default function SoundPicker() {
         />
         <div class='flex grow-0'>
           {active() && (
-            <Tooltip text='Edit sound file'>
+            <Tooltip
+              text={
+                missingSoundName()
+                  ? "Sound file not found on the file system"
+                  : "Edit sound file"
+              }
+            >
               <Combobox<Sound, Category>
                 options={sounds}
                 optionValue='id'
@@ -185,7 +199,12 @@ export default function SoundPicker() {
                 optionLabel='displayName'
                 optionGroupChildren='options'
                 placeholder='Select sound…'
-                onChange={setPath}
+                onChange={(value) => {
+                  setPath(value);
+                  if (value) {
+                    setMissingSoundName(null);
+                  }
+                }}
                 value={path()}
                 class='overflow-y-auto'
                 itemComponent={(props) => (
@@ -204,7 +223,9 @@ export default function SoundPicker() {
               >
                 <ComboboxControl aria-label='Sound'>
                   <div class='h-10 w-10 flex items-center justify-center'>
-                    {sound() ? (
+                    {missingSoundName() ? (
+                      <AlertTriangleIcon class='size-5 text-warning-foreground' />
+                    ) : sound() ? (
                       <SoundPlayer
                         sound={sound()}
                         volume={volume() / 300}
@@ -218,7 +239,13 @@ export default function SoundPicker() {
                       />
                     )}
                   </div>
-                  <ComboboxInput />
+                  {missingSoundName() ? (
+                    <span class='flex-1 truncate text-sm text-warning-foreground'>
+                      {missingSoundName()}
+                    </span>
+                  ) : (
+                    <ComboboxInput />
+                  )}
                   <ComboboxTrigger />
                 </ComboboxControl>
                 <ComboboxContent />
