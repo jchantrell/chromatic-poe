@@ -1,4 +1,15 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.10.5](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.10.4...chromatic-poe-v0.10.5) (2026-02-26)
+
+
+### Bug Fixes
+
+* apply ItemPicker base changes immediately instead of deferring to onCleanup ([cbd19ed](https://github.com/jchantrell/chromatic-poe/commit/cbd19edf4921774af7483fffeaed2f9f1850a28d))
+* create audio elements on demand to avoid WebKitGTK GLib errors on Linux ([c139613](https://github.com/jchantrell/chromatic-poe/commit/c1396133867c09ce28d5e0af8f571df1fcc8d2d6))
+* fetch audio data async to prevent Tauri asset protocol blocking webview ([8b5710b](https://github.com/jchantrell/chromatic-poe/commit/8b5710b38244996641889baa392db3f9c624addd))
+* set GST_PLUGIN_SYSTEM_PATH_1_0 on Linux so AppImage finds host GStreamer plugins ([f5e5e52](https://github.com/jchantrell/chromatic-poe/commit/f5e5e5209bb24d6dc2ead6d85bdeef22ece0167f))
+* use Web Audio API to bypass GStreamer/HTMLAudioElement in WebKitGTK AppImage ([9643bdf](https://github.com/jchantrell/chromatic-poe/commit/9643bdf705c0a5776b41dbaedc5a5669610c69c7))
+
 ## [0.10.4](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.10.3...chromatic-poe-v0.10.4) (2026-02-25)
 
 
