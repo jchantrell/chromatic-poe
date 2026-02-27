@@ -1,4 +1,5 @@
 import Background from "@app/components/background";
+import { Loading } from "@app/components/loading";
 import SoundPlayer from "@app/components/sound-player";
 import Tooltip from "@app/components/tooltip";
 import { RefreshIcon, TrashIcon } from "@app/icons";
@@ -14,8 +15,9 @@ import {
   SliderTrack,
   SliderValueLabel,
 } from "@app/ui/slider";
+import { ToggleGroup, ToggleGroupItem } from "@app/ui/toggle-group";
 import { platform } from "@tauri-apps/plugin-os";
-import { createSignal, For, onMount } from "solid-js";
+import { createSignal, For, onMount, Show } from "solid-js";
 
 function SoundFile(props: {
   sound: Sound;
@@ -52,6 +54,8 @@ function SoundFile(props: {
 export default function SoundManager() {
   const [volume, setVolume] = createSignal(50);
   const [init, setInit] = createSignal(false);
+  const [version, setVersion] = createSignal<1 | 2>(2);
+  const [loading, setLoading] = createSignal(false);
 
   function handleUpload(e: Event) {
     if (e.target instanceof HTMLInputElement && e.target.files) {
@@ -111,7 +115,7 @@ export default function SoundManager() {
   }
 
   async function openSoundDir() {
-    const dir = await chromatic.getPoeDirectory(2);
+    const dir = await chromatic.getPoeDirectory(version());
     if (!dir) {
       // Toast is already shown by getPoeDirectory on Linux
       return;
@@ -119,8 +123,17 @@ export default function SoundManager() {
     await chromatic.openFileExplorer(dir);
   }
 
+  async function handleVersion(v: 1 | 2) {
+    setVersion(v);
+    setLoading(true);
+    await refreshSounds(v);
+    setLoading(false);
+  }
+
   onMount(async () => {
-    await refreshSounds();
+    setLoading(true);
+    await refreshSounds(version());
+    setLoading(false);
     setInit(true);
   });
 
@@ -139,7 +152,28 @@ export default function SoundManager() {
         </div>
         <div class='flex flex-col mb-2 mt-10 w-4/5 h-full'>
           <div class='flex justify-between'>
-            <div class='flex items-center'>
+            <div class='flex items-center gap-2'>
+              {chromatic.runtime === "desktop" && (
+                <ToggleGroup
+                  value={String(version())}
+                  onChange={(v) => {
+                    if (v) handleVersion(Number(v) as 1 | 2);
+                  }}
+                >
+                  <ToggleGroupItem
+                    value='1'
+                    class='px-3 data-pressed:bg-neutral-700 bg-neutral-700/25 border border-accent'
+                  >
+                    PoE 1
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value='2'
+                    class='px-3 data-pressed:bg-neutral-700 bg-neutral-700/25 border border-accent'
+                  >
+                    PoE 2
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              )}
               {chromatic.runtime === "web" && (
                 <input
                   type='file'
@@ -162,7 +196,7 @@ export default function SoundManager() {
               {chromatic.runtime === "desktop" && (
                 <Tooltip text='Refresh'>
                   <button
-                    onClick={async () => await refreshSounds()}
+                    onClick={async () => await refreshSounds(version())}
                     type='button'
                     class='p-2 hover:bg-primary/10'
                   >
@@ -195,33 +229,35 @@ export default function SoundManager() {
           </div>
           <Separator class='my-3 border-neutral-500' />
           <div class='flex flex-col size-full overflow-y-auto mb-20'>
-            <div class='text-lg font-bold'>Custom</div>
-            <div class='w-full flex justify-center'>
-              {init() && !store.sounds.length && (
-                <span class='text-center'>No custom sounds found.</span>
-              )}
-            </div>
-            <div class='flex flex-col size-full'>
-              <div class='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 mt-2 auto-rows-max w-full mb-5'>
-                <For each={store.sounds}>
-                  {(sound) => (
-                    <SoundFile
-                      sound={sound}
-                      volume={volume() * 0.01}
-                      handleRemove={handleRemove}
-                    />
-                  )}
-                </For>
+            <Show when={!loading()} fallback={<Loading />}>
+              <div class='text-lg font-bold'>Custom</div>
+              <div class='w-full flex justify-center'>
+                {init() && !store.sounds.length && (
+                  <span class='text-center'>No custom sounds found.</span>
+                )}
               </div>
-              <div class='text-lg font-bold'>Default</div>
-              <div class='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 mt-2 auto-rows-min size-full max-h-72'>
-                <For each={store.defaultSounds}>
-                  {(sound) => (
-                    <SoundFile sound={sound} volume={volume() * 0.01} />
-                  )}
-                </For>
+              <div class='flex flex-col size-full'>
+                <div class='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 mt-2 auto-rows-max w-full mb-5'>
+                  <For each={store.sounds}>
+                    {(sound) => (
+                      <SoundFile
+                        sound={sound}
+                        volume={volume() * 0.01}
+                        handleRemove={handleRemove}
+                      />
+                    )}
+                  </For>
+                </div>
+                <div class='text-lg font-bold'>Default</div>
+                <div class='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 mt-2 auto-rows-min size-full max-h-72'>
+                  <For each={store.defaultSounds}>
+                    {(sound) => (
+                      <SoundFile sound={sound} volume={volume() * 0.01} />
+                    )}
+                  </For>
+                </div>
               </div>
-            </div>
+            </Show>
           </div>
         </div>
       </div>

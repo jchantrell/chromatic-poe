@@ -446,25 +446,26 @@ class Chromatic {
       if (!dir) {
         return [];
       }
-      const soundDir = `${dir}${this.sep()}sounds`;
-      const files = await this.getAllFiles(soundDir, "binary");
-      return files
-        .filter((file) => /\.(wav|mp3|ogg)$/i.test(file.name))
-        .map((f) => {
-          const ext = f.name.split(".").pop()?.toLowerCase();
-          let type = "audio/wav";
-          if (ext === "mp3") type = "audio/mpeg";
-          if (ext === "ogg") type = "audio/ogg";
+      const audioExtensions = /\.(wav|mp3|ogg)$/i;
+      const files = await this.getAllFiles(dir, "binary", {
+        recursive: true,
+        extensions: audioExtensions,
+      });
+      return files.map((f) => {
+        const ext = f.name.split(".").pop()?.toLowerCase();
+        let type = "audio/wav";
+        if (ext === "mp3") type = "audio/mpeg";
+        if (ext === "ogg") type = "audio/ogg";
 
-          return {
-            ...f,
-            path: f.name,
-            displayName: f.name,
-            id: f.name,
-            type: "custom",
-            data: new Blob([f.data], { type }),
-          };
-        });
+        return {
+          ...f,
+          path: f.name,
+          displayName: f.name,
+          id: f.name,
+          type: "custom",
+          data: new Blob([f.data], { type }),
+        };
+      });
     }
 
     return sounds;
@@ -509,6 +510,7 @@ class Chromatic {
   async getAllFiles<T extends "text" | "binary">(
     path: string,
     type: T,
+    options?: { recursive?: boolean; baseDir?: string; extensions?: RegExp },
   ): Promise<
     {
       name: string;
@@ -517,16 +519,35 @@ class Chromatic {
   > {
     if (this.runtime !== "desktop") return [];
     const records = await readDir(path);
+    const baseDir = options?.baseDir ?? path;
     const files = [];
     for (const record of records) {
       if (record.isFile) {
-        const bytes = await readFile(`${path}/${record.name}`);
+        if (options?.extensions && !options.extensions.test(record.name)) {
+          continue;
+        }
+        const fullPath = `${path}/${record.name}`;
+        const bytes = await readFile(fullPath);
+        const relativeName =
+          path === baseDir
+            ? record.name
+            : `${path.slice(baseDir.length + 1)}/${record.name}`;
         if (type === "text") {
-          files.push({ name: record.name, data: this.decoder.decode(bytes) });
+          files.push({
+            name: relativeName,
+            data: this.decoder.decode(bytes),
+          });
         }
         if (type === "binary") {
-          files.push({ name: record.name, data: bytes });
+          files.push({ name: relativeName, data: bytes });
         }
+      } else if (record.isDirectory && options?.recursive) {
+        const subFiles = await this.getAllFiles(
+          `${path}/${record.name}`,
+          type,
+          { recursive: true, baseDir, extensions: options.extensions },
+        );
+        files.push(...subFiles);
       }
     }
     return files as {
