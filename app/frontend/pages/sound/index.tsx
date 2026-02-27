@@ -16,7 +16,6 @@ import {
   SliderValueLabel,
 } from "@app/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@app/ui/toggle-group";
-import { platform } from "@tauri-apps/plugin-os";
 import { createSignal, For, onMount, Show } from "solid-js";
 
 function SoundFile(props: {
@@ -104,16 +103,6 @@ export default function SoundManager() {
     }
   }
 
-  function getExampleDir() {
-    const os = chromatic.runtime === "desktop" ? platform() : "web";
-    if (os === "windows" || os === "web") {
-      return `${chromatic.windowsPoeDirectory("C:\\Users\\User", 1)}\\sounds\\my-sound.wav`;
-    }
-    if (os === "linux") {
-      return `${chromatic.linuxPoeDirectory("/home/user", "/home/user", 1)[1]}/sounds/my-sound.wav`;
-    }
-  }
-
   async function openSoundDir() {
     const dir = await chromatic.getPoeDirectory(version());
     if (!dir) {
@@ -140,17 +129,7 @@ export default function SoundManager() {
   return (
     <Background>
       <div class='flex flex-col items-center size-full p-10'>
-        <div class='text-wrap flex flex-col items-center justify-center'>
-          <div>
-            Chromatic looks for sound files{" "}
-            {chromatic.runtime === "desktop" ? "(wav, mp3, ogg) " : ""}
-            in the "sounds" folder next to your filter files.
-          </div>
-        </div>
-        <div class='text-neutral-400 italic text-wrap flex flex-col items-center'>
-          e.g. {getExampleDir()}
-        </div>
-        <div class='flex flex-col mb-2 mt-10 w-4/5 h-full'>
+        <div class='flex flex-col mb-2 w-4/5 h-full'>
           <div class='flex justify-between'>
             <div class='flex items-center gap-2'>
               {chromatic.runtime === "desktop" && (

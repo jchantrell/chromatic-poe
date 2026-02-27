@@ -444,7 +444,7 @@ class Chromatic {
     if (this.runtime === "desktop") {
       const dir = await this.getPoeDirectory(version);
       if (!dir) {
-        return [];
+        throw new Error(`PoE ${version} directory is not set.`);
       }
       const audioExtensions = /\.(wav|mp3|ogg)$/i;
       const files = await this.getAllFiles(dir, "binary", {
