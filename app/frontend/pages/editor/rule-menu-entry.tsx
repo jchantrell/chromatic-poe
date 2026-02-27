@@ -199,7 +199,7 @@ export default function Rule(props: {
                 </div>
                 <input
                   id={`${props.rule.id}-menu`}
-                  class='bg-transparent py-1 px-2 border-none min-w-0 field-sizing-content max-w-full'
+                  class='bg-transparent py-1 px-2 border-none min-w-0 w-full text-ellipsis overflow-hidden'
                   type='text'
                   spellcheck={false}
                   value={props.rule.name}
