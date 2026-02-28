@@ -1,7 +1,7 @@
 {
   "productName": "Chromatic",
   "identifier": "chromatic",
-  "version": "0.10.5",
+  "version": "0.11.0",
   "mainBinaryName": "chromatic",
   "build": {
     "beforeDevCommand": "pnpm vite dev",
