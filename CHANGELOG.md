@@ -1,4 +1,18 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.11.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.10.5...chromatic-poe-v0.11.0) (2026-02-28)
+
+
+### Features
+
+* recursive sound discovery with PoE version toggle ([5a62d56](https://github.com/jchantrell/chromatic-poe/commit/5a62d564b60c2b96cb1c3576cb9f968d72fc902c))
+* show warning icon for missing sound files in rule editor ([ae79726](https://github.com/jchantrell/chromatic-poe/commit/ae797268bd0c6eea99a9439cf5ae358d0c2478cc))
+
+
+### Bug Fixes
+
+* prevent rule name truncation in rule list by filling available width with ellipsis ([7c2abb5](https://github.com/jchantrell/chromatic-poe/commit/7c2abb56a29e459fd49bc690e88960b7e4f849bb))
+* remove sound page title/description and toast when PoE directory is not set ([51dfb0e](https://github.com/jchantrell/chromatic-poe/commit/51dfb0e322e315c065f624d626b82e0a65e84e17))
+
 ## [0.10.5](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.10.4...chromatic-poe-v0.10.5) (2026-02-26)
 
 
