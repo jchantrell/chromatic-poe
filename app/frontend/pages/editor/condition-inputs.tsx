@@ -276,17 +276,18 @@ const SOCKET_COLORS = [
 
 type SocketColor = (typeof SOCKET_COLORS)[number]["value"];
 
-/** Parse a socket value like "5GGG" into {count, colors} */
+/** Parse a socket value like "5GGG" or "GGR" into {count, colors} */
 function parseSocketValue(value: string): {
   count: number;
   colors: SocketColor[];
 } {
-  const match = value.match(/^(\d+)([RGBADW]*)$/i);
+  const match = value.match(/^(\d*)([RGBADW]*)$/i);
   if (!match) return { count: 1, colors: [] };
-  return {
-    count: Math.max(1, Math.min(6, Number(match[1]))),
-    colors: (match[2]?.toUpperCase().split("") ?? []) as SocketColor[],
-  };
+  const colors = (match[2]?.toUpperCase().split("") ?? []) as SocketColor[];
+  const count = match[1]
+    ? Math.max(1, Math.min(6, Number(match[1])))
+    : Math.max(1, colors.length);
+  return { count, colors };
 }
 
 /** Serialize {count, colors} back to "5GGG" */
