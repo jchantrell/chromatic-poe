@@ -63,7 +63,7 @@ export default function Rule(props: {
       return "";
     }
     if (selected()) {
-      return "border-1 border-ring/30";
+      return "border-1 border-primary/60";
     }
     if (hovered()) {
       return "border-1 border-accent";
@@ -77,7 +77,7 @@ export default function Rule(props: {
       return "text-muted-foreground/20";
     }
     if (selected()) {
-      return "text-foreground";
+      return "text-foreground font-medium";
     }
     if (hovered()) {
       return "text-foreground";
@@ -88,7 +88,7 @@ export default function Rule(props: {
   function getSelectedStyles() {
     if (!props.rule.enabled) return "";
     if (selected()) {
-      return "bg-accent/40";
+      return "bg-primary/15 shadow-[inset_3px_0_0_0] shadow-primary/70";
     }
     return "";
   }
