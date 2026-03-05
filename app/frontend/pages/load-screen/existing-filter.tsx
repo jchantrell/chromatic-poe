@@ -127,7 +127,7 @@ export default function ExistingFilter(props: { filter: Filter }) {
       </Dialog>
       <ContextMenu>
         <ContextMenuTrigger class='w-full'>
-          <a href={`${BASE_URL}${props.filter.name}`}>
+          <a href={`${BASE_URL}${encodeURIComponent(props.filter.name)}`}>
             <Button
               class='flex text-left justify-between w-full rounded-t-lg p-0'
               variant='ghost'

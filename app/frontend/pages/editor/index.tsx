@@ -26,7 +26,9 @@ export default function Editor() {
   const params = useParams();
 
   createEffect(() => {
-    const filter = store.filters.find((entry) => entry.name === params.filter);
+    const filter = store.filters.find(
+      (entry) => entry.name === decodeURIComponent(params.filter),
+    );
     setFilter(filter || null);
   });
 
