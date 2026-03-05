@@ -503,7 +503,9 @@ class Chromatic {
     return files.filter(
       (file) =>
         file.name.endsWith(".filter") &&
-        !store.filters.some((filter) => filter.name === file.name),
+        !store.filters.some(
+          (filter) => filter.name === file.name.replace(/\.filter$/, ""),
+        ),
     );
   }
 
