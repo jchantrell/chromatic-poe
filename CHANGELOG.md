@@ -1,4 +1,13 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.11.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.11.1...chromatic-poe-v0.11.2) (2026-03-05)
+
+
+### Bug Fixes
+
+* compare filter names without extension in listImportableFilters ([1537de4](https://github.com/jchantrell/chromatic-poe/commit/1537de4e4adb36ec537d2c518d6ebc28b620aead))
+* encode filter names in URLs to support dots in names ([4453ba5](https://github.com/jchantrell/chromatic-poe/commit/4453ba5fb0562a10a4f4b5ec776524112b957a51))
+* strip only trailing .filter extension to preserve dots in filter names ([476897b](https://github.com/jchantrell/chromatic-poe/commit/476897bb5d81533dae5512014ad3603627069bd1))
+
 ## [0.11.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.11.0...chromatic-poe-v0.11.1) (2026-03-01)
 
 
