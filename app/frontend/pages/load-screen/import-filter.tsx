@@ -56,7 +56,7 @@ export default function ImportFilter() {
         return;
       }
       if (filter) {
-        setName(file.name.split(".")[0]);
+        setName(file.name.replace(/\.filter$/, ""));
         setRaw(filter);
       }
     }
@@ -64,7 +64,7 @@ export default function ImportFilter() {
 
   function handleExistingFilter(filter: { name: string; data: string }) {
     setRaw(filter.data);
-    setName(filter.name.replace(".filter", ""));
+    setName(filter.name.replace(/\.filter$/, ""));
   }
 
   function handleVersion(number: 1 | 2) {
@@ -173,7 +173,7 @@ export default function ImportFilter() {
                             value={filter.name}
                             onClick={() => handleExistingFilter(filter)}
                           >
-                            {filter.name.replace(".filter", "")}
+                            {filter.name.replace(/\.filter$/, "")}
                           </ToggleGroupItem>
                         );
                       }}
