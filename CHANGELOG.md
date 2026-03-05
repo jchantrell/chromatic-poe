@@ -1,4 +1,12 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.11.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.11.0...chromatic-poe-v0.11.1) (2026-03-01)
+
+
+### Bug Fixes
+
+* display socket colors in condition editor for imported SocketGroup/Sockets rules ([72705a8](https://github.com/jchantrell/chromatic-poe/commit/72705a8889e62e775f61083b1225e43e59f5278e))
+* improve selected rule visibility and fix overlapping cell borders ([435ecd6](https://github.com/jchantrell/chromatic-poe/commit/435ecd6932eebdb24dd6284b52a210e18754e853))
+
 ## [0.11.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.10.5...chromatic-poe-v0.11.0) (2026-02-28)
 
 
