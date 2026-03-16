@@ -1,5 +1,6 @@
-import { SettingsIcon } from "@app/icons";
+import { CloseIcon, SettingsIcon } from "@app/icons";
 import chromatic from "@app/lib/config";
+import { dat } from "@app/lib/dat";
 import { DEFAULT_FONT, FONT_OPTIONS, type FontOption } from "@app/lib/fonts";
 import { checkForUpdate, relaunchApp } from "@app/lib/update";
 import { to } from "@app/lib/utils";
@@ -22,10 +23,10 @@ import {
   SelectValue,
 } from "@app/ui/select";
 import { Separator } from "@app/ui/separator";
+import { TextField, TextFieldInput } from "@app/ui/text-field";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { platform } from "@tauri-apps/plugin-os";
-import { TextField, TextFieldInput } from "@app/ui/text-field";
-import { createEffect, createSignal, on, Show } from "solid-js";
+import { createEffect, createSignal, For, on, Show } from "solid-js";
 import { toast } from "solid-sonner";
 import Theme from "./theme";
 
@@ -104,9 +105,26 @@ export function Settings() {
   const [poeladderUsername, setPoeladderUsername] = createSignal<string>(
     chromatic.config?.poeladderUsername ?? "",
   );
+  const [storedVersions, setStoredVersions] = createSignal<string[]>([]);
 
   const isLinux = () =>
     chromatic.runtime === "desktop" && platform() === "linux";
+
+  async function loadStoredVersions() {
+    const [err, versions] = await to(dat.getStoredVersions());
+    if (err) return;
+    setStoredVersions(versions);
+  }
+
+  async function handleDropVersion(patch: string) {
+    const [err] = await to(dat.dropVersion(patch));
+    if (err) {
+      toast.error(`Failed to drop data for ${patch}`);
+      return;
+    }
+    toast.success(`Dropped game data for ${patch}`);
+    await loadStoredVersions();
+  }
 
   async function handleUpdate() {
     const [err] = await to(checkForUpdate());
@@ -145,6 +163,7 @@ export function Settings() {
         setPoe1Dir(chromatic.config?.poe1Directory);
         setPoe2Dir(chromatic.config?.poe2Directory);
         setPoeladderUsername(chromatic.config?.poeladderUsername ?? "");
+        await loadStoredVersions();
       },
     ),
   );
@@ -248,6 +267,33 @@ export function Settings() {
               {store.poeCurrentVersions?.poe2}
             </span>
           </div>
+
+          <Show when={storedVersions().length > 0}>
+            <div class='space-y-1 pt-1'>
+              <span class='text-xs text-muted-foreground'>
+                Stored game data
+              </span>
+              <div class='space-y-1'>
+                <For each={storedVersions()}>
+                  {(patch) => (
+                    <div class='flex items-center justify-between rounded-md border border-border/50 px-3 py-1.5'>
+                      <span class='font-mono text-xs text-foreground'>
+                        {patch}
+                      </span>
+                      <button
+                        type='button'
+                        class='text-muted-foreground hover:text-destructive transition-colors size-4'
+                        onClick={() => handleDropVersion(patch)}
+                        title={`Drop game data for ${patch}`}
+                      >
+                        <CloseIcon />
+                      </button>
+                    </div>
+                  )}
+                </For>
+              </div>
+            </div>
+          </Show>
         </section>
 
         <Separator class='bg-border/50' />

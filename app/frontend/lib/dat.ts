@@ -1,5 +1,5 @@
-import { SCHEMA_URL, type SchemaFile, ValidFor } from "pathofexile-dat-schema";
 import { readColumn, readDatFile } from "pathofexile-dat/dat.js";
+import { SCHEMA_URL, type SchemaFile, ValidFor } from "pathofexile-dat-schema";
 import { ArtManager } from "./art";
 import { BundleManager } from "./bundle";
 import { Database } from "./db";
@@ -476,6 +476,35 @@ export class DatManager {
     if (header.type.boolean) return 1;
 
     return 0;
+  }
+
+  async getStoredVersions(): Promise<string[]> {
+    await this.ensureDbInitialized();
+    const rows = await this.db.query(
+      "SELECT DISTINCT version FROM _metadata ORDER BY version",
+    );
+    return rows.map((r) => r.version as string);
+  }
+
+  async dropVersion(patch: string) {
+    await this.ensureDbInitialized();
+
+    for (const table of TABLES) {
+      await this.db.exec(`DROP TABLE IF EXISTS "${patch}_${table}"`);
+    }
+
+    await this.db.run("DELETE FROM _metadata WHERE version = ?", [patch]);
+
+    const idb = await this.idb.getInstance();
+
+    const uniqueKeys = await idb.getAllKeys("uniques");
+    const tx = idb.transaction("uniques", "readwrite");
+    for (const key of uniqueKeys) {
+      if (typeof key === "string" && key.startsWith(`${patch}/`)) {
+        await tx.store.delete(key);
+      }
+    }
+    await tx.done;
   }
 
   async fetchPoeVersions(): Promise<{
