@@ -185,14 +185,34 @@ export class Filter {
       clearTimeout(this.autosaveTimer);
     }
 
-    this.autosaveTimer = setTimeout(async () => {
+    this.autosaveTimer = setTimeout(() => {
       this.autosaveTimer = null;
+      this.performAutosave();
+    }, AUTOSAVE_DELAY);
+  }
+
+  private async performAutosave() {
+    try {
       this.setLastUpdated(new Date());
       await chromatic.saveFilter(this, true);
       if (chromatic.runtime === "desktop") {
         await chromatic.writeFilter(this, true);
       }
-    }, AUTOSAVE_DELAY);
+    } catch (err) {
+      console.error("Autosave failed", err);
+    }
+  }
+
+  /**
+   * Immediately executes any pending autosave. Call on window close / beforeunload
+   * to prevent data loss from the debounce window.
+   */
+  async flushAutosave() {
+    if (this.autosaveTimer) {
+      clearTimeout(this.autosaveTimer);
+      this.autosaveTimer = null;
+      await this.performAutosave();
+    }
   }
 
   diff(prevState: FilterRule[], nextState: FilterRule[]) {
@@ -214,6 +234,7 @@ export class Filter {
 
       if (diff.length) {
         this.redoStack.unshift(diff);
+        this.scheduleAutosave();
       }
     }
   }
@@ -236,6 +257,7 @@ export class Filter {
       addParentRefs(this.rules); // FIX: this is wasteful
       if (diff.length) {
         this.undoStack.push(diff);
+        this.scheduleAutosave();
       }
     }
   }

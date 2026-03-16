@@ -273,6 +273,9 @@ function App() {
     if (chromatic.config?.autosave) {
       setAutosave(true);
     }
+    window.addEventListener("beforeunload", () => {
+      store.filter?.flushAutosave();
+    });
     await chromatic.getAllFilters();
     store.missingUniques = await chromatic.loadAllMissingUniques();
     setInitialised(true);
