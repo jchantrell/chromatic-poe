@@ -74,7 +74,17 @@ export function SelectInput(props: {
 }) {
   let scrollRef: HTMLDivElement | undefined;
   const [searchTerm, setSearchTerm] = createSignal("");
-  const [filtered, setFiltered] = createSignal<SearchableMod[]>([]);
+
+  function runSearch(term: string) {
+    return props.index
+      .search(term)
+      .map((result) => result.item)
+      .sort((a: SearchableMod, b: SearchableMod) =>
+        a.type.localeCompare(b.type),
+      );
+  }
+
+  const [filtered, setFiltered] = createSignal<SearchableMod[]>(runSearch(""));
   const debouncedSetFiltered = debounce(setFiltered, 200);
 
   const selectedSet = createMemo(() => new Set(props.value));
@@ -85,15 +95,6 @@ export function SelectInput(props: {
     } else {
       props.onChange(props.value.filter((v) => v !== name));
     }
-  }
-
-  function runSearch(term: string) {
-    return props.index
-      .search(term)
-      .map((result) => result.item)
-      .sort((a: SearchableMod, b: SearchableMod) =>
-        a.type.localeCompare(b.type),
-      );
   }
 
   createEffect(() => {
@@ -109,9 +110,6 @@ export function SelectInput(props: {
     estimateSize: () => 40,
     overscan: 10,
   });
-
-  // Seed initial results synchronously so the list isn't empty on open
-  setFiltered(runSearch(""));
 
   return (
     <div class='flex'>
