@@ -23,8 +23,9 @@ import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
 import { ToggleGroup, ToggleGroupItem } from "@app/ui/toggle-group";
+import { createVirtualizer } from "@tanstack/solid-virtual";
 import { debounce } from "@solid-primitives/scheduled";
-import { createMemo, createSignal, For, onMount } from "solid-js";
+import { createEffect, createMemo, createSignal, For } from "solid-js";
 
 type FilteredConditionKey = Exclude<ConditionKey, ConditionKey.BASE_TYPE>;
 
@@ -64,6 +65,10 @@ export function SliderInput(props: {
   );
 }
 
+type FlatRow =
+  | { type: "header"; group: string }
+  | { type: "mod"; mod: SearchableMod };
+
 export function SelectInput(props: {
   value: string[];
   key: FilteredConditionKey;
@@ -71,48 +76,61 @@ export function SelectInput(props: {
   groupKey: string;
   onChange: (value: string[]) => void;
 }) {
+  let scrollRef: HTMLDivElement | undefined;
   const [searchTerm, setSearchTerm] = createSignal("");
-  const [filteredGroups, setFilteredGroups] = createSignal<string[]>([]);
   const [filtered, setFiltered] = createSignal<SearchableMod[]>([]);
   const debouncedSetFiltered = debounce(setFiltered, 200);
 
+  const selectedSet = createMemo(() => new Set(props.value));
+
   function handleClick(name: string) {
-    if (!props.value.includes(name)) {
+    if (!selectedSet().has(name)) {
       props.onChange([...props.value, name]);
     } else {
       props.onChange(props.value.filter((v) => v !== name));
     }
   }
 
-  createMemo(() => {
-    debouncedSetFiltered(
-      props.index
-        .search(`${searchTerm()}`)
-        .map((result) => result.item)
-        .sort((a: SearchableMod, b: SearchableMod) =>
-          a.type.localeCompare(b.type),
-        ),
-    );
+  function runSearch(term: string) {
+    return props.index
+      .search(term)
+      .map((result) => result.item)
+      .sort((a: SearchableMod, b: SearchableMod) =>
+        a.type.localeCompare(b.type),
+      );
+  }
+
+  createEffect(() => {
+    const term = searchTerm();
+    debouncedSetFiltered(runSearch(term));
   });
 
-  createMemo(() => {
-    setFilteredGroups(
-      Array.from(
-        new Set(filtered().map((entry) => entry[props.groupKey] as string)),
-      ),
-    );
+  const rows = createMemo<FlatRow[]>(() => {
+    const items = filtered();
+    const result: FlatRow[] = [];
+    let lastGroup = "";
+    for (const mod of items) {
+      const group = mod[props.groupKey] as string;
+      if (group !== lastGroup) {
+        result.push({ type: "header", group });
+        lastGroup = group;
+      }
+      result.push({ type: "mod", mod });
+    }
+    return result;
   });
 
-  onMount(() => {
-    setFiltered(
-      props.index
-        .search(`${searchTerm()}`)
-        .map((result) => result.item)
-        .sort((a: SearchableMod, b: SearchableMod) =>
-          a.type.localeCompare(b.type),
-        ),
-    );
+  const virtualizer = createVirtualizer({
+    get count() {
+      return rows().length;
+    },
+    getScrollElement: () => scrollRef ?? null,
+    estimateSize: (index) => (rows()[index].type === "header" ? 28 : 40),
+    overscan: 10,
   });
+
+  // Seed initial results synchronously so the list isn't empty on open
+  setFiltered(runSearch(""));
 
   return (
     <div class='flex'>
@@ -138,59 +156,84 @@ export function SelectInput(props: {
               />
             </TextField>
           </div>
-          <div class='h-[50vh] overflow-y-auto p-1'>
-            <For each={filteredGroups()}>
-              {(group) => {
-                if (
-                  !filtered().some((entry) => entry[props.groupKey] === group)
-                ) {
-                  return "";
-                }
-                return (
-                  <div class='flex flex-col gap-1'>
-                    <For
-                      each={filtered().filter(
-                        (entry) => entry[props.groupKey] === group,
-                      )}
+          <div ref={scrollRef} class='h-[50vh] overflow-y-auto p-1'>
+            <div
+              style={{
+                height: `${virtualizer.getTotalSize()}px`,
+                width: "100%",
+                position: "relative",
+              }}
+            >
+              {virtualizer.getVirtualItems().map((virtualRow) => {
+                const row = rows()[virtualRow.index];
+                if (row.type === "header") {
+                  return (
+                    <div
+                      data-index={virtualRow.index}
+                      ref={(el) =>
+                        queueMicrotask(() => virtualizer.measureElement(el))
+                      }
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                      class='text-xs font-semibold text-neutral-500 py-1 px-1 uppercase tracking-wide'
                     >
-                      {(entry) => (
-                        <div class='grid grid-cols-[150px_auto] gap-2'>
-                          <div class='flex gap-2 items-center'>
-                            <Checkbox
-                              onClick={() => {
-                                handleClick(entry.name);
-                              }}
-                              checked={props.value.includes(entry.name)}
-                            />
-                            <div>{entry.name}</div>
-                          </div>
-                          <div class='ml-1 text-xs text-neutral-400'>
-                            <For each={entry.stats}>
-                              {(statGroup, index) => (
-                                <>
-                                  <div>
-                                    {statGroup
-                                      .map((s) => s.description)
-                                      .filter(Boolean)
-                                      .join(" and ")}
-                                  </div>
-                                  {index() !== entry.stats.length - 1 && (
-                                    <Separator />
-                                  )}
-                                </>
+                      {row.group}
+                    </div>
+                  );
+                }
+                const entry = row.mod;
+                return (
+                  <div
+                    data-index={virtualRow.index}
+                    ref={(el) =>
+                      queueMicrotask(() => virtualizer.measureElement(el))
+                    }
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                  >
+                    <div class='grid grid-cols-[150px_auto] gap-2'>
+                      <div class='flex gap-2 items-center'>
+                        <Checkbox
+                          onClick={() => handleClick(entry.name)}
+                          checked={selectedSet().has(entry.name)}
+                        />
+                        <div>{entry.name}</div>
+                      </div>
+                      <div class='ml-1 text-xs text-neutral-400'>
+                        <For each={entry.stats}>
+                          {(statGroup, index) => (
+                            <>
+                              <div>
+                                {statGroup
+                                  .map((s) => s.description)
+                                  .filter(Boolean)
+                                  .join(" and ")}
+                              </div>
+                              {index() !== entry.stats.length - 1 && (
+                                <Separator />
                               )}
-                            </For>
-                          </div>
-                          <div class='col-span-2'>
-                            <Separator />
-                          </div>
-                        </div>
-                      )}
-                    </For>
+                            </>
+                          )}
+                        </For>
+                      </div>
+                      <div class='col-span-2'>
+                        <Separator />
+                      </div>
+                    </div>
                   </div>
                 );
-              }}
-            </For>
+              })}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
