@@ -7,13 +7,7 @@ import { to } from "@app/lib/utils";
 import { setAutosave, setFont, setSettingsOpen, store } from "@app/store";
 import { Button } from "@app/ui/button";
 import { Checkbox } from "@app/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@app/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@app/ui/dialog";
 import { Label } from "@app/ui/label";
 import {
   Select,
@@ -174,10 +168,6 @@ export function Settings() {
         <SettingsIcon />
       </DialogTrigger>
       <DialogContent class='sm:max-w-[550px]'>
-        <DialogHeader class='sticky top-0 z-10 bg-secondary -m-6 mb-0 p-6 pb-4'>
-          <DialogTitle>Settings</DialogTitle>
-        </DialogHeader>
-
         {/* General Section */}
         <section class='space-y-3'>
           <h3 class='text-sm font-medium text-muted-foreground'>General</h3>
