@@ -254,10 +254,29 @@ export function moveRule(filter: Filter, sourceId: string, targetId: string) {
   );
 }
 
-export function createRule(filter: Filter, rule: FilterRule) {
+function insertRule(
+  filter: Filter,
+  rule: FilterRule,
+  afterRule?: FilterRule | null,
+) {
+  if (afterRule) {
+    const index = filter.rules.findIndex((r) => r.id === afterRule.id);
+    if (index !== -1) {
+      filter.rules.splice(index + 1, 0, rule);
+      return;
+    }
+  }
+  filter.rules.push(rule);
+}
+
+export function createRule(
+  filter: Filter,
+  rule: FilterRule,
+  afterRule?: FilterRule | null,
+) {
   filter?.execute(
     new Command(() => {
-      filter.rules.push(rule);
+      insertRule(filter, rule, afterRule);
     }),
   );
 }
@@ -317,6 +336,7 @@ export function setEntryActive(
 export function createUniqueCollectionRule(
   filter: Filter,
   league: string,
+  afterRule?: FilterRule | null,
 ): UniqueCollectionRule {
   const rule: UniqueCollectionRule = {
     type: "unique-collection",
@@ -336,7 +356,7 @@ export function createUniqueCollectionRule(
   };
   filter.execute(
     new Command(() => {
-      filter.rules.push(rule);
+      insertRule(filter, rule, afterRule);
     }),
   );
   return rule;

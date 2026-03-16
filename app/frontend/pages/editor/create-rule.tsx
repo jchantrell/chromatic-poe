@@ -29,7 +29,7 @@ function CreateRule() {
       actions: {},
       continue: false,
     };
-    createRule(store.filter, rule);
+    createRule(store.filter, rule, store.activeRule);
   }
 
   function handleCreateUniqueCollection() {
@@ -45,7 +45,7 @@ function CreateRule() {
       return;
     }
 
-    const rule = createUniqueCollectionRule(store.filter, "");
+    const rule = createUniqueCollectionRule(store.filter, "", store.activeRule);
     setActiveRule(rule);
   }
 
