@@ -72,7 +72,7 @@ export function SelectInput(props: {
   groupKey: string;
   onChange: (value: string[]) => void;
 }) {
-  let scrollRef: HTMLDivElement | undefined;
+  const [scrollRef, setScrollRef] = createSignal<HTMLDivElement | null>(null);
   const [searchTerm, setSearchTerm] = createSignal("");
 
   function runSearch(term: string) {
@@ -106,7 +106,7 @@ export function SelectInput(props: {
     get count() {
       return filtered().length;
     },
-    getScrollElement: () => scrollRef ?? null,
+    getScrollElement: () => scrollRef(),
     estimateSize: () => 40,
     overscan: 10,
   });
@@ -135,7 +135,7 @@ export function SelectInput(props: {
               />
             </TextField>
           </div>
-          <div ref={scrollRef} class='h-[50vh] overflow-y-auto p-1'>
+          <div ref={setScrollRef} class='h-[50vh] overflow-y-auto p-1'>
             <div
               style={{
                 height: `${virtualizer.getTotalSize()}px`,
