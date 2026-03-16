@@ -276,9 +276,7 @@ export class ModManager {
       }
     }
 
-    const finalMods = Object.values(byModName).filter(
-      (mod) => mod.bases.length,
-    );
+    const finalMods = Object.values(byModName);
 
     const db = await this.idb.getInstance();
     const key = `${gameVersion}/mods`;
@@ -562,7 +560,7 @@ export class ModManager {
 
       const ids = tagKeys.map((key: number) => tagsMap[key]).filter(Boolean);
 
-      if (!mod.Name || !ids.length) continue;
+      if (!mod.Name) continue;
 
       const implicitTagKeys = Array.isArray(mod.ImplicitTagsKeys)
         ? mod.ImplicitTagsKeys
@@ -723,7 +721,7 @@ export class ModManager {
 
       const ids = tagKeys.map((key: number) => tagsMap[key]).filter(Boolean);
 
-      if (!mod.Name || !ids.length) continue;
+      if (!mod.Name) continue;
 
       const implicitTagKeys = Array.isArray(mod.ImplicitTags)
         ? mod.ImplicitTags
