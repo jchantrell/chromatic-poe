@@ -174,7 +174,7 @@ export function Settings() {
         <SettingsIcon />
       </DialogTrigger>
       <DialogContent class='sm:max-w-[550px]'>
-        <DialogHeader>
+        <DialogHeader class='sticky top-0 z-10 bg-secondary -m-6 mb-0 p-6 pb-4'>
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
 
