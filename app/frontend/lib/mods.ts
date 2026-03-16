@@ -2,6 +2,11 @@ import Fuse, { type FuseResult } from "fuse.js";
 import type { BundleManager } from "./bundle";
 import type { Database } from "./db";
 import type { IDBManager } from "./idb";
+import {
+  parseStatDescriptionFile,
+  formatStatDescription,
+  type StatDescriptionEntry,
+} from "./stat-descriptions";
 import { to } from "./utils";
 
 enum GenType {
@@ -113,12 +118,6 @@ const POE2_STAT_FILES = [
   "data/statdescriptions/sanctum_relic_stat_descriptions.csd",
 ];
 
-type StatDescription = {
-  description: string;
-  language: string;
-  flags?: string;
-};
-
 type ItFileDefinition = {
   extends?: string;
   tag?: string;
@@ -202,9 +201,7 @@ export class ModManager {
     const modsTable = await this.db.query(
       `SELECT * FROM "${patch}_Mods" WHERE GenerationType IN(${GenType.PREFIX}, ${GenType.SUFFIX}, ${GenType.ENCHANTMENT}, ${GenType.BLIGHT_TOWER}, ${GenType.FLASK_ENCHANTMENT_ENKINDLING}, ${GenType.FLASK_ENCHANTMENT_INSTILLING})`,
     );
-    const statsTable = await this.db.query(
-      `SELECT _index, Id FROM "${patch}_Stats"`,
-    );
+    const statsTable = await this.db.query(`SELECT * FROM "${patch}_Stats"`);
     const statsMap = Object.fromEntries(statsTable.map((s) => [s._index, s]));
     const modTypes = await this.db.query(
       `SELECT _index, Name FROM "${patch}_ModType"`,
@@ -285,7 +282,7 @@ export class ModManager {
   }
 
   async getStatDescriptions(patch: string) {
-    const lookup: Record<string, StatDescription[]> = {};
+    const lookup: Record<string, StatDescriptionEntry> = {};
 
     const gameVersion = patch.startsWith("3") ? 1 : 2;
 
@@ -295,125 +292,11 @@ export class ModManager {
       const contentUint8 = await this.loader.getFileContents(patch, filePath);
       const decoder = new TextDecoder("utf-16le");
       const content = decoder.decode(contentUint8);
-      this.parseStatDescriptionFile(content, lookup);
+      const parsed = parseStatDescriptionFile(content);
+      Object.assign(lookup, parsed);
     }
 
     return lookup;
-  }
-
-  parseStatDescriptionFile(
-    content: string,
-    lookup: Record<string, StatDescription[]>,
-  ) {
-    const sections = content.split(/\n(?=description|no_description)/);
-
-    for (const section of sections) {
-      const lines = section.split("\n");
-
-      const idLine = lines.find((line) => {
-        const trimmed = line.trim();
-        return (
-          trimmed.startsWith("1 ") ||
-          trimmed.startsWith("2 ") ||
-          trimmed.startsWith("3 ") ||
-          trimmed.startsWith("4 ")
-        );
-      });
-      if (!idLine) continue;
-
-      const ids = idLine.trim().slice(2).split(/\s+/).filter(Boolean);
-      for (const id of ids) {
-        lookup[id] = [];
-      }
-
-      let currentLanguage = "English";
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-
-        if (line.startsWith("lang")) {
-          currentLanguage = line.split('"')[1];
-          continue;
-        }
-
-        const match = line.match(/"([^"]+)"/);
-        if (match) {
-          const fullLine = line;
-          const description = match[1];
-          const afterQuote = fullLine
-            .slice(
-              fullLine.indexOf(`"${description}"`) + description.length + 2,
-            )
-            .trim();
-
-          for (const id of ids) {
-            lookup[id].push({
-              description,
-              language: currentLanguage,
-              flags: afterQuote || undefined,
-            });
-          }
-        }
-      }
-    }
-  }
-
-  formatDescription(
-    descriptions: StatDescription[],
-    values: [number, number][],
-  ): string {
-    if (!descriptions.length || !values.length) return "";
-
-    let description: string;
-    if (descriptions.length > 1) {
-      const isNegative = values[0][0] < 0 || values[0][1] < 0;
-
-      const canonicalDesc = descriptions.find((d) =>
-        d.flags?.includes("canonical_line"),
-      );
-      const negatedDesc = descriptions.find((d) =>
-        d.flags?.includes("negate 1"),
-      );
-
-      if (canonicalDesc && negatedDesc) {
-        description = isNegative
-          ? negatedDesc.description
-          : canonicalDesc.description;
-      } else {
-        description = descriptions[0].description;
-      }
-    } else {
-      description = descriptions[0].description;
-    }
-
-    let result = description.replace(/\[([^\]]+)\]/g, (_, content) => {
-      const parts = content.split("|");
-      return parts[parts.length - 1];
-    });
-
-    if (result.includes("{0:+d}")) {
-      const [min, max] = values[0];
-      return result.replace(
-        /\{0:\+d\}/,
-        min === max ? `+${min}` : `+(${min}-${max})`,
-      );
-    }
-
-    if (result.includes(" to ") && values.length === 2) {
-      const [minValues, maxValues] = values;
-      const suffix = result.split(" to ")[1].replace(/\{\d+\}/g, "");
-      return `Adds (${minValues[0]}-${minValues[1]}) to (${maxValues[0]}-${maxValues[1]})${suffix}`;
-    }
-
-    result = result.replace(/\{(?:\d+)?(?::[+]?[d])?\}/g, () => {
-      const [min, max] = values[0];
-      if (min === max) {
-        return `+${Math.abs(min).toString()}`;
-      }
-      return `+(${Math.abs(min)}-${Math.abs(max)})`;
-    });
-
-    return result;
   }
 
   async buildHierarchy(
@@ -536,13 +419,13 @@ export class ModManager {
   }
 
   async extractPoE1(
-    statDescriptions: Record<string, StatDescription[]>,
+    statDescriptions: Record<string, StatDescriptionEntry>,
     hierarchy: ItFileHierarchy,
     baseItems: { [key: string]: unknown }[],
     tagsMap: Record<string, unknown>,
     classesMap: Record<string, unknown>,
     modsTable: Record<string, unknown>[],
-    statsMap: Record<string, string>,
+    statsMap: Record<string, { _index: number; Id: string }>,
     modTypesMap: Record<string, unknown>,
   ): Promise<Record<string, SingleMod>> {
     const itemMods: Record<string, SingleMod> = {};
@@ -585,67 +468,59 @@ export class ModManager {
               : "affix";
 
       const allStats: { label: string; description: string }[] = [];
-      const statsMapped = [
+      const statKeys = [
         mod.StatsKey1,
         mod.StatsKey2,
         mod.StatsKey3,
         mod.StatsKey4,
       ]
         .filter((key) => key !== null && key !== undefined)
-        .map((key) => statsMap[key]);
+        .map((key) => statsMap[key as number]);
 
-      for (let i = 0; i < statsMapped.length; i++) {
-        const stat = statsMapped[i];
+      const processed = new Set<number>();
+      for (let i = 0; i < statKeys.length; i++) {
+        if (processed.has(i)) continue;
+        const stat = statKeys[i];
         if (!stat) continue;
 
-        const nextStat = statsMapped[i + 1];
-        const statDescription = statDescriptions[stat.Id];
-        const descs = statDescription
-          ? statDescription.filter((desc) => desc.language === "English")
-          : [];
-
-        if (nextStat && i + 1 < statsMapped.length) {
-          const currentDesc = descs[0]?.description;
-
-          if (currentDesc?.includes(" to ")) {
-            const values: [number, number][] = [
-              [mod[`Stat${i + 1}Min`], mod[`Stat${i + 1}Max`]],
-              [mod[`Stat${i + 2}Min`], mod[`Stat${i + 2}Max`]],
-            ];
-
-            const description = this.formatDescription(descs, values);
-            allStats.push({ label: description, description });
-
-            i++;
-            continue;
-          }
+        const entry = statDescriptions[stat.Id];
+        if (!entry) {
+          allStats.push({ label: "", description: "" });
+          continue;
         }
 
-        const values: [number, number][] = [
-          [mod[`Stat${i + 1}Min`], mod[`Stat${i + 1}Max`]],
-        ];
+        const entryStatCount = entry.statIds.length;
+        const values: [number, number][] = [];
+        for (let j = 0; j < entryStatCount; j++) {
+          const si = i + j;
+          values.push([
+            (mod[`Stat${si + 1}Min`] as number) ?? 0,
+            (mod[`Stat${si + 1}Max`] as number) ?? 0,
+          ]);
+          processed.add(si);
+        }
 
-        const description = this.formatDescription(descs, values);
+        const description = formatStatDescription(entry, values);
         allStats.push({ label: description, description });
       }
 
       let typeName = "";
-      if (mod.ModTypeKey != null && modTypesMap[mod.ModTypeKey]) {
-        typeName = modTypesMap[mod.ModTypeKey]
+      if (mod.ModTypeKey != null && modTypesMap[mod.ModTypeKey as number]) {
+        typeName = (modTypesMap[mod.ModTypeKey as number] as string)
           .replace(/([A-Z])/g, (match: string) => `_${match.toLowerCase()}`)
           .replace(/^_/, "");
       }
 
-      itemMods[mod.Id] = {
-        name: mod.Name,
-        id: mod.Id,
+      itemMods[mod.Id as string] = {
+        name: mod.Name as string,
+        id: mod.Id as string,
         stats: allStats,
         tags: affixTags,
         type: typeName,
         position,
         ids,
         weights,
-        domain: mod.Domain,
+        domain: mod.Domain as number,
         bases: [],
       };
     }
@@ -697,7 +572,7 @@ export class ModManager {
   }
 
   async extractPoE2(
-    statDescriptions: any,
+    statDescriptions: Record<string, StatDescriptionEntry>,
     hierarchy: ItFileHierarchy,
     baseItems: any[],
     tagsMap: any,
@@ -746,66 +621,46 @@ export class ModManager {
               : "affix";
 
       const allStats: { label: string; description: string }[] = [];
-      const statsMapped = [mod.Stat1, mod.Stat2, mod.Stat3, mod.Stat4]
+      const statKeys = [mod.Stat1, mod.Stat2, mod.Stat3, mod.Stat4]
         .filter((key) => key !== null && key !== undefined)
         .map((key) => statsMap[key]);
 
-      for (let i = 0; i < statsMapped.length; i++) {
-        const stat = statsMapped[i];
+      const processed = new Set<number>();
+      for (let i = 0; i < statKeys.length; i++) {
+        if (processed.has(i)) continue;
+        const stat = statKeys[i];
         if (!stat) continue;
-        const nextStat = statsMapped[i + 1];
-        const statDescription = statDescriptions[stat.Id];
-        const descs = statDescription
-          ? statDescription.filter((desc: any) => desc.language === "English")
-          : [];
 
-        if (nextStat && i + 1 < statsMapped.length) {
-          const currentDesc = descs[0]?.description;
-          const nextDescs = statDescriptions[nextStat.Id]?.filter(
-            (desc: any) => desc.language === "English",
-          );
-          const nextDesc = nextDescs?.[0]?.description;
-
-          if (currentDesc?.includes(" to ") && nextDesc?.includes(" to ")) {
-            const val1 =
-              typeof mod[`Stat${i + 1}Value`] === "string"
-                ? JSON.parse(mod[`Stat${i + 1}Value`])
-                : mod[`Stat${i + 1}Value`];
-            const val2 =
-              typeof mod[`Stat${i + 2}Value`] === "string"
-                ? JSON.parse(mod[`Stat${i + 2}Value`])
-                : mod[`Stat${i + 2}Value`];
-
-            const values: [number, number][] = [
-              [val1[0], val1[1]],
-              [val2[0], val2[1]],
-            ];
-
-            allStats.push({
-              label: (stat.Text || nextStat.Text || "").replace(
-                /\b(Minimum|Maximum|Local)\s+/gi,
-                "",
-              ),
-              description: this.formatDescription(descs, values),
-            });
-
-            i++;
-            continue;
-          }
+        const entry = statDescriptions[stat.Id];
+        if (!entry) {
+          const label = stat.Text
+            ? stat.Text.replace(/\b(Minimum|Maximum|Local)\s+/gi, "")
+            : "";
+          allStats.push({ label, description: "" });
+          continue;
         }
 
-        const val =
-          typeof mod[`Stat${i + 1}Value`] === "string"
-            ? JSON.parse(mod[`Stat${i + 1}Value`])
-            : mod[`Stat${i + 1}Value`];
-        const values: [number, number][] = [[val[0], val[1]]];
+        const entryStatCount = entry.statIds.length;
+        const values: [number, number][] = [];
+        let label = "";
+        for (let j = 0; j < entryStatCount; j++) {
+          const si = i + j;
+          const val =
+            typeof mod[`Stat${si + 1}Value`] === "string"
+              ? JSON.parse(mod[`Stat${si + 1}Value`])
+              : mod[`Stat${si + 1}Value`];
+          values.push(val ? [val[0], val[1]] : [0, 0]);
+          if (!label && statKeys[si]?.Text) {
+            label = statKeys[si].Text.replace(
+              /\b(Minimum|Maximum|Local)\s+/gi,
+              "",
+            );
+          }
+          processed.add(si);
+        }
 
-        allStats.push({
-          label: stat.Text.replace(/\b(Minimum|Maximum|Local)\s+/gi, ""),
-          description: descs.length
-            ? this.formatDescription(descs, values)
-            : "",
-        });
+        const description = formatStatDescription(entry, values);
+        allStats.push({ label: label || description, description });
       }
 
       let typeName = "";
