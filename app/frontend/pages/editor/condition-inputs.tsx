@@ -171,6 +171,7 @@ export function SelectInput(props: {
                                   <div>
                                     {statGroup
                                       .map((s) => s.description)
+                                      .filter(Boolean)
                                       .join(" and ")}
                                   </div>
                                   {index() !== entry.stats.length - 1 && (

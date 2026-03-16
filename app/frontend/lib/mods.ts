@@ -154,6 +154,22 @@ export interface SearchableMod extends Mod {
   searchStats: ModStats[];
 }
 
+function countConsecutiveEntryStats(
+  entry: StatDescriptionEntry,
+  statKeys: { Id: string }[],
+  startIndex: number,
+): number {
+  const entryStatIds = entry.statIds;
+  let count = 1;
+  for (let j = 1; j < entryStatIds.length; j++) {
+    const nextIdx = startIndex + j;
+    if (nextIdx >= statKeys.length) break;
+    if (!statKeys[nextIdx] || statKeys[nextIdx].Id !== entryStatIds[j]) break;
+    count++;
+  }
+  return count;
+}
+
 export class ModManager {
   constructor(
     private loader: BundleManager,
@@ -484,14 +500,11 @@ export class ModManager {
         if (!stat) continue;
 
         const entry = statDescriptions[stat.Id];
-        if (!entry) {
-          allStats.push({ label: "", description: "" });
-          continue;
-        }
+        if (!entry) continue;
 
-        const entryStatCount = entry.statIds.length;
+        const consecutiveCount = countConsecutiveEntryStats(entry, statKeys, i);
         const values: [number, number][] = [];
-        for (let j = 0; j < entryStatCount; j++) {
+        for (let j = 0; j < consecutiveCount; j++) {
           const si = i + j;
           values.push([
             (mod[`Stat${si + 1}Min`] as number) ?? 0,
@@ -501,7 +514,9 @@ export class ModManager {
         }
 
         const description = formatStatDescription(entry, values);
-        allStats.push({ label: description, description });
+        if (description) {
+          allStats.push({ label: description, description });
+        }
       }
 
       let typeName = "";
@@ -632,18 +647,12 @@ export class ModManager {
         if (!stat) continue;
 
         const entry = statDescriptions[stat.Id];
-        if (!entry) {
-          const label = stat.Text
-            ? stat.Text.replace(/\b(Minimum|Maximum|Local)\s+/gi, "")
-            : "";
-          allStats.push({ label, description: "" });
-          continue;
-        }
+        if (!entry) continue;
 
-        const entryStatCount = entry.statIds.length;
+        const consecutiveCount = countConsecutiveEntryStats(entry, statKeys, i);
         const values: [number, number][] = [];
         let label = "";
-        for (let j = 0; j < entryStatCount; j++) {
+        for (let j = 0; j < consecutiveCount; j++) {
           const si = i + j;
           const val =
             typeof mod[`Stat${si + 1}Value`] === "string"
@@ -660,7 +669,9 @@ export class ModManager {
         }
 
         const description = formatStatDescription(entry, values);
-        allStats.push({ label: label || description, description });
+        if (description) {
+          allStats.push({ label: label || description, description });
+        }
       }
 
       let typeName = "";
