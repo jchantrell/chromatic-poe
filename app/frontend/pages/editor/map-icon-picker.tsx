@@ -13,11 +13,20 @@ import {
   SliderThumb,
   SliderTrack,
   SliderLabel,
-  SliderValueLabel,
 } from "@app/ui/slider";
 import { createEffect, createSignal, For, on, onMount } from "solid-js";
 
-const PREVIEW_SCALE = 2; // magic number
+const PREVIEW_SCALE = 2;
+
+const ICON_SIZES = [IconSize.Small, IconSize.Medium, IconSize.Large] as const;
+
+function iconSizeToNum(size: IconSize): number {
+  return ICON_SIZES.indexOf(size);
+}
+
+function numToIconSize(num: number): IconSize {
+  return ICON_SIZES[num] ?? IconSize.Small;
+}
 
 export function MinimapIcon(props: {
   size: IconSize;
@@ -120,67 +129,62 @@ function MapIconPicker() {
           </div>
         </div>
         <PopoverContent
-          class='w-fit flex flex-col items-center p-1 bg-secondary border-accent'
+          class='flex flex-col gap-2 p-2 bg-secondary border-accent'
           onMouseLeave={() => setOpen(false)}
         >
-          <div class='flex w-32 max-w-64'>
-            <div class='flex flex-col items-center'>
-              {dat.minimap?.coords?.[color()] ? (
-                <For each={Object.entries(dat.minimap.coords[color()])}>
-                  {(shape) => (
-                    <div
-                      class='hover:bg-muted rounded-lg cursor-pointer'
-                      onMouseDown={() => {
-                        setShape(shape[0] as Shape);
-                      }}
-                    >
-                      <MinimapIcon
-                        scale={scale()}
-                        color={color()}
-                        size={size()}
-                        shape={shape[0] as Shape}
-                      />
-                    </div>
-                  )}
-                </For>
-              ) : (
-                <div>Loading...</div>
-              )}
+          <div class='flex flex-wrap justify-center gap-0.5'>
+            {dat.minimap?.coords?.[color()] ? (
+              <For each={Object.entries(dat.minimap.coords[color()])}>
+                {(shape) => (
+                  <div
+                    class='hover:bg-muted rounded-lg cursor-pointer'
+                    onMouseDown={() => {
+                      setShape(shape[0] as Shape);
+                    }}
+                  >
+                    <MinimapIcon
+                      scale={scale()}
+                      color={color()}
+                      size={size()}
+                      shape={shape[0] as Shape}
+                    />
+                  </div>
+                )}
+              </For>
+            ) : (
+              <div>Loading...</div>
+            )}
+          </div>
+          <Slider
+            minValue={0}
+            maxValue={2}
+            step={1}
+            class='w-full px-1'
+            value={[iconSizeToNum(size())]}
+            onChange={(v: number[]) => setSize(numToIconSize(v[0]))}
+          >
+            <div class='flex w-full justify-between text-xs mb-1'>
+              <SliderLabel>Size</SliderLabel>
+              <span>{size()}</span>
             </div>
-            <div class='flex flex-col w-full items-center justify-center py-1 mx-1'>
-              <Slider
-                minValue={0}
-                maxValue={2}
-                defaultValue={[0]}
-                class='space-y-3 p-1'
-                value={[size() as unknown as number]}
-              >
-                <div class='flex w-full justify-between'>
-                  <SliderLabel>Size</SliderLabel>
-                  <SliderValueLabel />
-                </div>
-                <SliderTrack>
-                  <SliderFill />
-                  <SliderThumb />
-                </SliderTrack>
-              </Slider>
-              <div class='grid gap-1 size-full mt-2'>
-                <For each={Object.entries(colors)}>
-                  {(color) => {
-                    return (
-                      <button
-                        class='w-full rounded-xs border border-muted hover:border-accent-foreground cursor-pointer'
-                        type='button'
-                        style={{ background: color[1] }}
-                        onClick={() => {
-                          setColor(color[0] as Color);
-                        }}
-                      />
-                    );
+            <SliderTrack class='bg-accent'>
+              <SliderFill class='bg-neutral-400' />
+              <SliderThumb class='size-4' />
+            </SliderTrack>
+          </Slider>
+          <div class='grid grid-cols-6 gap-1'>
+            <For each={Object.entries(colors)}>
+              {(color) => (
+                <button
+                  class='h-4 rounded-xs border border-muted hover:border-accent-foreground cursor-pointer'
+                  type='button'
+                  style={{ background: color[1] }}
+                  onClick={() => {
+                    setColor(color[0] as Color);
                   }}
-                </For>
-              </div>
-            </div>
+                />
+              )}
+            </For>
           </div>
         </PopoverContent>
       </Popover>
