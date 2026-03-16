@@ -274,6 +274,7 @@ function App() {
       setAutosave(true);
     }
     await chromatic.getAllFilters();
+    store.missingUniques = await chromatic.loadAllMissingUniques();
     setInitialised(true);
     await refreshSounds();
     await checkForUpdate();

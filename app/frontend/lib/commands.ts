@@ -314,7 +314,6 @@ export function setEntryActive(
   );
 }
 
-/** Create a new unique-collection rule with the given league. */
 export function createUniqueCollectionRule(
   filter: Filter,
   league: string,
@@ -332,6 +331,7 @@ export function createUniqueCollectionRule(
     uniqueCollection: {
       league,
       display: "league",
+      selectedLeagues: [],
     },
   };
   filter.execute(
@@ -342,29 +342,42 @@ export function createUniqueCollectionRule(
   return rule;
 }
 
-/**
- * Refresh a unique-collection rule's bases from poeladder API data.
- * Replaces all bases with the missing uniques and records the refresh time.
- */
+export function deriveBasesFromCache(
+  uniques: PoeladderUnique[],
+  selectedLeagues: string[],
+): FilterItem[] {
+  if (selectedLeagues.length === 0) return [];
+  const leagueSet = new Set(selectedLeagues);
+  return uniques
+    .filter((u) => leagueSet.has(u.league))
+    .map((u) => ({
+      name: u.name,
+      enabled: true,
+      base: u.base,
+      category: u.grouping,
+      league: u.league,
+    }));
+}
+
 export function refreshUniqueCollectionBases(
   filter: Filter,
-  rule: UniqueCollectionRule,
   uniques: PoeladderUnique[],
 ) {
   filter.execute(
     new Command(() => {
-      rule.bases = uniques.map((u) => ({
-        name: u.name,
-        enabled: true,
-        base: u.base,
-        category: u.grouping,
-      }));
-      rule.uniqueCollection.lastRefreshed = new Date().toISOString();
+      const now = new Date().toISOString();
+      for (const rule of filter.rules) {
+        if (rule.type !== "unique-collection") continue;
+        rule.bases = deriveBasesFromCache(
+          uniques,
+          rule.uniqueCollection.selectedLeagues,
+        );
+        rule.uniqueCollection.lastRefreshed = now;
+      }
     }),
   );
 }
 
-/** Update the league on a unique-collection rule. */
 export function setUniqueCollectionLeague(
   filter: Filter,
   rule: UniqueCollectionRule,
@@ -377,7 +390,6 @@ export function setUniqueCollectionLeague(
   );
 }
 
-/** Toggle between league-only and combined display mode. */
 export function setUniqueCollectionDisplay(
   filter: Filter,
   rule: UniqueCollectionRule,
@@ -386,6 +398,20 @@ export function setUniqueCollectionDisplay(
   filter.execute(
     new Command(() => {
       rule.uniqueCollection.display = display;
+    }),
+  );
+}
+
+export function setUniqueCollectionSelectedLeagues(
+  filter: Filter,
+  rule: UniqueCollectionRule,
+  selectedLeagues: string[],
+  allUniques: PoeladderUnique[],
+) {
+  filter.execute(
+    new Command(() => {
+      rule.uniqueCollection.selectedLeagues = selectedLeagues;
+      rule.bases = deriveBasesFromCache(allUniques, selectedLeagues);
     }),
   );
 }

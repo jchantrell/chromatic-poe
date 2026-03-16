@@ -15,7 +15,8 @@ import { openPath } from "@tauri-apps/plugin-opener";
 import { eol, locale, platform } from "@tauri-apps/plugin-os";
 import { toast } from "solid-sonner";
 import { Filter } from "./filter";
-import { IDBManager } from "./idb";
+import { IDBManager, type MissingUniquesCache } from "./idb";
+import type { PoeladderUnique } from "./poeladder";
 import { DEFAULT_FILTER_SOUNDS, type Sound } from "./sounds";
 
 function tryGetAppWindow(): ReturnType<typeof getCurrentWindow> | null {
@@ -556,6 +557,34 @@ class Chromatic {
       name: string;
       data: T extends "text" ? string : Uint8Array;
     }[];
+  }
+
+  async saveMissingUniques(leagueSlug: string, uniques: PoeladderUnique[]) {
+    const db = await this.db.getInstance();
+    const cache: MissingUniquesCache = {
+      uniques,
+      lastRefreshed: new Date().toISOString(),
+    };
+    await db.put("missingUniques", cache, leagueSlug);
+    return cache;
+  }
+
+  async loadMissingUniques(
+    leagueSlug: string,
+  ): Promise<MissingUniquesCache | undefined> {
+    const db = await this.db.getInstance();
+    return db.get("missingUniques", leagueSlug);
+  }
+
+  async loadAllMissingUniques(): Promise<Record<string, MissingUniquesCache>> {
+    const db = await this.db.getInstance();
+    const keys = await db.getAllKeys("missingUniques");
+    const result: Record<string, MissingUniquesCache> = {};
+    for (const key of keys) {
+      const cache = await db.get("missingUniques", key);
+      if (cache) result[key] = cache;
+    }
+    return result;
   }
 
   eol() {

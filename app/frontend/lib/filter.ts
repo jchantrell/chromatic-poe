@@ -43,6 +43,7 @@ export interface UniqueCollectionConfig {
   league: string;
   display: UniqueCollectionDisplay;
   lastRefreshed?: string;
+  selectedLeagues: string[];
 }
 
 interface BaseFilterRule {
@@ -72,6 +73,7 @@ export interface FilterItem {
   enabled: boolean;
   base: string;
   category: string;
+  league?: string;
 }
 
 export interface Item extends FilterItem {
@@ -120,13 +122,13 @@ export class Filter {
         type: rule.type ?? "standard",
         conditions: convertRawToConditions(rule.conditions),
       };
-      // Migrate unique-collection rules missing the display field
       if (
         migrated.type === "unique-collection" &&
-        "uniqueCollection" in migrated &&
-        !(migrated as UniqueCollectionRule).uniqueCollection.display
+        "uniqueCollection" in migrated
       ) {
-        (migrated as UniqueCollectionRule).uniqueCollection.display = "league";
+        const uc = (migrated as UniqueCollectionRule).uniqueCollection;
+        if (!uc.display) uc.display = "league";
+        if (!uc.selectedLeagues) uc.selectedLeagues = [];
       }
       return migrated;
     }) as FilterRule[];

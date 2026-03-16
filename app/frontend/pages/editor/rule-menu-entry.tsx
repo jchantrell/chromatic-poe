@@ -145,8 +145,12 @@ export default function Rule(props: {
       league,
       rule.uniqueCollection.display,
     );
+
+    const cache = await chromatic.saveMissingUniques(league, uniques);
+    store.missingUniques[league] = cache;
+
     if (uniques.length > 0) {
-      refreshUniqueCollectionBases(store.filter, rule, uniques);
+      refreshUniqueCollectionBases(store.filter, uniques);
       toast.success(
         `Updated with ${uniques.length} missing unique${uniques.length === 1 ? "" : "s"}`,
       );

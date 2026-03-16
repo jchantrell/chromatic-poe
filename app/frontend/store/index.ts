@@ -1,6 +1,7 @@
 import { chromatic } from "@app/lib/config";
 import { DEFAULT_FONT, type FontOption } from "@app/lib/fonts";
 import type { Filter, FilterRule } from "@app/lib/filter";
+import type { MissingUniquesCache } from "@app/lib/idb";
 import type { Sound } from "@app/lib/sounds";
 import { to } from "@app/lib/utils";
 import { createMutable } from "solid-js/store";
@@ -14,6 +15,7 @@ interface Store {
   font: FontOption;
   initialised: boolean;
   locale: null | string;
+  missingUniques: Record<string, MissingUniquesCache>;
   sounds: Sound[];
   defaultSounds: Sound[];
   appNeedsRestart: boolean;
@@ -35,6 +37,7 @@ export const store = createMutable<Store>({
   font: DEFAULT_FONT,
   initialised: false,
   locale: null,
+  missingUniques: {},
   sounds: [],
   defaultSounds: [],
   appNeedsRestart: false,
