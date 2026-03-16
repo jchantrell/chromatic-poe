@@ -77,7 +77,7 @@ export default function Rule(props: {
       return "text-muted-foreground/20";
     }
     if (selected()) {
-      return "text-foreground font-medium";
+      return "text-foreground";
     }
     if (hovered()) {
       return "text-foreground";
