@@ -65,10 +65,6 @@ export function SliderInput(props: {
   );
 }
 
-type FlatRow =
-  | { type: "header"; group: string }
-  | { type: "mod"; mod: SearchableMod };
-
 export function SelectInput(props: {
   value: string[];
   key: FilteredConditionKey;
@@ -105,27 +101,12 @@ export function SelectInput(props: {
     debouncedSetFiltered(runSearch(term));
   });
 
-  const rows = createMemo<FlatRow[]>(() => {
-    const items = filtered();
-    const result: FlatRow[] = [];
-    let lastGroup = "";
-    for (const mod of items) {
-      const group = mod[props.groupKey] as string;
-      if (group !== lastGroup) {
-        result.push({ type: "header", group });
-        lastGroup = group;
-      }
-      result.push({ type: "mod", mod });
-    }
-    return result;
-  });
-
   const virtualizer = createVirtualizer({
     get count() {
-      return rows().length;
+      return filtered().length;
     },
     getScrollElement: () => scrollRef ?? null,
-    estimateSize: (index) => (rows()[index].type === "header" ? 28 : 40),
+    estimateSize: () => 40,
     overscan: 10,
   });
 
@@ -165,28 +146,7 @@ export function SelectInput(props: {
               }}
             >
               {virtualizer.getVirtualItems().map((virtualRow) => {
-                const row = rows()[virtualRow.index];
-                if (row.type === "header") {
-                  return (
-                    <div
-                      data-index={virtualRow.index}
-                      ref={(el) =>
-                        queueMicrotask(() => virtualizer.measureElement(el))
-                      }
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        transform: `translateY(${virtualRow.start}px)`,
-                      }}
-                      class='text-xs font-semibold text-neutral-500 py-1 px-1 uppercase tracking-wide'
-                    >
-                      {row.group}
-                    </div>
-                  );
-                }
-                const entry = row.mod;
+                const entry = filtered()[virtualRow.index];
                 return (
                   <div
                     data-index={virtualRow.index}
@@ -215,7 +175,10 @@ export function SelectInput(props: {
                             <>
                               <div>
                                 {statGroup
-                                  .map((s) => s.description)
+                                  .map(
+                                    (s: { description: string }) =>
+                                      s.description,
+                                  )
                                   .filter(Boolean)
                                   .join(" and ")}
                               </div>
