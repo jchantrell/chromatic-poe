@@ -10,32 +10,32 @@ import type { Filter } from "@app/lib/filter";
 import type { Sound } from "@app/lib/sounds";
 import { refreshSounds, store } from "@app/store";
 import { Checkbox } from "@app/ui/checkbox";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxControl,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxItemIndicator,
-  ComboboxItemLabel,
-  ComboboxSection,
-  ComboboxTrigger,
-} from "@app/ui/combo-box";
 import { Label } from "@app/ui/label";
 import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
-import { createMemo, createSignal, on, onMount } from "solid-js";
-import { createStore } from "solid-js/store";
+import * as ComboboxPrimitive from "@kobalte/core/combobox";
+import { createVirtualizer } from "@tanstack/solid-virtual";
+import {
+  type Accessor,
+  For,
+  createMemo,
+  createSignal,
+  on,
+  onMount,
+} from "solid-js";
 
-interface Category {
-  label: string;
-  options: Sound[];
-}
+const ITEM_HEIGHT = 32;
+const MAX_HEIGHT = 256;
 
 export default function SoundPicker() {
   if (!store.activeRule || !store.filter) {
     return "";
   }
-  const [sounds, setSounds] = createStore<Category[]>([]);
+
+  const allSounds = createMemo<Sound[]>(() => [
+    ...store.sounds,
+    ...store.defaultSounds,
+  ]);
+
   const [active, setActive] = createSignal(
     store.activeRule?.actions.sound?.enabled || false,
   );
@@ -83,14 +83,12 @@ export default function SoundPicker() {
     if (!path) {
       return undefined;
     }
-    return sounds
-      .flatMap((s) => s.options)
-      .find((o) => {
-        if (path.type === "default") {
-          return o.id === path.value && o.type === path.type;
-        }
+    return allSounds().find((o) => {
+      if (path.type === "default") {
         return o.id === path.value && o.type === path.type;
-      });
+      }
+      return o.id === path.value && o.type === path.type;
+    });
   }
 
   createMemo(
@@ -160,19 +158,7 @@ export default function SoundPicker() {
     }
   });
 
-  onMount(async () => {
-    await refreshSounds();
-    setSounds([
-      {
-        label: "Custom",
-        options: store.sounds,
-      },
-      {
-        label: "Default",
-        options: store.defaultSounds,
-      },
-    ]);
-  });
+  onMount(() => refreshSounds(store.filter?.poeVersion as 1 | 2));
 
   return (
     <>
@@ -192,12 +178,12 @@ export default function SoundPicker() {
                   : "Edit sound file"
               }
             >
-              <Combobox<Sound, Category>
-                options={sounds}
+              <ComboboxPrimitive.Root<Sound>
+                virtualized
+                options={allSounds()}
                 optionValue='id'
                 optionTextValue='displayName'
                 optionLabel='displayName'
-                optionGroupChildren='options'
                 placeholder='Select sound…'
                 onChange={(value) => {
                   setPath(value);
@@ -207,21 +193,11 @@ export default function SoundPicker() {
                 }}
                 value={path()}
                 class='overflow-y-auto'
-                itemComponent={(props) => (
-                  <ComboboxItem item={props.item}>
-                    <ComboboxItemLabel>
-                      {props.item.rawValue.displayName}
-                    </ComboboxItemLabel>
-                    <ComboboxItemIndicator />
-                  </ComboboxItem>
-                )}
-                sectionComponent={(props) => (
-                  <ComboboxSection>
-                    {props.section.rawValue.label}
-                  </ComboboxSection>
-                )}
               >
-                <ComboboxControl aria-label='Sound'>
+                <ComboboxPrimitive.Control
+                  class='flex h-10 items-center rounded-md border px-3'
+                  aria-label='Sound'
+                >
                   <div class='h-10 w-10 flex items-center justify-center'>
                     {missingSoundName() ? (
                       <AlertTriangleIcon class='size-5 text-warning-foreground' />
@@ -244,12 +220,32 @@ export default function SoundPicker() {
                       {missingSoundName()}
                     </span>
                   ) : (
-                    <ComboboxInput />
+                    <ComboboxPrimitive.Input class='flex size-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50' />
                   )}
-                  <ComboboxTrigger />
-                </ComboboxControl>
-                <ComboboxContent />
-              </Combobox>
+                  <ComboboxPrimitive.Trigger class='size-4 opacity-50'>
+                    <ComboboxPrimitive.Icon>
+                      <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        viewBox='0 0 24 24'
+                        fill='none'
+                        stroke='currentColor'
+                        stroke-width='2'
+                        stroke-linecap='round'
+                        stroke-linejoin='round'
+                        class='size-4'
+                      >
+                        <path d='M8 9l4 -4l4 4' />
+                        <path d='M16 15l-4 4l-4 -4' />
+                      </svg>
+                    </ComboboxPrimitive.Icon>
+                  </ComboboxPrimitive.Trigger>
+                </ComboboxPrimitive.Control>
+                <ComboboxPrimitive.Portal>
+                  <ComboboxPrimitive.Content class='relative z-50 min-w-32 rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-80'>
+                    <VirtualizedSoundListbox />
+                  </ComboboxPrimitive.Content>
+                </ComboboxPrimitive.Portal>
+              </ComboboxPrimitive.Root>
             </Tooltip>
           )}
         </div>
@@ -274,5 +270,101 @@ export default function SoundPicker() {
         </div>
       )}
     </>
+  );
+}
+
+function VirtualizedSoundListbox() {
+  let listboxRef!: HTMLUListElement;
+
+  // biome-ignore lint/suspicious/noExplicitAny: Kobalte collection types are internal
+  const virtualizerRef: { current: any } = { current: null };
+
+  return (
+    <ComboboxPrimitive.Listbox<Sound>
+      ref={listboxRef}
+      scrollToItem={(key) => {
+        if (!virtualizerRef.current) return;
+        virtualizerRef.current.scrollToIndex(
+          virtualizerRef.current.options.count > 0
+            ? Math.max(
+                0,
+                virtualizerRef.current
+                  .getVirtualItems()
+                  .findIndex((v: { key: string }) => String(v.key) === key),
+              )
+            : 0,
+        );
+      }}
+      class='m-0 p-1'
+      style={{ "max-height": `${MAX_HEIGHT}px`, overflow: "auto" }}
+    >
+      {(
+        // biome-ignore lint/suspicious/noExplicitAny: Kobalte Collection type is internal
+        items: Accessor<any>,
+      ) => {
+        const keys = createMemo(() => [...items().getKeys()]);
+
+        const virtualizer = createVirtualizer({
+          get count() {
+            return keys().length;
+          },
+          getScrollElement: () => listboxRef,
+          getItemKey: (index: number) => keys()[index],
+          estimateSize: () => ITEM_HEIGHT,
+          overscan: 5,
+        });
+
+        virtualizerRef.current = virtualizer;
+
+        return (
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: "100%",
+              position: "relative",
+            }}
+          >
+            <For each={virtualizer.getVirtualItems()}>
+              {(virtualRow) => {
+                const item = items().getItem(String(virtualRow.key));
+                if (!item) return null;
+                return (
+                  <ComboboxPrimitive.Item
+                    item={item}
+                    class='relative flex cursor-default select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-hidden data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50'
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: `${virtualRow.size}px`,
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                  >
+                    <ComboboxPrimitive.ItemLabel>
+                      {item.rawValue.displayName}
+                    </ComboboxPrimitive.ItemLabel>
+                    <ComboboxPrimitive.ItemIndicator>
+                      <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        viewBox='0 0 24 24'
+                        fill='none'
+                        stroke='currentColor'
+                        stroke-width='2'
+                        stroke-linecap='round'
+                        stroke-linejoin='round'
+                        class='size-4'
+                      >
+                        <path d='M5 12l5 5l10 -10' />
+                      </svg>
+                    </ComboboxPrimitive.ItemIndicator>
+                  </ComboboxPrimitive.Item>
+                );
+              }}
+            </For>
+          </div>
+        );
+      }}
+    </ComboboxPrimitive.Listbox>
   );
 }
