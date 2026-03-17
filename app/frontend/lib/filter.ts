@@ -1,8 +1,10 @@
 import {
   BaseTypeCondition,
+  ConditionKey,
   type Conditions,
   Rarity,
   RarityCondition,
+  UniqueTiersCondition,
   convertRawToConditions,
   serializeConditions,
 } from "@app/lib/condition";
@@ -43,7 +45,7 @@ export interface UniqueCollectionConfig {
   league: string;
   display: UniqueCollectionDisplay;
   lastRefreshed?: string;
-  selectedLeagues: string[];
+  selectedCategories: string[];
 }
 
 interface BaseFilterRule {
@@ -128,7 +130,11 @@ export class Filter {
       ) {
         const uc = (migrated as UniqueCollectionRule).uniqueCollection;
         if (!uc.display) uc.display = "league";
-        if (!uc.selectedLeagues) uc.selectedLeagues = [];
+        if (!uc.selectedCategories) uc.selectedCategories = [];
+        if ((uc as any).selectedLeagues && !uc.selectedCategories.length) {
+          uc.selectedCategories = (uc as any).selectedLeagues;
+          delete (uc as any).selectedLeagues;
+        }
       }
       return migrated;
     }) as FilterRule[];
@@ -322,6 +328,28 @@ export class Filter {
           new BaseTypeCondition({
             value: Array.from(new Set(enabledBases)),
           }),
+        );
+      }
+    }
+
+    const uniqueTiers = conditions.filter(
+      (c) => c.key === ConditionKey.UNIQUE_TIERS,
+    ) as UniqueTiersCondition[];
+    if (uniqueTiers.length > 0) {
+      const baseTypes = new Set<string>();
+      for (const tier of uniqueTiers) {
+        const cached = store.allUniques[tier.leagueSlug]?.uniques ?? [];
+        const selected = new Set(tier.value);
+        for (const u of cached) {
+          if (selected.has(u.league) || selected.has(u.category)) {
+            baseTypes.add(u.base);
+          }
+        }
+      }
+      if (baseTypes.size > 0) {
+        conditions.push(new RarityCondition({ value: [Rarity.UNIQUE] }));
+        conditions.push(
+          new BaseTypeCondition({ value: Array.from(baseTypes) }),
         );
       }
     }

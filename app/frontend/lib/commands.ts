@@ -351,7 +351,7 @@ export function createUniqueCollectionRule(
     uniqueCollection: {
       league,
       display: "league",
-      selectedLeagues: [],
+      selectedCategories: [],
     },
   };
   filter.execute(
@@ -364,12 +364,12 @@ export function createUniqueCollectionRule(
 
 export function deriveBasesFromCache(
   uniques: PoeladderUnique[],
-  selectedLeagues: string[],
+  selectedCategories: string[],
 ): FilterItem[] {
-  if (selectedLeagues.length === 0) return [];
-  const leagueSet = new Set(selectedLeagues);
+  if (selectedCategories.length === 0) return [];
+  const selected = new Set(selectedCategories);
   return uniques
-    .filter((u) => leagueSet.has(u.league))
+    .filter((u) => selected.has(u.league) || selected.has(u.category))
     .map((u) => ({
       name: u.name,
       enabled: true,
@@ -390,7 +390,7 @@ export function refreshUniqueCollectionBases(
         if (rule.type !== "unique-collection") continue;
         rule.bases = deriveBasesFromCache(
           uniques,
-          rule.uniqueCollection.selectedLeagues,
+          rule.uniqueCollection.selectedCategories,
         );
         rule.uniqueCollection.lastRefreshed = now;
       }
@@ -422,16 +422,16 @@ export function setUniqueCollectionDisplay(
   );
 }
 
-export function setUniqueCollectionSelectedLeagues(
+export function setUniqueCollectionSelectedCategories(
   filter: Filter,
   rule: UniqueCollectionRule,
-  selectedLeagues: string[],
+  selectedCategories: string[],
   allUniques: PoeladderUnique[],
 ) {
   filter.execute(
     new Command(() => {
-      rule.uniqueCollection.selectedLeagues = selectedLeagues;
-      rule.bases = deriveBasesFromCache(allUniques, selectedLeagues);
+      rule.uniqueCollection.selectedCategories = selectedCategories;
+      rule.bases = deriveBasesFromCache(allUniques, selectedCategories);
     }),
   );
 }

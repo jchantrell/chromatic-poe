@@ -120,6 +120,7 @@ export enum ConditionKey {
   TWICE_CORRUPTED = "twiceCorrupted",
   UNIDENTIFIED_ITEM_TIER = "unidentifiedItemTier",
   ZANA_MEMORY = "zanaMemory",
+  UNIQUE_TIERS = "uniqueTiers",
 }
 
 export enum ConditionGroup {
@@ -152,6 +153,7 @@ export enum ConditionInputType {
   TEXT_LIST = "text-list",
   CHECKBOX = "checkbox",
   SOCKET = "socket",
+  CATEGORIES = "categories",
 }
 
 type BaseConditionValue = {
@@ -219,6 +221,7 @@ export interface ConditionData {
   [ConditionKey.TWICE_CORRUPTED]: boolean;
   [ConditionKey.UNIDENTIFIED_ITEM_TIER]: number;
   [ConditionKey.ZANA_MEMORY]: boolean;
+  [ConditionKey.UNIQUE_TIERS]: string[];
 }
 
 type ConditionValues<K extends ConditionKey> = BaseConditionValue & {
@@ -718,6 +721,13 @@ export const conditionTypes: AllConditionTypes = {
     type: ConditionInputType.CHECKBOX,
     defaultValue: false,
     validFor: ValidFor.PoE1,
+  },
+  [ConditionKey.UNIQUE_TIERS]: {
+    label: "Unique Tiers",
+    description: "Filter by unique item categories/tiers from PoE Ladder",
+    group: ConditionGroup.GEAR,
+    type: ConditionInputType.CATEGORIES,
+    defaultValue: [],
   },
 };
 
@@ -1602,6 +1612,23 @@ class SocketGroupCondition implements ValueCondition<string> {
   }
 }
 
+export class UniqueTiersCondition implements ListCondition<string> {
+  readonly key = ConditionKey.UNIQUE_TIERS;
+  readonly type = ConditionType.LIST;
+  value: string[];
+  leagueSlug: string;
+
+  constructor(opts?: { value?: string[]; leagueSlug?: string }) {
+    this.value = opts?.value ?? [];
+    this.leagueSlug = opts?.leagueSlug ?? "";
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return "";
+  }
+}
+
 const verifyConstructors = <
   T extends {
     [K in keyof T]: new (
@@ -1670,6 +1697,7 @@ const conditionConstructors = verifyConstructors({
   [ConditionKey.TWICE_CORRUPTED]: TwiceCorruptedCondition,
   [ConditionKey.UNIDENTIFIED_ITEM_TIER]: UnidentifiedItemTierCondition,
   [ConditionKey.ZANA_MEMORY]: ZanaMemoryCondition,
+  [ConditionKey.UNIQUE_TIERS]: UniqueTiersCondition,
 });
 
 type ConditionConstructors = typeof conditionConstructors;

@@ -15,6 +15,7 @@ interface Store {
   font: FontOption;
   initialised: boolean;
   locale: null | string;
+  allUniques: Record<string, MissingUniquesCache>;
   missingUniques: Record<string, MissingUniquesCache>;
   sounds: Sound[];
   defaultSounds: Sound[];
@@ -37,6 +38,7 @@ export const store = createMutable<Store>({
   font: DEFAULT_FONT,
   initialised: false,
   locale: null,
+  allUniques: {},
   missingUniques: {},
   sounds: [],
   defaultSounds: [],

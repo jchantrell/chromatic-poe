@@ -10,7 +10,7 @@ import {
 import chromatic from "@app/lib/config";
 import type { FilterRule, UniqueCollectionRule } from "@app/lib/filter";
 import { itemIndex } from "@app/lib/items";
-import { fetchMissingUniques } from "@app/lib/poeladder";
+import { fetchAllUniques, fetchMissingUniques } from "@app/lib/poeladder";
 import { store } from "@app/store";
 import { Badge } from "@app/ui/badge";
 import {
@@ -140,14 +140,18 @@ export default function Rule(props: {
     }
 
     setRefreshing(true);
-    const uniques = await fetchMissingUniques(
-      username,
-      league,
-      rule.uniqueCollection.display,
-    );
+    const [uniques, allUniquesList] = await Promise.all([
+      fetchMissingUniques(username, league, rule.uniqueCollection.display),
+      fetchAllUniques(league),
+    ]);
 
     const cache = await chromatic.saveMissingUniques(league, uniques);
     store.missingUniques[league] = cache;
+
+    if (allUniquesList.length > 0) {
+      const allCache = await chromatic.saveAllUniques(league, allUniquesList);
+      store.allUniques[league] = allCache;
+    }
 
     if (uniques.length > 0) {
       refreshUniqueCollectionBases(store.filter, uniques);

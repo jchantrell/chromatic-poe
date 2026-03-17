@@ -278,6 +278,7 @@ function App() {
     });
     await chromatic.getAllFilters();
     store.missingUniques = await chromatic.loadAllMissingUniques();
+    store.allUniques = await chromatic.loadAllUniques();
     setInitialised(true);
     await refreshSounds();
     await checkForUpdate();

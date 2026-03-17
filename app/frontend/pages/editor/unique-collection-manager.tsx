@@ -4,7 +4,7 @@ import {
   refreshUniqueCollectionBases,
   setUniqueCollectionDisplay,
   setUniqueCollectionLeague,
-  setUniqueCollectionSelectedLeagues,
+  setUniqueCollectionSelectedCategories,
 } from "@app/lib/commands";
 import chromatic from "@app/lib/config";
 import type {
@@ -12,6 +12,7 @@ import type {
   UniqueCollectionRule,
 } from "@app/lib/filter";
 import {
+  fetchAllUniques,
   fetchLeagues,
   fetchMissingUniques,
   leagueSlugFromUrl,
@@ -58,9 +59,13 @@ export default function UniqueCollectionManager(props: {
     return store.missingUniques[leagueSlug]?.uniques ?? [];
   });
 
-  const availableLeagues = createMemo(() => {
-    const leagues = new Set(cachedUniques().map((u) => u.league));
-    return Array.from(leagues).sort();
+  const availableCategories = createMemo(() => {
+    const cats = new Set<string>();
+    for (const u of cachedUniques()) {
+      if (u.league) cats.add(u.league);
+      if (u.category) cats.add(u.category);
+    }
+    return Array.from(cats).sort();
   });
 
   const lastRefreshed = createMemo(() => {
@@ -79,13 +84,13 @@ export default function UniqueCollectionManager(props: {
     setUniqueCollectionDisplay(store.filter, props.rule, value);
   }
 
-  function handleLeagueToggle(league: string, checked: boolean) {
+  function handleCategoryToggle(category: string, checked: boolean) {
     if (!store.filter) return;
-    const current = props.rule.uniqueCollection.selectedLeagues;
+    const current = props.rule.uniqueCollection.selectedCategories;
     const next = checked
-      ? [...current, league]
-      : current.filter((l) => l !== league);
-    setUniqueCollectionSelectedLeagues(
+      ? [...current, category]
+      : current.filter((c) => c !== category);
+    setUniqueCollectionSelectedCategories(
       store.filter,
       props.rule,
       next,
@@ -95,17 +100,17 @@ export default function UniqueCollectionManager(props: {
 
   function handleSelectAll() {
     if (!store.filter) return;
-    setUniqueCollectionSelectedLeagues(
+    setUniqueCollectionSelectedCategories(
       store.filter,
       props.rule,
-      availableLeagues(),
+      availableCategories(),
       cachedUniques(),
     );
   }
 
   function handleSelectNone() {
     if (!store.filter) return;
-    setUniqueCollectionSelectedLeagues(
+    setUniqueCollectionSelectedCategories(
       store.filter,
       props.rule,
       [],
@@ -133,29 +138,44 @@ export default function UniqueCollectionManager(props: {
     if (!store.filter) return;
 
     setRefreshing(true);
-    const uniques = await fetchMissingUniques(
-      username,
-      leagueSlug,
-      props.rule.uniqueCollection.display,
-    );
+    const [uniques, allUniquesList] = await Promise.all([
+      fetchMissingUniques(
+        username,
+        leagueSlug,
+        props.rule.uniqueCollection.display,
+      ),
+      fetchAllUniques(leagueSlug),
+    ]);
 
     const cache = await chromatic.saveMissingUniques(leagueSlug, uniques);
     store.missingUniques[leagueSlug] = cache;
 
+    if (allUniquesList.length > 0) {
+      const allCache = await chromatic.saveAllUniques(
+        leagueSlug,
+        allUniquesList,
+      );
+      store.allUniques[leagueSlug] = allCache;
+    }
+
     if (uniques.length > 0) {
       refreshUniqueCollectionBases(store.filter, uniques);
 
-      const newLeagues = Array.from(
-        new Set(uniques.map((u) => u.league)),
-      ).sort();
+      const allCats = new Set<string>();
+      for (const u of uniques) {
+        if (u.league) allCats.add(u.league);
+        if (u.category) allCats.add(u.category);
+      }
+      const allCategories = Array.from(allCats).sort();
+
       for (const rule of store.filter.rules) {
         if (rule.type !== "unique-collection") continue;
         if (rule.uniqueCollection.league !== leagueSlug) continue;
-        if (rule.uniqueCollection.selectedLeagues.length === 0) {
-          setUniqueCollectionSelectedLeagues(
+        if (rule.uniqueCollection.selectedCategories.length === 0) {
+          setUniqueCollectionSelectedCategories(
             store.filter,
             rule,
-            newLeagues,
+            allCategories,
             uniques,
           );
         }
@@ -277,11 +297,11 @@ export default function UniqueCollectionManager(props: {
         </div>
       </div>
 
-      <Show when={availableLeagues().length > 0}>
+      <Show when={availableCategories().length > 0}>
         <div class='flex flex-col gap-1 bg-primary-foreground/20 border border-accent rounded-xl px-3 py-2'>
           <div class='flex items-center justify-between'>
             <Label class='text-sm font-semibold text-muted-foreground'>
-              Filter by League
+              Categories
             </Label>
             <div class='flex gap-2'>
               <button
@@ -301,15 +321,15 @@ export default function UniqueCollectionManager(props: {
             </div>
           </div>
           <div class='flex flex-wrap gap-x-3 gap-y-1'>
-            <For each={availableLeagues()}>
-              {(league) => (
+            <For each={availableCategories()}>
+              {(category) => (
                 <CheckboxPrimitive.Root
                   class='flex items-center gap-1.5 text-sm cursor-pointer'
-                  checked={props.rule.uniqueCollection.selectedLeagues.includes(
-                    league,
+                  checked={props.rule.uniqueCollection.selectedCategories.includes(
+                    category,
                   )}
                   onChange={(checked: boolean) =>
-                    handleLeagueToggle(league, checked)
+                    handleCategoryToggle(category, checked)
                   }
                 >
                   <CheckboxPrimitive.Input class='peer' />
@@ -330,7 +350,7 @@ export default function UniqueCollectionManager(props: {
                     </CheckboxPrimitive.Indicator>
                   </CheckboxPrimitive.Control>
                   <CheckboxPrimitive.Label class='cursor-pointer select-none'>
-                    {league}
+                    {category}
                   </CheckboxPrimitive.Label>
                 </CheckboxPrimitive.Root>
               )}

@@ -9,8 +9,15 @@ import {
   createCondition,
   Operator,
   type Conditions,
+  UniqueTiersCondition,
 } from "@app/lib/condition";
 import type { FilterRule } from "@app/lib/filter";
+import {
+  fetchLeagues,
+  leagueSlugFromUrl,
+  type PoeladderLeague,
+} from "@app/lib/poeladder";
+import chromatic from "@app/lib/config";
 import { enchantIndex, modIndex } from "@app/lib/mods";
 import { store } from "@app/store";
 import { Button } from "@app/ui/button";
@@ -32,8 +39,16 @@ import {
 import { Separator } from "@app/ui/separator";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
+import * as CheckboxPrimitive from "@kobalte/core/checkbox";
 import Fuse from "fuse.js";
-import { createEffect, createMemo, createSignal, For } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onMount,
+  Show,
+} from "solid-js";
 import {
   CheckboxInput,
   SelectInput,
@@ -53,6 +68,167 @@ const options = {
 };
 
 type FilteredConditionKey = Exclude<ConditionKey, ConditionKey.BASE_TYPE>;
+
+function CategoriesInput(props: {
+  condition: UniqueTiersCondition;
+  onChange: (key: string, value: unknown) => void;
+}) {
+  const [leagues, setLeagues] = createSignal<PoeladderLeague[]>([]);
+  const [loading, setLoading] = createSignal(false);
+
+  onMount(async () => {
+    const username = chromatic.config?.poeladderUsername;
+    if (!username) return;
+    setLoading(true);
+    setLeagues(await fetchLeagues(username));
+    setLoading(false);
+  });
+
+  const cachedUniques = createMemo(() => {
+    const slug = props.condition.leagueSlug;
+    if (!slug) return [];
+    return store.allUniques[slug]?.uniques ?? [];
+  });
+
+  const availableCategories = createMemo(() => {
+    const cats = new Set<string>();
+    for (const u of cachedUniques()) {
+      if (u.league) cats.add(u.league);
+      if (u.category) cats.add(u.category);
+    }
+    return Array.from(cats).sort();
+  });
+
+  function handleLeagueChange(value: string | null) {
+    if (!value) return;
+    props.onChange("leagueSlug", value);
+    const uniques = store.allUniques[value]?.uniques ?? [];
+    if (uniques.length > 0 && props.condition.value.length === 0) {
+      const cats = new Set<string>();
+      for (const u of uniques) {
+        if (u.league) cats.add(u.league);
+        if (u.category) cats.add(u.category);
+      }
+      props.onChange("value", Array.from(cats).sort());
+    }
+  }
+
+  function handleToggle(category: string, checked: boolean) {
+    const current = props.condition.value;
+    const next = checked
+      ? [...current, category]
+      : current.filter((c) => c !== category);
+    props.onChange("value", next);
+  }
+
+  function handleSelectAll() {
+    props.onChange("value", availableCategories());
+  }
+
+  function handleSelectNone() {
+    props.onChange("value", []);
+  }
+
+  function leagueOptions(): string[] {
+    return leagues().map((l) => leagueSlugFromUrl(l.url));
+  }
+
+  function leagueDisplayName(slug: string): string {
+    const league = leagues().find((l) => leagueSlugFromUrl(l.url) === slug);
+    return league?.name ?? slug.replace(/_/g, " ");
+  }
+
+  return (
+    <div class='flex flex-col gap-2 w-full'>
+      <div class='flex items-center gap-2'>
+        <Label class='text-sm font-semibold shrink-0'>League</Label>
+        <Show
+          when={!loading()}
+          fallback={
+            <span class='text-xs text-muted-foreground'>Loading...</span>
+          }
+        >
+          <Select
+            value={props.condition.leagueSlug}
+            onChange={handleLeagueChange}
+            options={leagueOptions()}
+            itemComponent={(itemProps) => (
+              <SelectItem item={itemProps.item}>
+                {leagueDisplayName(itemProps.item.rawValue)}
+              </SelectItem>
+            )}
+          >
+            <SelectTrigger class='flex-1 bg-accent'>
+              <SelectValue<string>>
+                {(state) =>
+                  state.selectedOption()
+                    ? leagueDisplayName(state.selectedOption())
+                    : "Select a league"
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent />
+          </Select>
+        </Show>
+      </div>
+      <Show when={availableCategories().length > 0}>
+        <div class='flex items-center justify-between'>
+          <Label class='text-sm font-semibold text-muted-foreground'>
+            Categories
+          </Label>
+          <div class='flex gap-2'>
+            <button
+              type='button'
+              class='text-xs text-muted-foreground hover:text-foreground cursor-pointer'
+              onClick={handleSelectAll}
+            >
+              All
+            </button>
+            <button
+              type='button'
+              class='text-xs text-muted-foreground hover:text-foreground cursor-pointer'
+              onClick={handleSelectNone}
+            >
+              None
+            </button>
+          </div>
+        </div>
+        <div class='flex flex-wrap gap-x-3 gap-y-1'>
+          <For each={availableCategories()}>
+            {(category) => (
+              <CheckboxPrimitive.Root
+                class='flex items-center gap-1.5 text-sm cursor-pointer'
+                checked={props.condition.value.includes(category)}
+                onChange={(checked: boolean) => handleToggle(category, checked)}
+              >
+                <CheckboxPrimitive.Input class='peer' />
+                <CheckboxPrimitive.Control class='size-4 shrink-0 rounded-sm border border-primary ring-offset-background data-checked:border-none data-checked:bg-primary data-checked:text-primary-foreground cursor-pointer'>
+                  <CheckboxPrimitive.Indicator>
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      viewBox='0 0 24 24'
+                      fill='none'
+                      stroke='currentColor'
+                      stroke-width='2'
+                      stroke-linecap='round'
+                      stroke-linejoin='round'
+                      class='size-4'
+                    >
+                      <path d='M5 12l5 5l10 -10' />
+                    </svg>
+                  </CheckboxPrimitive.Indicator>
+                </CheckboxPrimitive.Control>
+                <CheckboxPrimitive.Label class='cursor-pointer select-none'>
+                  {category}
+                </CheckboxPrimitive.Label>
+              </CheckboxPrimitive.Root>
+            )}
+          </For>
+        </div>
+      </Show>
+    </div>
+  );
+}
 
 const operators = [
   Operator.NONE,
@@ -405,6 +581,14 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                         value={condition.value as boolean}
                         onChange={(v) => {
                           updateCondition(condition, "value", v);
+                        }}
+                      />
+                    )}
+                    {conditionType.type === "categories" && (
+                      <CategoriesInput
+                        condition={condition as UniqueTiersCondition}
+                        onChange={(key, value) => {
+                          updateCondition(condition as any, key, value);
                         }}
                       />
                     )}

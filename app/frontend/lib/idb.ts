@@ -49,10 +49,14 @@ interface Schema extends DBSchema {
     key: string;
     value: MissingUniquesCache;
   };
+  allUniques: {
+    key: string;
+    value: MissingUniquesCache;
+  };
 }
 
 export class IDBManager {
-  private dbPromise = openDB<Schema>("chromatic-poe", 2, {
+  private dbPromise = openDB<Schema>("chromatic-poe", 3, {
     upgrade(db, oldVersion) {
       if (oldVersion < 1) {
         db.createObjectStore("bundles");
@@ -66,6 +70,9 @@ export class IDBManager {
       }
       if (oldVersion < 2) {
         db.createObjectStore("missingUniques");
+      }
+      if (oldVersion < 3) {
+        db.createObjectStore("allUniques");
       }
     },
   });

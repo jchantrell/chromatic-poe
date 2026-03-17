@@ -16,6 +16,7 @@ export interface PoeladderUnique {
   name: string;
   grouping: string;
   base: string;
+  category: string;
   league: string;
   owned: boolean;
   altOwned: boolean;
@@ -69,6 +70,32 @@ export async function fetchMissingUniques(
           description: `API returned ${res.status}. Check your username and league.`,
         },
       );
+      return [];
+    }
+    const uniques = (await res.json()) as PoeladderUnique[];
+    return uniques.map((u) => ({
+      ...u,
+      league: u.league || "Global",
+    }));
+  } catch (err) {
+    toast.error("Failed to reach poeladder API", {
+      description: String(err),
+    });
+    return [];
+  }
+}
+
+export async function fetchAllUniques(
+  leagueSlug: string,
+): Promise<PoeladderUnique[]> {
+  try {
+    const res = await proxyFetch(
+      `${BASE_URL}/users/_/leagues/${leagueSlug}/filters?display=all`,
+    );
+    if (!res.ok) {
+      toast.error(`Could not fetch unique list for ${leagueSlug}`, {
+        description: `API returned ${res.status}.`,
+      });
       return [];
     }
     const uniques = (await res.json()) as PoeladderUnique[];

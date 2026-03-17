@@ -587,6 +587,27 @@ class Chromatic {
     return result;
   }
 
+  async saveAllUniques(leagueSlug: string, uniques: PoeladderUnique[]) {
+    const db = await this.db.getInstance();
+    const cache: MissingUniquesCache = {
+      uniques,
+      lastRefreshed: new Date().toISOString(),
+    };
+    await db.put("allUniques", cache, leagueSlug);
+    return cache;
+  }
+
+  async loadAllUniques(): Promise<Record<string, MissingUniquesCache>> {
+    const db = await this.db.getInstance();
+    const keys = await db.getAllKeys("allUniques");
+    const result: Record<string, MissingUniquesCache> = {};
+    for (const key of keys) {
+      const cache = await db.get("allUniques", key);
+      if (cache) result[key] = cache;
+    }
+    return result;
+  }
+
   eol() {
     if (this.runtime === "desktop") return eol();
     if (this.runtime === "web") {
