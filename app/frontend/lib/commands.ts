@@ -1,5 +1,9 @@
 import type { Color, IconSize, Shape } from "@app/lib/action";
-import { convertRawToConditions } from "@app/lib/condition";
+import {
+  ConditionKey,
+  type Conditions,
+  convertRawToConditions,
+} from "@app/lib/condition";
 import type { Filter, FilterItem, FilterRule } from "@app/lib/filter";
 import { clone } from "@app/lib/utils";
 import { ulid } from "ulid";
@@ -304,6 +308,24 @@ export function excuteCmd(filter: Filter, fn: (...rest: unknown[]) => unknown) {
       fn();
     }),
   );
+}
+
+const UNIQUE_CONDITION_KEYS = new Set([
+  ConditionKey.UNIQUE_TIERS,
+  ConditionKey.MISSING_UNIQUES,
+]);
+
+export function removeCondition(
+  filter: Filter,
+  rule: FilterRule,
+  condition: Conditions,
+) {
+  excuteCmd(filter, () => {
+    rule.conditions = rule.conditions.filter((c) => c !== condition);
+    if (UNIQUE_CONDITION_KEYS.has(condition.key)) {
+      rule.bases = [];
+    }
+  });
 }
 
 export function setEntryActive(

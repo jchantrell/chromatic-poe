@@ -1,6 +1,6 @@
 import Tooltip from "@app/components/tooltip";
 import { CloseIcon, PlusIcon, RefreshIcon } from "@app/icons";
-import { excuteCmd } from "@app/lib/commands";
+import { excuteCmd, removeCondition } from "@app/lib/commands";
 import {
   ConditionGroup,
   conditionGroupColors,
@@ -474,13 +474,9 @@ export default function ConditionManager(props: { rule: FilterRule }) {
     }
   }
 
-  function removeCondition<T extends Conditions>(condition: T) {
+  function handleRemoveCondition<T extends Conditions>(condition: T) {
     if (store.filter) {
-      excuteCmd(store.filter, () => {
-        props.rule.conditions = props.rule.conditions.filter(
-          (c) => c !== condition,
-        );
-      });
+      removeCondition(store.filter, props.rule, condition);
     }
   }
 
@@ -680,7 +676,7 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                 <button
                   type='button'
                   class='absolute top-1 right-1 size-5 p-0.5 rounded-md text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10 transition-opacity cursor-pointer'
-                  onClick={() => removeCondition(condition)}
+                  onClick={() => handleRemoveCondition(condition)}
                   aria-label={`Remove ${conditionType.label}`}
                 >
                   <CloseIcon />
