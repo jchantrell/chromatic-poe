@@ -277,6 +277,8 @@ function VirtualizedSoundListbox() {
   let listboxRef!: HTMLUListElement;
 
   // biome-ignore lint/suspicious/noExplicitAny: Kobalte collection types are internal
+  const keysRef: { current: () => string[] } = { current: () => [] };
+  // biome-ignore lint/suspicious/noExplicitAny: Kobalte virtualizer ref
   const virtualizerRef: { current: any } = { current: null };
 
   return (
@@ -284,16 +286,10 @@ function VirtualizedSoundListbox() {
       ref={listboxRef}
       scrollToItem={(key) => {
         if (!virtualizerRef.current) return;
-        virtualizerRef.current.scrollToIndex(
-          virtualizerRef.current.options.count > 0
-            ? Math.max(
-                0,
-                virtualizerRef.current
-                  .getVirtualItems()
-                  .findIndex((v: { key: string }) => String(v.key) === key),
-              )
-            : 0,
-        );
+        const index = keysRef.current().indexOf(key);
+        if (index >= 0) {
+          virtualizerRef.current.scrollToIndex(index);
+        }
       }}
       class='m-0 p-1'
       style={{ "max-height": `${MAX_HEIGHT}px`, overflow: "auto" }}
@@ -303,6 +299,7 @@ function VirtualizedSoundListbox() {
         items: Accessor<any>,
       ) => {
         const keys = createMemo(() => [...items().getKeys()]);
+        keysRef.current = keys;
 
         const virtualizer = createVirtualizer({
           get count() {
@@ -331,7 +328,7 @@ function VirtualizedSoundListbox() {
                 return (
                   <ComboboxPrimitive.Item
                     item={item}
-                    class='relative flex cursor-default select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-hidden data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50'
+                    class='flex cursor-default select-none items-center justify-between rounded-sm px-2 text-sm outline-hidden data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50 truncate'
                     style={{
                       position: "absolute",
                       top: 0,
@@ -341,7 +338,7 @@ function VirtualizedSoundListbox() {
                       transform: `translateY(${virtualRow.start}px)`,
                     }}
                   >
-                    <ComboboxPrimitive.ItemLabel>
+                    <ComboboxPrimitive.ItemLabel class='truncate'>
                       {item.rawValue.displayName}
                     </ComboboxPrimitive.ItemLabel>
                     <ComboboxPrimitive.ItemIndicator>
@@ -353,7 +350,7 @@ function VirtualizedSoundListbox() {
                         stroke-width='2'
                         stroke-linecap='round'
                         stroke-linejoin='round'
-                        class='size-4'
+                        class='size-4 shrink-0'
                       >
                         <path d='M5 12l5 5l10 -10' />
                       </svg>
