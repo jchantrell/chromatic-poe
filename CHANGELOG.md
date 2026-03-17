@@ -1,4 +1,41 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.12.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.11.2...chromatic-poe-v0.12.0) (2026-03-17)
+
+
+### Features
+
+* add categories filter and Unique Tiers condition ([d3f0951](https://github.com/jchantrell/chromatic-poe/commit/d3f0951a75a337e352b1bcb20a5e03d73333b5f7))
+* add Exceptional gem category to PoE1 item picker ([e68c0c1](https://github.com/jchantrell/chromatic-poe/commit/e68c0c1b2f98f2944902e0faa085ffeef49cdbca))
+* add stored game data management to settings dialog ([4ae365a](https://github.com/jchantrell/chromatic-poe/commit/4ae365a1ab703653c1c825a1d40183f0c3bcecd0))
+* clear bases when removing unique condition from rule ([6bfb5a1](https://github.com/jchantrell/chromatic-poe/commit/6bfb5a1f25ee2a52a6041dd6b57873c8c24a49c8))
+* insert new rules below the selected rule ([d84b5fe](https://github.com/jchantrell/chromatic-poe/commit/d84b5fe99d6ef78b013f2e612557cef1dd414184))
+* support multiple unique-collection rules with per-league filtering ([2886956](https://github.com/jchantrell/chromatic-poe/commit/28869568a63731edaf87d587de72e16a14328296))
+* switch Linux runtime from WebKitGTK to CEF (Chromium) ([3fd4e19](https://github.com/jchantrell/chromatic-poe/commit/3fd4e198695670c5ec00eb536073261f620660ea))
+
+
+### Bug Fixes
+
+* autosave not triggering on undo/redo and silently losing data on close ([01a0083](https://github.com/jchantrell/chromatic-poe/commit/01a0083fa48cf987ee85bb78639cb0752765b661))
+* cap dialog max height to 85vh for scrollability ([eb3674c](https://github.com/jchantrell/chromatic-poe/commit/eb3674c6115ed34502f394fd33f2c47612165f9b))
+* include veiled, crafting, and essence mods in explicit mod picker ([5edf3f5](https://github.com/jchantrell/chromatic-poe/commit/5edf3f5061b29a5fbdd10f6249d73d4285cc5767))
+* initialize mod picker with empty search results ([c51fb32](https://github.com/jchantrell/chromatic-poe/commit/c51fb3225b97b9dff2375586c10fc1d24bdf85ae))
+* keep dialog close button fixed while content scrolls ([8a5c75e](https://github.com/jchantrell/chromatic-poe/commit/8a5c75e46969f7799403ff3864d6679bb54e1644))
+* make settings dialog header sticky while scrolling ([b8edba2](https://github.com/jchantrell/chromatic-poe/commit/b8edba2511b59b8630734d3cf83859ceacb8d5b0))
+* prevent 'and' display for mods with no stat descriptions ([ac57b5e](https://github.com/jchantrell/chromatic-poe/commit/ac57b5e39ab8d7a23241047a3cdadc03f92f9074))
+* remove font-medium from selected rule styling ([076ae87](https://github.com/jchantrell/chromatic-poe/commit/076ae87e0220bf6b9c4510721a1326442119556d))
+* remove group header rows from mod picker ([58dadc5](https://github.com/jchantrell/chromatic-poe/commit/58dadc550fc125c4c302e0298f79107d4dad2223))
+* remove settings dialog header ([0a7cb2a](https://github.com/jchantrell/chromatic-poe/commit/0a7cb2aaf8640d266a49c14e58be1ea0413c28dc))
+* sound picker scroll jumping and text overlap ([2529288](https://github.com/jchantrell/chromatic-poe/commit/252928863681f852bee3f979b72bc17f69f5cdec))
+* strip embedded quotes from filter values to prevent double-wrapping ([7a3dc5f](https://github.com/jchantrell/chromatic-poe/commit/7a3dc5f357354b01ccc7da22c3ff98551bcb5265))
+* use signal for virtualizer scroll ref so it reacts to mount ([d8d5cdb](https://github.com/jchantrell/chromatic-poe/commit/d8d5cdbb2b141816aacf371b257c77f7b293c220))
+* virtualize sound picker dropdown for reactivity and performance ([e6e11a4](https://github.com/jchantrell/chromatic-poe/commit/e6e11a46f59dcea2db8f98cf036b8310bca61bd6))
+* wire up map icon size slider onChange and improve layout ([c9ba3c7](https://github.com/jchantrell/chromatic-poe/commit/c9ba3c7838172b854e213ac3368407344b6342cf))
+
+
+### Performance Improvements
+
+* virtualize mod picker list with @tanstack/solid-virtual ([d48f48e](https://github.com/jchantrell/chromatic-poe/commit/d48f48e463e19088edf6b58ca02872b34d553731))
+
 ## [0.11.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.11.1...chromatic-poe-v0.11.2) (2026-03-05)
 
 
