@@ -900,6 +900,10 @@ class CorruptedModsCondition implements ValueCondition<number> {
   }
 }
 
+function quoteFilterValue(v: string): string {
+  return `"${v.replace(/^"|"$/g, "")}"`;
+}
+
 export class BaseTypeCondition implements ListCondition<string> {
   readonly key = ConditionKey.BASE_TYPE;
   readonly type = ConditionType.LIST;
@@ -911,7 +915,7 @@ export class BaseTypeCondition implements ListCondition<string> {
 
   serialize(): string {
     if (!this.value.length) return "";
-    return `BaseType ${Operator.EXACT} ${this.value.map((v) => `"${v}"`).join(" ")}`;
+    return `BaseType ${Operator.EXACT} ${this.value.map(quoteFilterValue).join(" ")}`;
   }
 }
 
@@ -926,7 +930,7 @@ export class RawBaseTypeCondition implements ListCondition<string> {
 
   serialize(): string {
     if (!this.value.length) return "";
-    return `BaseType ${this.value.map((v) => `"${v}"`).join(" ")}`;
+    return `BaseType ${this.value.map(quoteFilterValue).join(" ")}`;
   }
 }
 
@@ -941,7 +945,7 @@ export class ClassesCondition implements ListCondition<string> {
 
   serialize(): string {
     if (!this.value.length) return "";
-    return `Class ${Operator.EXACT} ${this.value.map((v) => `"${v}"`).join(" ")}`;
+    return `Class ${Operator.EXACT} ${this.value.map(quoteFilterValue).join(" ")}`;
   }
 }
 
@@ -1319,7 +1323,7 @@ class EnchantmentPassiveNodeCondition implements ListCondition<string> {
 
   serialize(): string {
     if (!this.value.length) return "";
-    return `EnchantmentPassiveNode ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
+    return `EnchantmentPassiveNode ${this.value.map(quoteFilterValue).join(" ")}`;
   }
 }
 
@@ -1359,7 +1363,7 @@ class ExplicitModCondition implements ListCondition<string> {
   serialize(): string {
     if (!this.value.length) return "";
 
-    return `HasExplicitMod ${this.operator}${this.stack} ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
+    return `HasExplicitMod ${this.operator}${this.stack} ${this.value.map(quoteFilterValue).join(" ")}`;
   }
 }
 
@@ -1374,7 +1378,7 @@ class EnchantmentCondition implements ListCondition<string> {
 
   serialize(): string {
     if (!this.value.length) return "";
-    return `HasEnchantment ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
+    return `HasEnchantment ${this.value.map(quoteFilterValue).join(" ")}`;
   }
 }
 
@@ -1389,7 +1393,7 @@ class ArchnemesisModCondition implements ListCondition<string> {
 
   serialize(): string {
     if (!this.value.length) return "";
-    return `ArchnemesisMod ${this.value.map((entry) => `"${entry}"`).join(" ")}`;
+    return `ArchnemesisMod ${this.value.map(quoteFilterValue).join(" ")}`;
   }
 }
 
