@@ -7,6 +7,7 @@ export enum TableNames {
   CurrencyExchangeCategories = "CurrencyExchangeCategories",
   SkillGems = "SkillGems",
   GemEffects = "GemEffects",
+  GemTags = "GemTags",
   ArmourTypes = "ArmourTypes",
   WeaponTypes = "WeaponTypes",
   CurrencyItems = "CurrencyItems",
@@ -242,6 +243,14 @@ SELECT DISTINCT
 name,
 'Gems' AS category,
 (CASE
+  WHEN EXISTS (
+    SELECT 1 FROM json_each(gemFx) ge
+    JOIN ${TableNames.GemEffects} ON ${TableNames.GemEffects}._index = ge.value
+    JOIN json_each(${TableNames.GemEffects}.GemTags) gt
+    JOIN ${TableNames.GemTags} ON ${TableNames.GemTags}._index = gt.value
+    WHERE ${TableNames.GemTags}.Id = 'exceptional'
+  )
+  THEN 'Exceptional'
   WHEN name LIKE 'Awakened%'
   THEN 'Awakened'
   WHEN name LIKE 'Vaal%' AND category = 'Skill Gem'
