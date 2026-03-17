@@ -1,5 +1,5 @@
 import Tooltip from "@app/components/tooltip";
-import { CloseIcon, PlusIcon } from "@app/icons";
+import { CloseIcon, PlusIcon, RefreshIcon } from "@app/icons";
 import { excuteCmd } from "@app/lib/commands";
 import {
   ConditionGroup,
@@ -7,13 +7,17 @@ import {
   ConditionKey,
   conditionTypes,
   createCondition,
+  MissingUniquesCondition,
   Operator,
   type Conditions,
   UniqueTiersCondition,
 } from "@app/lib/condition";
 import type { FilterRule } from "@app/lib/filter";
+import type { PoeladderUnique } from "@app/lib/poeladder";
 import {
+  fetchAllUniques,
   fetchLeagues,
+  fetchMissingUniques,
   leagueSlugFromUrl,
   type PoeladderLeague,
 } from "@app/lib/poeladder";
@@ -69,26 +73,83 @@ const options = {
 
 type FilteredConditionKey = Exclude<ConditionKey, ConditionKey.BASE_TYPE>;
 
+const UNIQUE_CONDITION_KEYS = new Set([
+  ConditionKey.UNIQUE_TIERS,
+  ConditionKey.MISSING_UNIQUES,
+]);
+
+function hasUniqueCondition(rule: FilterRule): boolean {
+  return rule.conditions.some((c) => UNIQUE_CONDITION_KEYS.has(c.key));
+}
+
+function getUniquesForCondition(
+  condition: UniqueTiersCondition | MissingUniquesCondition,
+): PoeladderUnique[] {
+  const slug = condition.leagueSlug;
+  if (!slug) return [];
+  if (condition.key === ConditionKey.MISSING_UNIQUES) {
+    return store.missingUniques[slug]?.uniques ?? [];
+  }
+  return store.allUniques[slug]?.uniques ?? [];
+}
+
+function deriveBasesFromUniques(
+  uniques: PoeladderUnique[],
+  selectedCategories: string[],
+): { name: string; enabled: boolean; base: string; category: string }[] {
+  if (selectedCategories.length === 0) return [];
+  const selected = new Set(selectedCategories);
+  return uniques
+    .filter((u) => selected.has(u.league) || selected.has(u.category))
+    .map((u) => ({
+      name: u.name,
+      enabled: true,
+      base: u.base,
+      category: u.grouping,
+    }));
+}
+
 function CategoriesInput(props: {
-  condition: UniqueTiersCondition;
+  condition: UniqueTiersCondition | MissingUniquesCondition;
+  rule: FilterRule;
   onChange: (key: string, value: unknown) => void;
 }) {
   const [leagues, setLeagues] = createSignal<PoeladderLeague[]>([]);
   const [loading, setLoading] = createSignal(false);
+  const [refreshing, setRefreshing] = createSignal(false);
+
+  const isMissing = () => props.condition.key === ConditionKey.MISSING_UNIQUES;
 
   onMount(async () => {
     const username = chromatic.config?.poeladderUsername;
     if (!username) return;
     setLoading(true);
     setLeagues(await fetchLeagues(username));
+
+    const slug = props.condition.leagueSlug;
+    if (slug) await ensureCached(slug);
     setLoading(false);
   });
 
-  const cachedUniques = createMemo(() => {
-    const slug = props.condition.leagueSlug;
-    if (!slug) return [];
-    return store.allUniques[slug]?.uniques ?? [];
-  });
+  async function ensureCached(slug: string) {
+    if (isMissing()) {
+      if (!store.missingUniques[slug]) {
+        await handleRefresh(slug);
+      }
+    } else {
+      if (!store.allUniques[slug]) {
+        const uniques = await fetchAllUniques(slug);
+        if (uniques.length > 0) {
+          const cache = await chromatic.saveAllUniques(slug, uniques);
+          store.allUniques[slug] = cache;
+        }
+      }
+    }
+  }
+
+  const cachedUniques = createMemo(() =>
+    getUniquesForCondition(props.condition),
+  );
 
   const availableCategories = createMemo(() => {
     const cats = new Set<string>();
@@ -99,17 +160,36 @@ function CategoriesInput(props: {
     return Array.from(cats).sort();
   });
 
-  function handleLeagueChange(value: string | null) {
+  function updateBases(categories: string[]) {
+    if (!store.filter) return;
+    const uniques = cachedUniques();
+    const bases = deriveBasesFromUniques(uniques, categories);
+    excuteCmd(store.filter, () => {
+      props.rule.bases = bases;
+    });
+  }
+
+  async function handleLeagueChange(value: string | null) {
     if (!value) return;
     props.onChange("leagueSlug", value);
-    const uniques = store.allUniques[value]?.uniques ?? [];
+
+    setLoading(true);
+    await ensureCached(value);
+    setLoading(false);
+
+    const uniques = getUniquesForCondition({
+      ...props.condition,
+      leagueSlug: value,
+    } as any);
     if (uniques.length > 0 && props.condition.value.length === 0) {
       const cats = new Set<string>();
       for (const u of uniques) {
         if (u.league) cats.add(u.league);
         if (u.category) cats.add(u.category);
       }
-      props.onChange("value", Array.from(cats).sort());
+      const allCats = Array.from(cats).sort();
+      props.onChange("value", allCats);
+      updateBases(allCats);
     }
   }
 
@@ -119,14 +199,52 @@ function CategoriesInput(props: {
       ? [...current, category]
       : current.filter((c) => c !== category);
     props.onChange("value", next);
+    updateBases(next);
   }
 
   function handleSelectAll() {
-    props.onChange("value", availableCategories());
+    const all = availableCategories();
+    props.onChange("value", all);
+    updateBases(all);
   }
 
   function handleSelectNone() {
     props.onChange("value", []);
+    updateBases([]);
+  }
+
+  async function handleRefresh(slug?: string) {
+    const leagueSlug = slug ?? props.condition.leagueSlug;
+    if (!leagueSlug) return;
+    const username = chromatic.config?.poeladderUsername;
+    if (!username) return;
+
+    setRefreshing(true);
+    if (isMissing()) {
+      const cond = props.condition as MissingUniquesCondition;
+      const uniques = await fetchMissingUniques(
+        username,
+        leagueSlug,
+        cond.display,
+      );
+      const cache = await chromatic.saveMissingUniques(leagueSlug, uniques);
+      store.missingUniques[leagueSlug] = cache;
+    }
+
+    const allUniquesList = await fetchAllUniques(leagueSlug);
+    if (allUniquesList.length > 0) {
+      const cache = await chromatic.saveAllUniques(leagueSlug, allUniquesList);
+      store.allUniques[leagueSlug] = cache;
+    }
+
+    if (props.condition.value.length > 0) {
+      updateBases(props.condition.value);
+    }
+    setRefreshing(false);
+  }
+
+  function handleDisplayChange(display: "league" | "combined") {
+    props.onChange("display", display);
   }
 
   function leagueOptions(): string[] {
@@ -171,6 +289,58 @@ function CategoriesInput(props: {
           </Select>
         </Show>
       </div>
+
+      <Show when={isMissing()}>
+        <div class='flex items-center gap-2'>
+          <Label class='text-sm font-semibold shrink-0'>Mode</Label>
+          <div class='flex rounded-md overflow-hidden border border-accent'>
+            <button
+              type='button'
+              class={`px-3 py-1 text-xs cursor-pointer transition-colors ${
+                (props.condition as MissingUniquesCondition).display ===
+                "league"
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-transparent text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => handleDisplayChange("league")}
+            >
+              League only
+            </button>
+            <button
+              type='button'
+              class={`px-3 py-1 text-xs cursor-pointer transition-colors ${
+                (props.condition as MissingUniquesCondition).display ===
+                "combined"
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-transparent text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => handleDisplayChange("combined")}
+            >
+              Full collection
+            </button>
+          </div>
+        </div>
+      </Show>
+
+      <div class='flex items-center justify-between'>
+        <span class='text-xs text-muted-foreground'>
+          {props.rule.bases.length} unique
+          {props.rule.bases.length === 1 ? "" : "s"}
+        </span>
+        <Button
+          variant='outline'
+          size='sm'
+          onClick={() => handleRefresh()}
+          disabled={refreshing() || !props.condition.leagueSlug}
+          class='gap-1'
+        >
+          <span class={refreshing() ? "animate-spin" : ""}>
+            <RefreshIcon />
+          </span>
+          Refresh
+        </Button>
+      </div>
+
       <Show when={availableCategories().length > 0}>
         <div class='flex items-center justify-between'>
           <Label class='text-sm font-semibold text-muted-foreground'>
@@ -264,11 +434,24 @@ export default function ConditionManager(props: { rule: FilterRule }) {
   });
 
   const filteredConditions = createMemo(() => {
-    return searchIndex()
+    const results = searchIndex()
       .search(
         searchTerm() !== "" ? `'${searchTerm()}` : { label: "!1234567890" },
       )
       .map((result) => result.item);
+
+    const ruleHasUnique = hasUniqueCondition(props.rule);
+    const ruleHasOther = props.rule.conditions.some(
+      (c) => !UNIQUE_CONDITION_KEYS.has(c.key),
+    );
+
+    return results.filter((c) => {
+      const isUnique = UNIQUE_CONDITION_KEYS.has(c.key as ConditionKey);
+      if (ruleHasUnique && !isUnique) return false;
+      if (ruleHasUnique && isUnique) return false;
+      if (ruleHasOther && isUnique) return false;
+      return true;
+    });
   });
 
   function addCondition(condition: ConditionKey) {
@@ -362,7 +545,11 @@ export default function ConditionManager(props: { rule: FilterRule }) {
     <div class='space-y-2 flex flex-col w-full flex-1 min-h-0 overflow-hidden'>
       <div class='flex flex-wrap gap-3 items-center w-full bg-primary-foreground/20 border border-accent rounded-xl px-2 py-1'>
         <Dialog>
-          <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
+          <DialogTrigger
+            class='text-md font-semibold'
+            as={Button<"button">}
+            disabled={hasUniqueCondition(props.rule)}
+          >
             Edit Items
           </DialogTrigger>
           <DialogContent class='sm:max-w-[600px] overflow-y-visible'>
@@ -370,7 +557,11 @@ export default function ConditionManager(props: { rule: FilterRule }) {
           </DialogContent>
         </Dialog>
         <Dialog>
-          <DialogTrigger class='text-md font-semibold' as={Button<"button">}>
+          <DialogTrigger
+            class='text-md font-semibold'
+            as={Button<"button">}
+            disabled={hasUniqueCondition(props.rule)}
+          >
             Add Conditions
           </DialogTrigger>
           <DialogContent class='sm:max-w-[600px]'>
@@ -586,7 +777,12 @@ export default function ConditionManager(props: { rule: FilterRule }) {
                     )}
                     {conditionType.type === "categories" && (
                       <CategoriesInput
-                        condition={condition as UniqueTiersCondition}
+                        condition={
+                          condition as
+                            | UniqueTiersCondition
+                            | MissingUniquesCondition
+                        }
+                        rule={props.rule}
                         onChange={(key, value) => {
                           updateCondition(condition as any, key, value);
                         }}

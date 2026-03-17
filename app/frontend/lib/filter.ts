@@ -1,10 +1,10 @@
 import {
   BaseTypeCondition,
   ConditionKey,
+  MissingUniquesCondition,
   type Conditions,
   Rarity,
   RarityCondition,
-  UniqueTiersCondition,
   convertRawToConditions,
   serializeConditions,
 } from "@app/lib/condition";
@@ -35,22 +35,12 @@ export enum Block {
   continue = "Continue",
 }
 
-export type RuleType = "standard" | "unique-collection";
-
-/** Whether to show uniques missing in the selected league only, or combined with standard. */
 export type UniqueCollectionDisplay = "league" | "combined";
 
-/** Metadata for a unique-collection rule that auto-generates conditions from poeladder API. */
-export interface UniqueCollectionConfig {
-  league: string;
-  display: UniqueCollectionDisplay;
-  lastRefreshed?: string;
-  selectedCategories: string[];
-}
-
-interface BaseFilterRule {
+export interface FilterRule {
   id: ReturnType<typeof ulid>;
   name: string;
+  type: string;
   show: boolean;
   enabled: boolean;
   conditions: Conditions[];
@@ -58,17 +48,6 @@ interface BaseFilterRule {
   bases: FilterItem[];
   continue: boolean;
 }
-
-export interface StandardRule extends BaseFilterRule {
-  type: "standard";
-}
-
-export interface UniqueCollectionRule extends BaseFilterRule {
-  type: "unique-collection";
-  uniqueCollection: UniqueCollectionConfig;
-}
-
-export type FilterRule = StandardRule | UniqueCollectionRule;
 
 export interface FilterItem {
   name: string;
@@ -121,20 +100,20 @@ export class Filter {
     this.rules = params.rules.map((rule) => {
       const migrated = {
         ...rule,
-        type: rule.type ?? "standard",
+        type: "standard",
         conditions: convertRawToConditions(rule.conditions),
       };
-      if (
-        migrated.type === "unique-collection" &&
-        "uniqueCollection" in migrated
-      ) {
-        const uc = (migrated as UniqueCollectionRule).uniqueCollection;
-        if (!uc.display) uc.display = "league";
-        if (!uc.selectedCategories) uc.selectedCategories = [];
-        if ((uc as any).selectedLeagues && !uc.selectedCategories.length) {
-          uc.selectedCategories = (uc as any).selectedLeagues;
-          delete (uc as any).selectedLeagues;
-        }
+      if (rule.type === "unique-collection" && "uniqueCollection" in rule) {
+        const uc = (rule as any).uniqueCollection;
+        const categories = uc.selectedCategories ?? uc.selectedLeagues ?? [];
+        migrated.conditions.push(
+          new MissingUniquesCondition({
+            value: categories,
+            leagueSlug: uc.league ?? "",
+            display: uc.display ?? "league",
+          }),
+        );
+        delete (migrated as any).uniqueCollection;
       }
       return migrated;
     }) as FilterRule[];
@@ -304,13 +283,20 @@ export class Filter {
   }
 
   convertToText(rule: FilterRule): string {
-    const conditions = [...rule.conditions];
+    const conditions = [...rule.conditions].filter(
+      (c) =>
+        c.key !== ConditionKey.UNIQUE_TIERS &&
+        c.key !== ConditionKey.MISSING_UNIQUES,
+    );
 
-    if (rule.type === "unique-collection") {
-      // Auto-generate Rarity == Unique
+    const hasUniqueCond = rule.conditions.some(
+      (c) =>
+        c.key === ConditionKey.UNIQUE_TIERS ||
+        c.key === ConditionKey.MISSING_UNIQUES,
+    );
+
+    if (hasUniqueCond) {
       conditions.push(new RarityCondition({ value: [Rarity.UNIQUE] }));
-
-      // Auto-generate BaseType from all bases
       const baseTypes = rule.bases.map((e) => e.base);
       if (baseTypes.length) {
         conditions.push(
@@ -328,28 +314,6 @@ export class Filter {
           new BaseTypeCondition({
             value: Array.from(new Set(enabledBases)),
           }),
-        );
-      }
-    }
-
-    const uniqueTiers = conditions.filter(
-      (c) => c.key === ConditionKey.UNIQUE_TIERS,
-    ) as UniqueTiersCondition[];
-    if (uniqueTiers.length > 0) {
-      const baseTypes = new Set<string>();
-      for (const tier of uniqueTiers) {
-        const cached = store.allUniques[tier.leagueSlug]?.uniques ?? [];
-        const selected = new Set(tier.value);
-        for (const u of cached) {
-          if (selected.has(u.league) || selected.has(u.category)) {
-            baseTypes.add(u.base);
-          }
-        }
-      }
-      if (baseTypes.size > 0) {
-        conditions.push(new RarityCondition({ value: [Rarity.UNIQUE] }));
-        conditions.push(
-          new BaseTypeCondition({ value: Array.from(baseTypes) }),
         );
       }
     }

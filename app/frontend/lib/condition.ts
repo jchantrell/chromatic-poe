@@ -121,6 +121,7 @@ export enum ConditionKey {
   UNIDENTIFIED_ITEM_TIER = "unidentifiedItemTier",
   ZANA_MEMORY = "zanaMemory",
   UNIQUE_TIERS = "uniqueTiers",
+  MISSING_UNIQUES = "missingUniques",
 }
 
 export enum ConditionGroup {
@@ -133,6 +134,7 @@ export enum ConditionGroup {
   SOCKETS = "Sockets",
   MODS = "Mods",
   CLUSTERS = "Clusters",
+  UNIQUES = "Uniques",
 }
 
 export const conditionGroupColors = {
@@ -144,6 +146,7 @@ export const conditionGroupColors = {
   [ConditionGroup.SOCKETS]: "text-pink-500",
   [ConditionGroup.MODS]: "text-orange-500",
   [ConditionGroup.CLUSTERS]: "text-teal-500",
+  [ConditionGroup.UNIQUES]: "text-amber-500",
 } as const;
 
 export enum ConditionInputType {
@@ -222,6 +225,7 @@ export interface ConditionData {
   [ConditionKey.UNIDENTIFIED_ITEM_TIER]: number;
   [ConditionKey.ZANA_MEMORY]: boolean;
   [ConditionKey.UNIQUE_TIERS]: string[];
+  [ConditionKey.MISSING_UNIQUES]: string[];
 }
 
 type ConditionValues<K extends ConditionKey> = BaseConditionValue & {
@@ -724,8 +728,15 @@ export const conditionTypes: AllConditionTypes = {
   },
   [ConditionKey.UNIQUE_TIERS]: {
     label: "Unique Tiers",
-    description: "Filter by unique item categories/tiers from PoE Ladder",
-    group: ConditionGroup.GEAR,
+    description: "Filter by unique item categories from PoE Ladder",
+    group: ConditionGroup.UNIQUES,
+    type: ConditionInputType.CATEGORIES,
+    defaultValue: [],
+  },
+  [ConditionKey.MISSING_UNIQUES]: {
+    label: "Missing Uniques",
+    description: "Filter by uniques you haven't collected from PoE Ladder",
+    group: ConditionGroup.UNIQUES,
     type: ConditionInputType.CATEGORIES,
     defaultValue: [],
   },
@@ -1629,6 +1640,29 @@ export class UniqueTiersCondition implements ListCondition<string> {
   }
 }
 
+export class MissingUniquesCondition implements ListCondition<string> {
+  readonly key = ConditionKey.MISSING_UNIQUES;
+  readonly type = ConditionType.LIST;
+  value: string[];
+  leagueSlug: string;
+  display: "league" | "combined";
+
+  constructor(opts?: {
+    value?: string[];
+    leagueSlug?: string;
+    display?: "league" | "combined";
+  }) {
+    this.value = opts?.value ?? [];
+    this.leagueSlug = opts?.leagueSlug ?? "";
+    this.display = opts?.display ?? "league";
+    createMutable(this);
+  }
+
+  serialize(): string {
+    return "";
+  }
+}
+
 const verifyConstructors = <
   T extends {
     [K in keyof T]: new (
@@ -1698,6 +1732,7 @@ const conditionConstructors = verifyConstructors({
   [ConditionKey.UNIDENTIFIED_ITEM_TIER]: UnidentifiedItemTierCondition,
   [ConditionKey.ZANA_MEMORY]: ZanaMemoryCondition,
   [ConditionKey.UNIQUE_TIERS]: UniqueTiersCondition,
+  [ConditionKey.MISSING_UNIQUES]: MissingUniquesCondition,
 });
 
 type ConditionConstructors = typeof conditionConstructors;
