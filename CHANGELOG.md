@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.12.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.12.0...chromatic-poe-v0.12.1) (2026-03-18)
+
+
+### Reverts
+
+* switch Linux runtime back to WebKitGTK from CEF ([765f880](https://github.com/jchantrell/chromatic-poe/commit/765f880d99888ad0a437feaba0b574d23a546980))
+
 ## [0.12.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.11.2...chromatic-poe-v0.12.0) (2026-03-17)
 
 
