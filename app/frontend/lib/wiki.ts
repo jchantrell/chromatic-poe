@@ -7,6 +7,30 @@ export type Unique = {
   base: string;
 };
 
+const CARGO_LIMIT = 500;
+const REQUEST_DELAY_MS = 1000;
+const MAX_RETRIES = 3;
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+): Promise<Response> {
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    const res = await proxyFetch(url, init);
+    if (res.ok) return res;
+    if (attempt < MAX_RETRIES - 1) {
+      await delay(REQUEST_DELAY_MS * (attempt + 1));
+    } else {
+      throw new Error(`Failed to query wiki: ${res.status} ${res.statusText}`);
+    }
+  }
+  throw new Error("Unreachable");
+}
+
 export class WikiManager {
   constructor(private db: IDBManager) {}
 
@@ -29,23 +53,21 @@ export class WikiManager {
     results: unknown[],
     onProgress?: (count: number) => void,
   ): Promise<Unique[]> {
-    const targetUrl = `https://www.poe${patch.startsWith("4") ? "2" : ""}wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&offset=${offset}`;
+    const targetUrl = `https://www.poe${patch.startsWith("4") ? "2" : ""}wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&limit=${CARGO_LIMIT}&offset=${offset}`;
 
-    const req = await proxyFetch(targetUrl, {
+    const req = await fetchWithRetry(targetUrl, {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
     });
-    if (!req.ok) {
-      throw new Error(`Failed to query wiki: ${req.status} ${req.statusText}`);
-    }
     const res = await req.json();
     if (res.cargoquery.length) {
       if (onProgress) onProgress(results.length + res.cargoquery.length);
+      await delay(REQUEST_DELAY_MS);
       return this.queryWiki(
         patch,
-        offset + 50,
+        offset + CARGO_LIMIT,
         [...results, ...res.cargoquery],
         onProgress,
       );
