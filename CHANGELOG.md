@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.12.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.12.1...chromatic-poe-v0.12.2) (2026-03-18)
+
+
+### Bug Fixes
+
+* avoid wiki rate limiting with larger page size and retry logic ([e29b919](https://github.com/jchantrell/chromatic-poe/commit/e29b9193bdec0edb241c096868b8124f8fc58e82))
+
 ## [0.12.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.12.0...chromatic-poe-v0.12.1) (2026-03-18)
 
 
