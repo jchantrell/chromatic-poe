@@ -29,10 +29,7 @@ export default defineConfig(async ({ mode }) => {
             host,
             port: 1421,
           }
-        : {
-            host: "localhost",
-            port: 1423,
-          },
+        : undefined,
       watch: {
         ignored: ["**/app/tauri/**"],
       },

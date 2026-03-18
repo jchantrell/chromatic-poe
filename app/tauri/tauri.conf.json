@@ -10,7 +10,16 @@
     "frontendDist": "../../dist"
   },
   "app": {
-    "windows": [],
+    "windows": [
+      {
+        "title": "Chromatic",
+        "width": 1280,
+        "minWidth": 1100,
+        "height": 800,
+        "minHeight": 800,
+        "decorations": false
+      }
+    ],
     "security": {
       "csp": null
     }
