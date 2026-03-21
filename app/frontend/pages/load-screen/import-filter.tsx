@@ -38,31 +38,24 @@ export default function ImportFilter() {
       toast(`Filter with name ${name()} already exists.`);
       return;
     }
-    const filter = await generateFilter(name(), version(), raw());
-    await filter.save();
-    store.filters.push(filter);
-    setDialogOpen(false);
-  }
 
-  async function importJsonFilter(text: string, fileName: string) {
-    if (!validJson(text)) {
-      toast.error("Invalid JSON file.");
-      return;
+    if (validJson(raw())) {
+      const parsed = JSON.parse(raw());
+      if (!parsed.rules || !parsed.poeVersion) {
+        toast.error("Invalid Chromatic filter JSON.");
+        return;
+      }
+      parsed.name = name();
+      parsed.lastUpdated = new Date(parsed.lastUpdated ?? new Date());
+      const filter = new Filter(parsed);
+      await filter.save();
+      store.filters.push(filter);
+    } else {
+      const filter = await generateFilter(name(), version(), raw());
+      await filter.save();
+      store.filters.push(filter);
     }
-    const parsed = JSON.parse(text);
-    if (!parsed.rules || !parsed.poeVersion) {
-      toast.error("Invalid Chromatic filter JSON.");
-      return;
-    }
-    const filterName = fileName.replace(/\.json$/, "");
-    if (store.filters.some((e) => e.name === filterName)) {
-      toast.error(`Filter with name "${filterName}" already exists.`);
-      return;
-    }
-    parsed.lastUpdated = new Date(parsed.lastUpdated ?? new Date());
-    const filter = new Filter(parsed);
-    await filter.save();
-    store.filters.push(filter);
+
     setDialogOpen(false);
   }
 
@@ -78,11 +71,7 @@ export default function ImportFilter() {
         toast.error("Could not parse uploaded file.");
         return;
       }
-      if (file.name.endsWith(".json")) {
-        await importJsonFilter(text, file.name);
-        return;
-      }
-      setName(file.name.replace(/\.filter$/, ""));
+      setName(file.name.replace(/\.(filter|json)$/, ""));
       setRaw(text);
     }
   }
@@ -149,33 +138,26 @@ export default function ImportFilter() {
             </ToggleGroup>
           </div>
 
-          {chromatic.runtime === "web" && (
-            <>
-              <div class='flex items-center w-full'>
-                <input
-                  type='file'
-                  id='file'
-                  class='hidden'
-                  accept='.filter,.json'
-                  onChange={handleUpload}
-                />
-                <div class='flex w-full'>
-                  <label
-                    for='file'
-                    class='inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-primary bg-neutral-700 hover:bg-neutral-700/90 w-20'
-                  >
-                    Upload
-                  </label>
-                  <div class='ml-2 flex justify-center items-center text-muted-foreground'>
-                    {raw() === ""
-                      ? "No filter uploaded."
-                      : "Filter seems valid."}
-                  </div>
-                </div>
+          <div class='flex items-center w-full'>
+            <input
+              type='file'
+              id='file'
+              class='hidden'
+              accept='.filter,.json'
+              onChange={handleUpload}
+            />
+            <div class='flex w-full'>
+              <label
+                for='file'
+                class='inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-primary bg-neutral-700 hover:bg-neutral-700/90 w-20'
+              >
+                Upload
+              </label>
+              <div class='ml-2 flex justify-center items-center text-muted-foreground'>
+                {raw() === "" ? "No filter uploaded." : "Filter seems valid."}
               </div>
-              <Button onClick={createFilter}>Import</Button>
-            </>
-          )}
+            </div>
+          </div>
           {chromatic.runtime === "desktop" && (
             <div class='w-full flex flex-col gap-2'>
               <div>
@@ -206,9 +188,9 @@ export default function ImportFilter() {
                   </ToggleGroup>
                 </div>
               </div>
-              <Button onClick={createFilter}>Import</Button>
             </div>
           )}
+          <Button onClick={createFilter}>Import</Button>
         </div>
       </DialogContent>
     </Dialog>
