@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.13.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.13.0...chromatic-poe-v0.13.1) (2026-03-21)
+
+
+### Bug Fixes
+
+* route item-picker and rule-name edits through command system for autosave ([c7a519b](https://github.com/jchantrell/chromatic-poe/commit/c7a519b074417a72b4fd8724ab3324f1310a2737))
+
 ## [0.13.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.12.2...chromatic-poe-v0.13.0) (2026-03-21)
 
 
