@@ -1,10 +1,11 @@
+import { excuteCmd } from "@app/lib/commands";
 import { dat } from "@app/lib/dat";
 import type { FilterItem, FilterRule, Item } from "@app/lib/filter";
 import { itemIndex } from "@app/lib/items";
+import { store } from "@app/store";
 import { Checkbox } from "@app/ui/checkbox";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
 import {
-  batch,
   createEffect,
   createMemo,
   createResource,
@@ -197,17 +198,18 @@ export function ItemPicker(props: { rule: FilterRule }) {
   }
 
   function handleToggle(node: TreeNode, enabled: boolean) {
-    batch(() => {
-      toggle(node, enabled);
+    if (!store.filter) return;
+    toggle(node, enabled);
 
-      if (node.parent) {
-        updateParentState(node);
-      }
+    if (node.parent) {
+      updateParentState(node);
+    }
 
-      const leaves: LeafNode[] = [];
-      collectLeaves(node, leaves);
+    const leaves: LeafNode[] = [];
+    collectLeaves(node, leaves);
 
-      if (enabled) {
+    if (enabled) {
+      excuteCmd(store.filter, () => {
         const existingKeys = new Set(
           props.rule.bases.map((b) => `${b.name}|${b.category}`),
         );
@@ -228,7 +230,9 @@ export function ItemPicker(props: { rule: FilterRule }) {
         if (toAdd.length > 0) {
           props.rule.bases.push(...toAdd);
         }
-      } else {
+      });
+    } else {
+      excuteCmd(store.filter, () => {
         const toRemove = new Set(
           leaves.map((leaf) => `${leaf.data.name}|${leaf.data.category}`),
         );
@@ -236,8 +240,8 @@ export function ItemPicker(props: { rule: FilterRule }) {
         props.rule.bases = props.rule.bases.filter(
           (base) => !toRemove.has(`${base.name}|${base.category}`),
         );
-      }
-    });
+      });
+    }
   }
 
   createEffect(

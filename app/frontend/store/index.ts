@@ -62,6 +62,7 @@ export function addFilter(filter: Filter) {
 }
 
 export function setFilter(filter: Filter | null) {
+  store.filter?.flushAutosave();
   store.filter = filter;
 }
 

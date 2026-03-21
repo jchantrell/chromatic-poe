@@ -3,6 +3,7 @@ import {
   addParentRefs,
   deleteRule,
   duplicateRule,
+  excuteCmd,
   setEntryActive,
 } from "@app/lib/commands";
 import type { FilterRule } from "@app/lib/filter";
@@ -85,8 +86,11 @@ export default function Rule(props: {
   }
 
   function handleNameChange(e: Event) {
-    if (e.target instanceof HTMLInputElement) {
-      props.rule.name = e.target.value;
+    if (e.target instanceof HTMLInputElement && store.filter) {
+      const value = e.target.value;
+      excuteCmd(store.filter, () => {
+        props.rule.name = value;
+      });
     }
   }
 
