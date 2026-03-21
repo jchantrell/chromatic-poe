@@ -1,4 +1,12 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.13.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.12.2...chromatic-poe-v0.13.0) (2026-03-21)
+
+
+### Features
+
+* allow file upload for filter import on desktop ([1bd6bac](https://github.com/jchantrell/chromatic-poe/commit/1bd6bac851b6f5c65ba5e4430a099ce4538225ac))
+* import/export raw filter definitions ([1d690e8](https://github.com/jchantrell/chromatic-poe/commit/1d690e8aa9dab88380481cb9b6586da0a08e2d3e))
+
 ## [0.12.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.12.1...chromatic-poe-v0.12.2) (2026-03-18)
 
 
