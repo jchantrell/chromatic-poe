@@ -1,5 +1,6 @@
 import chromatic from "@app/lib/config";
-import { generateFilter } from "@app/lib/filter";
+import { Filter, generateFilter } from "@app/lib/filter";
+import { validJson } from "@app/lib/utils";
 import { store } from "@app/store";
 import { Button } from "@app/ui/button";
 import {
@@ -43,6 +44,28 @@ export default function ImportFilter() {
     setDialogOpen(false);
   }
 
+  async function importJsonFilter(text: string, fileName: string) {
+    if (!validJson(text)) {
+      toast.error("Invalid JSON file.");
+      return;
+    }
+    const parsed = JSON.parse(text);
+    if (!parsed.rules || !parsed.poeVersion) {
+      toast.error("Invalid Chromatic filter JSON.");
+      return;
+    }
+    const filterName = fileName.replace(/\.json$/, "");
+    if (store.filters.some((e) => e.name === filterName)) {
+      toast.error(`Filter with name "${filterName}" already exists.`);
+      return;
+    }
+    parsed.lastUpdated = new Date(parsed.lastUpdated ?? new Date());
+    const filter = new Filter(parsed);
+    await filter.save();
+    store.filters.push(filter);
+    setDialogOpen(false);
+  }
+
   async function handleUpload(e: Event) {
     if (e.target instanceof HTMLInputElement) {
       if (!e.target.files?.[0]) {
@@ -50,15 +73,17 @@ export default function ImportFilter() {
         return;
       }
       const file = e.target.files[0];
-      const filter = await file.text();
-      if (!filter) {
+      const text = await file.text();
+      if (!text) {
         toast.error("Could not parse uploaded file.");
         return;
       }
-      if (filter) {
-        setName(file.name.replace(/\.filter$/, ""));
-        setRaw(filter);
+      if (file.name.endsWith(".json")) {
+        await importJsonFilter(text, file.name);
+        return;
       }
+      setName(file.name.replace(/\.filter$/, ""));
+      setRaw(text);
     }
   }
 
@@ -131,7 +156,7 @@ export default function ImportFilter() {
                   type='file'
                   id='file'
                   class='hidden'
-                  accept='.filter'
+                  accept='.filter,.json'
                   onChange={handleUpload}
                 />
                 <div class='flex w-full'>

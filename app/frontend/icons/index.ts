@@ -23,4 +23,5 @@ export * from "./sun";
 export * from "./tick";
 export * from "./trash";
 export * from "./undo";
+export * from "./upload";
 export * from "./volume";

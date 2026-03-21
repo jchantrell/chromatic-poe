@@ -1,7 +1,8 @@
 import { BASE_URL } from "@app/app";
-import { CopyIcon, EditIcon, TrashIcon } from "@app/icons";
+import { CopyIcon, DownloadIcon, EditIcon, TrashIcon } from "@app/icons";
+import chromatic from "@app/lib/config";
 import type { Filter } from "@app/lib/filter";
-import { timeSince } from "@app/lib/utils";
+import { stringifyJSON, timeSince } from "@app/lib/utils";
 import { removeFilter, store } from "@app/store";
 import { Button } from "@app/ui/button";
 import {
@@ -30,6 +31,24 @@ export default function ExistingFilter(props: { filter: Filter }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = createSignal(false);
 
   setInterval(() => setTimeSinceUpdate(timeSince(lastUpdated())), 1000);
+
+  async function exportFilter() {
+    const db = await chromatic.db.getInstance();
+    const raw = await db.get("filters", props.filter.name);
+    if (!raw) {
+      notify("Failed to read filter data.");
+      return;
+    }
+    const json = stringifyJSON(raw);
+    const blob = new Blob([json], { type: "application/json" });
+    const elem = document.createElement("a");
+    elem.href = URL.createObjectURL(blob);
+    elem.download = `${props.filter.name}.json`;
+    document.body.appendChild(elem);
+    elem.click();
+    document.body.removeChild(elem);
+    URL.revokeObjectURL(elem.href);
+  }
 
   async function deleteFilter() {
     removeFilter(props.filter);
@@ -154,6 +173,12 @@ export default function ExistingFilter(props: { filter: Filter }) {
             <div class='flex items-center text-xs'>
               <CopyIcon />
               <div class='ml-1'>Copy</div>
+            </div>
+          </ContextMenuItem>
+          <ContextMenuItem onSelect={exportFilter}>
+            <div class='flex items-center text-xs'>
+              <DownloadIcon />
+              <div class='ml-1'>Export</div>
             </div>
           </ContextMenuItem>
           <ContextMenuItem
