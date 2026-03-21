@@ -100,7 +100,9 @@ function deriveBasesFromUniques(
   if (selectedCategories.length === 0) return [];
   const selected = new Set(selectedCategories);
   return uniques
-    .filter((u) => selected.has(u.league) || selected.has(u.category))
+    .filter(
+      (u) => (u.league && selected.has(u.league)) || selected.has(u.category),
+    )
     .map((u) => ({
       name: u.name,
       enabled: true,
@@ -151,10 +153,17 @@ function CategoriesInput(props: {
     getUniquesForCondition(props.condition),
   );
 
+  const availableLeagues = createMemo(() => {
+    const leagues = new Set<string>();
+    for (const u of cachedUniques()) {
+      if (u.league) leagues.add(u.league);
+    }
+    return Array.from(leagues).sort();
+  });
+
   const availableCategories = createMemo(() => {
     const cats = new Set<string>();
     for (const u of cachedUniques()) {
-      if (u.league) cats.add(u.league);
       if (u.category) cats.add(u.category);
     }
     return Array.from(cats).sort();
@@ -182,14 +191,15 @@ function CategoriesInput(props: {
       leagueSlug: value,
     } as any);
     if (uniques.length > 0 && props.condition.value.length === 0) {
+      const leagues = new Set<string>();
       const cats = new Set<string>();
       for (const u of uniques) {
-        if (u.league) cats.add(u.league);
+        if (u.league) leagues.add(u.league);
         if (u.category) cats.add(u.category);
       }
-      const allCats = Array.from(cats).sort();
-      props.onChange("value", allCats);
-      updateBases(allCats);
+      const all = [...Array.from(leagues).sort(), ...Array.from(cats).sort()];
+      props.onChange("value", all);
+      updateBases(all);
     }
   }
 
@@ -203,7 +213,7 @@ function CategoriesInput(props: {
   }
 
   function handleSelectAll() {
-    const all = availableCategories();
+    const all = [...availableLeagues(), ...availableCategories()];
     props.onChange("value", all);
     updateBases(all);
   }
@@ -341,10 +351,12 @@ function CategoriesInput(props: {
         </Button>
       </div>
 
-      <Show when={availableCategories().length > 0}>
+      <Show
+        when={availableLeagues().length > 0 || availableCategories().length > 0}
+      >
         <div class='flex items-center justify-between'>
           <Label class='text-sm font-semibold text-muted-foreground'>
-            Categories
+            Filters
           </Label>
           <div class='flex gap-2'>
             <button
@@ -363,38 +375,80 @@ function CategoriesInput(props: {
             </button>
           </div>
         </div>
-        <div class='flex flex-wrap gap-x-3 gap-y-1'>
-          <For each={availableCategories()}>
-            {(category) => (
-              <CheckboxPrimitive.Root
-                class='flex items-center gap-1.5 text-sm cursor-pointer'
-                checked={props.condition.value.includes(category)}
-                onChange={(checked: boolean) => handleToggle(category, checked)}
-              >
-                <CheckboxPrimitive.Input class='peer' />
-                <CheckboxPrimitive.Control class='size-4 shrink-0 rounded-sm border border-primary ring-offset-background data-checked:border-none data-checked:bg-primary data-checked:text-primary-foreground cursor-pointer'>
-                  <CheckboxPrimitive.Indicator>
-                    <svg
-                      xmlns='http://www.w3.org/2000/svg'
-                      viewBox='0 0 24 24'
-                      fill='none'
-                      stroke='currentColor'
-                      stroke-width='2'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
-                      class='size-4'
-                    >
-                      <path d='M5 12l5 5l10 -10' />
-                    </svg>
-                  </CheckboxPrimitive.Indicator>
-                </CheckboxPrimitive.Control>
-                <CheckboxPrimitive.Label class='cursor-pointer select-none'>
-                  {category}
-                </CheckboxPrimitive.Label>
-              </CheckboxPrimitive.Root>
-            )}
-          </For>
-        </div>
+
+        <Show when={availableLeagues().length > 0}>
+          <Label class='text-xs text-muted-foreground'>Leagues</Label>
+          <div class='flex flex-wrap gap-x-3 gap-y-1'>
+            <For each={availableLeagues()}>
+              {(league) => (
+                <CheckboxPrimitive.Root
+                  class='flex items-center gap-1.5 text-sm cursor-pointer'
+                  checked={props.condition.value.includes(league)}
+                  onChange={(checked: boolean) => handleToggle(league, checked)}
+                >
+                  <CheckboxPrimitive.Input class='peer' />
+                  <CheckboxPrimitive.Control class='size-4 shrink-0 rounded-sm border border-primary ring-offset-background data-checked:border-none data-checked:bg-primary data-checked:text-primary-foreground cursor-pointer'>
+                    <CheckboxPrimitive.Indicator>
+                      <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        viewBox='0 0 24 24'
+                        fill='none'
+                        stroke='currentColor'
+                        stroke-width='2'
+                        stroke-linecap='round'
+                        stroke-linejoin='round'
+                        class='size-4'
+                      >
+                        <path d='M5 12l5 5l10 -10' />
+                      </svg>
+                    </CheckboxPrimitive.Indicator>
+                  </CheckboxPrimitive.Control>
+                  <CheckboxPrimitive.Label class='cursor-pointer select-none'>
+                    {league}
+                  </CheckboxPrimitive.Label>
+                </CheckboxPrimitive.Root>
+              )}
+            </For>
+          </div>
+        </Show>
+
+        <Show when={availableCategories().length > 0}>
+          <Label class='text-xs text-muted-foreground'>Categories</Label>
+          <div class='flex flex-wrap gap-x-3 gap-y-1'>
+            <For each={availableCategories()}>
+              {(category) => (
+                <CheckboxPrimitive.Root
+                  class='flex items-center gap-1.5 text-sm cursor-pointer'
+                  checked={props.condition.value.includes(category)}
+                  onChange={(checked: boolean) =>
+                    handleToggle(category, checked)
+                  }
+                >
+                  <CheckboxPrimitive.Input class='peer' />
+                  <CheckboxPrimitive.Control class='size-4 shrink-0 rounded-sm border border-primary ring-offset-background data-checked:border-none data-checked:bg-primary data-checked:text-primary-foreground cursor-pointer'>
+                    <CheckboxPrimitive.Indicator>
+                      <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        viewBox='0 0 24 24'
+                        fill='none'
+                        stroke='currentColor'
+                        stroke-width='2'
+                        stroke-linecap='round'
+                        stroke-linejoin='round'
+                        class='size-4'
+                      >
+                        <path d='M5 12l5 5l10 -10' />
+                      </svg>
+                    </CheckboxPrimitive.Indicator>
+                  </CheckboxPrimitive.Control>
+                  <CheckboxPrimitive.Label class='cursor-pointer select-none'>
+                    {category}
+                  </CheckboxPrimitive.Label>
+                </CheckboxPrimitive.Root>
+              )}
+            </For>
+          </div>
+        </Show>
       </Show>
     </div>
   );
