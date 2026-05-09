@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.13.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.13.1...chromatic-poe-v0.13.2) (2026-05-09)
+
+
+### Bug Fixes
+
+* update GemEffects to GemVariants per schema change ([b68fcde](https://github.com/jchantrell/chromatic-poe/commit/b68fcdeadcd721cd7dc402ce546a01e7b7ead843))
+
 ## [0.13.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.13.0...chromatic-poe-v0.13.1) (2026-03-21)
 
 
