@@ -71,7 +71,7 @@ WITH ITEMS AS (
     ELSE 0
   END) as stackable,
 
-  ${TableNames.SkillGems}.GemEffects as 'gemFx',
+  ${TableNames.SkillGems}.GemVariants as 'gemFx',
   ${TableNames.BaseItemTypes}.DropLevel as 'dropLevel'
 
   FROM ${TableNames.BaseItemTypes}
@@ -1046,7 +1046,7 @@ WITH ITEMS AS (
     ELSE 0
   END) as stackable,
 
-  ${TableNames.SkillGems}.GemEffects as 'gemFx',
+  ${TableNames.SkillGems}.GemVariants as 'gemFx',
   ${TableNames.BaseItemTypes}.DropLevel as 'dropLevel'
 
   FROM ${TableNames.BaseItemTypes}
