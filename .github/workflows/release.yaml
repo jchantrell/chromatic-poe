@@ -20,7 +20,7 @@ jobs:
       version: ${{ steps.release.outputs.version }}
       id: ${{ steps.get_release_id.outputs.id }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         id: release
         with:
           manifest-file: release-please-manifest.json
@@ -37,13 +37,13 @@ jobs:
     if: needs.manage-release.outputs.release_created == 'true'
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: lts/*
+          node-version-file: '.nvmrc'
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -72,12 +72,12 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Install Linux build dependencies
         if: matrix.platform == 'ubuntu-22.04'
@@ -92,9 +92,9 @@ jobs:
           pnpm config set script-shell "C:\\Program Files\\git\\bin\\bash.exe"
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: lts/*
+          node-version-file: '.nvmrc'
           cache: 'pnpm'
 
       - name: Install Rust
@@ -129,13 +129,13 @@ jobs:
 
       - name: Upload static files as artifact
         if: matrix.platform == 'ubuntu-22.04'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: dist/
 
       - name: Deploy to GitHub Pages
         if: matrix.platform == 'ubuntu-22.04'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       - name: Publish
         env:
