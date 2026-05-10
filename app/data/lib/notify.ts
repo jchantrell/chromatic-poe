@@ -5,6 +5,7 @@ interface GapEntry {
   name: string;
   missingBase: boolean;
   missingPoeladder: boolean;
+  retired: boolean;
 }
 
 export async function notifyFailure(
@@ -32,22 +33,29 @@ export async function notifySuccess(
   uniqueCount: number,
   gaps: GapEntry[],
 ): Promise<void> {
+  const active = gaps.filter((g) => !g.retired);
+  const retiredCount = gaps.length - active.length;
+
   let content = `**Data release** — ${game} ${version}\nItems: ${itemCount}, Uniques: ${uniqueCount}\n`;
 
-  if (gaps.length) {
-    const missingBases = gaps.filter((g) => g.missingBase);
-    const missingLadder = gaps.filter((g) => g.missingPoeladder);
+  const activeMissingBases = active.filter((g) => g.missingBase);
+  const activeMissingLadder = active.filter((g) => g.missingPoeladder);
 
-    if (missingBases.length) {
-      content += `\n**Missing base types (${missingBases.length}):**\n`;
-      content += missingBases.map((g) => `- ${g.name}`).join("\n");
-    }
-    if (missingLadder.length) {
-      content += `\n**Missing poeladder category (${missingLadder.length}):**\n`;
-      content += missingLadder.map((g) => `- ${g.name}`).join("\n");
-    }
-  } else {
-    content += "All uniques fully enriched.";
+  if (activeMissingBases.length) {
+    content += `\n**Missing base types (${activeMissingBases.length}):**\n`;
+    content += activeMissingBases.map((g) => `- ${g.name}`).join("\n");
+  }
+  if (activeMissingLadder.length) {
+    content += `\n**Missing poeladder category (${activeMissingLadder.length}):**\n`;
+    content += activeMissingLadder.map((g) => `- ${g.name}`).join("\n");
+  }
+
+  if (!activeMissingBases.length && !activeMissingLadder.length) {
+    content += "All drop-enabled uniques fully enriched.";
+  }
+
+  if (retiredCount) {
+    content += `\n- ${retiredCount} retired uniques`;
   }
 
   await send(content);

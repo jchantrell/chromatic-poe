@@ -5,6 +5,7 @@ export interface PoeladderUnique {
   grouping: string;
   base: string;
   category: string;
+  tier: number | null;
   league: string | null;
   owned: boolean;
   altOwned: boolean;

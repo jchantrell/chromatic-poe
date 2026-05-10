@@ -1503,7 +1503,9 @@ Visuals.DDSFile as art,
 null as height,
 null as width,
 null as gemFx,
-null as itemClass
+null as itemClass,
+${TableNames.UniqueStashLayout}.ShowIfEmptyStandard as dropEnabledStandard,
+${TableNames.UniqueStashLayout}.ShowIfEmptyChallengeLeague as dropEnabledLeague
 FROM ${TableNames.UniqueStashLayout}
 LEFT JOIN ${TableNames.UniqueStashTypes}
 ON ${TableNames.UniqueStashLayout}.UniqueStashTypesKey = ${TableNames.UniqueStashTypes}._index
@@ -1533,7 +1535,9 @@ Visuals.DDSFile as art,
 null as height,
 null as width,
 null as gemFx,
-null as itemClass
+null as itemClass,
+${TableNames.UniqueStashLayout}.ShowIfEmptyStandard as dropEnabledStandard,
+${TableNames.UniqueStashLayout}.ShowIfEmptyChallengeLeague as dropEnabledLeague
 FROM ${TableNames.UniqueStashLayout}
 LEFT JOIN ${TableNames.UniqueStashTypes}
 ON ${TableNames.UniqueStashLayout}.UniqueStashTypesKey = ${TableNames.UniqueStashTypes}._index

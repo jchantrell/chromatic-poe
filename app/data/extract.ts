@@ -28,9 +28,12 @@ interface UniqueOutput {
   width: number | null;
   itemClass: string | null;
   gemFx: string | null;
+  dropEnabledStandard: boolean;
+  dropEnabledLeague: boolean;
   poeladder: {
     grouping: string;
     category: string;
+    tier: number | null;
     league: string | null;
   } | null;
 }
@@ -118,7 +121,12 @@ async function extractUniqueData(
   const ladderMap = new Map(
     poeladderUniques.map((u) => [
       u.name,
-      { grouping: u.grouping, category: u.category, league: u.league },
+      {
+        grouping: u.grouping,
+        category: u.category,
+        tier: u.tier,
+        league: u.league,
+      },
     ]),
   );
 
@@ -126,25 +134,30 @@ async function extractUniqueData(
     name: string;
     missingBase: boolean;
     missingPoeladder: boolean;
+    retired: boolean;
   }[] = [];
 
   const uniques: UniqueOutput[] = rawUniques.map((u) => {
     const name = u.name as string;
     const base = wikiMap.get(name) ?? null;
     const ladder = ladderMap.get(name) ?? null;
+    const dropStandard = Boolean(u.dropEnabledStandard);
+    const dropLeague = Boolean(u.dropEnabledLeague);
+    const retired = !dropStandard && !dropLeague;
 
     if (!base || !ladder) {
       gaps.push({
         name,
         missingBase: !base,
         missingPoeladder: !ladder,
+        retired,
       });
     }
 
     return {
       name,
       base,
-      category: (u.category as string) ?? "Uniques",
+      category: retired ? "Unknown" : ((u.category as string) ?? "Uniques"),
       class: (u.class as string) ?? null,
       type: (u.type as string) ?? null,
       score: (u.score as number) ?? 0,
@@ -153,6 +166,8 @@ async function extractUniqueData(
       width: (u.width as number) ?? null,
       itemClass: (u.itemClass as string) ?? null,
       gemFx: (u.gemFx as string) ?? null,
+      dropEnabledStandard: dropStandard,
+      dropEnabledLeague: dropLeague,
       poeladder: ladder,
     };
   });
