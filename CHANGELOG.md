@@ -1,4 +1,17 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.14.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.13.2...chromatic-poe-v0.14.0) (2026-05-10)
+
+
+### Features
+
+* add drop-enabled flags and filter retired uniques from notifications ([5d52298](https://github.com/jchantrell/chromatic-poe/commit/5d5229888113a8238ac817016c6db8d223e3ace9))
+* consume pre-built data releases instead of client-side extraction ([bc9e0ed](https://github.com/jchantrell/chromatic-poe/commit/bc9e0eddd483d02626774e30ba3278585fc64166))
+
+
+### Bug Fixes
+
+* non-blocking item art, tauri scope, progress bar accuracy ([86ad84e](https://github.com/jchantrell/chromatic-poe/commit/86ad84e60bfb4d763e27ce1b0a0b1c585565f093))
+
 ## [0.13.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.13.1...chromatic-poe-v0.13.2) (2026-05-09)
 
 
