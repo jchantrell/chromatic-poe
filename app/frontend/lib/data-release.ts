@@ -3,6 +3,7 @@ import type { MinimapCoords } from "./minimap";
 import type { Mod } from "./mods";
 import { proxyFetch } from "./fetch";
 
+const DEV_BASE = "/data";
 const RELEASE_BASE =
   "https://github.com/jchantrell/chromatic-poe/releases/download";
 
@@ -44,7 +45,9 @@ interface CachedPatchData {
 const patchDataCache = new Map<string, CachedPatchData>();
 
 async function fetchJson<T>(url: string): Promise<T> {
-  const response = await proxyFetch(url);
+  const response = url.startsWith("/")
+    ? await fetch(url)
+    : await proxyFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch ${url}: ${response.status}`);
   }
@@ -55,9 +58,10 @@ export async function fetchDataRelease(
   patch: string,
   onProgress?: (percent: number, msg: string) => void,
 ): Promise<DataRelease> {
+  const isDev = import.meta.env.DEV;
   const game = patch.startsWith("4.") ? "poe2" : "poe1";
   const tag = `data-${game}-${patch}`;
-  const base = `${RELEASE_BASE}/${tag}`;
+  const base = isDev ? DEV_BASE : `${RELEASE_BASE}/${tag}`;
 
   let items: Item[];
   let mods: Mod[];

@@ -88,6 +88,10 @@ export default function Editor() {
 
     if (dataError) {
       console.error("[editor] failed to fetch data release", dataError);
+      toast.error("Failed to load game data", {
+        description:
+          dataError instanceof Error ? dataError.message : String(dataError),
+      });
       loadingPatch = null;
       return;
     }
@@ -127,23 +131,37 @@ export default function Editor() {
 
     dat.minimap.coords = data.minimap;
 
-    await dat.ensureArtCached(patch, [
-      { name: "minimap", art: "Art/2DArt/Minimap/Player.dds" },
-    ]);
+    const [artError] = await to(
+      dat.ensureArtCached(patch, [
+        { name: "minimap", art: "Art/2DArt/Minimap/Player.dds" },
+      ]),
+    );
+    if (artError) {
+      toast.error("Failed to load minimap assets", {
+        description:
+          artError instanceof Error ? artError.message : String(artError),
+      });
+    }
     const url = await dat.getArt("minimap");
     if (url) {
       const img = new Image();
-      await new Promise<void>((res, rej) => {
-        img.onload = () => res();
-        img.onerror = () =>
-          rej(new Error("Failed to load minimap spritesheet"));
-        img.src = url;
-      });
-      setIconSpritesheet({
-        url,
-        height: img.naturalHeight,
-        width: img.naturalWidth,
-      });
+      try {
+        await new Promise<void>((res, rej) => {
+          img.onload = () => res();
+          img.onerror = () =>
+            rej(new Error("Failed to load minimap spritesheet"));
+          img.src = url;
+        });
+        setIconSpritesheet({
+          url,
+          height: img.naturalHeight,
+          width: img.naturalWidth,
+        });
+      } catch (err) {
+        toast.error("Failed to render minimap spritesheet", {
+          description: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
 
     if (gameVersion === 1) {
