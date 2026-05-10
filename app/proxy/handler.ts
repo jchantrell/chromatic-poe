@@ -16,6 +16,7 @@ const ALLOWED_DOMAINS = [
   /^https:\/\/poeladder\.com\/api\/.+/,
   /^https:\/\/github\.com\/jchantrell\/chromatic-poe\/releases\/download\/.+/,
   /^https:\/\/objects\.githubusercontent\.com\/.+/,
+  /^https:\/\/release-assets\.githubusercontent\.com\/.+/,
 ];
 
 export default {

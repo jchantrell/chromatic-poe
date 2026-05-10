@@ -29,7 +29,8 @@
         "https://github.com/poe-tool-dev/dat-schema/releases/download/*",
         "https://poeladder.com/api/*",
         "https://github.com/jchantrell/chromatic-poe/releases/download/*",
-        "https://objects.githubusercontent.com/*"
+        "https://objects.githubusercontent.com/*",
+        "https://release-assets.githubusercontent.com/*"
       ]
     },
     {
