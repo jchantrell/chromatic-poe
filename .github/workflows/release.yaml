@@ -46,7 +46,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --config.onlyBuiltDependencies=[]
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
@@ -108,7 +108,7 @@ jobs:
           workspaces: './src-tauri -> target'
 
       - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --config.onlyBuiltDependencies=[]
 
       - uses: tauri-apps/tauri-action@v0
         env:
