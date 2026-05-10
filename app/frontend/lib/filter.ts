@@ -22,7 +22,7 @@ import { toast } from "solid-sonner";
 import type { ulid } from "ulid";
 import { type Actions, serializeActions } from "./action";
 import { addParentRefs, type Command } from "./commands";
-import { dat } from "./dat";
+import { fetchDataRelease } from "./data-release";
 import { importFilter } from "./import";
 import { itemIndex } from "./items";
 
@@ -366,19 +366,31 @@ export async function generateFilter(
     // itemIndex is normally initialised in the editor, but import runs on the
     // load screen before the editor mounts.
     if (!itemIndex.searchIndex || itemIndex.patch !== patch) {
-      await dat.ensureDbInitialized();
-      const [extractErr] = await to(dat.extract(patch));
-      if (extractErr) {
-        console.error("Failed to extract game data for import", extractErr);
-      }
-      const [loadErr, data] = await to(dat.load(patch));
-      if (loadErr || !data) {
-        console.error("Failed to load game data for import", loadErr);
+      const [err, data] = await to(fetchDataRelease(patch));
+      if (err || !data) {
+        console.error("Failed to load game data for import", err);
       } else {
+        const allItems = [
+          ...data.items,
+          ...data.uniques.map((u) => ({
+            name: u.name,
+            enabled: true,
+            base: u.base ?? "",
+            category: u.category,
+            class: u.class ?? "",
+            type: u.type ?? "",
+            score: u.score ?? 0,
+            art: u.art ?? "",
+            height: u.height ?? 0,
+            width: u.width ?? 0,
+            itemClass: u.itemClass ?? "",
+            gemFx: u.gemFx,
+          })),
+        ] as Item[];
         if (poeVersion === 1) {
-          itemIndex.initV1(data.items as Item[], patch);
+          itemIndex.initV1(allItems, patch);
         } else {
-          itemIndex.initV2(data.items as Item[], patch);
+          itemIndex.initV2(allItems, patch);
         }
       }
     }

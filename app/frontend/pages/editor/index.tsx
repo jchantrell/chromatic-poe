@@ -1,5 +1,6 @@
 import { Progress } from "@app/components/progress";
 import { dat } from "@app/lib/dat";
+import { fetchDataRelease } from "@app/lib/data-release";
 import type { Item } from "@app/lib/filter";
 import { itemIndex } from "@app/lib/items";
 import { enchantIndex, type Mod, modIndex } from "@app/lib/mods";
@@ -50,35 +51,19 @@ export default function Editor() {
 
     const patch = store.filter.poePatch;
 
-    await dat.ensureDbInitialized();
-
     if (itemIndex.patch !== filterVersion) {
       itemIndex.searchIndex = null;
     }
 
-    const [extractError] = await to(
-      dat.extract(patch, (p, m) => {
-        setProgress(p);
-        setMessage(m);
-      }),
-    );
-    if (extractError) {
-      console.error("Failed to load items", extractError);
-      return;
-    }
-
-    setProgress(0);
-    setMessage("Initialising...");
     let toastId: string | number | undefined;
     let hasShownToast = false;
 
-    // cleanup previous toast if effect re-runs
     onCleanup(() => {
       if (toastId) toast.dismiss(toastId);
     });
 
     const [dataError, data] = await to(
-      dat.load(patch, (p, m) => {
+      fetchDataRelease(patch, (p, m) => {
         if (!hasShownToast) {
           toastId = toast(<Progress progress={progress} message={message} />, {
             duration: Infinity,
@@ -90,7 +75,7 @@ export default function Editor() {
 
         if (p === 100) {
           toast.dismiss(toastId);
-          toastId = undefined; // prevent cleanup from dismissing again
+          toastId = undefined;
         }
       }),
     );
@@ -100,6 +85,38 @@ export default function Editor() {
       return;
     }
 
+    const allItems = [
+      ...data.items,
+      ...data.uniques.map((u) => ({
+        name: u.name,
+        enabled: true,
+        base: u.base ?? "",
+        category: u.category,
+        class: u.class ?? "",
+        type: u.type ?? "",
+        score: u.score ?? 0,
+        art: u.art ?? "",
+        height: u.height ?? 0,
+        width: u.width ?? 0,
+        itemClass: u.itemClass ?? "",
+        gemFx: u.gemFx,
+      })),
+    ] as Item[];
+
+    const missingBase = data.uniques.filter((u) => !u.base);
+    if (missingBase.length) {
+      toast.warning(
+        `Could not retrieve base types for ${missingBase.length} uniques. Cannot filter by base type for these items.`,
+        {
+          description: missingBase.map((u) => u.name).join(", "),
+          duration: 10000,
+        },
+      );
+    }
+
+    dat.minimap.coords = data.minimap;
+
+    await dat.ensureArtCached(patch, allItems);
     const url = await dat.getArt("minimap");
     const img = new Image();
     await new Promise((res, rej) => {
@@ -112,9 +129,9 @@ export default function Editor() {
     setIconSpritesheet({ url, height, width });
 
     if (gameVersion === 1) {
-      itemIndex.initV1(data.items as Item[], patch);
+      itemIndex.initV1(allItems, patch);
     } else {
-      itemIndex.initV2(data.items as Item[], patch);
+      itemIndex.initV2(allItems, patch);
     }
     modIndex.init(data.mods as Mod[]);
     enchantIndex.init(data.mods as Mod[]);

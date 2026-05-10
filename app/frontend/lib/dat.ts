@@ -100,6 +100,17 @@ export class DatManager {
     return await this.art.getCached(this.patch, name);
   }
 
+  async ensureArtCached(
+    patch: string,
+    items: { name: string; art: string }[],
+    onProgress?: (percent: number, msg: string) => void,
+  ) {
+    this.patch = patch;
+    await this.loader.init(patch);
+    const artItems = items.map((i) => ({ name: i.name, path: i.art }));
+    await this.art.ensureCached(patch, artItems, onProgress);
+  }
+
   async getMods(patch: string) {
     return await this.mods.getMods(patch);
   }

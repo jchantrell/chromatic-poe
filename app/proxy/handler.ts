@@ -14,6 +14,8 @@ const ALLOWED_DOMAINS = [
   /^https:\/\/poe-versions\.obsoleet\.org\/.*/,
   /^https:\/\/github\.com\/poe-tool-dev\/dat-schema\/releases\/download\/.+/,
   /^https:\/\/poeladder\.com\/api\/.+/,
+  /^https:\/\/github\.com\/jchantrell\/chromatic-poe\/releases\/download\/.+/,
+  /^https:\/\/objects\.githubusercontent\.com\/.+/,
 ];
 
 export default {
