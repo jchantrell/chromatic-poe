@@ -1,4 +1,18 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.15.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.14.0...chromatic-poe-v0.15.0) (2026-05-10)
+
+
+### Features
+
+* generate unmapped.json report in data pipeline ([ec49fd0](https://github.com/jchantrell/chromatic-poe/commit/ec49fd09fd1f393329f04a579194f3448a1e7ef3))
+* local dev data loading and non-blocking item art ([f787ff2](https://github.com/jchantrell/chromatic-poe/commit/f787ff28528dd64cec102a4d808b400cf658358f))
+* overhaul PoE2 item query to use exchange categories and fill coverage gaps ([e00ec46](https://github.com/jchantrell/chromatic-poe/commit/e00ec4615599582814eafdf13732149cbb26d095))
+
+
+### Bug Fixes
+
+* show toast errors for version fetch, data load, and minimap failures ([6c863d5](https://github.com/jchantrell/chromatic-poe/commit/6c863d56ea78045af29f61cfdb899945e932e1c5))
+
 ## [0.14.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.13.2...chromatic-poe-v0.14.0) (2026-05-10)
 
 
