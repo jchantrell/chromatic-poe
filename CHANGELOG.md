@@ -1,4 +1,12 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.15.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.15.1...chromatic-poe-v0.15.2) (2026-05-10)
+
+
+### Bug Fixes
+
+* add node-gyp for better-sqlite3 builds on Node 24 CI ([b3be67f](https://github.com/jchantrell/chromatic-poe/commit/b3be67f93f5560d3fa08030f0a7f13a1f99e4ff5))
+* upgrade better-sqlite3 to v12 for Node 24 prebuilt binaries ([8eecf80](https://github.com/jchantrell/chromatic-poe/commit/8eecf801bc3621c01aee2d8b04c070e8a7ab46aa))
+
 ## [0.15.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.15.0...chromatic-poe-v0.15.1) (2026-05-10)
 
 
