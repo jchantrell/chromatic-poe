@@ -16,7 +16,7 @@ const Progress = <T extends ValidComponent = "div">(
     <ProgressPrimitive.Root {...others}>
       {local.children}
       <ProgressPrimitive.Track class='relative h-2 w-full overflow-hidden rounded-full bg-accent'>
-        <ProgressPrimitive.Fill class='h-full w-(--kb-progress-fill-width) flex-1 bg-primary transition-all' />
+        <ProgressPrimitive.Fill class='h-full w-(--kb-progress-fill-width) flex-1 bg-primary' />
       </ProgressPrimitive.Track>
     </ProgressPrimitive.Root>
   );

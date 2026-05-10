@@ -65,17 +65,20 @@ export async function fetchDataRelease(
 
   const cached = patchDataCache.get(patch);
   if (cached) {
+    console.log(`[data-release] using cached patch data for ${patch}`);
     items = cached.items;
     mods = cached.mods;
     minimap = cached.minimap;
     if (onProgress) onProgress(50, "Loaded cached patch data");
   } else {
     if (onProgress) onProgress(0, "Downloading item data...");
+    console.log(`[data-release] fetching ${base}/items.json`);
     const [itemsResult, modsResult, minimapResult] = await Promise.all([
       fetchJson<Item[]>(`${base}/items.json`),
       fetchJson<Mod[]>(`${base}/mods.json`),
       fetchJson<MinimapCoords>(`${base}/minimap.json`),
     ]);
+    console.log("[data-release] patch data downloaded");
     items = itemsResult;
     mods = modsResult;
     minimap = minimapResult;
@@ -84,8 +87,12 @@ export async function fetchDataRelease(
   }
 
   if (onProgress) onProgress(60, "Downloading unique data...");
+  console.log(`[data-release] fetching ${base}/uniques.json`);
   const uniques = await fetchJson<UniqueOutput[]>(`${base}/uniques.json`).catch(
-    () => [] as UniqueOutput[],
+    (err) => {
+      console.warn("[data-release] uniques fetch failed:", err);
+      return [] as UniqueOutput[];
+    },
   );
 
   if (onProgress) onProgress(100, "Done");

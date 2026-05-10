@@ -25,6 +25,7 @@ export default function Editor() {
   const [message, setMessage] = createSignal("Initializing...");
   const { colorMode } = useColorMode();
   const params = useParams();
+  let loadingPatch: string | null = null;
 
   createEffect(() => {
     const filter = store.filters.find(
@@ -51,6 +52,10 @@ export default function Editor() {
 
     const patch = store.filter.poePatch;
 
+    if (loadingPatch === patch) return;
+    loadingPatch = patch;
+    console.log(`[editor] loading data for ${patch}`);
+
     if (itemIndex.patch !== filterVersion) {
       itemIndex.searchIndex = null;
     }
@@ -62,6 +67,7 @@ export default function Editor() {
       if (toastId) toast.dismiss(toastId);
     });
 
+    console.log("[editor] fetching data release...");
     const [dataError, data] = await to(
       fetchDataRelease(patch, (p, m) => {
         if (!hasShownToast) {
@@ -81,9 +87,14 @@ export default function Editor() {
     );
 
     if (dataError) {
-      console.error("Failed to load data", dataError);
+      console.error("[editor] failed to fetch data release", dataError);
+      loadingPatch = null;
       return;
     }
+
+    console.log(
+      `[editor] data received: ${data.items.length} items, ${data.uniques.length} uniques, ${data.mods.length} mods`,
+    );
 
     const allItems = [
       ...data.items,
@@ -116,17 +127,24 @@ export default function Editor() {
 
     dat.minimap.coords = data.minimap;
 
-    await dat.ensureArtCached(patch, allItems);
+    await dat.ensureArtCached(patch, [
+      { name: "minimap", art: "Art/2DArt/Minimap/Player.dds" },
+    ]);
     const url = await dat.getArt("minimap");
-    const img = new Image();
-    await new Promise((res, rej) => {
-      img.onload = res;
-      img.onerror = rej;
-      img.src = url || "";
-    });
-    const width = img.naturalWidth;
-    const height = img.naturalHeight;
-    setIconSpritesheet({ url, height, width });
+    if (url) {
+      const img = new Image();
+      await new Promise<void>((res, rej) => {
+        img.onload = () => res();
+        img.onerror = () =>
+          rej(new Error("Failed to load minimap spritesheet"));
+        img.src = url;
+      });
+      setIconSpritesheet({
+        url,
+        height: img.naturalHeight,
+        width: img.naturalWidth,
+      });
+    }
 
     if (gameVersion === 1) {
       itemIndex.initV1(allItems, patch);
@@ -137,6 +155,24 @@ export default function Editor() {
     enchantIndex.init(data.mods as Mod[]);
 
     setPatchLoaded(true);
+
+    const itemArt = allItems.map((i) => ({ name: i.name, art: i.art }));
+    let artToastId: string | number | undefined;
+    setProgress(0);
+    setMessage("Downloading assets...");
+    dat.ensureArtCached(patch, itemArt, (p, m) => {
+      if (!artToastId) {
+        artToastId = toast(<Progress progress={progress} message={message} />, {
+          duration: Infinity,
+        });
+      }
+      setProgress(p);
+      setMessage(m);
+      if (p === 100 && artToastId) {
+        toast.dismiss(artToastId);
+        artToastId = undefined;
+      }
+    });
   });
 
   return (
