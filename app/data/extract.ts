@@ -72,10 +72,12 @@ async function extractPatchData(
   writeOutput("mods.json", mods);
 
   const mappedNames = new Set((items as { name: string }[]).map((i) => i.name));
+  const isPoE2 = patch.startsWith("4.");
+  const classCol = isPoE2 ? "ItemClass" : "ItemClassesKey";
   const allBaseItems = db.query(`
     SELECT b.Name as name, ic.Name as class
     FROM "${patch}_BaseItemTypes" b
-    LEFT JOIN "${patch}_ItemClasses" ic ON b.ItemClass = ic._index
+    LEFT JOIN "${patch}_ItemClasses" ic ON b.${classCol} = ic._index
     WHERE b.Name != '' AND b.Name IS NOT NULL
     AND b.Name NOT LIKE '[DNT%'
   `) as { name: string; class: string }[];
