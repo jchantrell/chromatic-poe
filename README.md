@@ -8,7 +8,7 @@
 
 Chromatic PoE is a tool to generate [item filters](https://www.pathofexile.com/item-filter/about) for Path of Exile. It is free and open source for the peace of mind of anyone that uses it.
 
-See [releases](https://github.com/jchantrell/chromatic-poe/releases) for downloads of the desktop application. Alternatively you can use the [web application](https://jchantrell.github.io/chromatic-poe/) for the same functionality, just without the desktop native features like automatic reloading in-game.
+Download the [latest release](https://github.com/jchantrell/chromatic-poe/releases/latest) of the desktop application. Alternatively you can use the [web application](https://jchantrell.github.io/chromatic-poe/) for the same functionality, just without the desktop native features like automatic reloading in-game.
 
 ## Showcase
 

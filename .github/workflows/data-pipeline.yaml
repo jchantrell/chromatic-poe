@@ -123,7 +123,7 @@ jobs:
           if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
             gh release upload "$TAG" app/data/output/*.json --clobber --repo "${{ github.repository }}"
           else
-            gh release create "$TAG" app/data/output/*.json \
+            gh release create "$TAG" app/data/output/*.json --latest=false \
               --title "PoE1 Data ${{ needs.check-versions.outputs.poe1_version }}" \
               --notes "Auto-generated game data for PoE1 patch ${{ needs.check-versions.outputs.poe1_version }}" \
               --repo "${{ github.repository }}"
@@ -171,7 +171,7 @@ jobs:
           if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
             gh release upload "$TAG" app/data/output/*.json --clobber --repo "${{ github.repository }}"
           else
-            gh release create "$TAG" app/data/output/*.json \
+            gh release create "$TAG" app/data/output/*.json --latest=false \
               --title "PoE2 Data ${{ needs.check-versions.outputs.poe2_version }}" \
               --notes "Auto-generated game data for PoE2 patch ${{ needs.check-versions.outputs.poe2_version }}" \
               --repo "${{ github.repository }}"
