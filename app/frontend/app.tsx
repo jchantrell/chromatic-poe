@@ -262,6 +262,12 @@ function App() {
     const [versionError, currentVersions] = await to(dat.fetchPoeVersions());
     if (versionError) {
       console.error("Failed to fetch latest PoE versions", versionError);
+      toast.error("Failed to fetch PoE version info", {
+        description:
+          versionError instanceof Error
+            ? versionError.message
+            : String(versionError),
+      });
       return;
     }
     setPoeCurrentVersions(currentVersions);
