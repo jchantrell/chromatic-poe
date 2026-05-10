@@ -1005,13 +1005,13 @@ WITH ITEMS AS (
   SELECT DISTINCT
   ${TableNames.BaseItemTypes}.Name as 'name',
   ${TableNames.ItemClasses}.Name as 'class',
-  ${TableNames.ItemClassCategories}.Text as 'category',
+  ${TableNames.ItemClassCategories}.Id as 'category',
   ${TableNames.ItemVisualIdentity}.DDSFile as 'art',
   exchange_major.Name as 'exchangeCategory',
   exchange_sub.Name as 'exchangeSubCategory',
 
   ${TableNames.CurrencyExchange}.GoldPurchaseFee as 'price',
-  
+
   -- Use COALESCE for V2 requirement logic
   COALESCE(
     ${TableNames.AttributeRequirements}.ReqStr,
@@ -1085,6 +1085,29 @@ WITH ITEMS AS (
   ON ${TableNames.BaseItemTypes}._index = ${TableNames.CurrencyItems}.BaseItemType
 
   WHERE ${TableNames.BaseItemTypes}.Name != '' AND ${TableNames.BaseItemTypes}.Name IS NOT NULL
+  AND ${TableNames.BaseItemTypes}.Name NOT LIKE '[DNT%'
+),
+
+-- Pass 1: Items with exchange categories get categorised by the exchange system
+EXCHANGE_ITEMS AS (
+  SELECT DISTINCT
+  name,
+  exchangeCategory AS category,
+  (CASE
+    WHEN exchangeSubCategory = exchangeCategory THEN 'Common'
+    ELSE exchangeSubCategory
+  END) as class,
+  null as type,
+  price AS score,
+  ${extraFields}
+  FROM ITEMS
+  WHERE exchangeCategory IS NOT NULL
+),
+
+-- Pass 2: Remaining items without exchange categories
+REMAINING AS (
+  SELECT * FROM ITEMS
+  WHERE name NOT IN (SELECT name FROM EXCHANGE_ITEMS)
 )
 
 -- Weapons
@@ -1095,12 +1118,12 @@ class,
 null as type,
 (dmgMin + dmgMax) / 2 * (1000 / speed) AS score,
 ${extraFields}
-FROM ITEMS
-WHERE category IN ('One Handed Weapons', 'Two Handed Weapons')
+FROM REMAINING
+WHERE category IN ('One Hand Sword', 'Two Hand Sword', 'One Hand Axe', 'Two Hand Axe', 'One Hand Mace', 'Two Hand Mace', 'Bow', 'Crossbow', 'Spear', 'Flail', 'Dagger', 'Claw', 'Wand', 'Staff', 'Warstaff', 'Sceptre', 'Talisman', 'FishingRod')
 
 UNION ALL
 
--- Offhands
+-- Off-hands
 SELECT DISTINCT
 name,
 'Off-hands' AS category,
@@ -1120,10 +1143,10 @@ class,
   THEN 'Dexterity'
   ELSE 'Unknown'
 END) AS type,
-0 AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
-WHERE category IN ('Off-hand') OR class = 'Foci'
+FROM REMAINING
+WHERE category IN ('Shield', 'Buckler', 'Focus', 'Quiver', 'TrapTool')
 
 UNION ALL
 
@@ -1151,11 +1174,10 @@ class,
   THEN 'Intelligence'
   ELSE 'Miscellaneous'
 END) AS type,
-armour + evasion + energyShield + ward AS score, 
+armour + evasion + energyShield + ward AS score,
 ${extraFields}
-FROM ITEMS
-WHERE category IN ('Armour')
-AND ((name LIKE 'Expert %' OR name LIKE 'Advanced %') OR dropLevel < 45)
+FROM REMAINING
+WHERE category IN ('Body Armour', 'Helmet', 'Boots', 'Gloves')
 
 UNION ALL
 
@@ -1165,10 +1187,10 @@ name,
 'Jewellery' AS category,
 class,
 null AS type,
-0 AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
-WHERE category IN ('Jewellery')
+FROM REMAINING
+WHERE category IN ('Ring', 'Amulet', 'Belt')
 
 UNION ALL
 
@@ -1178,10 +1200,10 @@ name,
 'Flasks' AS category,
 class,
 null AS type,
-0 AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
-WHERE category IN ('Flasks') AND class != 'Charms'
+FROM REMAINING
+WHERE category = 'Flask'
 
 UNION ALL
 
@@ -1197,9 +1219,9 @@ name,
   ELSE 'Other'
 END) as class,
 null AS type,
-0 AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
+FROM REMAINING
 WHERE class = 'Charms'
 
 UNION ALL
@@ -1226,22 +1248,23 @@ class,
   THEN 'Intelligence'
   ELSE 'Unknown'
 END) as type,
-strReq + dexReq + intReq AS score, 
+strReq + dexReq + intReq AS score,
 ${extraFields}
-FROM ITEMS
-WHERE category IN ('Gems') AND name NOT LIKE '[DNT]%' AND name NOT IN ('Coming Soon', 'Shroud')
+FROM REMAINING
+WHERE category IN ('Active Skill Gem', 'Support Skill Gem') AND name NOT IN ('Coming Soon', 'Shroud')
 
 UNION ALL
 
+-- Uncut Gems
 SELECT DISTINCT
 name,
 'Gems' AS category,
-'Uncut' AS class,
+class,
 null as type,
-0 AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
-WHERE name IN ('Uncut Skill Gem', 'Uncut Support Gem', 'Uncut Spirit Gem')
+FROM REMAINING
+WHERE class IN ('Uncut Skill Gems', 'Uncut Support Gems', 'Uncut Spirit Gems')
 
 UNION ALL
 
@@ -1251,15 +1274,13 @@ name,
 'Jewels' AS category,
 class,
 (CASE
-  WHEN name LIKE 'Time-Lost%'
-  THEN 'Special'
-  WHEN name LIKE 'Timeless%'
-  THEN 'Special'
+  WHEN name LIKE 'Time-Lost%' THEN 'Special'
+  WHEN name LIKE 'Timeless%' THEN 'Special'
   ELSE 'Common'
 END) as type,
-0 AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
+FROM REMAINING
 WHERE class = 'Jewels'
 
 UNION ALL
@@ -1270,222 +1291,171 @@ name,
 'Maps' AS category,
 class,
 null as type,
-0 AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
-WHERE class = 'Waystones'
+FROM REMAINING
+WHERE class IN ('Waystones', 'Tablet')
 
 UNION ALL
 
--- Tablets
+-- Prosthetics
 SELECT DISTINCT
 name,
-'Maps' AS category,
+'Prosthetics' AS category,
 class,
 null as type,
-0 AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
-WHERE class = 'Tablet'
+FROM REMAINING
+WHERE category = 'IncursionLimb'
 
 UNION ALL
 
--- Currency, Essence 
+-- Breachstones
 SELECT DISTINCT
 name,
-exchangeCategory AS category,
-(CASE
-  WHEN exchangeSubCategory = exchangeCategory
-  THEN 'Common'
-  ELSE exchangeSubCategory
-END) as class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE exchangeCategory IN ('Essences', 'Currency')
-
-UNION ALL
-
--- Special cased currency
-SELECT DISTINCT
-name,
-'Currency' AS category,
+'Breach' AS category,
 'Common' as class,
 null as type,
-price AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
-WHERE name IN ('Albino Rhoa Feather')
+FROM REMAINING
+WHERE class = 'Breachstones'
 
 UNION ALL
 
--- Expedition
+-- Tempered Runes (no exchange category)
+SELECT DISTINCT
+name,
+'Runes' AS category,
+'Common' as class,
+null as type,
+0 AS score,
+${extraFields}
+FROM REMAINING
+WHERE category = 'SoulCore'
+
+UNION ALL
+
+-- Expedition Logbook
 SELECT DISTINCT
 name,
 'Expedition' AS category,
-'Logbook' as class,
+'Common' as class,
 null as type,
-price AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
+FROM REMAINING
 WHERE class = 'Expedition Logbooks'
 
 UNION ALL
 
+-- Inscribed Ultimatum
 SELECT DISTINCT
 name,
-'Expedition' AS category,
-'Currency' as class,
+'Fragments' AS category,
+'Ultimatum Fragments' as class,
 null as type,
-price AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
-WHERE name IN ('Exotic Coinage', 'Sun Artifact', 'Broken Circle Artifact', 'Black Scythe Artifact', 'Order Artifact')
+FROM REMAINING
+WHERE name = 'Inscribed Ultimatum'
 
 UNION ALL
 
--- Ultimatum
-SELECT DISTINCT
-name,
-'Ultimatum' AS category,
-'Fragments' as class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE exchangeSubCategory = 'Ultimatum Fragments'
-OR class = 'Inscribed Ultimatum'
-
-UNION ALL
-
-SELECT DISTINCT
-name,
-'Ultimatum' AS category,
-'Soul Cores' as class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE exchangeCategory = 'Soul Cores'
-
-UNION ALL
-
--- Sekhema
-SELECT DISTINCT
-name,
-'Trial of the Sekhemas' AS category,
-'Fragments' as class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE class = 'Trial Coins'
-
-UNION ALL
-
-SELECT DISTINCT
-name,
-'Trial of the Sekhemas' AS category,
-class,
-null as type,
-0 AS score, 
-${extraFields}
-FROM ITEMS
-WHERE class = 'Relics'
-
-UNION ALL
-
-SELECT DISTINCT
-name,
-'Trial of the Sekhemas' AS category,
-'Keys' AS class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE name IN ('Gold Key', 'Silver Key', 'Bronze Key')
-
-UNION ALL
-
--- Ritual
+-- Ritual fragments
 SELECT DISTINCT
 name,
 'Ritual' AS category,
-'Fragments' as class,
+'Common' as class,
 null as type,
-price AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
+FROM REMAINING
 WHERE name = 'An Audience with the King'
 
 UNION ALL
 
--- Ritual
+-- Simulacrum
 SELECT DISTINCT
 name,
-'Ritual' AS category,
-class,
+'Delirium' AS category,
+'Common' as class,
 null as type,
-price AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
-WHERE class = 'Omen'
+FROM REMAINING
+WHERE name IN ('Simulacrum', 'Tangmazu''s Turmoil')
 
 UNION ALL
 
--- Delirium, Breach
+-- Atlas fragments
 SELECT DISTINCT
 name,
-exchangeCategory AS category,
-(CASE
-  WHEN exchangeSubCategory = exchangeCategory
-  THEN 'Fragments'
-  ELSE exchangeSubCategory
-END) as class,
+'Fragments' AS category,
+'Atlas' as class,
 null as type,
-price AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
-WHERE exchangeCategory IN ('Delirium', 'Breach')
+FROM REMAINING
+WHERE name = 'Idol of Estazunti'
 
 UNION ALL
 
+-- Relics
+SELECT DISTINCT
+name,
+'Trial of the Sekhemas' AS category,
+'Relics' as class,
+null as type,
+0 AS score,
+${extraFields}
+FROM REMAINING
+WHERE class IN ('Relics', 'Sanctified Relics')
+
+UNION ALL
+
+-- Barya
+SELECT DISTINCT
+name,
+'Trial of the Sekhemas' AS category,
+'Barya' as class,
+null as type,
+0 AS score,
+${extraFields}
+FROM REMAINING
+WHERE class = 'Trial Coins'
+
+UNION ALL
+
+-- Vault Keys without exchange mapping
+SELECT DISTINCT
+name,
+'Fragments' AS category,
+'Reliquary Keys' as class,
+null as type,
+0 AS score,
+${extraFields}
+FROM REMAINING
+WHERE class = 'Vault Keys'
+
+UNION ALL
+
+-- Manually mapped currency
 SELECT DISTINCT
 name,
 'Currency' AS category,
 'Common' as class,
 null as type,
-price AS score, 
+0 AS score,
 ${extraFields}
-FROM ITEMS
+FROM REMAINING
 WHERE name = 'Gold'
 
 UNION ALL
 
--- Boss Fragments
-SELECT DISTINCT
-name,
-'Pinnacle' AS category,
-'Fragments' AS class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE exchangeSubCategory IN ('Pinnacle Fragments')
-
-UNION ALL
-
--- Vault Keys
-SELECT DISTINCT
-name,
-'Currency' AS category,
-'Vault Keys' AS class,
-null as type,
-price AS score, 
-${extraFields}
-FROM ITEMS
-WHERE class = 'Vault Keys'
+-- Exchange-categorised items
+SELECT * FROM EXCHANGE_ITEMS
 `;
 
 const V1_UNIQUES_QUERY = `
