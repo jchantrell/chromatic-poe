@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.15.4](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.15.3...chromatic-poe-v0.15.4) (2026-05-10)
+
+
+### Bug Fixes
+
+* dismiss art toast immediately when all assets are cached ([706b73b](https://github.com/jchantrell/chromatic-poe/commit/706b73bea9a8e4fb2180e59e8bb89ea0a10149fb))
+
 ## [0.15.3](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.15.2...chromatic-poe-v0.15.3) (2026-05-10)
 
 
