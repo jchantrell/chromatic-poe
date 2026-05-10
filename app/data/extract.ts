@@ -71,6 +71,42 @@ async function extractPatchData(
   const mods = await extractMods(patch, db, loader);
   writeOutput("mods.json", mods);
 
+  const mappedNames = new Set((items as { name: string }[]).map((i) => i.name));
+  const allBaseItems = db.query(`
+    SELECT b.Name as name, ic.Name as class
+    FROM "${patch}_BaseItemTypes" b
+    LEFT JOIN "${patch}_ItemClasses" ic ON b.ItemClass = ic._index
+    WHERE b.Name != '' AND b.Name IS NOT NULL
+    AND b.Name NOT LIKE '[DNT%'
+  `) as { name: string; class: string }[];
+
+  const skipClasses = new Set([
+    "Hidden Items",
+    "Microtransactions",
+    "Archnemesis Mods",
+    "",
+    "Hideout Doodads",
+    "Shard Hearts",
+    "Shards",
+    "Sentinels",
+    "Pantheon Souls",
+    "Instance Local Items",
+  ]);
+
+  const unmappedByClass: Record<string, Set<string>> = {};
+  for (const item of allBaseItems) {
+    if (mappedNames.has(item.name) || skipClasses.has(item.class || ""))
+      continue;
+    if (!unmappedByClass[item.class]) unmappedByClass[item.class] = new Set();
+    unmappedByClass[item.class].add(item.name);
+  }
+
+  const unmapped: Record<string, string[]> = {};
+  for (const [cls, names] of Object.entries(unmappedByClass)) {
+    unmapped[cls] = [...names].sort();
+  }
+  writeOutput("unmapped.json", unmapped);
+
   return { db, itemCount: items.length };
 }
 
@@ -157,7 +193,7 @@ async function extractUniqueData(
     return {
       name,
       base,
-      category: retired ? "Unknown" : ((u.category as string) ?? "Uniques"),
+      category: (u.category as string) ?? "Uniques",
       class: (u.class as string) ?? null,
       type: (u.type as string) ?? null,
       score: (u.score as number) ?? 0,
