@@ -26,6 +26,7 @@ export default function Editor() {
   const { colorMode } = useColorMode();
   const params = useParams();
   let loadingPatch: string | null = null;
+  let artToastId: string | number | undefined;
 
   createEffect(() => {
     const filter = store.filters.find(
@@ -165,15 +166,15 @@ export default function Editor() {
     setPatchLoaded(true);
 
     const itemArt = allItems.map((i) => ({ name: i.name, art: i.art }));
-    let artToastId: string | number | undefined;
+    if (artToastId) {
+      toast.dismiss(artToastId);
+    }
     setProgress(0);
     setMessage("Downloading assets...");
+    artToastId = toast(<Progress progress={progress} message={message} />, {
+      duration: Infinity,
+    });
     dat.ensureArtCached(patch, itemArt, (p, m) => {
-      if (!artToastId) {
-        artToastId = toast(<Progress progress={progress} message={message} />, {
-          duration: Infinity,
-        });
-      }
       setProgress(p);
       setMessage(m);
       if (p === 100 && artToastId) {
