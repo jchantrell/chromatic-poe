@@ -170,13 +170,16 @@ export default function Editor() {
     const itemArt = allItems.map((i) => ({ name: i.name, art: i.art }));
     if (artToastId) {
       toast.dismiss(artToastId);
+      artToastId = undefined;
     }
     setProgress(0);
     setMessage("Downloading assets...");
-    artToastId = toast(<Progress progress={progress} message={message} />, {
-      duration: Infinity,
-    });
     dat.ensureArtCached(patch, itemArt, (p, m) => {
+      if (p < 100 && !artToastId) {
+        artToastId = toast(<Progress progress={progress} message={message} />, {
+          duration: Infinity,
+        });
+      }
       setProgress(p);
       setMessage(m);
       if (p === 100 && artToastId) {
