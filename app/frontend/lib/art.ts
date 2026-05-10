@@ -53,46 +53,46 @@ export class ArtManager {
       }
     }
 
-    if (missing.length > 0) {
-      console.log(`Fetching ${missing.length} new art files...`);
+    if (missing.length === 0) {
+      if (onProgress) onProgress(100, "Done");
+      return;
+    }
 
-      for (let i = 0; i < missing.length; i++) {
-        const item = missing[i];
-        if (onProgress) {
-          onProgress(
-            (i / missing.length) * 100,
-            `Downloading assets: ${item.name}`,
-          );
-        }
-        const [err] = await to(
-          (async () => {
-            const cacheKey = `${gameVersion}/${item.name}`;
-            const ddsBuffer = await this.loader.getFileContents(
-              patch,
-              item.path,
-            );
-            const pngBlob = await this.convertDDSToPNG(
-              ddsBuffer,
-              item.path,
-              gameVersion,
-            );
+    console.log(`Fetching ${missing.length} new art files...`);
 
-            if (pngBlob) {
-              await db.put("images", pngBlob, cacheKey);
-              const url = URL.createObjectURL(pngBlob);
-              this.urlCache.set(cacheKey, url);
-            }
-          })(),
-        );
-
-        if (err) {
-          console.warn(`Failed to process art: ${item.path}`, err);
-        }
-      }
-
+    for (let i = 0; i < missing.length; i++) {
+      const item = missing[i];
       if (onProgress) {
-        onProgress(100, "Done");
+        onProgress(
+          (i / missing.length) * 100,
+          `Downloading assets: ${item.name}`,
+        );
       }
+      const [err] = await to(
+        (async () => {
+          const cacheKey = `${gameVersion}/${item.name}`;
+          const ddsBuffer = await this.loader.getFileContents(patch, item.path);
+          const pngBlob = await this.convertDDSToPNG(
+            ddsBuffer,
+            item.path,
+            gameVersion,
+          );
+
+          if (pngBlob) {
+            await db.put("images", pngBlob, cacheKey);
+            const url = URL.createObjectURL(pngBlob);
+            this.urlCache.set(cacheKey, url);
+          }
+        })(),
+      );
+
+      if (err) {
+        console.warn(`Failed to process art: ${item.path}`, err);
+      }
+    }
+
+    if (onProgress) {
+      onProgress(100, "Done");
     }
   }
 
