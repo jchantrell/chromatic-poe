@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.15.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.15.0...chromatic-poe-v0.15.1) (2026-05-10)
+
+
+### Bug Fixes
+
+* skip better-sqlite3 native build in release workflow ([408315c](https://github.com/jchantrell/chromatic-poe/commit/408315cdb2148754c922f46deb1871bda37249ae))
+
 ## [0.15.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.14.0...chromatic-poe-v0.15.0) (2026-05-10)
 
 
