@@ -112,18 +112,20 @@ export function setSettingsOpen(open: boolean) {
   store.settingsOpen = open;
 }
 
-export async function refreshSounds(version: 1 | 2 = 2) {
+export async function refreshSounds(version: 1 | 2 = 2, silent = false) {
   if (!store.initialised) {
     return;
   }
   console.log("Refreshing sounds...");
   const [err, cachedSounds] = await to(chromatic.getSounds(version));
   if (err) {
-    toast.error(
-      err instanceof Error
-        ? err.message
-        : "Cannot find sounds folder. Does it exist?",
-    );
+    if (!silent) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Cannot find sounds folder. Does it exist?",
+      );
+    }
     setSounds([]);
     store.defaultSounds = await chromatic.getDefaultSounds();
     return;

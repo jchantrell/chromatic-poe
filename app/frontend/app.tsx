@@ -286,7 +286,7 @@ function App() {
     store.missingUniques = await chromatic.loadAllMissingUniques();
     store.allUniques = await chromatic.loadAllUniques();
     setInitialised(true);
-    await refreshSounds();
+    await refreshSounds(2, true);
     await checkForUpdate();
   });
 
