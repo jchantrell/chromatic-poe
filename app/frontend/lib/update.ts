@@ -7,11 +7,9 @@ import { toast } from "solid-sonner";
 
 export async function checkForUpdate(): Promise<void> {
   if (chromatic.runtime === "web") return;
-  const toastId = toast.info("Checking for updates...");
   const update = await check();
   if (update) {
     toast.info("Update available.", {
-      id: toastId,
       action: {
         label: "Download",
         onClick: async () => {
@@ -21,11 +19,6 @@ export async function checkForUpdate(): Promise<void> {
           }
         },
       },
-    });
-  }
-  if (!update) {
-    toast.info("Up to date.", {
-      id: toastId,
     });
   }
 }
