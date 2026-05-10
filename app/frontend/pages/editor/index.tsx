@@ -60,29 +60,34 @@ export default function Editor() {
       itemIndex.searchIndex = null;
     }
 
-    let toastId: string | number | undefined;
-    let hasShownToast = false;
-
     onCleanup(() => {
       if (toastId) toast.dismiss(toastId);
     });
 
-    console.log("[editor] fetching data release...");
+    let toastId: string | number | undefined;
+
+    const [artError] = await to(
+      dat.ensureArtCached(
+        patch,
+        [{ name: "minimap", art: "Art/2DArt/Minimap/Player.dds" }],
+        (p, m) => {
+          setProgress(p);
+          setMessage(m);
+        },
+        { start: 0, end: 85 },
+      ),
+    );
+    if (artError) {
+      toast.error("Failed to load minimap assets", {
+        description:
+          artError instanceof Error ? artError.message : String(artError),
+      });
+    }
+
     const [dataError, data] = await to(
       fetchDataRelease(patch, (p, m) => {
-        if (!hasShownToast) {
-          toastId = toast(<Progress progress={progress} message={message} />, {
-            duration: Infinity,
-          });
-          hasShownToast = true;
-        }
         setProgress(p);
         setMessage(m);
-
-        if (p === 100) {
-          toast.dismiss(toastId);
-          toastId = undefined;
-        }
       }),
     );
 
@@ -95,10 +100,6 @@ export default function Editor() {
       loadingPatch = null;
       return;
     }
-
-    console.log(
-      `[editor] data received: ${data.items.length} items, ${data.uniques.length} uniques, ${data.mods.length} mods`,
-    );
 
     const allItems = [
       ...data.items,
@@ -131,17 +132,6 @@ export default function Editor() {
 
     dat.minimap.coords = data.minimap;
 
-    const [artError] = await to(
-      dat.ensureArtCached(patch, [
-        { name: "minimap", art: "Art/2DArt/Minimap/Player.dds" },
-      ]),
-    );
-    if (artError) {
-      toast.error("Failed to load minimap assets", {
-        description:
-          artError instanceof Error ? artError.message : String(artError),
-      });
-    }
     const url = await dat.getArt("minimap");
     if (url) {
       const img = new Image();

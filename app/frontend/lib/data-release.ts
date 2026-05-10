@@ -58,10 +58,9 @@ export async function fetchDataRelease(
   patch: string,
   onProgress?: (percent: number, msg: string) => void,
 ): Promise<DataRelease> {
-  const isDev = import.meta.env.DEV;
   const game = patch.startsWith("4.") ? "poe2" : "poe1";
   const tag = `data-${game}-${patch}`;
-  const base = isDev ? DEV_BASE : `${RELEASE_BASE}/${tag}`;
+  const base = `${RELEASE_BASE}/${tag}`;
 
   let items: Item[];
   let mods: Mod[];
@@ -73,9 +72,9 @@ export async function fetchDataRelease(
     items = cached.items;
     mods = cached.mods;
     minimap = cached.minimap;
-    if (onProgress) onProgress(50, "Loaded cached patch data");
+    if (onProgress) onProgress(90, "Loaded cached patch data");
   } else {
-    if (onProgress) onProgress(0, "Downloading item data...");
+    if (onProgress) onProgress(85, "Downloading item data...");
     console.log(`[data-release] fetching ${base}/items.json`);
     const [itemsResult, modsResult, minimapResult] = await Promise.all([
       fetchJson<Item[]>(`${base}/items.json`),
@@ -87,10 +86,10 @@ export async function fetchDataRelease(
     mods = modsResult;
     minimap = minimapResult;
     patchDataCache.set(patch, { items, mods, minimap });
-    if (onProgress) onProgress(50, "Downloaded patch data");
+    if (onProgress) onProgress(90, "Downloaded patch data");
   }
 
-  if (onProgress) onProgress(60, "Downloading unique data...");
+  if (onProgress) onProgress(95, "Downloading unique data...");
   console.log(`[data-release] fetching ${base}/uniques.json`);
   const uniques = await fetchJson<UniqueOutput[]>(`${base}/uniques.json`).catch(
     (err) => {

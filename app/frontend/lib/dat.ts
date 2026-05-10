@@ -104,11 +104,24 @@ export class DatManager {
     patch: string,
     items: { name: string; art: string }[],
     onProgress?: (percent: number, msg: string) => void,
+    bundleProgressRange?: { start: number; end: number },
   ) {
     this.patch = patch;
-    await this.loader.init(patch);
+    if (bundleProgressRange && onProgress) {
+      const { start, end } = bundleProgressRange;
+      await this.loader.init(patch, (p) => {
+        onProgress(
+          start + (p / 100) * (end - start),
+          "Downloading game bundles...",
+        );
+      });
+      onProgress(bundleProgressRange.end, "Downloading game bundles...");
+    } else {
+      await this.loader.init(patch);
+    }
     const artItems = items.map((i) => ({ name: i.name, path: i.art }));
-    await this.art.ensureCached(patch, artItems, onProgress);
+    const artProgress = bundleProgressRange ? undefined : onProgress;
+    await this.art.ensureCached(patch, artItems, artProgress);
   }
 
   async getMods(patch: string) {
