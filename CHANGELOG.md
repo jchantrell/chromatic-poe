@@ -1,4 +1,16 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.15.3](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.15.2...chromatic-poe-v0.15.3) (2026-05-10)
+
+
+### Bug Fixes
+
+* allow release-assets.githubusercontent.com redirect domain ([ead97b5](https://github.com/jchantrell/chromatic-poe/commit/ead97b53407e48c77ecb87d6a98462081aaf4eb4))
+* linear progress bar across bundle download and data fetch ([a754080](https://github.com/jchantrell/chromatic-poe/commit/a754080667ebc727cf0d5fcb6c6989015e32344a))
+* only show update toast when an update is available ([5c36304](https://github.com/jchantrell/chromatic-poe/commit/5c3630455dbcae44a4a3f5b9282322647fe308c2))
+* prevent duplicate art download toast notifications ([c950116](https://github.com/jchantrell/chromatic-poe/commit/c950116bd34c8ade73b775e9e242b7a15078a274))
+* suppress directory-not-set toast on startup ([151aae9](https://github.com/jchantrell/chromatic-poe/commit/151aae9bef87e5b3edf0d2b0f969b9c2030c407e))
+* use version-appropriate column name for unmapped items query ([09d0d2a](https://github.com/jchantrell/chromatic-poe/commit/09d0d2a9f0da0485d8a7d2761b7eea44762ce687))
+
 ## [0.15.2](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.15.1...chromatic-poe-v0.15.2) (2026-05-10)
 
 

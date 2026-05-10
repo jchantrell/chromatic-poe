@@ -1,6 +1,6 @@
 [package]
 name = "chromatic"
-version = "0.15.2"
+version = "0.15.3"
 description = "PoE Filter Tool"
 authors = ["jchantrell"]
 edition = "2021"
