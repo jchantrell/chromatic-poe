@@ -340,6 +340,9 @@ export class DatManager {
         type = "TEXT"; // JSON
       } else if (
         c.type === "bool" ||
+        c.type === "enumrow" ||
+        c.type === "row" ||
+        c.type === "foreignrow" ||
         c.type.startsWith("u") ||
         c.type.startsWith("i")
       ) {

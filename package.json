@@ -12,6 +12,9 @@
     "build:proxy": "wrangler build --config app/proxy/wrangler.jsonc",
     "deploy:proxy": "wrangler deploy --config app/proxy/wrangler.jsonc",
     "proxy": "wrangler dev --config app/proxy/wrangler.jsonc",
+    "data": "tsx app/data/extract.ts",
+    "data:poe1": "tsx app/data/extract.ts --game poe1",
+    "data:poe2": "tsx app/data/extract.ts --game poe2",
     "tauri": "tauri",
     "icon": "tauri icon packages/assets/tainted-chromatic-icon.png"
   },
@@ -51,8 +54,15 @@
     "ulid": "^2.3.0",
     "wa-sqlite": "^1.0.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  },
   "devDependencies": {
     "@biomejs/biome": "2.3.11",
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^11.9.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@tauri-apps/cli": "^2.10.0",
     "@types/cli-progress": "^3.11.6",
@@ -61,6 +71,7 @@
     "@types/wicg-file-system-access": "^2023.10.5",
     "@typescript/lib-dom": "npm:@types/web@^0.0.163",
     "jsdom": "^25.0.1",
+    "tsx": "^4.19.4",
     "postcss": "^8.4.47",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.6.3",

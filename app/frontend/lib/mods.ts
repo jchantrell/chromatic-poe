@@ -599,7 +599,7 @@ export class ModManager {
     const itemMods: Record<string, SingleMod> = {};
 
     for (const mod of modsTable) {
-      if (!mod.SpawnWeight_TagsKeys) continue;
+      if (!mod.SpawnWeight_Tags) continue;
 
       const tagKeys = Array.isArray(mod.SpawnWeight_Tags)
         ? mod.SpawnWeight_Tags

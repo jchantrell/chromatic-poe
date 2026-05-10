@@ -1,0 +1,237 @@
+name: Data
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      game:
+        description: 'Game version to extract'
+        required: false
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - poe1
+          - poe2
+      force:
+        description: 'Force re-extraction even if release exists'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: data
+  cancel-in-progress: false
+
+jobs:
+  check-versions:
+    name: Check PoE Versions
+    runs-on: ubuntu-latest
+    outputs:
+      poe1_version: ${{ steps.versions.outputs.poe1 }}
+      poe2_version: ${{ steps.versions.outputs.poe2 }}
+      poe1_needs_update: ${{ steps.check.outputs.poe1_needs_update }}
+      poe2_needs_update: ${{ steps.check.outputs.poe2_needs_update }}
+      poe1_needs_enrich: ${{ steps.check.outputs.poe1_needs_enrich }}
+      poe2_needs_enrich: ${{ steps.check.outputs.poe2_needs_enrich }}
+    steps:
+      - name: Fetch versions
+        id: versions
+        run: |
+          VERSIONS=$(curl -sf https://poe-versions.obsoleet.org/)
+          echo "poe1=$(echo "$VERSIONS" | jq -r '.poe')" >> "$GITHUB_OUTPUT"
+          echo "poe2=$(echo "$VERSIONS" | jq -r '.poe2')" >> "$GITHUB_OUTPUT"
+
+      - name: Check existing releases
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORCE: ${{ github.event.inputs.force || 'false' }}
+        run: |
+          check_release() {
+            local tag="$1"
+            if [ "$FORCE" = "true" ]; then
+              echo "true"
+              return
+            fi
+            if gh release view "$tag" --repo "${{ github.repository }}" &>/dev/null; then
+              echo "false"
+            else
+              echo "true"
+            fi
+          }
+
+          check_enrich() {
+            local tag="$1"
+            if ! gh release view "$tag" --repo "${{ github.repository }}" &>/dev/null; then
+              echo "false"
+              return
+            fi
+            # Check if release was created within the last 48 hours
+            local created_at
+            created_at=$(gh release view "$tag" --repo "${{ github.repository }}" --json createdAt --jq '.createdAt')
+            local created_epoch
+            created_epoch=$(date -d "$created_at" +%s 2>/dev/null || echo 0)
+            local now_epoch
+            now_epoch=$(date +%s)
+            local age=$(( now_epoch - created_epoch ))
+            if [ "$age" -lt 172800 ]; then
+              echo "true"
+            else
+              echo "false"
+            fi
+          }
+
+          POE1_TAG="data-poe1-${{ steps.versions.outputs.poe1 }}"
+          POE2_TAG="data-poe2-${{ steps.versions.outputs.poe2 }}"
+
+          echo "poe1_needs_update=$(check_release "$POE1_TAG")" >> "$GITHUB_OUTPUT"
+          echo "poe2_needs_update=$(check_release "$POE2_TAG")" >> "$GITHUB_OUTPUT"
+          echo "poe1_needs_enrich=$(check_enrich "$POE1_TAG")" >> "$GITHUB_OUTPUT"
+          echo "poe2_needs_enrich=$(check_enrich "$POE2_TAG")" >> "$GITHUB_OUTPUT"
+
+  extract-poe1:
+    name: Extract PoE1 Data
+    needs: check-versions
+    if: |
+      needs.check-versions.outputs.poe1_needs_update == 'true' &&
+      (github.event.inputs.game == 'poe1' || github.event.inputs.game == 'both' || github.event.inputs.game == '')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Extract data
+        run: pnpm data:poe1
+        env:
+          POELADDER_LEAGUE_SLUG_POE1: ${{ vars.POELADDER_LEAGUE_SLUG_POE1 }}
+          POELADDER_LEAGUE_SLUG_POE2: ${{ vars.POELADDER_LEAGUE_SLUG_POE2 }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="data-poe1-${{ needs.check-versions.outputs.poe1_version }}"
+          if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
+            gh release upload "$TAG" app/data/output/*.json --clobber --repo "${{ github.repository }}"
+          else
+            gh release create "$TAG" app/data/output/*.json \
+              --title "PoE1 Data ${{ needs.check-versions.outputs.poe1_version }}" \
+              --notes "Auto-generated game data for PoE1 patch ${{ needs.check-versions.outputs.poe1_version }}" \
+              --repo "${{ github.repository }}"
+          fi
+      - name: Notify on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+            curl -sS -H "Content-Type: application/json" \
+              -d "{\"content\":\"**DATA EXTRACTION FAILURE** — PoE1 ${{ needs.check-versions.outputs.poe1_version }}\\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+              "$DISCORD_WEBHOOK_URL"
+          fi
+
+  extract-poe2:
+    name: Extract PoE2 Data
+    needs: check-versions
+    if: |
+      needs.check-versions.outputs.poe2_needs_update == 'true' &&
+      (github.event.inputs.game == 'poe2' || github.event.inputs.game == 'both' || github.event.inputs.game == '')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Extract data
+        run: pnpm data:poe2
+        env:
+          POELADDER_LEAGUE_SLUG_POE1: ${{ vars.POELADDER_LEAGUE_SLUG_POE1 }}
+          POELADDER_LEAGUE_SLUG_POE2: ${{ vars.POELADDER_LEAGUE_SLUG_POE2 }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="data-poe2-${{ needs.check-versions.outputs.poe2_version }}"
+          if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
+            gh release upload "$TAG" app/data/output/*.json --clobber --repo "${{ github.repository }}"
+          else
+            gh release create "$TAG" app/data/output/*.json \
+              --title "PoE2 Data ${{ needs.check-versions.outputs.poe2_version }}" \
+              --notes "Auto-generated game data for PoE2 patch ${{ needs.check-versions.outputs.poe2_version }}" \
+              --repo "${{ github.repository }}"
+          fi
+      - name: Notify on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+            curl -sS -H "Content-Type: application/json" \
+              -d "{\"content\":\"**DATA EXTRACTION FAILURE** — PoE2 ${{ needs.check-versions.outputs.poe2_version }}\\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+              "$DISCORD_WEBHOOK_URL"
+          fi
+
+  enrich-uniques:
+    name: Enrich Uniques
+    needs: [check-versions, extract-poe1, extract-poe2]
+    if: |
+      always() &&
+      (needs.extract-poe1.result == 'skipped' || needs.extract-poe1.result == 'success') &&
+      (needs.extract-poe2.result == 'skipped' || needs.extract-poe2.result == 'success') &&
+      (needs.check-versions.outputs.poe1_needs_enrich == 'true' || needs.check-versions.outputs.poe2_needs_enrich == 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Enrich PoE1 uniques
+        if: needs.check-versions.outputs.poe1_needs_enrich == 'true' && needs.check-versions.outputs.poe1_needs_update != 'true'
+        run: pnpm data -- --game poe1 --uniques-only
+        env:
+          POELADDER_LEAGUE_SLUG_POE1: ${{ vars.POELADDER_LEAGUE_SLUG_POE1 }}
+          POELADDER_LEAGUE_SLUG_POE2: ${{ vars.POELADDER_LEAGUE_SLUG_POE2 }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      - name: Upload PoE1 uniques
+        if: needs.check-versions.outputs.poe1_needs_enrich == 'true' && needs.check-versions.outputs.poe1_needs_update != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="data-poe1-${{ needs.check-versions.outputs.poe1_version }}"
+          gh release upload "$TAG" app/data/output/uniques.json --clobber --repo "${{ github.repository }}"
+      - name: Enrich PoE2 uniques
+        if: needs.check-versions.outputs.poe2_needs_enrich == 'true' && needs.check-versions.outputs.poe2_needs_update != 'true'
+        run: pnpm data -- --game poe2 --uniques-only
+        env:
+          POELADDER_LEAGUE_SLUG_POE1: ${{ vars.POELADDER_LEAGUE_SLUG_POE1 }}
+          POELADDER_LEAGUE_SLUG_POE2: ${{ vars.POELADDER_LEAGUE_SLUG_POE2 }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      - name: Upload PoE2 uniques
+        if: needs.check-versions.outputs.poe2_needs_enrich == 'true' && needs.check-versions.outputs.poe2_needs_update != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="data-poe2-${{ needs.check-versions.outputs.poe2_version }}"
+          gh release upload "$TAG" app/data/output/uniques.json --clobber --repo "${{ github.repository }}"
