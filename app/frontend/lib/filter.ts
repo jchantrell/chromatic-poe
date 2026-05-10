@@ -159,11 +159,7 @@ export class Filter {
     }
   }
 
-  /**
-   * Debounced auto-save: resets on each call, only fires after AUTOSAVE_DELAY ms
-   * of inactivity. Saves to IDB and writes to the game's filter directory silently.
-   */
-  private scheduleAutosave() {
+  scheduleAutosave() {
     if (!store.autosave) return;
 
     if (this.autosaveTimer) {

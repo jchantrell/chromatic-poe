@@ -2,6 +2,7 @@ import Tooltip from "@app/components/tooltip";
 import { CloseIcon } from "@app/icons";
 import { Color, IconSize, Shape } from "@app/lib/action";
 import {
+  excuteCmd,
   setBeamEnabled,
   setDropSoundEnabled,
   setDropSoundToggle,
@@ -24,8 +25,11 @@ function LabelSize() {
   const [size, setSize] = createSignal(32);
 
   function handleChange(value: number) {
-    if (store.filter && store.activeRule?.actions) {
-      store.activeRule.actions.fontSize = value;
+    const rule = store.activeRule;
+    if (store.filter && rule?.actions) {
+      excuteCmd(store.filter, () => {
+        rule.actions.fontSize = value;
+      });
     }
   }
 
@@ -58,16 +62,19 @@ function ToggleMapIcon() {
   const [mapIconActive, setMapIconActive] = createSignal(false);
 
   function handleMapIcon(enabled: boolean) {
-    if (store.filter && store.activeRule?.actions.icon) {
-      setMapIconEnabled(store.filter, store.activeRule, enabled);
-    }
-    if (store.activeRule && !store.activeRule?.actions.icon && enabled) {
-      store.activeRule.actions.icon = {
-        color: Color.Red,
-        shape: Shape.Circle,
-        size: IconSize.Small,
-        enabled: true,
-      };
+    const rule = store.activeRule;
+    if (!store.filter || !rule) return;
+    if (rule.actions.icon) {
+      setMapIconEnabled(store.filter, rule, enabled);
+    } else if (enabled) {
+      excuteCmd(store.filter, () => {
+        rule.actions.icon = {
+          color: Color.Red,
+          shape: Shape.Circle,
+          size: IconSize.Small,
+          enabled: true,
+        };
+      });
     }
   }
   createEffect(() => {
@@ -100,15 +107,18 @@ function ToggleBeam() {
   const [beamActive, setBeamActive] = createSignal(false);
 
   function handleBeam(enabled: boolean) {
-    if (store.filter && store.activeRule?.actions.beam) {
-      setBeamEnabled(store.filter, store.activeRule, enabled);
-    }
-    if (store.activeRule && !store.activeRule?.actions.beam && enabled) {
-      store.activeRule.actions.beam = {
-        temp: false,
-        color: Color.Red,
-        enabled: true,
-      };
+    const rule = store.activeRule;
+    if (!store.filter || !rule) return;
+    if (rule.actions.beam) {
+      setBeamEnabled(store.filter, rule, enabled);
+    } else if (enabled) {
+      excuteCmd(store.filter, () => {
+        rule.actions.beam = {
+          temp: false,
+          color: Color.Red,
+          enabled: true,
+        };
+      });
     }
   }
 
@@ -137,11 +147,14 @@ function ToggleDropSound() {
   const [dropSoundActive, setDropSoundActive] = createSignal(false);
 
   function handleActive(enabled: boolean) {
-    if (store.filter && store.activeRule?.actions.dropSound) {
-      setDropSoundEnabled(store.filter, store.activeRule, enabled);
-    }
-    if (store.activeRule && !store.activeRule?.actions.dropSound && enabled) {
-      store.activeRule.actions.dropSound = { enabled: true, toggle: true };
+    const rule = store.activeRule;
+    if (!store.filter || !rule) return;
+    if (rule.actions.dropSound) {
+      setDropSoundEnabled(store.filter, rule, enabled);
+    } else if (enabled) {
+      excuteCmd(store.filter, () => {
+        rule.actions.dropSound = { enabled: true, toggle: true };
+      });
     }
   }
 
@@ -220,8 +233,12 @@ export default function RuleEditor() {
   if (!store.activeRule) return null;
 
   function handleNameChange(e: Event) {
-    if (e.target instanceof HTMLInputElement && store.activeRule) {
-      store.activeRule.name = e.target.value;
+    const rule = store.activeRule;
+    if (e.target instanceof HTMLInputElement && store.filter && rule) {
+      const value = e.target.value;
+      excuteCmd(store.filter, () => {
+        rule.name = value;
+      });
     }
   }
 

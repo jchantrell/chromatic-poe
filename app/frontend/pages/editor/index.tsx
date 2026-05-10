@@ -46,9 +46,11 @@ export default function Editor() {
 
     if (gameVersion === 1 && filterVersion !== currentVersions.poe1) {
       store.filter.poePatch = currentVersions.poe1;
+      store.filter.scheduleAutosave();
     }
     if (gameVersion === 2 && filterVersion !== currentVersions.poe2) {
       store.filter.poePatch = currentVersions.poe2;
+      store.filter.scheduleAutosave();
     }
 
     const patch = store.filter.poePatch;
