@@ -27,7 +27,7 @@ interface Header {
 }
 
 export class DatManager {
-  private idb: IDBManager = new IDBManager();
+  idb: IDBManager = new IDBManager();
   private loader: BundleManager = new BundleManager(this.idb);
   private art: ArtManager = new ArtManager(this.loader, this.idb);
   private db: Database = new Database();
@@ -532,6 +532,14 @@ export class DatManager {
       }
     }
     await tx.done;
+
+    const game = patch.startsWith("4.") ? "poe2" : "poe1";
+    const releaseKey = `data-${game}-${patch}/release`;
+    await Promise.all([
+      idb.delete("items", releaseKey),
+      idb.delete("mods", releaseKey),
+      idb.delete("minimap", releaseKey),
+    ]);
   }
 
   async fetchPoeVersions(): Promise<{

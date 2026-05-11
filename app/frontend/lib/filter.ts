@@ -22,6 +22,7 @@ import { toast } from "solid-sonner";
 import type { ulid } from "ulid";
 import { type Actions, serializeActions } from "./action";
 import { addParentRefs, type Command } from "./commands";
+import { dat } from "./dat";
 import { fetchDataRelease } from "./data-release";
 import { importFilter } from "./import";
 import { itemIndex } from "./items";
@@ -362,7 +363,7 @@ export async function generateFilter(
     // itemIndex is normally initialised in the editor, but import runs on the
     // load screen before the editor mounts.
     if (!itemIndex.searchIndex || itemIndex.patch !== patch) {
-      const [err, data] = await to(fetchDataRelease(patch));
+      const [err, data] = await to(fetchDataRelease(dat.idb, patch));
       if (err || !data) {
         console.error("Failed to load game data for import", err);
       } else {

@@ -88,7 +88,7 @@ export default function Editor() {
     }
 
     const [dataError, data] = await to(
-      fetchDataRelease(patch, (p, m) => {
+      fetchDataRelease(dat.idb, patch, (p, m) => {
         setProgress(p);
         setMessage(m);
       }),

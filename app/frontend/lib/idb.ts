@@ -1,6 +1,6 @@
 import { type DBSchema, openDB } from "idb";
 import type { ChromaticConfiguration } from "./config";
-import type { Filter } from "./filter";
+import type { Filter, Item } from "./filter";
 import type { MinimapCoords } from "./minimap";
 import type { Mod } from "./mods";
 import type { PoeladderUnique } from "./poeladder";
@@ -41,6 +41,10 @@ interface Schema extends DBSchema {
     key: string;
     value: Mod[];
   };
+  items: {
+    key: string;
+    value: Item[];
+  };
   sounds: {
     key: string;
     value: Sound;
@@ -56,7 +60,7 @@ interface Schema extends DBSchema {
 }
 
 export class IDBManager {
-  private dbPromise = openDB<Schema>("chromatic-poe", 3, {
+  private dbPromise = openDB<Schema>("chromatic-poe", 4, {
     upgrade(db, oldVersion) {
       if (oldVersion < 1) {
         db.createObjectStore("bundles");
@@ -73,6 +77,9 @@ export class IDBManager {
       }
       if (oldVersion < 3) {
         db.createObjectStore("allUniques");
+      }
+      if (oldVersion < 4) {
+        db.createObjectStore("items");
       }
     },
   });

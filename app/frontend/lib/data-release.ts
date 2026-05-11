@@ -1,9 +1,9 @@
 import type { Item } from "./filter";
+import { proxyFetch } from "./fetch";
+import type { IDBManager } from "./idb";
 import type { MinimapCoords } from "./minimap";
 import type { Mod } from "./mods";
-import { proxyFetch } from "./fetch";
 
-const DEV_BASE = "/data";
 const RELEASE_BASE =
   "https://github.com/jchantrell/chromatic-poe/releases/download";
 
@@ -36,14 +36,6 @@ export interface DataRelease {
   uniques: UniqueOutput[];
 }
 
-interface CachedPatchData {
-  items: Item[];
-  mods: Mod[];
-  minimap: MinimapCoords;
-}
-
-const patchDataCache = new Map<string, CachedPatchData>();
-
 async function fetchJson<T>(url: string): Promise<T> {
   const response = url.startsWith("/")
     ? await fetch(url)
@@ -55,23 +47,31 @@ async function fetchJson<T>(url: string): Promise<T> {
 }
 
 export async function fetchDataRelease(
+  idb: IDBManager,
   patch: string,
   onProgress?: (percent: number, msg: string) => void,
 ): Promise<DataRelease> {
   const game = patch.startsWith("4.") ? "poe2" : "poe1";
   const tag = `data-${game}-${patch}`;
   const base = `${RELEASE_BASE}/${tag}`;
+  const cacheKey = `${tag}/release`;
+
+  const db = await idb.getInstance();
+  const [cachedItems, cachedMods, cachedMinimap] = await Promise.all([
+    db.get("items", cacheKey),
+    db.get("mods", cacheKey),
+    db.get("minimap", cacheKey),
+  ]);
 
   let items: Item[];
   let mods: Mod[];
   let minimap: MinimapCoords;
 
-  const cached = patchDataCache.get(patch);
-  if (cached) {
+  if (cachedItems && cachedMods && cachedMinimap) {
     console.log(`[data-release] using cached patch data for ${patch}`);
-    items = cached.items;
-    mods = cached.mods;
-    minimap = cached.minimap;
+    items = cachedItems;
+    mods = cachedMods;
+    minimap = cachedMinimap;
     if (onProgress) onProgress(90, "Loaded cached patch data");
   } else {
     if (onProgress) onProgress(85, "Downloading item data...");
@@ -85,7 +85,11 @@ export async function fetchDataRelease(
     items = itemsResult;
     mods = modsResult;
     minimap = minimapResult;
-    patchDataCache.set(patch, { items, mods, minimap });
+    await Promise.all([
+      db.put("items", items, cacheKey),
+      db.put("mods", mods, cacheKey),
+      db.put("minimap", minimap, cacheKey),
+    ]);
     if (onProgress) onProgress(90, "Downloaded patch data");
   }
 
