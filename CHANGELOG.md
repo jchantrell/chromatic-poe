@@ -1,4 +1,12 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.15.5](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.15.4...chromatic-poe-v0.15.5) (2026-05-11)
+
+
+### Bug Fixes
+
+* only show art download toast when there are assets to download ([0d23f7c](https://github.com/jchantrell/chromatic-poe/commit/0d23f7c6077adc3e16b67d2021de52320f154682))
+* route all filter mutations through command system for consistent auto-save ([8d7910a](https://github.com/jchantrell/chromatic-poe/commit/8d7910a90bef2a87b8f6d29c26362f6ee5d0c3c7))
+
 ## [0.15.4](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.15.3...chromatic-poe-v0.15.4) (2026-05-10)
 
 
