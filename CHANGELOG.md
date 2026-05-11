@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.16.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.15.5...chromatic-poe-v0.16.0) (2026-05-11)
+
+
+### Features
+
+* disable poeladder integration for PoE2 ([14af655](https://github.com/jchantrell/chromatic-poe/commit/14af65541be366a3d11b46b6a6c6af98cc9246e3))
+
 ## [0.15.5](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.15.4...chromatic-poe-v0.15.5) (2026-05-11)
 
 
