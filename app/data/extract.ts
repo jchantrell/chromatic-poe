@@ -15,6 +15,7 @@ import { queryWiki } from "./lib/wiki.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = resolve(__dirname, "output");
+const ENABLE_POE_LADDER_POE2 = false;
 
 interface UniqueOutput {
   name: string;
@@ -142,19 +143,23 @@ async function extractUniqueData(
     category: string;
     league: string | null;
   }[] = [];
-  const slugEnv =
-    game === "poe2"
-      ? "POELADDER_LEAGUE_SLUG_POE2"
-      : "POELADDER_LEAGUE_SLUG_POE1";
-  const leagueSlug = process.env[slugEnv] ?? process.env.POELADDER_LEAGUE_SLUG;
-  if (leagueSlug) {
-    try {
-      poeladderUniques = await fetchAllUniques(leagueSlug);
-    } catch (err) {
-      console.warn("Poeladder query failed:", err);
+  const ladderEnabled = game === "poe1" || ENABLE_POE_LADDER_POE2;
+  if (ladderEnabled) {
+    const slugEnv =
+      game === "poe2"
+        ? "POELADDER_LEAGUE_SLUG_POE2"
+        : "POELADDER_LEAGUE_SLUG_POE1";
+    const leagueSlug =
+      process.env[slugEnv] ?? process.env.POELADDER_LEAGUE_SLUG;
+    if (leagueSlug) {
+      try {
+        poeladderUniques = await fetchAllUniques(leagueSlug);
+      } catch (err) {
+        console.warn("Poeladder query failed:", err);
+      }
+    } else {
+      console.warn(`${slugEnv} not set, skipping poeladder enrichment`);
     }
-  } else {
-    console.warn(`${slugEnv} not set, skipping poeladder enrichment`);
   }
   const ladderMap = new Map(
     poeladderUniques.map((u) => [
@@ -183,7 +188,7 @@ async function extractUniqueData(
     const dropLeague = Boolean(u.dropEnabledLeague);
     const retired = !dropStandard && !dropLeague;
 
-    if (!base || !ladder) {
+    if (!base || (!ladder && ladderEnabled)) {
       gaps.push({
         name,
         missingBase: !base,

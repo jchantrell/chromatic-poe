@@ -732,6 +732,7 @@ export const conditionTypes: AllConditionTypes = {
     group: ConditionGroup.UNIQUES,
     type: ConditionInputType.CATEGORIES,
     defaultValue: [],
+    validFor: ValidFor.PoE1,
   },
   [ConditionKey.MISSING_UNIQUES]: {
     label: "Missing Uniques",
@@ -739,6 +740,7 @@ export const conditionTypes: AllConditionTypes = {
     group: ConditionGroup.UNIQUES,
     type: ConditionInputType.CATEGORIES,
     defaultValue: [],
+    validFor: ValidFor.PoE1,
   },
 };
 
