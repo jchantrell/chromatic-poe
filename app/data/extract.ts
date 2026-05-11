@@ -237,13 +237,11 @@ async function main(): Promise<void> {
     options: {
       game: { type: "string", default: "both" },
       force: { type: "boolean", default: false },
-      "uniques-only": { type: "boolean", default: false },
     },
     allowPositionals: true,
   });
 
   const gameFilter = values.game ?? "both";
-  const uniquesOnly = values["uniques-only"] ?? false;
 
   const versions = await fetchPoeVersions();
   console.log(
@@ -260,26 +258,12 @@ async function main(): Promise<void> {
 
   for (const { game, patch } of targets) {
     try {
-      let db: NodeDatabase;
-      let itemCount: number;
+      const result = await extractPatchData(patch, game);
 
-      if (uniquesOnly) {
-        db = new NodeDatabase();
-        const loader = new NodeBundleManager();
-        const dat = new NodeDatManager(db, loader);
-        await loader.init(patch);
-        await dat.importAllTables(patch, TABLES);
-        itemCount = 0;
-      } else {
-        const result = await extractPatchData(patch, game);
-        db = result.db;
-        itemCount = result.itemCount;
-      }
+      const { uniques, gaps } = await extractUniqueData(patch, game, result.db);
+      result.db.close();
 
-      const { uniques, gaps } = await extractUniqueData(patch, game, db);
-      db.close();
-
-      await notifySuccess(game, patch, itemCount, uniques.length, gaps);
+      await notifySuccess(game, patch, result.itemCount, uniques.length, gaps);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`Pipeline failed for ${game} ${patch}:`, err);
