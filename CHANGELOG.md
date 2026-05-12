@@ -1,4 +1,16 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.17.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.16.0...chromatic-poe-v0.17.0) (2026-05-12)
+
+
+### Features
+
+* persist release data (items, mods, minimap) in IndexedDB ([0cd3a42](https://github.com/jchantrell/chromatic-poe/commit/0cd3a426e99c1d6c91d472ed858225a267140d45))
+
+
+### Bug Fixes
+
+* prevent duplicate art download toast when toast ID is 0 ([3201097](https://github.com/jchantrell/chromatic-poe/commit/3201097c754210c50139aa00e07afde65f9a3193))
+
 ## [0.16.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.15.5...chromatic-poe-v0.16.0) (2026-05-11)
 
 
