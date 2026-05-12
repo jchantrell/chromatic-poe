@@ -64,10 +64,8 @@ export default function Editor() {
     }
 
     onCleanup(() => {
-      if (toastId) toast.dismiss(toastId);
+      if (artToastId !== undefined) toast.dismiss(artToastId);
     });
-
-    let toastId: string | number | undefined;
 
     const [artError] = await to(
       dat.ensureArtCached(
@@ -168,21 +166,21 @@ export default function Editor() {
     setPatchLoaded(true);
 
     const itemArt = allItems.map((i) => ({ name: i.name, art: i.art }));
-    if (artToastId) {
+    if (artToastId !== undefined) {
       toast.dismiss(artToastId);
       artToastId = undefined;
     }
     setProgress(0);
     setMessage("Downloading assets...");
     dat.ensureArtCached(patch, itemArt, (p, m) => {
-      if (p < 100 && !artToastId) {
+      if (p < 100 && artToastId === undefined) {
         artToastId = toast(<Progress progress={progress} message={message} />, {
           duration: Infinity,
         });
       }
       setProgress(p);
       setMessage(m);
-      if (p === 100 && artToastId) {
+      if (p === 100 && artToastId !== undefined) {
         toast.dismiss(artToastId);
         artToastId = undefined;
       }
