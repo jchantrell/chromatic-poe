@@ -4,35 +4,18 @@ on:
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
-    inputs:
-      game:
-        description: 'Game version to extract'
-        required: false
-        default: 'both'
-        type: choice
-        options:
-          - both
-          - poe1
-          - poe2
-      force:
-        description: 'Force re-extraction even if release exists'
-        required: false
-        default: false
-        type: boolean
 
 concurrency:
   group: data
   cancel-in-progress: false
 
 jobs:
-  check-versions:
-    name: Check PoE Versions
+  fetch-versions:
+    name: Fetch PoE Versions
     runs-on: ubuntu-latest
     outputs:
       poe1_version: ${{ steps.versions.outputs.poe1 }}
       poe2_version: ${{ steps.versions.outputs.poe2 }}
-      poe1_run: ${{ steps.check.outputs.poe1_run }}
-      poe2_run: ${{ steps.check.outputs.poe2_run }}
     steps:
       - name: Fetch versions
         id: versions
@@ -41,37 +24,9 @@ jobs:
           echo "poe1=$(echo "$VERSIONS" | jq -r '.poe')" >> "$GITHUB_OUTPUT"
           echo "poe2=$(echo "$VERSIONS" | jq -r '.poe2')" >> "$GITHUB_OUTPUT"
 
-      - name: Check existing releases
-        id: check
-        env:
-          GH_TOKEN: ${{ github.token }}
-          FORCE: ${{ github.event.inputs.force || 'false' }}
-        run: |
-          should_run() {
-            local tag="$1"
-            if [ "$FORCE" = "true" ]; then
-              echo "true"
-              return
-            fi
-            if gh release view "$tag" --repo "${{ github.repository }}" &>/dev/null; then
-              echo "false"
-            else
-              echo "true"
-            fi
-          }
-
-          POE1_TAG="data-poe1-${{ steps.versions.outputs.poe1 }}"
-          POE2_TAG="data-poe2-${{ steps.versions.outputs.poe2 }}"
-
-          echo "poe1_run=$(should_run "$POE1_TAG")" >> "$GITHUB_OUTPUT"
-          echo "poe2_run=$(should_run "$POE2_TAG")" >> "$GITHUB_OUTPUT"
-
   extract-poe1:
     name: Extract PoE1 Data
-    needs: check-versions
-    if: |
-      needs.check-versions.outputs.poe1_run == 'true' &&
-      (github.event.inputs.game == 'poe1' || github.event.inputs.game == 'both' || github.event.inputs.game == '')
+    needs: fetch-versions
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -89,17 +44,17 @@ jobs:
         env:
           POELADDER_LEAGUE_SLUG_POE1: ${{ vars.POELADDER_LEAGUE_SLUG_POE1 }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-      - name: Create release
+      - name: Upsert release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="data-poe1-${{ needs.check-versions.outputs.poe1_version }}"
+          TAG="data-poe1-${{ needs.fetch-versions.outputs.poe1_version }}"
           if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
             gh release upload "$TAG" app/data/output/*.json --clobber --repo "${{ github.repository }}"
           else
             gh release create "$TAG" app/data/output/*.json --latest=false \
-              --title "PoE1 Data ${{ needs.check-versions.outputs.poe1_version }}" \
-              --notes "Auto-generated game data for PoE1 patch ${{ needs.check-versions.outputs.poe1_version }}" \
+              --title "PoE1 Data ${{ needs.fetch-versions.outputs.poe1_version }}" \
+              --notes "Auto-generated game data for PoE1 patch ${{ needs.fetch-versions.outputs.poe1_version }}" \
               --repo "${{ github.repository }}"
           fi
       - name: Notify on failure
@@ -109,16 +64,13 @@ jobs:
         run: |
           if [ -n "$DISCORD_WEBHOOK_URL" ]; then
             curl -sS -H "Content-Type: application/json" \
-              -d "{\"content\":\"**DATA EXTRACTION FAILURE** — PoE1 ${{ needs.check-versions.outputs.poe1_version }}\\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+              -d "{\"content\":\"**DATA EXTRACTION FAILURE** — PoE1 ${{ needs.fetch-versions.outputs.poe1_version }}\\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
               "$DISCORD_WEBHOOK_URL"
           fi
 
   extract-poe2:
     name: Extract PoE2 Data
-    needs: check-versions
-    if: |
-      needs.check-versions.outputs.poe2_run == 'true' &&
-      (github.event.inputs.game == 'poe2' || github.event.inputs.game == 'both' || github.event.inputs.game == '')
+    needs: fetch-versions
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -135,17 +87,17 @@ jobs:
         run: pnpm data:poe2
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-      - name: Create release
+      - name: Upsert release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="data-poe2-${{ needs.check-versions.outputs.poe2_version }}"
+          TAG="data-poe2-${{ needs.fetch-versions.outputs.poe2_version }}"
           if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
             gh release upload "$TAG" app/data/output/*.json --clobber --repo "${{ github.repository }}"
           else
             gh release create "$TAG" app/data/output/*.json --latest=false \
-              --title "PoE2 Data ${{ needs.check-versions.outputs.poe2_version }}" \
-              --notes "Auto-generated game data for PoE2 patch ${{ needs.check-versions.outputs.poe2_version }}" \
+              --title "PoE2 Data ${{ needs.fetch-versions.outputs.poe2_version }}" \
+              --notes "Auto-generated game data for PoE2 patch ${{ needs.fetch-versions.outputs.poe2_version }}" \
               --repo "${{ github.repository }}"
           fi
       - name: Notify on failure
@@ -155,6 +107,6 @@ jobs:
         run: |
           if [ -n "$DISCORD_WEBHOOK_URL" ]; then
             curl -sS -H "Content-Type: application/json" \
-              -d "{\"content\":\"**DATA EXTRACTION FAILURE** — PoE2 ${{ needs.check-versions.outputs.poe2_version }}\\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+              -d "{\"content\":\"**DATA EXTRACTION FAILURE** — PoE2 ${{ needs.fetch-versions.outputs.poe2_version }}\\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
               "$DISCORD_WEBHOOK_URL"
           fi
