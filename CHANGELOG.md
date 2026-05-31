@@ -1,4 +1,11 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.18.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.17.0...chromatic-poe-v0.18.0) (2026-05-31)
+
+
+### Features
+
+* show item drop level in picker menu ([5c5badd](https://github.com/jchantrell/chromatic-poe/commit/5c5baddfc746ce6006ea5a4df7542a17ca30f9c3))
+
 ## [0.17.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.16.0...chromatic-poe-v0.17.0) (2026-05-12)
 
 
