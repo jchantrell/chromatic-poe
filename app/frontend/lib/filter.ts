@@ -67,6 +67,7 @@ export interface Item extends FilterItem {
   score: number;
   height: number;
   width: number;
+  dropLevel: number;
 }
 
 export class Filter {

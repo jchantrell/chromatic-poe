@@ -147,6 +147,11 @@ function Node(props: {
                 {props.node.data?.base}
               </span>
             )}
+            {props.node.data?.dropLevel ? (
+              <span class='ml-1 text-xs text-neutral-400'>
+                ({props.node.data.dropLevel})
+              </span>
+            ) : null}
           </span>
         </div>
       </div>

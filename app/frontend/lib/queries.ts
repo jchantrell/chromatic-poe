@@ -30,6 +30,7 @@ art,
 height,
 width,
 gemFx,
+dropLevel,
 class as itemClass,
 name as base
 `;
