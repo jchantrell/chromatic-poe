@@ -1,4 +1,17 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.18.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.18.0...chromatic-poe-v0.18.1) (2026-06-11)
+
+
+### Bug Fixes
+
+* persist only filter fields the constructor reads ([b8059bc](https://github.com/jchantrell/chromatic-poe/commit/b8059bcd37857f6bf9660ad1dd1d86cdb1aaa6d2))
+
+
+### Performance Improvements
+
+* add mutation batching and undo history cap to Filter ([c99bbc1](https://github.com/jchantrell/chromatic-poe/commit/c99bbc1a7c4efc146eed94fbfd6f64a41f33f153))
+* commit slider and color picker drags as a single batch ([45105b8](https://github.com/jchantrell/chromatic-poe/commit/45105b8a5064a8abd33a966f394b21fd3f6a0a97))
+
 ## [0.18.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.17.0...chromatic-poe-v0.18.0) (2026-05-31)
 
 
