@@ -360,10 +360,18 @@ class Chromatic {
 
   async saveFilter(filter: Filter, silent = false) {
     const doSave = async () => {
+      // Persist only the fields the Filter constructor reads — spreading the
+      // instance would also serialize transient state (batch snapshot, timers).
       const raw = JSON.parse(
         stringifyJSON({
-          ...filter,
+          name: filter.name,
+          chromaticVersion: filter.chromaticVersion,
+          poeVersion: filter.poeVersion,
+          poePatch: filter.poePatch,
           lastUpdated: filter.lastUpdated.toISOString(), // FIXME: just store the ISO string always and convert to date adhoc
+          rules: filter.rules,
+          undoStack: filter.undoStack,
+          redoStack: filter.redoStack,
         }),
       );
       const db = await this.db.getInstance();
