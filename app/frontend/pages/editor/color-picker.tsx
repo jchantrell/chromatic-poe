@@ -26,17 +26,25 @@ function ColorPicker(props: {
 
   const isActive = () => store.activeRule?.actions[props.key]?.enabled ?? false;
 
+  // jscolor fires onInput continuously while dragging and onChange once on
+  // release, so the drag mutates directly and the batch commits at the end.
   function handleInput() {
     if (!store.filter || !store.activeRule) return;
 
     // this is evil but it's the only way i found to make this lib work
     const { r, g, b, a } = this.channels;
-    setColor(store.filter, store.activeRule, props.key, {
+    store.filter.beginBatch();
+    store.activeRule.actions[props.key] = {
       r,
       g,
       b,
       a: a * 255,
-    });
+      enabled: true,
+    };
+  }
+
+  function handleChange() {
+    store.filter?.commitBatch();
   }
 
   function updateColor() {
@@ -80,6 +88,7 @@ function ColorPicker(props: {
       alpha: true,
       hash: false,
       onInput: handleInput,
+      onChange: handleChange,
       palette: [
         "#ffffff",
         "#000000",

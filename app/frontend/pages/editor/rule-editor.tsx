@@ -27,9 +27,8 @@ function LabelSize() {
   function handleChange(value: number) {
     const rule = store.activeRule;
     if (store.filter && rule?.actions) {
-      excuteCmd(store.filter, () => {
-        rule.actions.fontSize = value;
-      });
+      store.filter.beginBatch();
+      rule.actions.fontSize = value;
     }
   }
 
@@ -48,6 +47,7 @@ function LabelSize() {
         step={1}
         value={[size()]}
         onChange={(v) => handleChange(v[0])}
+        onChangeEnd={() => store.filter?.commitBatch()}
       >
         <SliderTrack class='bg-accent'>
           <SliderFill class='bg-neutral-400' />

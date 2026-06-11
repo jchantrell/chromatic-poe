@@ -1,11 +1,7 @@
 import SoundPlayer from "@app/components/sound-player";
 import Tooltip from "@app/components/tooltip";
 import { AlertTriangleIcon } from "@app/icons";
-import {
-  setSoundEnabled,
-  setSoundPath,
-  setSoundVolume,
-} from "@app/lib/commands";
+import { setSoundEnabled, setSoundPath } from "@app/lib/commands";
 import type { Filter } from "@app/lib/filter";
 import type { Sound } from "@app/lib/sounds";
 import { refreshSounds, store } from "@app/store";
@@ -16,9 +12,9 @@ import * as ComboboxPrimitive from "@kobalte/core/combobox";
 import { createVirtualizer } from "@tanstack/solid-virtual";
 import {
   type Accessor,
-  For,
   createMemo,
   createSignal,
+  For,
   on,
   onMount,
 } from "solid-js";
@@ -57,6 +53,11 @@ export default function SoundPicker() {
 
   function handleVolume(value: number) {
     setVolume(value);
+    const sound = store.activeRule?.actions?.sound;
+    if (store.filter && sound && sound.volume !== value) {
+      store.filter.beginBatch();
+      sound.volume = value;
+    }
   }
 
   function setSoundRef() {
@@ -124,17 +125,6 @@ export default function SoundPicker() {
       setSoundRef();
     }),
   );
-  createMemo(
-    on(volume, () => {
-      if (
-        store.activeRule?.actions?.sound?.path &&
-        store.activeRule.actions.sound.volume !== volume()
-      ) {
-        setSoundVolume(store.filter as Filter, store.activeRule, volume());
-      }
-    }),
-  );
-
   createMemo(async () => {
     if (!store.activeRule?.actions?.sound?.enabled) {
       setPath(null);
@@ -261,6 +251,7 @@ export default function SoundPicker() {
             step={1}
             value={[volume()]}
             onChange={(v) => handleVolume(v[0])}
+            onChangeEnd={() => store.filter?.commitBatch()}
           >
             <SliderTrack class='bg-accent'>
               <SliderFill class='bg-neutral-400' />
