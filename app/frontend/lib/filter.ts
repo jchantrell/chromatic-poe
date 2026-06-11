@@ -1,11 +1,11 @@
 import {
   BaseTypeCondition,
   ConditionKey,
-  MissingUniquesCondition,
   type Conditions,
+  convertRawToConditions,
+  MissingUniquesCondition,
   Rarity,
   RarityCondition,
-  convertRawToConditions,
   serializeConditions,
 } from "@app/lib/condition";
 import chromatic from "@app/lib/config";
@@ -29,6 +29,7 @@ import { itemIndex } from "./items";
 
 const WRITE_TIMEOUT = 1000;
 const AUTOSAVE_DELAY = 2000;
+const MAX_UNDO_STACK = 100;
 
 export enum Block {
   show = "Show",
@@ -83,6 +84,7 @@ export class Filter {
 
   private lastWriteTime = 0;
   private autosaveTimer: ReturnType<typeof setTimeout> | null = null;
+  private batchSnapshot: FilterRule[] | null = null;
 
   constructor(params: {
     name: string;
@@ -120,8 +122,10 @@ export class Filter {
       return migrated;
     }) as FilterRule[];
 
-    if (params.undoStack) this.undoStack = params.undoStack;
-    if (params.redoStack) this.redoStack = params.redoStack;
+    if (params.undoStack)
+      this.undoStack = params.undoStack.slice(-MAX_UNDO_STACK);
+    if (params.redoStack)
+      this.redoStack = params.redoStack.slice(0, MAX_UNDO_STACK);
 
     addParentRefs(this.rules);
     createMutable(this);
@@ -155,9 +159,40 @@ export class Filter {
     command.execute();
     const changes = this.diff(currState, unwrap(this.rules));
     if (changes.length) {
-      this.undoStack.push(changes);
+      this.pushUndo(changes);
       this.redoStack = [];
       this.scheduleAutosave();
+    }
+  }
+
+  /**
+   * Starts a batch of direct rule mutations (e.g. a slider drag or color
+   * picker drag). Snapshots state once so high-frequency events skip the
+   * per-event clone/diff that execute() performs. Idempotent while a batch
+   * is open; call commitBatch() when the interaction ends.
+   */
+  beginBatch() {
+    if (!this.batchSnapshot) {
+      this.batchSnapshot = clone(unwrap(this.rules));
+    }
+  }
+
+  /** Commits an open batch as a single undo entry and schedules an autosave. */
+  commitBatch() {
+    if (!this.batchSnapshot) return;
+    const changes = this.diff(this.batchSnapshot, unwrap(this.rules));
+    this.batchSnapshot = null;
+    if (changes.length) {
+      this.pushUndo(changes);
+      this.redoStack = [];
+      this.scheduleAutosave();
+    }
+  }
+
+  private pushUndo(changes: Operation[]) {
+    this.undoStack.push(changes);
+    if (this.undoStack.length > MAX_UNDO_STACK) {
+      this.undoStack.shift();
     }
   }
 
@@ -191,6 +226,7 @@ export class Filter {
    * to prevent data loss from the debounce window.
    */
   async flushAutosave() {
+    this.commitBatch();
     if (this.autosaveTimer) {
       clearTimeout(this.autosaveTimer);
       this.autosaveTimer = null;
@@ -239,7 +275,7 @@ export class Filter {
       modifyMutable(this.rules, reconcile(updatedState));
       addParentRefs(this.rules); // FIX: this is wasteful
       if (diff.length) {
-        this.undoStack.push(diff);
+        this.pushUndo(diff);
         this.scheduleAutosave();
       }
     }

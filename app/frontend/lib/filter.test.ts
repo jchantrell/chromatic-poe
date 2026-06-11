@@ -205,3 +205,97 @@ describe("Filter.scheduleAutosave", () => {
     expect(chromatic.saveFilter).toHaveBeenCalledWith(filter, true);
   });
 });
+
+describe("Filter batching", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    store.autosave = false;
+    vi.mocked(chromatic.saveFilter).mockClear();
+    vi.mocked(chromatic.writeFilter).mockClear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("batches direct mutations into one undo entry and one autosave", async () => {
+    store.autosave = true;
+    const filter = createTestFilter();
+
+    for (let i = 1; i <= 25; i++) {
+      filter.beginBatch();
+      filter.rules[0].actions.fontSize = i;
+    }
+
+    expect(filter.undoStack).toHaveLength(0);
+    expect(chromatic.saveFilter).not.toHaveBeenCalled();
+
+    filter.commitBatch();
+    expect(filter.undoStack).toHaveLength(1);
+
+    vi.advanceTimersByTime(2000);
+    await vi.runAllTimersAsync();
+
+    expect(chromatic.saveFilter).toHaveBeenCalledTimes(1);
+    expect(chromatic.writeFilter).toHaveBeenCalledTimes(1);
+  });
+
+  it("undoes an entire batch in one step", () => {
+    const filter = createTestFilter();
+
+    filter.beginBatch();
+    filter.rules[0].actions.fontSize = 10;
+    filter.rules[0].actions.fontSize = 20;
+    filter.commitBatch();
+
+    filter.undo();
+
+    expect(filter.rules[0].actions.fontSize).toBeUndefined();
+    expect(filter.undoStack).toHaveLength(0);
+  });
+
+  it("does nothing on commitBatch without an open batch", () => {
+    store.autosave = true;
+    const filter = createTestFilter();
+
+    filter.commitBatch();
+    vi.advanceTimersByTime(3000);
+
+    expect(filter.undoStack).toHaveLength(0);
+    expect(chromatic.saveFilter).not.toHaveBeenCalled();
+  });
+
+  it("does nothing on commit of a batch with no changes", () => {
+    store.autosave = true;
+    const filter = createTestFilter();
+
+    filter.beginBatch();
+    filter.commitBatch();
+    vi.advanceTimersByTime(3000);
+
+    expect(filter.undoStack).toHaveLength(0);
+    expect(chromatic.saveFilter).not.toHaveBeenCalled();
+  });
+
+  it("commits an open batch when flushing autosave", async () => {
+    store.autosave = true;
+    const filter = createTestFilter();
+
+    filter.beginBatch();
+    filter.rules[0].actions.fontSize = 5;
+    await filter.flushAutosave();
+
+    expect(filter.undoStack).toHaveLength(1);
+    expect(chromatic.saveFilter).toHaveBeenCalledWith(filter, true);
+  });
+
+  it("caps the undo stack length", () => {
+    const filter = createTestFilter();
+
+    for (let i = 0; i < 105; i++) {
+      filter.execute(toggleBaseCommand(filter));
+    }
+
+    expect(filter.undoStack).toHaveLength(100);
+  });
+});
