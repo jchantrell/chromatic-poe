@@ -1,8 +1,9 @@
-import type { Item } from "./filter";
 import { proxyFetch } from "./fetch";
+import type { Item } from "./filter";
 import type { IDBManager } from "./idb";
 import type { MinimapCoords } from "./minimap";
 import type { Mod } from "./mods";
+import { to } from "./utils";
 
 const RELEASE_BASE =
   "https://github.com/jchantrell/chromatic-poe/releases/download";
@@ -85,11 +86,16 @@ export async function fetchDataRelease(
     items = itemsResult;
     mods = modsResult;
     minimap = minimapResult;
-    await Promise.all([
-      db.put("items", items, cacheKey),
-      db.put("mods", mods, cacheKey),
-      db.put("minimap", minimap, cacheKey),
-    ]);
+    const [cacheErr] = await to(
+      Promise.all([
+        db.put("items", items, cacheKey),
+        db.put("mods", mods, cacheKey),
+        db.put("minimap", minimap, cacheKey),
+      ]),
+    );
+    if (cacheErr) {
+      console.warn("[data-release] failed to cache patch data", cacheErr);
+    }
     if (onProgress) onProgress(90, "Downloaded patch data");
   }
 
