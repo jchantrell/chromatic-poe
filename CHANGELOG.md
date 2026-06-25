@@ -1,4 +1,16 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.19.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.18.1...chromatic-poe-v0.19.0) (2026-06-25)
+
+
+### Features
+
+* evict cached patch data beyond 3 most recent per game ([1aed92f](https://github.com/jchantrell/chromatic-poe/commit/1aed92fd480b24a992b559c0562b5f1740e3f538))
+
+
+### Bug Fixes
+
+* don't fail game data load when caching to IndexedDB fails ([9b63148](https://github.com/jchantrell/chromatic-poe/commit/9b631485099257d13886bfb16302459919e759d2))
+
 ## [0.18.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.18.0...chromatic-poe-v0.18.1) (2026-06-11)
 
 
