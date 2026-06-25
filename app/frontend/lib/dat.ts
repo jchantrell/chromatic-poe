@@ -26,6 +26,18 @@ interface Header {
   };
 }
 
+function compareVersions(a: string, b: string): number {
+  const pa = a.split(".");
+  const pb = b.split(".");
+  const len = Math.max(pa.length, pb.length);
+  for (let i = 0; i < len; i++) {
+    const diff =
+      (Number.parseInt(pa[i], 10) || 0) - (Number.parseInt(pb[i], 10) || 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
+}
+
 export class DatManager {
   idb: IDBManager = new IDBManager();
   private loader: BundleManager = new BundleManager(this.idb);
@@ -525,13 +537,22 @@ export class DatManager {
     const idb = await this.idb.getInstance();
 
     const uniqueKeys = await idb.getAllKeys("uniques");
-    const tx = idb.transaction("uniques", "readwrite");
+    const uniqueTx = idb.transaction("uniques", "readwrite");
     for (const key of uniqueKeys) {
       if (typeof key === "string" && key.startsWith(`${patch}/`)) {
-        await tx.store.delete(key);
+        await uniqueTx.store.delete(key);
       }
     }
-    await tx.done;
+    await uniqueTx.done;
+
+    const bundleKeys = await idb.getAllKeys("bundles");
+    const bundleTx = idb.transaction("bundles", "readwrite");
+    for (const key of bundleKeys) {
+      if (typeof key === "string" && key.startsWith(`${patch}/`)) {
+        await bundleTx.store.delete(key);
+      }
+    }
+    await bundleTx.done;
 
     const game = patch.startsWith("4.") ? "poe2" : "poe1";
     const releaseKey = `data-${game}-${patch}/release`;
@@ -540,6 +561,45 @@ export class DatManager {
       idb.delete("mods", releaseKey),
       idb.delete("minimap", releaseKey),
     ]);
+  }
+
+  async pruneVersions(keepPerGame = 3): Promise<string[]> {
+    const idb = await this.idb.getInstance();
+    const patches = new Set<string>();
+
+    for (const key of await idb.getAllKeys("bundles")) {
+      if (typeof key === "string") {
+        const patch = key.split("/")[0];
+        if (patch) patches.add(patch);
+      }
+    }
+
+    for (const key of await idb.getAllKeys("items")) {
+      if (typeof key === "string") {
+        const match = key.match(/^data-poe[12]-(.+)\/release$/);
+        if (match) patches.add(match[1]);
+      }
+    }
+
+    const byGame = new Map<string, string[]>();
+    for (const patch of patches) {
+      const game = patch.startsWith("4.") ? "poe2" : "poe1";
+      const list = byGame.get(game) ?? [];
+      list.push(patch);
+      byGame.set(game, list);
+    }
+
+    const stale: string[] = [];
+    for (const list of byGame.values()) {
+      list.sort((a, b) => compareVersions(b, a));
+      stale.push(...list.slice(keepPerGame));
+    }
+
+    for (const patch of stale) {
+      await this.dropVersion(patch);
+    }
+
+    return stale;
   }
 
   async fetchPoeVersions(): Promise<{

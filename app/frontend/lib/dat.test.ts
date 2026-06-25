@@ -27,9 +27,11 @@ vi.mock("./db", () => ({
 
 const mockGetAllKeys = vi.fn();
 const mockDelete = vi.fn();
+const mockIdbDelete = vi.fn();
 const mockTxDone = Promise.resolve();
 const mockIdbInstance = {
   getAllKeys: mockGetAllKeys,
+  delete: mockIdbDelete,
   transaction: vi.fn().mockReturnValue({
     store: { delete: mockDelete },
     done: mockTxDone,
@@ -153,5 +155,103 @@ describe("DatManager.dropVersion", () => {
     expect(mockDelete).toHaveBeenCalledWith("4.1.2/Headhunter");
     expect(mockDelete).not.toHaveBeenCalledWith("3.25.3/Tabula Rasa");
     expect(mockDelete).not.toHaveBeenCalledWith("other-key");
+  });
+
+  it("removes IDB bundle entries prefixed with the patch", async () => {
+    mockGetAllKeys.mockResolvedValue([
+      "4.1.2/_.index.bin",
+      "4.1.2/Bundles2/Data.bundle.bin",
+      "3.25.3/_.index.bin",
+    ]);
+
+    await dat.dropVersion("4.1.2");
+
+    expect(mockDelete).toHaveBeenCalledWith("4.1.2/_.index.bin");
+    expect(mockDelete).toHaveBeenCalledWith("4.1.2/Bundles2/Data.bundle.bin");
+    expect(mockDelete).not.toHaveBeenCalledWith("3.25.3/_.index.bin");
+  });
+
+  it("deletes release data for items, mods and minimap", async () => {
+    mockGetAllKeys.mockResolvedValue([]);
+
+    await dat.dropVersion("4.1.2");
+
+    expect(mockIdbDelete).toHaveBeenCalledWith(
+      "items",
+      "data-poe2-4.1.2/release",
+    );
+    expect(mockIdbDelete).toHaveBeenCalledWith(
+      "mods",
+      "data-poe2-4.1.2/release",
+    );
+    expect(mockIdbDelete).toHaveBeenCalledWith(
+      "minimap",
+      "data-poe2-4.1.2/release",
+    );
+  });
+});
+
+describe("DatManager.pruneVersions", () => {
+  let dat: InstanceType<typeof DatManager>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    dat = new DatManager();
+    mockQuery.mockResolvedValue([]);
+  });
+
+  it("keeps the newest 3 patches per game and drops the rest", async () => {
+    mockGetAllKeys.mockImplementation((store: string) => {
+      if (store === "bundles") {
+        return Promise.resolve([
+          "3.25.3/_.index.bin",
+          "3.25.10/_.index.bin",
+          "3.9.0/_.index.bin",
+          "3.25.2/_.index.bin",
+          "4.1.0/_.index.bin",
+          "4.2.0/_.index.bin",
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const stale = await dat.pruneVersions();
+
+    expect(stale).toEqual(["3.9.0"]);
+    expect(mockRun).toHaveBeenCalledWith(
+      "DELETE FROM _metadata WHERE version = ?",
+      ["3.9.0"],
+    );
+  });
+
+  it("includes patches found only in release item keys", async () => {
+    mockGetAllKeys.mockImplementation((store: string) => {
+      if (store === "items") {
+        return Promise.resolve([
+          "data-poe1-3.25.0/release",
+          "data-poe1-3.25.1/release",
+          "data-poe1-3.25.2/release",
+          "data-poe1-3.25.3/release",
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const stale = await dat.pruneVersions();
+
+    expect(stale).toEqual(["3.25.0"]);
+  });
+
+  it("drops nothing when under the limit", async () => {
+    mockGetAllKeys.mockImplementation((store: string) => {
+      if (store === "bundles") {
+        return Promise.resolve(["3.25.3/_.index.bin", "4.2.0/_.index.bin"]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const stale = await dat.pruneVersions();
+
+    expect(stale).toEqual([]);
   });
 });

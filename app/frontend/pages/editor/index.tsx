@@ -165,6 +165,14 @@ export default function Editor() {
 
     setPatchLoaded(true);
 
+    to(dat.pruneVersions()).then(([pruneErr, stale]) => {
+      if (pruneErr) {
+        console.warn("[editor] failed to prune old patch data", pruneErr);
+      } else if (stale?.length) {
+        console.log(`[editor] pruned cached patch data: ${stale.join(", ")}`);
+      }
+    });
+
     const itemArt = allItems.map((i) => ({ name: i.name, art: i.art }));
     if (artToastId !== undefined) {
       toast.dismiss(artToastId);
