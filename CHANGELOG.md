@@ -1,4 +1,13 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.20.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.19.0...chromatic-poe-v0.20.0) (2026-06-27)
+
+
+### Features
+
+* **app:** resolve latest patch from GH release pointer ([a758d08](https://github.com/jchantrell/chromatic-poe/commit/a758d089be65b6e76341655de9d28390ddb4b84c))
+* **data:** back off extraction cadence as patches age ([3b9029d](https://github.com/jchantrell/chromatic-poe/commit/3b9029d265acbe48266f2a0328e8cf39983fcc5c))
+* **data:** notify only on core data change ([d72d09a](https://github.com/jchantrell/chromatic-poe/commit/d72d09afb7a43af425d45344b089a2d3241fe4ee))
+
 ## [0.19.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.18.1...chromatic-poe-v0.19.0) (2026-06-25)
 
 
