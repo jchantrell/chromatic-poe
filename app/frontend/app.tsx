@@ -65,45 +65,29 @@ function Link(props: {
   );
 }
 
-function SideBar() {
-  return (
-    <nav
-      class='flex flex-col items-center justify-between bg-muted py-2.5'
-      data-tauri-drag-region
-    >
-      <div class='flex flex-col gap-2'>
-        <div class='w-14 h-14' />
-        <Tooltip text='Home'>
-          <Link href={BASE_URL}>
-            <HouseIcon />
-          </Link>
-        </Tooltip>
-        <Tooltip text='Manage Sounds'>
-          <Link href={`${BASE_URL}sound`}>
-            <AudioIcon />
-          </Link>
-        </Tooltip>
-      </div>
-      <div class='flex flex-col gap-2 items-center'>
-        <Settings />
-      </div>
-    </nav>
-  );
-}
-
 function TopBar() {
   return (
     <nav
       class='w-full flex justify-between items-center bg-muted h-12'
       data-tauri-drag-region
     >
-      <div
-        class='flex items-center justify-between w-full gap-2'
-        data-tauri-drag-region
-      >
+      <div class='flex items-center w-full gap-2' data-tauri-drag-region>
+        <div class='flex items-center'>
+          <Tooltip text='Home'>
+            <Link href={BASE_URL}>
+              <HouseIcon />
+            </Link>
+          </Tooltip>
+          <Tooltip text='Manage Sounds'>
+            <Link href={`${BASE_URL}sound`}>
+              <AudioIcon />
+            </Link>
+          </Tooltip>
+        </div>
         {store.filter && (
           <>
-            <div class='ml-2 text-xl mr-4 flex '>
+            <div class='h-6 w-px bg-border shrink-0' />
+            <div class='text-xl mr-4 flex '>
               {store.filter?.name} (PoE {store.filter.poeVersion})
             </div>
             <div>
@@ -158,7 +142,8 @@ function TopBar() {
           </>
         )}
       </div>
-      <div class='flex'>
+      <div class='flex items-center'>
+        <Settings />
         {chromatic.runtime === "desktop" && (
           <>
             <Tooltip text={"Minimise"}>
@@ -301,14 +286,11 @@ function App() {
         initialColorMode='dark'
       >
         <div
-          class={`grid h-screen size-full grid-cols-[80px_1fr] fixed inset-0 font-${store.font}`}
+          class={`flex flex-col h-screen size-full fixed inset-0 font-${store.font}`}
         >
-          <SideBar />
-          <div class='size-full flex flex-col'>
-            <TopBar />
-            <div class='flex-1 relative overflow-hidden'>
-              <Main />
-            </div>
+          <TopBar />
+          <div class='flex-1 relative overflow-hidden'>
+            <Main />
           </div>
         </div>
         <Toaster
