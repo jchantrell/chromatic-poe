@@ -26,7 +26,6 @@ import {
   setPoeCurrentVersions,
   store,
 } from "@app/store";
-import { Avatar, AvatarImage } from "@app/ui/avatar";
 import { Button } from "@app/ui/button";
 import { Toaster } from "@app/ui/sonner";
 import {
@@ -73,9 +72,7 @@ function SideBar() {
       data-tauri-drag-region
     >
       <div class='flex flex-col gap-2'>
-        <Avatar class='w-14 h-14 cursor-pointer'>
-          <AvatarImage src='https://web.poecdn.com/gen/image/WzAsMSx7ImlkIjo2MjYsInNpemUiOiJhdmF0YXIifV0/71ec2c3cb4/Path_of_Exile_Gallery_Image.jpg' />
-        </Avatar>
+        <div class='w-14 h-14' />
         <Tooltip text='Home'>
           <Link href={BASE_URL}>
             <HouseIcon />
