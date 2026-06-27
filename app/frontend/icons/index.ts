@@ -8,6 +8,7 @@ export * from "./copy";
 export * from "./download";
 export * from "./edit";
 export * from "./exit";
+export * from "./eye";
 export * from "./folder";
 export * from "./house";
 export * from "./load-circle";

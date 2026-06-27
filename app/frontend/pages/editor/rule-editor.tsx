@@ -1,5 +1,5 @@
 import Tooltip from "@app/components/tooltip";
-import { CloseIcon } from "@app/icons";
+import { CloseIcon, EyeIcon } from "@app/icons";
 import { Color, IconSize, Shape } from "@app/lib/action";
 import {
   excuteCmd,
@@ -16,7 +16,7 @@ import { Checkbox } from "@app/ui/checkbox";
 import { Label } from "@app/ui/label";
 import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, Show } from "solid-js";
 import ConditionManager from "./condition-builder";
 import { DropPreview } from "./drop-preview";
 import SoundPicker from "./sound-picker";
@@ -201,6 +201,8 @@ function ToggleDropSound() {
   );
 }
 
+const [showTextPreview, setShowTextPreview] = createSignal(false);
+
 function RulePreview() {
   if (!store.activeRule) return null;
   return (
@@ -273,6 +275,16 @@ export default function RuleEditor() {
         <div class='px-5 flex flex-col overflow-hidden gap-1 @2xl:max-w-xl w-full flex-1 min-h-0'>
           <div class='flex items-center min-h-[60px] shrink-0 gap-10'>
             <DropPreview rule={store.activeRule} dynamicSize />
+            <Tooltip text='Show text preview'>
+              <button
+                type='button'
+                class='ml-auto p-1 flex items-center justify-center w-7 h-7 bg-secondary border border-muted-foreground/60 cursor-pointer rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[active=true]:bg-accent data-[active=true]:text-muted-foreground data-[active=true]:opacity-100'
+                data-active={showTextPreview()}
+                onClick={() => setShowTextPreview((v) => !v)}
+              >
+                <EyeIcon />
+              </button>
+            </Tooltip>
           </div>
           <div class='flex gap-5 p-2 flex-1 min-h-0'>
             <div class='flex flex-col gap-2 w-full flex-1 min-h-0'>
@@ -283,9 +295,11 @@ export default function RuleEditor() {
             </div>
           </div>
         </div>
-        <div class='flex-1 min-h-0 hidden @2xl:flex pr-2'>
-          <RulePreview />
-        </div>
+        <Show when={showTextPreview()}>
+          <div class='flex-1 min-h-0 hidden @2xl:flex pr-2'>
+            <RulePreview />
+          </div>
+        </Show>
       </div>
     </div>
   );
