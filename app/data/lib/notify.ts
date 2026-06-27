@@ -1,12 +1,7 @@
+import { diffGaps, type Manifest } from "./manifest.js";
+
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const MAX_CONTENT_LENGTH = 2000;
-
-interface GapEntry {
-  name: string;
-  missingBase: boolean;
-  missingPoeladder: boolean;
-  retired: boolean;
-}
 
 export async function notifyFailure(
   game: string,
@@ -26,36 +21,44 @@ export async function notifyFailure(
   await send(content);
 }
 
-export async function notifySuccess(
+export async function notifyChange(
   game: string,
   version: string,
-  itemCount: number,
-  uniqueCount: number,
-  gaps: GapEntry[],
+  prev: Manifest | null,
+  next: Manifest,
 ): Promise<void> {
-  const active = gaps.filter((g) => !g.retired);
-  const retiredCount = gaps.length - active.length;
+  const header = prev ? "Data updated" : "New patch";
+  let content = `**${header} — ${game} ${version}**\nItems: ${next.itemCount}, Uniques: ${next.uniqueCount}`;
 
-  let content = `**Data release** — ${game} ${version}\nItems: ${itemCount}, Uniques: ${uniqueCount}\n`;
-
-  const activeMissingBases = active.filter((g) => g.missingBase);
-  const activeMissingLadder = active.filter((g) => g.missingPoeladder);
-
-  if (activeMissingBases.length) {
-    content += `\n**Missing base types (${activeMissingBases.length}):**\n`;
-    content += activeMissingBases.map((g) => `- ${g.name}`).join("\n");
+  if (prev) {
+    const { filledBase, newGaps } = diffGaps(prev.gaps, next.gaps);
+    if (filledBase.length) {
+      content += `\n\n**Base types filled (${filledBase.length}):**\n`;
+      content += filledBase.map((n) => `- ${n}`).join("\n");
+    }
+    if (newGaps.length) {
+      content += `\n\n**New gaps (${newGaps.length}):**\n`;
+      content += newGaps
+        .map((g) => {
+          const issues = [];
+          if (g.missingBase) issues.push("base");
+          if (g.missingPoeladder) issues.push("poeladder");
+          return `- ${g.name} (${issues.join(", ")})`;
+        })
+        .join("\n");
+    }
+    if (!filledBase.length && !newGaps.length) {
+      content += "\n\n(core data changed)";
+    }
   }
-  if (activeMissingLadder.length) {
-    content += `\n**Missing poeladder category (${activeMissingLadder.length}):**\n`;
-    content += activeMissingLadder.map((g) => `- ${g.name}`).join("\n");
-  }
 
-  if (!activeMissingBases.length && !activeMissingLadder.length) {
-    content += "All drop-enabled uniques fully enriched.";
-  }
-
-  if (retiredCount) {
-    content += `\n- ${retiredCount} retired uniques`;
+  const active = next.gaps.filter((g) => !g.retired);
+  const remainingBase = active.filter((g) => g.missingBase).length;
+  const remainingLadder = active.filter((g) => g.missingPoeladder).length;
+  if (remainingBase || remainingLadder) {
+    content += `\n\n**Remaining gaps:** ${remainingBase} base, ${remainingLadder} poeladder`;
+  } else {
+    content += "\n\nAll drop-enabled uniques fully enriched.";
   }
 
   await send(content);

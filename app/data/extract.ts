@@ -1,14 +1,22 @@
-import { writeFileSync, mkdirSync } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { TABLES, getQuery } from "../frontend/lib/queries.js";
+import { getQuery, TABLES } from "../frontend/lib/queries.js";
 import { NodeBundleManager } from "./lib/bundle.js";
-import { NodeDatabase } from "./lib/db.js";
 import { NodeDatManager } from "./lib/dat.js";
+import { NodeDatabase } from "./lib/db.js";
+import {
+  contentHash,
+  coreFingerprint,
+  type GapEntry,
+  loadPreviousManifest,
+  type Manifest,
+  writeManifest,
+} from "./lib/manifest.js";
 import { extractMinimapCoords } from "./lib/minimap.js";
 import { extractMods } from "./lib/mods.js";
-import { notifyFailure, notifySuccess } from "./lib/notify.js";
+import { notifyChange, notifyFailure } from "./lib/notify.js";
 import { fetchAllUniques } from "./lib/poeladder.js";
 import { fetchPoeVersions } from "./lib/versions.js";
 import { queryWiki } from "./lib/wiki.js";
@@ -119,7 +127,7 @@ async function extractUniqueData(
   db: NodeDatabase,
 ): Promise<{
   uniques: UniqueOutput[];
-  gaps: { name: string; missingBase: boolean; missingPoeladder: boolean }[];
+  gaps: GapEntry[];
 }> {
   console.log(`\n=== Unique data pipeline: ${game} ${patch} ===\n`);
 
@@ -173,12 +181,7 @@ async function extractUniqueData(
     ]),
   );
 
-  const gaps: {
-    name: string;
-    missingBase: boolean;
-    missingPoeladder: boolean;
-    retired: boolean;
-  }[] = [];
+  const gaps: GapEntry[] = [];
 
   const uniques: UniqueOutput[] = rawUniques.map((u) => {
     const name = u.name as string;
@@ -258,12 +261,44 @@ async function main(): Promise<void> {
 
   for (const { game, patch } of targets) {
     try {
-      const result = await extractPatchData(patch, game);
+      const prev = await loadPreviousManifest(game, patch);
 
+      const result = await extractPatchData(patch, game);
       const { uniques, gaps } = await extractUniqueData(patch, game, result.db);
       result.db.close();
 
-      await notifySuccess(game, patch, result.itemCount, uniques.length, gaps);
+      const coreHash = coreFingerprint({
+        version: patch,
+        itemCount: result.itemCount,
+        uniqueCount: uniques.length,
+        gaps,
+      });
+      const cHash = contentHash(OUTPUT_DIR);
+      const coreChanged = !prev || prev.coreHash !== coreHash;
+      const dataChanged = !prev || prev.contentHash !== cHash;
+      const now = new Date().toISOString();
+
+      const manifest: Manifest = {
+        version: patch,
+        coreHash,
+        contentHash: cHash,
+        itemCount: result.itemCount,
+        uniqueCount: uniques.length,
+        gaps,
+        coreChangedAt: coreChanged ? now : (prev?.coreChangedAt ?? now),
+        checkedAt: now,
+      };
+      writeManifest(OUTPUT_DIR, manifest);
+
+      if (coreChanged) {
+        await notifyChange(game, patch, prev, manifest);
+      } else {
+        console.log(
+          `No core change for ${game} ${patch}; notification skipped`,
+        );
+      }
+
+      emitOutput({ data_changed: dataChanged, core_changed: coreChanged });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`Pipeline failed for ${game} ${patch}:`, err);
@@ -271,6 +306,15 @@ async function main(): Promise<void> {
       process.exit(1);
     }
   }
+}
+
+function emitOutput(record: Record<string, boolean>): void {
+  const file = process.env.GITHUB_OUTPUT;
+  if (!file) return;
+  const lines = Object.entries(record)
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n");
+  appendFileSync(file, `${lines}\n`);
 }
 
 main();
