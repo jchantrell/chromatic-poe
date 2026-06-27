@@ -261,6 +261,16 @@ export default function RuleEditor() {
             onChange={handleNameChange}
           />
         </span>
+        <Tooltip text='Show text preview'>
+          <button
+            type='button'
+            class='p-1 mr-1 flex items-center border border-muted-foreground/60 justify-center w-6 h-6 bg-secondary text-center cursor-pointer rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[active=true]:bg-accent data-[active=true]:text-muted-foreground data-[active=true]:opacity-100'
+            data-active={showTextPreview()}
+            onMouseDown={() => setShowTextPreview((v) => !v)}
+          >
+            <EyeIcon />
+          </button>
+        </Tooltip>
         <Tooltip text={"Close rule editor"}>
           <button
             type='button'
@@ -275,16 +285,6 @@ export default function RuleEditor() {
         <div class='px-5 flex flex-col overflow-hidden gap-1 @2xl:max-w-xl w-full flex-1 min-h-0'>
           <div class='flex items-center min-h-[60px] shrink-0 gap-10'>
             <DropPreview rule={store.activeRule} dynamicSize />
-            <Tooltip text='Show text preview'>
-              <button
-                type='button'
-                class='ml-auto p-1 flex items-center justify-center w-7 h-7 bg-secondary border border-muted-foreground/60 cursor-pointer rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[active=true]:bg-accent data-[active=true]:text-muted-foreground data-[active=true]:opacity-100'
-                data-active={showTextPreview()}
-                onClick={() => setShowTextPreview((v) => !v)}
-              >
-                <EyeIcon />
-              </button>
-            </Tooltip>
           </div>
           <div class='flex gap-5 p-2 flex-1 min-h-0'>
             <div class='flex flex-col gap-2 w-full flex-1 min-h-0'>
