@@ -251,7 +251,7 @@ export default function RuleEditor() {
   return (
     <div class='inset-0 size-full flex flex-col items-center bg-secondary/50 overflow-hidden flex-1 min-h-0 @container'>
       <div class='w-full p-1 shrink-0 flex'>
-        <span class='text-xl w-full justify-center flex'>
+        <span class='text-xl w-full justify-center flex mr-2'>
           <input
             class={`bg-transparent py-1 px-3  mt-1 ml-2 border-none min-w-0 flex-1`}
             type='text'
