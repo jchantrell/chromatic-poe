@@ -31,32 +31,55 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Decide whether to run
+        id: gate
+        env:
+          REPO: ${{ github.repository }}
+          VERSION: ${{ needs.fetch-versions.outputs.poe1_version }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          # Cadence tiers mirror app/data/lib/cadence.ts
+          if [ "$FORCE" = "true" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          URL="https://github.com/$REPO/releases/download/data-poe1-$VERSION/manifest.json"
+          M=$(curl -sfL "$URL" || true)
+          if [ -z "$M" ]; then echo "run=true (new version)"; echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          NOW=$(date -u +%s)
+          CHG=$(date -u -d "$(echo "$M" | jq -r '.coreChangedAt')" +%s)
+          CHK=$(date -u -d "$(echo "$M" | jq -r '.checkedAt')" +%s)
+          SINCE_CHANGE=$(( (NOW - CHG) / 3600 ))
+          SINCE_CHECK=$(( (NOW - CHK) / 3600 ))
+          if [ "$SINCE_CHANGE" -lt 48 ]; then INTERVAL=0
+          elif [ "$SINCE_CHANGE" -lt 168 ]; then INTERVAL=24
+          else INTERVAL=72; fi
+          if [ "$SINCE_CHECK" -ge "$INTERVAL" ]; then RUN=true; else RUN=false; fi
+          echo "poe1 cadence: sinceChange=${SINCE_CHANGE}h sinceCheck=${SINCE_CHECK}h interval=${INTERVAL}h run=$RUN"
+          echo "run=$RUN" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v6
+        if: steps.gate.outputs.run == 'true'
       - uses: pnpm/action-setup@v6
+        if: steps.gate.outputs.run == 'true'
       - uses: actions/setup-node@v6
+        if: steps.gate.outputs.run == 'true'
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
       - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
         run: pnpm install --frozen-lockfile
       - name: Extract data
+        id: extract
+        if: steps.gate.outputs.run == 'true'
         run: pnpm data:poe1
         env:
           POELADDER_LEAGUE_SLUG_POE1: ${{ vars.POELADDER_LEAGUE_SLUG_POE1 }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       - name: Upsert release
+        if: steps.gate.outputs.run == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          TAG="data-poe1-${{ needs.fetch-versions.outputs.poe1_version }}"
-          if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
-            gh release upload "$TAG" app/data/output/*.json --clobber --repo "${{ github.repository }}"
-          else
-            gh release create "$TAG" app/data/output/*.json --latest=false \
-              --title "PoE1 Data ${{ needs.fetch-versions.outputs.poe1_version }}" \
-              --notes "Auto-generated game data for PoE1 patch ${{ needs.fetch-versions.outputs.poe1_version }}" \
-              --repo "${{ github.repository }}"
-          fi
+          VERSION: ${{ needs.fetch-versions.outputs.poe1_version }}
+          DATA_CHANGED: ${{ steps.extract.outputs.data_changed }}
+        run: .github/scripts/upsert-release.sh poe1 "PoE1"
       - name: Notify on failure
         if: failure()
         env:
@@ -75,31 +98,54 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Decide whether to run
+        id: gate
+        env:
+          REPO: ${{ github.repository }}
+          VERSION: ${{ needs.fetch-versions.outputs.poe2_version }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          # Cadence tiers mirror app/data/lib/cadence.ts
+          if [ "$FORCE" = "true" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          URL="https://github.com/$REPO/releases/download/data-poe2-$VERSION/manifest.json"
+          M=$(curl -sfL "$URL" || true)
+          if [ -z "$M" ]; then echo "run=true (new version)"; echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          NOW=$(date -u +%s)
+          CHG=$(date -u -d "$(echo "$M" | jq -r '.coreChangedAt')" +%s)
+          CHK=$(date -u -d "$(echo "$M" | jq -r '.checkedAt')" +%s)
+          SINCE_CHANGE=$(( (NOW - CHG) / 3600 ))
+          SINCE_CHECK=$(( (NOW - CHK) / 3600 ))
+          if [ "$SINCE_CHANGE" -lt 48 ]; then INTERVAL=0
+          elif [ "$SINCE_CHANGE" -lt 168 ]; then INTERVAL=24
+          else INTERVAL=72; fi
+          if [ "$SINCE_CHECK" -ge "$INTERVAL" ]; then RUN=true; else RUN=false; fi
+          echo "poe2 cadence: sinceChange=${SINCE_CHANGE}h sinceCheck=${SINCE_CHECK}h interval=${INTERVAL}h run=$RUN"
+          echo "run=$RUN" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v6
+        if: steps.gate.outputs.run == 'true'
       - uses: pnpm/action-setup@v6
+        if: steps.gate.outputs.run == 'true'
       - uses: actions/setup-node@v6
+        if: steps.gate.outputs.run == 'true'
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
       - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
         run: pnpm install --frozen-lockfile
       - name: Extract data
+        id: extract
+        if: steps.gate.outputs.run == 'true'
         run: pnpm data:poe2
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       - name: Upsert release
+        if: steps.gate.outputs.run == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          TAG="data-poe2-${{ needs.fetch-versions.outputs.poe2_version }}"
-          if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
-            gh release upload "$TAG" app/data/output/*.json --clobber --repo "${{ github.repository }}"
-          else
-            gh release create "$TAG" app/data/output/*.json --latest=false \
-              --title "PoE2 Data ${{ needs.fetch-versions.outputs.poe2_version }}" \
-              --notes "Auto-generated game data for PoE2 patch ${{ needs.fetch-versions.outputs.poe2_version }}" \
-              --repo "${{ github.repository }}"
-          fi
+          VERSION: ${{ needs.fetch-versions.outputs.poe2_version }}
+          DATA_CHANGED: ${{ steps.extract.outputs.data_changed }}
+        run: .github/scripts/upsert-release.sh poe2 "PoE2"
       - name: Notify on failure
         if: failure()
         env:
