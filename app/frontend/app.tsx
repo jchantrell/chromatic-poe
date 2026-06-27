@@ -13,6 +13,7 @@ import {
 } from "@app/icons";
 import chromatic from "@app/lib/config";
 import { dat } from "@app/lib/dat";
+import { fetchLatestPatches } from "@app/lib/data-release";
 import { checkForUpdate } from "@app/lib/update";
 import Editor from "@app/pages/editor";
 import LoadScreen from "@app/pages/load-screen";
@@ -259,7 +260,9 @@ function App() {
         }
       },
     );
-    const [versionError, currentVersions] = await to(dat.fetchPoeVersions());
+    const [versionError, currentVersions] = await to(
+      (async () => (await fetchLatestPatches()) ?? dat.fetchPoeVersions())(),
+    );
     if (versionError) {
       console.error("Failed to fetch latest PoE versions", versionError);
       toast.error("Failed to fetch PoE version info", {

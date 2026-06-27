@@ -37,6 +37,34 @@ export interface DataRelease {
   uniques: UniqueOutput[];
 }
 
+interface LatestPointer {
+  version: string;
+}
+
+async function fetchLatestPatch(game: "poe1" | "poe2"): Promise<string | null> {
+  try {
+    const pointer = await fetchJson<LatestPointer>(
+      `${RELEASE_BASE}/data-${game}-latest/latest.json`,
+    );
+    return pointer.version ?? null;
+  } catch (err) {
+    console.warn(`[data-release] failed to resolve latest ${game}`, err);
+    return null;
+  }
+}
+
+export async function fetchLatestPatches(): Promise<{
+  poe1: string;
+  poe2: string;
+} | null> {
+  const [poe1, poe2] = await Promise.all([
+    fetchLatestPatch("poe1"),
+    fetchLatestPatch("poe2"),
+  ]);
+  if (!poe1 || !poe2) return null;
+  return { poe1, poe2 };
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
   const response = url.startsWith("/")
     ? await fetch(url)
