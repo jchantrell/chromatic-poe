@@ -299,3 +299,34 @@ describe("Filter batching", () => {
     expect(filter.undoStack).toHaveLength(100);
   });
 });
+
+describe("Filter dirty tracking", () => {
+  beforeEach(() => {
+    store.autosave = false;
+    vi.mocked(chromatic.saveFilter).mockClear();
+  });
+
+  it("is not dirty when freshly created", () => {
+    expect(createTestFilter().dirty).toBe(false);
+  });
+
+  it("marks dirty on a command that changes state", () => {
+    const filter = createTestFilter();
+    filter.execute(toggleBaseCommand(filter));
+    expect(filter.dirty).toBe(true);
+  });
+
+  it("marks dirty when a batch begins", () => {
+    const filter = createTestFilter();
+    filter.beginBatch();
+    expect(filter.dirty).toBe(true);
+  });
+
+  it("clears dirty on save", async () => {
+    const filter = createTestFilter();
+    filter.beginBatch();
+    expect(filter.dirty).toBe(true);
+    await filter.save();
+    expect(filter.dirty).toBe(false);
+  });
+});

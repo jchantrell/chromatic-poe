@@ -174,6 +174,7 @@ export class Filter {
    * is open; call commitBatch() when the interaction ends.
    */
   beginBatch() {
+    this.dirty = true;
     if (!this.batchSnapshot) {
       this.batchSnapshot = clone(unwrap(this.rules));
     }
