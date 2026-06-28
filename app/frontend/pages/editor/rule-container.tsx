@@ -17,7 +17,7 @@ import {
   useDragDropContext,
 } from "@thisbeyond/solid-dnd";
 import Fuse from "fuse.js";
-import { createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
 import CreateRule from "./create-rule";
 import Item from "./item";
 import Rule from "./rule-menu-entry";
@@ -178,9 +178,15 @@ export default function Rules() {
               />
             </TextField>
           </div>
+          <Show when={!filteredItems().length}>
+            <div class='flex-1 flex items-center justify-center text-muted-foreground'>
+              No rules.
+            </div>
+          </Show>
           <div
             ref={scrollContainerRef}
             class='flex-1 min-h-0 overflow-y-auto overflow-x-hidden'
+            classList={{ hidden: !filteredItems().length }}
           >
             <ul
               class='flex flex-col relative w-full h-full'
