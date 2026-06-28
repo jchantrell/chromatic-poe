@@ -180,7 +180,7 @@ export default function Rules() {
           </div>
           <div
             ref={scrollContainerRef}
-            class='overflow-y-auto overflow-x-hidden'
+            class='flex-1 min-h-0 overflow-y-auto overflow-x-hidden'
           >
             <ul
               class='flex flex-col relative w-full h-full'
