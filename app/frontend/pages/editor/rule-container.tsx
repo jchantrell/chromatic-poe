@@ -179,8 +179,9 @@ export default function Rules() {
             </TextField>
           </div>
           <Show when={!filteredItems().length}>
-            <div class='flex-1 flex items-center justify-center text-muted-foreground'>
-              No rules.
+            <div class='flex-1 flex flex-col gap-1 items-center justify-center text-center text-muted-foreground'>
+              <span>No rules.</span>
+              <span>Click the + button below to add one.</span>
             </div>
           </Show>
           <div
