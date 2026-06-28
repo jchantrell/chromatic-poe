@@ -1,4 +1,17 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.22.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.21.0...chromatic-poe-v0.22.0) (2026-06-28)
+
+
+### Features
+
+* **editor:** disable save button when no unsaved changes ([9feb527](https://github.com/jchantrell/chromatic-poe/commit/9feb5272a68ab7eb837b8bb91345c808bda819e7))
+
+
+### Bug Fixes
+
+* **editor:** mark filter dirty when a batch edit begins ([be3f5f9](https://github.com/jchantrell/chromatic-poe/commit/be3f5f979341e4da1a89ef89f118cb290f531342))
+* **sound:** align game toggle buttons with theme palette ([6a27f05](https://github.com/jchantrell/chromatic-poe/commit/6a27f051a9988f6cbf52d8b3996614e0c9aa487e))
+
 ## [0.21.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.20.0...chromatic-poe-v0.21.0) (2026-06-28)
 
 
