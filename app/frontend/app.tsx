@@ -72,22 +72,9 @@ function TopBar() {
       data-tauri-drag-region
     >
       <div class='flex items-center w-full gap-2' data-tauri-drag-region>
-        <div class='flex items-center'>
-          <Tooltip text='Home'>
-            <Link href={BASE_URL}>
-              <HouseIcon />
-            </Link>
-          </Tooltip>
-          <Tooltip text='Manage Sounds'>
-            <Link href={`${BASE_URL}sound`}>
-              <AudioIcon />
-            </Link>
-          </Tooltip>
-        </div>
         {store.filter && (
           <>
-            <div class='h-6 w-px bg-border shrink-0' />
-            <div class='text-xl mr-4 flex '>
+            <div class='ml-2 text-xl mr-4 flex '>
               {store.filter?.name} (PoE {store.filter.poeVersion})
             </div>
             <div>
@@ -143,6 +130,16 @@ function TopBar() {
         )}
       </div>
       <div class='flex items-center'>
+        <Tooltip text='Home'>
+          <Link href={BASE_URL}>
+            <HouseIcon />
+          </Link>
+        </Tooltip>
+        <Tooltip text='Manage Sounds'>
+          <Link href={`${BASE_URL}sound`}>
+            <AudioIcon />
+          </Link>
+        </Tooltip>
         <Settings />
         {chromatic.runtime === "desktop" && (
           <>
