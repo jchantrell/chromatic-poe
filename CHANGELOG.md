@@ -1,4 +1,31 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.21.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.20.0...chromatic-poe-v0.21.0) (2026-06-28)
+
+
+### Features
+
+* **app:** consolidate sidebar nav into single top bar ([d0dbcf7](https://github.com/jchantrell/chromatic-poe/commit/d0dbcf722d8340d8b9de39df73e8ab973042ab60))
+* **app:** move home/sounds nav to right with settings ([a94538f](https://github.com/jchantrell/chromatic-poe/commit/a94538f9817e0856b7c161006c2dd59aaf2de894))
+* **app:** replace home with back-to-filters button left of filter name ([91eddee](https://github.com/jchantrell/chromatic-poe/commit/91eddeedc25dec8ef40a5deaf5dc63bc0f6f486c))
+* **app:** route-aware back button in app bar via router root layout ([514dc13](https://github.com/jchantrell/chromatic-poe/commit/514dc138fd56776d931abb51a007bb4d8977ea7d))
+* **editor:** prompt user to add a rule in empty state ([2663bcd](https://github.com/jchantrell/chromatic-poe/commit/2663bcdd647204b5a1b6a8d6a123d8fd36d34712))
+* **editor:** show 'No rules.' when list is empty ([28fcf0e](https://github.com/jchantrell/chromatic-poe/commit/28fcf0eb9006766451c2ddf54bbef6c47dfdcb05))
+* **editor:** toggle text preview with eye icon, off by default ([521333e](https://github.com/jchantrell/chromatic-poe/commit/521333ebad1c712ace0f020bffe84ab6c40f92e4))
+* **settings:** prefill poe directory picker with assumed path ([4abfae9](https://github.com/jchantrell/chromatic-poe/commit/4abfae9b6198c613872bf52f9cac668a6b4afe36))
+* **sound:** add back button to sound manager ([37da3b0](https://github.com/jchantrell/chromatic-poe/commit/37da3b0eb706b052e9d1e12f3ed480fc5ee344d6))
+* **theme:** adopt coolgrey neutral palette ([4fd0997](https://github.com/jchantrell/chromatic-poe/commit/4fd09978db858abe960a0ae5810812dc759f265f))
+
+
+### Bug Fixes
+
+* **app:** drop duplicate save toast, rely on toast.promise ([cb9dc94](https://github.com/jchantrell/chromatic-poe/commit/cb9dc940a509c77f3c06679037c983819baa167a))
+* **editor:** add right margin to rule name input ([420026e](https://github.com/jchantrell/chromatic-poe/commit/420026e65e48c960e1c6f1fb59ceb8efca6c78f4))
+* **editor:** align add-rule button to bottom of list ([f50394a](https://github.com/jchantrell/chromatic-poe/commit/f50394a70642e94a9783dcb55922c5129e440c15))
+* **editor:** clear active rule when deleted ([116eb3f](https://github.com/jchantrell/chromatic-poe/commit/116eb3f78ffbfb1994a7059bb38c6436709afda3))
+* **editor:** expand editor to full width when preview hidden ([b0f2044](https://github.com/jchantrell/chromatic-poe/commit/b0f2044ed9c4253efcc446a332f5ed3870ef5e99))
+* **editor:** move text preview toggle beside close button, fix click ([9e2088a](https://github.com/jchantrell/chromatic-poe/commit/9e2088af66a754b14f69fdc13125a1d2b31bc550))
+* **editor:** pad rule list from scrollbar and add rule button ([2595ea1](https://github.com/jchantrell/chromatic-poe/commit/2595ea1db5e9e41aa824286a061c18689ec059aa))
+
 ## [0.20.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.19.0...chromatic-poe-v0.20.0) (2026-06-27)
 
 
