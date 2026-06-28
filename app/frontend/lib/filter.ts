@@ -82,6 +82,8 @@ export class Filter {
   undoStack: Operation[][] = [];
   redoStack: Operation[][] = [];
 
+  dirty = false;
+
   private lastWriteTime = 0;
   private autosaveTimer: ReturnType<typeof setTimeout> | null = null;
   private batchSnapshot: FilterRule[] | null = null;
@@ -197,6 +199,7 @@ export class Filter {
   }
 
   scheduleAutosave() {
+    this.dirty = true;
     if (!store.autosave) return;
 
     if (this.autosaveTimer) {
@@ -216,6 +219,7 @@ export class Filter {
       if (chromatic.runtime === "desktop") {
         await chromatic.writeFilter(this, true);
       }
+      this.dirty = false;
     } catch (err) {
       console.error("Autosave failed", err);
     }
@@ -295,6 +299,7 @@ export class Filter {
   async save() {
     this.setLastUpdated(new Date());
     await chromatic.saveFilter(this);
+    this.dirty = false;
   }
 
   async writeFile() {

@@ -130,6 +130,7 @@ function TopBar() {
                 <Button
                   variant='ghost'
                   size='icon'
+                  disabled={!store.filter.dirty}
                   onMouseUp={() => {
                     store.filter?.save();
                   }}
