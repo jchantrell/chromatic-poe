@@ -186,13 +186,13 @@ export default function Rules() {
           </Show>
           <div
             ref={scrollContainerRef}
-            class='flex-1 min-h-0 overflow-y-auto overflow-x-hidden'
+            class='flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-1 mb-1'
             classList={{ hidden: !filteredItems().length }}
           >
             <ul
               class='flex flex-col relative w-full h-full'
               style={{
-                height: `${virtualizer.getTotalSize() + 4}px`,
+                height: `${virtualizer.getTotalSize()}px`,
               }}
             >
               {virtualizer.getVirtualItems().map((virtualItem) => {
