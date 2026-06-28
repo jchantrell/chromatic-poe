@@ -2,10 +2,10 @@ import { Settings } from "@app/components/settings";
 import Tooltip from "@app/components/tooltip";
 import { REDO_KEY, SAVE_KEY, UNDO_KEY, WRITE_KEY } from "@app/constants";
 import {
+  ArrowLeftIcon,
   AudioIcon,
   DownloadIcon,
   ExitIcon,
-  HouseIcon,
   MinimiseIcon,
   RedoIcon,
   SaveIcon,
@@ -74,7 +74,12 @@ function TopBar() {
       <div class='flex items-center w-full gap-2' data-tauri-drag-region>
         {store.filter && (
           <>
-            <div class='ml-2 text-xl mr-4 flex '>
+            <Tooltip text='Back to filters'>
+              <Link href={BASE_URL}>
+                <ArrowLeftIcon />
+              </Link>
+            </Tooltip>
+            <div class='text-xl mr-4 flex '>
               {store.filter?.name} (PoE {store.filter.poeVersion})
             </div>
             <div>
@@ -130,11 +135,6 @@ function TopBar() {
         )}
       </div>
       <div class='flex items-center'>
-        <Tooltip text='Home'>
-          <Link href={BASE_URL}>
-            <HouseIcon />
-          </Link>
-        </Tooltip>
         <Tooltip text='Manage Sounds'>
           <Link href={`${BASE_URL}sound`}>
             <AudioIcon />

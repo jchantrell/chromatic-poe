@@ -1,4 +1,5 @@
 export * from "./alert-triangle";
+export * from "./arrow-left";
 export * from "./alt-settings";
 export * from "./audio";
 export * from "./chevron-down";
