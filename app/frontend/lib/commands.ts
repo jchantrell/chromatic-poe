@@ -6,6 +6,7 @@ import {
 } from "@app/lib/condition";
 import type { Filter, FilterItem, FilterRule } from "@app/lib/filter";
 import { clone } from "@app/lib/utils";
+import { setActiveRule, store } from "@app/store";
 import { ulid } from "ulid";
 
 export class Command {
@@ -300,6 +301,9 @@ export function deleteRule(filter: Filter, rule: FilterRule) {
       filter.rules = filter.rules.filter((entry) => entry.id !== rule.id);
     }),
   );
+  if (store.activeRule?.id === rule.id) {
+    setActiveRule(null);
+  }
 }
 
 export function excuteCmd(filter: Filter, fn: (...rest: unknown[]) => unknown) {
