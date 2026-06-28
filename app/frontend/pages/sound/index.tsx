@@ -2,7 +2,7 @@ import Background from "@app/components/background";
 import { Loading } from "@app/components/loading";
 import SoundPlayer from "@app/components/sound-player";
 import Tooltip from "@app/components/tooltip";
-import { ArrowLeftIcon, RefreshIcon, TrashIcon } from "@app/icons";
+import { RefreshIcon, TrashIcon } from "@app/icons";
 import chromatic from "@app/lib/config";
 import type { Sound } from "@app/lib/sounds";
 import { refreshSounds, setSounds, store } from "@app/store";
@@ -16,7 +16,6 @@ import {
   SliderValueLabel,
 } from "@app/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@app/ui/toggle-group";
-import { useNavigate } from "@solidjs/router";
 import { createSignal, For, onMount, Show } from "solid-js";
 
 function SoundFile(props: {
@@ -52,7 +51,6 @@ function SoundFile(props: {
 }
 
 export default function SoundManager() {
-  const navigate = useNavigate();
   const [volume, setVolume] = createSignal(50);
   const [init, setInit] = createSignal(false);
   const [version, setVersion] = createSignal<1 | 2>(2);
@@ -134,19 +132,6 @@ export default function SoundManager() {
         <div class='flex flex-col mb-2 w-4/5 h-full'>
           <div class='flex justify-between'>
             <div class='flex items-center gap-2'>
-              <Tooltip text='Back'>
-                <button
-                  type='button'
-                  class='p-2 hover:bg-primary/10'
-                  onClick={() =>
-                    window.history.length > 1
-                      ? navigate(-1)
-                      : navigate(import.meta.env.BASE_URL)
-                  }
-                >
-                  <ArrowLeftIcon />
-                </button>
-              </Tooltip>
               {chromatic.runtime === "desktop" && (
                 <ToggleGroup
                   value={String(version())}

@@ -33,9 +33,9 @@ import {
   ColorModeScript,
   createLocalStorageManager,
 } from "@kobalte/core";
-import { Route, Router } from "@solidjs/router";
+import { Route, Router, useLocation, useNavigate } from "@solidjs/router";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
-import { createSignal, type JSXElement, onMount } from "solid-js";
+import { createSignal, type JSXElement, onMount, Show } from "solid-js";
 import { toast } from "solid-sonner";
 import "./app.css";
 import { input } from "./lib/input";
@@ -66,19 +66,38 @@ function Link(props: {
 }
 
 function TopBar() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const onLoadScreen = () => location.pathname === BASE_URL;
+
+  function goBack() {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(BASE_URL);
+    }
+  }
+
   return (
     <nav
       class='w-full flex justify-between items-center bg-muted h-12'
       data-tauri-drag-region
     >
       <div class='flex items-center w-full gap-2' data-tauri-drag-region>
+        <Show when={!onLoadScreen()}>
+          <Tooltip text='Back'>
+            <Button
+              class='h-14 w-14'
+              variant='ghost'
+              size='icon'
+              onClick={goBack}
+            >
+              <ArrowLeftIcon />
+            </Button>
+          </Tooltip>
+        </Show>
         {store.filter && (
           <>
-            <Tooltip text='Back to filters'>
-              <Link href={BASE_URL}>
-                <ArrowLeftIcon />
-              </Link>
-            </Tooltip>
             <div class='text-xl mr-4 flex '>
               {store.filter?.name} (PoE {store.filter.poeVersion})
             </div>
@@ -169,18 +188,21 @@ function TopBar() {
   );
 }
 
-function Main() {
+function AppLayout(props: { children?: JSXElement }) {
   return (
-    <main
-      class='rounded-tl-xl absolute inset-0'
-      onContextMenu={(e) => e.preventDefault()}
+    <div
+      class={`flex flex-col h-screen size-full fixed inset-0 font-${store.font}`}
     >
-      <Router>
-        <Route path={BASE_URL} component={() => <LoadScreen />} />
-        <Route path={`${BASE_URL}:filter`} component={() => <Editor />} />
-        <Route path={`${BASE_URL}sound`} component={() => <SoundManager />} />
-      </Router>
-    </main>
+      <TopBar />
+      <div class='flex-1 relative overflow-hidden'>
+        <main
+          class='rounded-tl-xl absolute inset-0'
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          {props.children}
+        </main>
+      </div>
+    </div>
   );
 }
 
@@ -281,14 +303,11 @@ function App() {
         storageManager={storageManager}
         initialColorMode='dark'
       >
-        <div
-          class={`flex flex-col h-screen size-full fixed inset-0 font-${store.font}`}
-        >
-          <TopBar />
-          <div class='flex-1 relative overflow-hidden'>
-            <Main />
-          </div>
-        </div>
+        <Router root={AppLayout}>
+          <Route path={BASE_URL} component={() => <LoadScreen />} />
+          <Route path={`${BASE_URL}:filter`} component={() => <Editor />} />
+          <Route path={`${BASE_URL}sound`} component={() => <SoundManager />} />
+        </Router>
         <Toaster
           theme='dark'
           toastOptions={{
