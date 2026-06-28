@@ -269,10 +269,12 @@ class Chromatic {
   }
 
   async pickPoeDirectory(version: 1 | 2): Promise<string | null> {
+    const [, defaultPath] = await to(this.getPoeDirectory(version));
     const selected = await openDialog({
       directory: true,
       multiple: false,
       title: `Select Path of Exile${version === 2 ? " 2" : ""} Directory`,
+      defaultPath: defaultPath ?? undefined,
     });
     return selected;
   }
