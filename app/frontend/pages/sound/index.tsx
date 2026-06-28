@@ -141,13 +141,13 @@ export default function SoundManager() {
                 >
                   <ToggleGroupItem
                     value='1'
-                    class='px-3 data-pressed:bg-neutral-700 bg-neutral-700/25 border border-accent'
+                    class='px-3 border border-accent bg-accent data-pressed:bg-background'
                   >
                     PoE 1
                   </ToggleGroupItem>
                   <ToggleGroupItem
                     value='2'
-                    class='px-3 data-pressed:bg-neutral-700 bg-neutral-700/25 border border-accent'
+                    class='px-3 border border-accent bg-accent data-pressed:bg-background'
                   >
                     PoE 2
                   </ToggleGroupItem>
