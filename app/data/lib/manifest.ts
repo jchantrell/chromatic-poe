@@ -55,25 +55,19 @@ export function coreFingerprint(input: {
 }
 
 export interface GapDiff {
-  filledBase: string[];
-  newGaps: GapEntry[];
+  newBase: string[];
 }
 
 export function diffGaps(prev: GapEntry[], next: GapEntry[]): GapDiff {
   const prevByName = new Map(prev.map((g) => [g.name, g]));
-  const nextByName = new Map(next.map((g) => [g.name, g]));
 
-  const filledBase = prev
-    .filter((g) => g.missingBase)
-    .filter((g) => !nextByName.get(g.name)?.missingBase)
+  const newBase = next
+    .filter((g) => !g.retired && g.missingBase)
+    .filter((g) => !prevByName.get(g.name)?.missingBase)
     .map((g) => g.name)
     .sort();
 
-  const newGaps = next
-    .filter((g) => !prevByName.has(g.name))
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  return { filledBase, newGaps };
+  return { newBase };
 }
 
 export async function loadPreviousManifest(

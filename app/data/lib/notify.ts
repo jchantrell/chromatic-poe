@@ -2,6 +2,7 @@ import { diffGaps, type Manifest } from "./manifest.js";
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const MAX_CONTENT_LENGTH = 2000;
+const MAX_LISTED = 25;
 
 export async function notifyFailure(
   game: string,
@@ -27,41 +28,37 @@ export async function notifyChange(
   prev: Manifest | null,
   next: Manifest,
 ): Promise<void> {
-  const header = prev ? "Data updated" : "New patch";
-  let content = `**${header} — ${game} ${version}**\nItems: ${next.itemCount}, Uniques: ${next.uniqueCount}`;
+  const totalBaseGaps = next.gaps.filter(
+    (g) => !g.retired && g.missingBase,
+  ).length;
 
-  if (prev) {
-    const { filledBase, newGaps } = diffGaps(prev.gaps, next.gaps);
-    if (filledBase.length) {
-      content += `\n\n**Base types filled (${filledBase.length}):**\n`;
-      content += filledBase.map((n) => `- ${n}`).join("\n");
+  if (!prev) {
+    let content = `**New patch — ${game} ${version}**\nItems: ${next.itemCount}, Uniques: ${next.uniqueCount}`;
+    if (totalBaseGaps) {
+      content += `\n\n**Base gaps:** ${totalBaseGaps} unique(s) missing base type`;
     }
-    if (newGaps.length) {
-      content += `\n\n**New gaps (${newGaps.length}):**\n`;
-      content += newGaps
-        .map((g) => {
-          const issues = [];
-          if (g.missingBase) issues.push("base");
-          if (g.missingPoeladder) issues.push("poeladder");
-          return `- ${g.name} (${issues.join(", ")})`;
-        })
-        .join("\n");
-    }
-    if (!filledBase.length && !newGaps.length) {
-      content += "\n\n(core data changed)";
-    }
+    await send(content);
+    return;
   }
 
-  const active = next.gaps.filter((g) => !g.retired);
-  const remainingBase = active.filter((g) => g.missingBase).length;
-  const remainingLadder = active.filter((g) => g.missingPoeladder).length;
-  if (remainingBase || remainingLadder) {
-    content += `\n\n**Remaining gaps:** ${remainingBase} base, ${remainingLadder} poeladder`;
-  } else {
-    content += "\n\nAll drop-enabled uniques fully enriched.";
+  const { newBase } = diffGaps(prev.gaps, next.gaps);
+  if (!newBase.length) return;
+
+  let content = `**Base gaps — ${game} ${version} (${newBase.length} new)**\n`;
+  content += formatList(newBase);
+  if (totalBaseGaps > newBase.length) {
+    content += `\n\n**Total base gaps:** ${totalBaseGaps}`;
   }
 
   await send(content);
+}
+
+function formatList(names: string[]): string {
+  const shown = names.slice(0, MAX_LISTED).map((n) => `- ${n}`);
+  if (names.length > MAX_LISTED) {
+    shown.push(`- … and ${names.length - MAX_LISTED} more`);
+  }
+  return shown.join("\n");
 }
 
 async function send(content: string): Promise<void> {
