@@ -1,4 +1,12 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.22.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.22.0...chromatic-poe-v0.22.1) (2026-07-22)
+
+
+### Bug Fixes
+
+* **data:** decode HTML entities in wiki cargo responses ([38d0a08](https://github.com/jchantrell/chromatic-poe/commit/38d0a0865013b7a10fdafbc2a7f846f03031fbfc))
+* **data:** only alert on real problems, not data churn ([d53948e](https://github.com/jchantrell/chromatic-poe/commit/d53948eb5eeeacc64ec5e36ccf7b045745921e31))
+
 ## [0.22.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.21.0...chromatic-poe-v0.22.0) (2026-06-28)
 
 
