@@ -1,3 +1,5 @@
+import { decodeEntities } from "../../frontend/lib/html.js";
+
 export interface Unique {
   name: string;
   base: string;
@@ -48,8 +50,8 @@ export async function queryWiki(patch: string): Promise<Unique[]> {
 
     for (const entry of data.cargoquery) {
       allResults.push({
-        name: entry.title.name,
-        base: entry.title["base item"],
+        name: decodeEntities(entry.title.name),
+        base: decodeEntities(entry.title["base item"] ?? ""),
       });
     }
 

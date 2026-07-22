@@ -1,5 +1,6 @@
 import { toast } from "solid-sonner";
 import { proxyFetch } from "./fetch";
+import { decodeEntities } from "./html";
 import type { IDBManager } from "./idb";
 
 export type Unique = {
@@ -77,10 +78,11 @@ export class WikiManager {
 
     const db = await this.db.getInstance();
     for (const uniq of [...results, ...res.cargoquery]) {
-      const cacheKey = `${patch}/${uniq.title.name}`;
+      const name = decodeEntities(uniq.title.name);
+      const cacheKey = `${patch}/${name}`;
       const v: Unique = {
-        name: uniq.title.name,
-        base: uniq.title["base item"],
+        name,
+        base: decodeEntities(uniq.title["base item"] ?? ""),
       };
       uniques.push(v);
       await db.put("uniques", v, cacheKey);
