@@ -54,6 +54,20 @@ function getIcon(node: TreeNode) {
   return getIcon(node.children[0]);
 }
 
+const REMOVED_BRANCH = "Removed From Game";
+
+function removedBranch(bases: FilterItem[]): NestedData {
+  const branch: NestedData = {};
+  for (const base of bases) {
+    branch[base.name] = {
+      name: base.name,
+      base: base.base,
+      category: base.category,
+    } as Item;
+  }
+  return branch;
+}
+
 function rollup(
   branchData: NestedData,
   branchName: string,
@@ -173,8 +187,30 @@ function Node(props: {
 
 export function ItemPicker(props: { rule: FilterRule }) {
   const [searchTerm, setSearchTerm] = createSignal("");
+
+  function buildHierarchy(term: string): BranchNode {
+    const data = term
+      ? itemIndex.generateHierarchy(
+          itemIndex.search(`'${term}`).map((result) => result.item),
+        )
+      : itemIndex.hierarchy;
+
+    const lowered = term.toLowerCase();
+    const removed = itemIndex
+      .findRemoved(props.rule.bases)
+      .filter((base) => !term || base.name.toLowerCase().includes(lowered));
+
+    return rollup(
+      removed.length
+        ? { [REMOVED_BRANCH]: removedBranch(removed), ...data }
+        : data,
+      "Items",
+      props.rule.bases,
+    );
+  }
+
   const itemHierarchy = createMutable({
-    hierarchy: rollup(itemIndex.hierarchy, "Items", props.rule.bases),
+    hierarchy: buildHierarchy(""),
   });
 
   function toggle(node: TreeNode, enabled: boolean): void {
@@ -251,14 +287,7 @@ export function ItemPicker(props: { rule: FilterRule }) {
 
   createEffect(
     on(searchTerm, () => {
-      const results = itemIndex.search(
-        searchTerm() !== "" ? `'${searchTerm()}` : "",
-      );
-      itemHierarchy.hierarchy = rollup(
-        itemIndex.generateHierarchy(results.map((result) => result.item)),
-        "Items",
-        props.rule.bases,
-      );
+      itemHierarchy.hierarchy = buildHierarchy(searchTerm());
     }),
   );
 

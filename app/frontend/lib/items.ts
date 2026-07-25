@@ -1,6 +1,6 @@
 import { recursivelySetKeys } from "@app/lib/utils";
 import Fuse, { type FuseResult } from "fuse.js";
-import type { Item } from "./filter";
+import type { FilterItem, Item } from "./filter";
 
 type Hierarchy = { [key: string]: Item | Hierarchy };
 
@@ -8,6 +8,7 @@ class ItemIndex {
   searchIndex: Fuse<Item> | null = null;
   hierarchy: Hierarchy = {};
   classes: string[] = [];
+  names: Set<string> = new Set();
   itemTable: { [key: string]: { [key: string]: Item } } = {};
   allItems: Item[] = [];
   patch!: string;
@@ -20,6 +21,16 @@ class ItemIndex {
 
   findItemByName(name: string) {
     return this.allItems.find((item) => item.name === name);
+  }
+
+  /**
+   * Bases the loaded patch no longer knows about. Matched on name alone so an
+   * item that merely moved category is not reported as removed. Returns nothing
+   * while the index is empty, so a failed data load cannot flag every base.
+   */
+  findRemoved(bases: FilterItem[]): FilterItem[] {
+    if (!this.names.size) return [];
+    return bases.filter((base) => !this.names.has(base.name));
   }
 
   initV1(items: Item[], patch: string) {
@@ -36,6 +47,7 @@ class ItemIndex {
 
     const itemTable: { [key: string]: { [key: string]: Item } } = {};
     const classes = new Set<string>();
+    const names = new Set<string>();
 
     for (const item of items) {
       // lookup table
@@ -43,6 +55,8 @@ class ItemIndex {
         itemTable[item.category] = {};
       }
       itemTable[item.category][item.name] = item;
+
+      names.add(item.name);
 
       // classes
       if (item.itemClass && item.itemClass !== "") {
@@ -58,6 +72,7 @@ class ItemIndex {
 
     this.hierarchy = this.generateHierarchy(items);
     this.itemTable = itemTable;
+    this.names = names;
     // Mutate existing array to preserve references (used by conditionTypes)
     this.classes.length = 0;
     this.classes.push(...Array.from(classes).sort());
@@ -78,6 +93,7 @@ class ItemIndex {
 
     const itemTable: { [key: string]: { [key: string]: Item } } = {};
     const classes = new Set<string>();
+    const names = new Set<string>();
 
     for (const item of items) {
       // lookup table
@@ -85,6 +101,8 @@ class ItemIndex {
         itemTable[item.category] = {};
       }
       itemTable[item.category][item.name] = item;
+
+      names.add(item.name);
 
       // classes
       if (item.itemClass && item.itemClass !== "") {
@@ -100,6 +118,7 @@ class ItemIndex {
 
     this.hierarchy = this.generateHierarchy(items);
     this.itemTable = itemTable;
+    this.names = names;
     // Mutate existing array to preserve references (used by conditionTypes)
     this.classes.length = 0;
     this.classes.push(...Array.from(classes).sort());
