@@ -62,7 +62,7 @@ WITH ITEMS AS (
   ${TableNames.BaseItemTypes}.Height as 'height',
   ${TableNames.BaseItemTypes}.Width as 'width',
 
-  ${TableNames.HeistObjectives}.Name as 'heistObj',
+  ${TableNames.HeistObjectives}._index as 'heistObj',
 
   ${TableNames.ItemClasses}.CanBeCorrupted as corruptable,
   (CASE
