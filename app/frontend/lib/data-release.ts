@@ -3,7 +3,7 @@ import type { Item } from "./filter";
 import type { IDBManager } from "./idb";
 import type { MinimapCoords } from "./minimap";
 import type { Mod } from "./mods";
-import { gameFromPatch } from "./patch";
+import { gameFromPatch, isValidPatch } from "./patch";
 import { to } from "./utils";
 
 const RELEASE_BASE =
@@ -47,7 +47,7 @@ async function fetchLatestPatch(game: "poe1" | "poe2"): Promise<string | null> {
     const pointer = await fetchJson<LatestPointer>(
       `${RELEASE_BASE}/data-${game}-latest/latest.json`,
     );
-    return pointer.version ?? null;
+    return isValidPatch(pointer.version) ? pointer.version : null;
   } catch (err) {
     console.warn(`[data-release] failed to resolve latest ${game}`, err);
     return null;

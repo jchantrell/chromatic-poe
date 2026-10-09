@@ -8,7 +8,7 @@ import type { Item } from "./filter";
 import { IDBManager } from "./idb";
 import { MinimapManager } from "./minimap";
 import { ModManager } from "./mods";
-import { comparePatches, gameFromPatch, isPoE2 } from "./patch";
+import { comparePatches, gameFromPatch, isPoE2, isValidPatch } from "./patch";
 import { getQuery, TABLES } from "./queries";
 import { to } from "./utils";
 import { WikiManager } from "./wiki";
@@ -602,10 +602,12 @@ export class DatManager {
       );
     }
     const data = await response.json();
-    return {
-      poe1: data.poe,
-      poe2: data.poe2,
-    };
+    if (!isValidPatch(data.poe) || !isValidPatch(data.poe2)) {
+      throw new Error(
+        `Version service returned invalid versions: ${JSON.stringify(data)}`,
+      );
+    }
+    return { poe1: data.poe, poe2: data.poe2 };
   }
 }
 
