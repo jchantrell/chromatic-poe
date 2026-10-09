@@ -23,8 +23,8 @@ import { Slider, SliderFill, SliderThumb, SliderTrack } from "@app/ui/slider";
 import { Switch, SwitchControl, SwitchThumb } from "@app/ui/switch";
 import { TextField, TextFieldInput } from "@app/ui/text-field";
 import { ToggleGroup, ToggleGroupItem } from "@app/ui/toggle-group";
-import { createVirtualizer } from "@tanstack/solid-virtual";
 import { debounce } from "@solid-primitives/scheduled";
+import { createVirtualizer } from "@tanstack/solid-virtual";
 import { createEffect, createMemo, createSignal, For } from "solid-js";
 
 type FilteredConditionKey = Exclude<ConditionKey, ConditionKey.BASE_TYPE>;

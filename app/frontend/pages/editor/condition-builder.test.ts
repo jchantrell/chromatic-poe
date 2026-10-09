@@ -46,10 +46,10 @@ vi.mock("@app/lib/items", () => ({ itemIndex: {} }));
 import { removeCondition } from "@app/lib/commands";
 import {
   ConditionKey,
+  type Conditions,
+  createCondition,
   MissingUniquesCondition,
   UniqueTiersCondition,
-  createCondition,
-  type Conditions,
 } from "@app/lib/condition";
 import { Filter, type FilterRule } from "@app/lib/filter";
 

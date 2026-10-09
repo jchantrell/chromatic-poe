@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { modIndex, enchantIndex, type Mod } from "./mods";
+import { enchantIndex, type Mod, modIndex } from "./mods";
 
 describe("ModIndex", () => {
   it("includes mods without bases in search results", () => {

@@ -1,5 +1,5 @@
-import type { UniqueCollectionDisplay } from "@app/lib/filter";
 import { proxyFetch } from "@app/lib/fetch";
+import type { UniqueCollectionDisplay } from "@app/lib/filter";
 import { toast } from "solid-sonner";
 
 const BASE_URL = "https://poeladder.com/api/v1";

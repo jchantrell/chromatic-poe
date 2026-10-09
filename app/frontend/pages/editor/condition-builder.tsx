@@ -3,16 +3,18 @@ import { CloseIcon, PlusIcon, RefreshIcon } from "@app/icons";
 import { excuteCmd, removeCondition } from "@app/lib/commands";
 import {
   ConditionGroup,
-  conditionGroupColors,
   ConditionKey,
+  type Conditions,
+  conditionGroupColors,
   conditionTypes,
   createCondition,
-  MissingUniquesCondition,
+  type MissingUniquesCondition,
   Operator,
-  type Conditions,
-  UniqueTiersCondition,
+  type UniqueTiersCondition,
 } from "@app/lib/condition";
+import chromatic from "@app/lib/config";
 import type { FilterRule } from "@app/lib/filter";
+import { enchantIndex, modIndex } from "@app/lib/mods";
 import type { PoeladderUnique } from "@app/lib/poeladder";
 import {
   fetchAllUniques,
@@ -21,8 +23,6 @@ import {
   leagueSlugFromUrl,
   type PoeladderLeague,
 } from "@app/lib/poeladder";
-import chromatic from "@app/lib/config";
-import { enchantIndex, modIndex } from "@app/lib/mods";
 import { store } from "@app/store";
 import { Button } from "@app/ui/button";
 import {

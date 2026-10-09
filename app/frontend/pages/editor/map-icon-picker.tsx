@@ -10,9 +10,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@app/ui/popover";
 import {
   Slider,
   SliderFill,
+  SliderLabel,
   SliderThumb,
   SliderTrack,
-  SliderLabel,
 } from "@app/ui/slider";
 import { createEffect, createSignal, For, on, onMount } from "solid-js";
 

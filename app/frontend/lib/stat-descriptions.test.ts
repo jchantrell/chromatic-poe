@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  parseStatDescriptionFile,
   formatStatDescription,
-  parseMatcher,
   matchesValue,
   parseConditionLine,
+  parseMatcher,
+  parseStatDescriptionFile,
 } from "./stat-descriptions";
 
 describe("parseMatcher", () => {

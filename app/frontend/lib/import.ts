@@ -4,9 +4,9 @@ import { type Actions, Color, IconSize, Shape } from "./action";
 import {
   ConditionKey,
   type Conditions,
-  Rarity,
   createCondition,
   Operator,
+  type Rarity,
 } from "./condition";
 import type { FilterItem, FilterRule } from "./filter";
 import { itemIndex } from "./items";

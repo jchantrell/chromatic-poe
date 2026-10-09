@@ -1,6 +1,6 @@
 import { chromatic } from "@app/lib/config";
-import { DEFAULT_FONT, type FontOption } from "@app/lib/fonts";
 import type { Filter, FilterRule } from "@app/lib/filter";
+import { DEFAULT_FONT, type FontOption } from "@app/lib/fonts";
 import type { MissingUniquesCache } from "@app/lib/idb";
 import type { Sound } from "@app/lib/sounds";
 import { to } from "@app/lib/utils";

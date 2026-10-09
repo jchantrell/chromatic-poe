@@ -1,7 +1,7 @@
 import * as SQLite from "wa-sqlite";
 import SQLiteESMFactory from "wa-sqlite/dist/wa-sqlite-async.mjs";
 import wasmUrl from "wa-sqlite/dist/wa-sqlite-async.wasm?url";
-// @ts-ignore
+// @ts-expect-error
 import { IDBBatchAtomicVFS } from "wa-sqlite/src/examples/IDBBatchAtomicVFS.js";
 import { to } from "./utils";
 
