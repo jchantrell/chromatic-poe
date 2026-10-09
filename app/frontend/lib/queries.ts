@@ -1,3 +1,4 @@
+import { isPoE2 } from "./patch";
 export enum TableNames {
   BaseItemTypes = "BaseItemTypes",
   ItemVisualIdentity = "ItemVisualIdentity",
@@ -1521,7 +1522,7 @@ ${TableNames.UniqueStashLayout}.RenamedVersion IS NULL
 `;
 
 export function getQuery(patch: string, name: string): string {
-  const isV2 = patch.startsWith("4.");
+  const isV2 = isPoE2(patch);
 
   let query = "";
   if (name === "items") {

@@ -8,6 +8,7 @@ import type { Item } from "./filter";
 import { IDBManager } from "./idb";
 import { MinimapManager } from "./minimap";
 import { ModManager } from "./mods";
+import { comparePatches, gameFromPatch, isPoE2 } from "./patch";
 import { getQuery, TABLES } from "./queries";
 import { to } from "./utils";
 import { WikiManager } from "./wiki";
@@ -24,18 +25,6 @@ interface Header {
     boolean?: object;
     key?: { foreign: boolean };
   };
-}
-
-function compareVersions(a: string, b: string): number {
-  const pa = a.split(".");
-  const pb = b.split(".");
-  const len = Math.max(pa.length, pb.length);
-  for (let i = 0; i < len; i++) {
-    const diff =
-      (Number.parseInt(pa[i], 10) || 0) - (Number.parseInt(pb[i], 10) || 0);
-    if (diff !== 0) return diff;
-  }
-  return 0;
 }
 
 export class DatManager {
@@ -289,8 +278,8 @@ export class DatManager {
     if (!this.schema) await this.importSchema();
     if (!this.schema) throw new Error("Failed to load schema");
 
-    const isPoE2 = this.patch.startsWith("4.");
-    const validFor = isPoE2 ? ValidFor.PoE2 : ValidFor.PoE1;
+    const poe2 = isPoE2(this.patch);
+    const validFor = poe2 ? ValidFor.PoE2 : ValidFor.PoE1;
     const tableSchema = this.schema.tables.find(
       (s) => s.name === tableName && s.validFor & validFor,
     );
@@ -299,7 +288,7 @@ export class DatManager {
       const anySchema = this.schema.tables.find((s) => s.name === tableName);
       if (anySchema) {
         console.log(
-          `Skipping ${tableName} (not valid for PoE ${isPoE2 ? "2" : "1"})`,
+          `Skipping ${tableName} (not valid for PoE ${poe2 ? "2" : "1"})`,
         );
         return;
       }
@@ -317,7 +306,7 @@ export class DatManager {
 
       const paths = [`Data/${tableName}${ext}`];
 
-      if (isPoE2) {
+      if (poe2) {
         paths.unshift(`data/balance/${tableName}${ext}`);
       }
 
@@ -554,7 +543,7 @@ export class DatManager {
     }
     await bundleTx.done;
 
-    const game = patch.startsWith("4.") ? "poe2" : "poe1";
+    const game = gameFromPatch(patch);
     const releaseKey = `data-${game}-${patch}/release`;
     await Promise.all([
       idb.delete("items", releaseKey),
@@ -583,7 +572,7 @@ export class DatManager {
 
     const byGame = new Map<string, string[]>();
     for (const patch of patches) {
-      const game = patch.startsWith("4.") ? "poe2" : "poe1";
+      const game = gameFromPatch(patch);
       const list = byGame.get(game) ?? [];
       list.push(patch);
       byGame.set(game, list);
@@ -591,7 +580,7 @@ export class DatManager {
 
     const stale: string[] = [];
     for (const list of byGame.values()) {
-      list.sort((a, b) => compareVersions(b, a));
+      list.sort((a, b) => comparePatches(b, a));
       stale.push(...list.slice(keepPerGame));
     }
 

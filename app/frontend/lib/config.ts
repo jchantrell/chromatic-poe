@@ -1,3 +1,4 @@
+import { isPoE2 } from "@app/lib/patch";
 import { alphabeticalSort, stringifyJSON, to } from "@app/lib/utils";
 import { setInitialised, setLocale, setSettingsOpen, store } from "@app/store";
 import { getVersion } from "@tauri-apps/api/app";
@@ -326,7 +327,7 @@ class Chromatic {
 
   async writeFilter(filter: Filter, silent = false) {
     if (this.runtime === "desktop") {
-      const version = filter.poePatch.startsWith("3") ? 1 : 2;
+      const version = isPoE2(filter.poePatch) ? 2 : 1;
       const dir = await this.getPoeDirectory(version);
       if (!dir) {
         if (platform() === "linux") {

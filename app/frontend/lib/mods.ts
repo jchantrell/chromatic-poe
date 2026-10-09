@@ -2,9 +2,10 @@ import Fuse, { type FuseResult } from "fuse.js";
 import type { BundleManager } from "./bundle";
 import type { Database } from "./db";
 import type { IDBManager } from "./idb";
+import { isPoE2 } from "./patch";
 import {
-  parseStatDescriptionFile,
   formatStatDescription,
+  parseStatDescriptionFile,
   type StatDescriptionEntry,
 } from "./stat-descriptions";
 import { to } from "./utils";
@@ -179,7 +180,7 @@ export class ModManager {
 
   async getMods(patch: string) {
     const db = await this.idb.getInstance();
-    const gameVersion = patch.startsWith("3") ? 1 : 2;
+    const gameVersion = isPoE2(patch) ? 2 : 1;
     const key = `${gameVersion}/mods`;
     return await db.get("mods", key);
   }
@@ -188,7 +189,7 @@ export class ModManager {
     patch: string,
     onProgress?: (percent: number, msg: string) => void,
   ) {
-    const gameVersion = patch.startsWith("3") ? 1 : 2;
+    const gameVersion = isPoE2(patch) ? 2 : 1;
 
     console.log("Extracting mods...");
 
@@ -300,7 +301,7 @@ export class ModManager {
   async getStatDescriptions(patch: string) {
     const lookup: Record<string, StatDescriptionEntry> = {};
 
-    const gameVersion = patch.startsWith("3") ? 1 : 2;
+    const gameVersion = isPoE2(patch) ? 2 : 1;
 
     for (const filePath of gameVersion === 1
       ? POE1_STAT_FILES

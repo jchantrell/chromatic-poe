@@ -4,6 +4,7 @@ import { fetchDataRelease } from "@app/lib/data-release";
 import type { Item } from "@app/lib/filter";
 import { itemIndex } from "@app/lib/items";
 import { enchantIndex, type Mod, modIndex } from "@app/lib/mods";
+import { isPoE2 } from "@app/lib/patch";
 import { to } from "@app/lib/utils";
 import {
   setFilter,
@@ -42,7 +43,7 @@ export default function Editor() {
 
     const filterVersion = store.filter.poePatch;
 
-    const gameVersion = filterVersion.startsWith("3") ? 1 : 2;
+    const gameVersion = isPoE2(filterVersion) ? 2 : 1;
 
     if (gameVersion === 1 && filterVersion !== currentVersions.poe1) {
       store.filter.poePatch = currentVersions.poe1;

@@ -81,8 +81,7 @@ async function extractPatchData(
   writeOutput("mods.json", mods);
 
   const mappedNames = new Set((items as { name: string }[]).map((i) => i.name));
-  const isPoE2 = patch.startsWith("4.");
-  const classCol = isPoE2 ? "ItemClass" : "ItemClassesKey";
+  const classCol = game === "poe2" ? "ItemClass" : "ItemClassesKey";
   const allBaseItems = db.query(`
     SELECT b.Name as name, ic.Name as class
     FROM "${patch}_BaseItemTypes" b

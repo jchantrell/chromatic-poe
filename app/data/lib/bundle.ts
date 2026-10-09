@@ -3,6 +3,7 @@ import {
   getFileInfo,
   readIndexBundle,
 } from "pathofexile-dat/bundles.js";
+import { isPoE2 } from "../../frontend/lib/patch.js";
 
 const BUNDLE_DIR = "Bundles2";
 const MAX_RETRIES = 3;
@@ -42,7 +43,7 @@ export class NodeBundleManager {
     const cached = this.cache.get(cacheKey);
     if (cached) return cached;
 
-    const cdnUrl = patch.startsWith("4.")
+    const cdnUrl = isPoE2(patch)
       ? "https://patch-poe2.poecdn.com"
       : "https://patch.poecdn.com";
 

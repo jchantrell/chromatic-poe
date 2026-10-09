@@ -5,6 +5,7 @@ import {
 } from "pathofexile-dat/bundles.js";
 import { proxyFetch } from "./fetch";
 import type { IDBManager } from "./idb";
+import { isPoE2 } from "./patch";
 import { to, withRetries } from "./utils";
 
 const BUNDLE_DIR = "Bundles2";
@@ -77,7 +78,7 @@ export class BundleManager {
     console.log(`Loading from CDN: ${name} ...`);
     const promise = withRetries(async () => {
       const webpath = `/${patch}/${BUNDLE_DIR}/${name}`;
-      const cdnUrl = patch.startsWith("4.")
+      const cdnUrl = isPoE2(patch)
         ? "https://patch-poe2.poecdn.com"
         : "https://patch.poecdn.com";
       const response = await proxyFetch(`${cdnUrl}${webpath}`);

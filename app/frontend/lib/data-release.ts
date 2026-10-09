@@ -3,6 +3,7 @@ import type { Item } from "./filter";
 import type { IDBManager } from "./idb";
 import type { MinimapCoords } from "./minimap";
 import type { Mod } from "./mods";
+import { gameFromPatch } from "./patch";
 import { to } from "./utils";
 
 const RELEASE_BASE =
@@ -80,7 +81,7 @@ export async function fetchDataRelease(
   patch: string,
   onProgress?: (percent: number, msg: string) => void,
 ): Promise<DataRelease> {
-  const game = patch.startsWith("4.") ? "poe2" : "poe1";
+  const game = gameFromPatch(patch);
   const tag = `data-${game}-${patch}`;
   const base = `${RELEASE_BASE}/${tag}`;
   const cacheKey = `${tag}/release`;

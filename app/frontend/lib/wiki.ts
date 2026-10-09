@@ -2,6 +2,7 @@ import { toast } from "solid-sonner";
 import { proxyFetch } from "./fetch";
 import { decodeEntities } from "./html";
 import type { IDBManager } from "./idb";
+import { isPoE2 } from "./patch";
 
 export type Unique = {
   name: string;
@@ -54,7 +55,7 @@ export class WikiManager {
     results: unknown[],
     onProgress?: (count: number) => void,
   ): Promise<Unique[]> {
-    const targetUrl = `https://www.poe${patch.startsWith("4") ? "2" : ""}wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&limit=${CARGO_LIMIT}&offset=${offset}`;
+    const targetUrl = `https://www.poe${isPoE2(patch) ? "2" : ""}wiki.net/w/api.php?action=cargoquery&tables=items&fields=items.name,items.base_item&where=items.rarity=%22Unique%22&format=json&limit=${CARGO_LIMIT}&offset=${offset}`;
 
     const req = await fetchWithRetry(targetUrl, {
       headers: {

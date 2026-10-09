@@ -1,4 +1,5 @@
 import { decodeEntities } from "../../frontend/lib/html.js";
+import { isPoE2 } from "../../frontend/lib/patch.js";
 
 export interface Unique {
   name: string;
@@ -32,9 +33,7 @@ async function fetchWithRetry(url: string): Promise<Response> {
 }
 
 export async function queryWiki(patch: string): Promise<Unique[]> {
-  const wikiDomain = patch.startsWith("4")
-    ? "www.poe2wiki.net"
-    : "www.poewiki.net";
+  const wikiDomain = isPoE2(patch) ? "www.poe2wiki.net" : "www.poewiki.net";
 
   const allResults: Unique[] = [];
   let offset = 0;

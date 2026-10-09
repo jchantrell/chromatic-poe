@@ -1,6 +1,7 @@
 import { createRequire } from "node:module";
-import { resolve, dirname } from "node:path";
+import { dirname, resolve } from "node:path";
 import { SCHEMA_URL, type SchemaFile, ValidFor } from "pathofexile-dat-schema";
+import { isPoE2 } from "../../frontend/lib/patch.js";
 import type { NodeBundleManager } from "./bundle.js";
 import type { NodeDatabase } from "./db.js";
 
@@ -64,8 +65,8 @@ export class NodeDatManager {
     if (!this.schema) await this.importSchema();
     if (!this.schema) throw new Error("Failed to load schema");
 
-    const isPoE2 = patch.startsWith("4.");
-    const validFor = isPoE2 ? ValidFor.PoE2 : ValidFor.PoE1;
+    const poe2 = isPoE2(patch);
+    const validFor = poe2 ? ValidFor.PoE2 : ValidFor.PoE1;
     const tableSchema = this.schema.tables.find(
       (s) => s.name === tableName && s.validFor & validFor,
     );
@@ -74,7 +75,7 @@ export class NodeDatManager {
       const anySchema = this.schema.tables.find((s) => s.name === tableName);
       if (anySchema) {
         console.log(
-          `Skipping ${tableName} (not valid for PoE ${isPoE2 ? "2" : "1"})`,
+          `Skipping ${tableName} (not valid for PoE ${poe2 ? "2" : "1"})`,
         );
         return;
       }
@@ -91,7 +92,7 @@ export class NodeDatManager {
       if (content) break;
 
       const paths = [`Data/${tableName}${ext}`];
-      if (isPoE2) {
+      if (poe2) {
         paths.unshift(`data/balance/${tableName}${ext}`);
       }
 
@@ -104,9 +105,7 @@ export class NodeDatManager {
             console.log(`Found ${path}`);
             break;
           }
-        } catch {
-          continue;
-        }
+        } catch {}
       }
     }
 

@@ -1,6 +1,7 @@
+import { isPoE2 } from "../../frontend/lib/patch.js";
 import {
-  parseStatDescriptionFile,
   formatStatDescription,
+  parseStatDescriptionFile,
   type StatDescriptionEntry,
 } from "../../frontend/lib/stat-descriptions.js";
 import type { NodeBundleManager } from "./bundle.js";
@@ -204,7 +205,7 @@ export async function extractMods(
   db: NodeDatabase,
   loader: NodeBundleManager,
 ): Promise<Mod[]> {
-  const gameVersion = patch.startsWith("3") ? 1 : 2;
+  const gameVersion = isPoE2(patch) ? 2 : 1;
 
   console.log("Extracting mods...");
 

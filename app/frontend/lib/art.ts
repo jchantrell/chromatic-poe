@@ -1,9 +1,10 @@
-// @ts-ignore
+// @ts-expect-error
 import dxt from "dxt-js";
 import { decodeBC7 } from "./bc7";
 import type { BundleManager } from "./bundle";
 import { parseDds } from "./dds";
 import type { IDBManager } from "./idb";
+import { isPoE2 } from "./patch";
 import { to } from "./utils";
 
 const TINCTURE_SUFFIX = [
@@ -33,7 +34,7 @@ export class ArtManager {
     const db = await this.db.getInstance();
     const missing: { name: string; path: string }[] = [];
 
-    const gameVersion = patch.startsWith("3") ? 1 : 2;
+    const gameVersion = isPoE2(patch) ? 2 : 1;
 
     for (const img of imgs) {
       if (!img.path) continue;
@@ -100,7 +101,7 @@ export class ArtManager {
     if (!patch || !this.db) {
       return;
     }
-    const gameVersion = patch.startsWith("3") ? 1 : 2;
+    const gameVersion = isPoE2(patch) ? 2 : 1;
     const cacheKey = `${gameVersion}/${name}`;
 
     if (this.urlCache.has(cacheKey)) {

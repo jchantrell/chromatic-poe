@@ -3,6 +3,7 @@ import { recursivelySetKeys } from "@app/lib/utils";
 import { toast } from "solid-sonner";
 import type { ArtManager } from "./art";
 import type { IDBManager } from "./idb";
+import { isPoE2 } from "./patch";
 
 const WIDTH = 64;
 const HEIGHT = 64;
@@ -28,7 +29,7 @@ export class MinimapManager {
 
   async getIcons(patch: string): Promise<MinimapCoords | undefined> {
     const db = await this.db.getInstance();
-    const gameVersion = patch.startsWith("3") ? 1 : 2;
+    const gameVersion = isPoE2(patch) ? 2 : 1;
     const coordsKey = `${gameVersion}/coords`;
     const coords = await db.get("minimap", coordsKey);
 
@@ -44,7 +45,7 @@ export class MinimapManager {
   async extract(patch: string, icons: { Id: string }[]) {
     console.log("Extracting minimap icons...");
     const table = {};
-    const gameVersion = patch.startsWith("3") ? 1 : 2;
+    const gameVersion = isPoE2(patch) ? 2 : 1;
 
     await this.art.ensureCached(patch, [
       {
