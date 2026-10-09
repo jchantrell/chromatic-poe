@@ -17,11 +17,21 @@ jobs:
       poe1_version: ${{ steps.versions.outputs.poe1 }}
       poe2_version: ${{ steps.versions.outputs.poe2 }}
     steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            .nvmrc
+            app/data/lib/versions.ts
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
       - name: Fetch versions
         id: versions
         run: |
-          VERSIONS=$(curl -sf https://poe-versions.obsoleet.org/)
-          echo "poe1=$(echo "$VERSIONS" | jq -r '.poe')" >> "$GITHUB_OUTPUT"
+          VERSIONS=$(node app/data/lib/versions.ts)
+          echo "Versions: $VERSIONS"
+          echo "poe1=$(echo "$VERSIONS" | jq -r '.poe1')" >> "$GITHUB_OUTPUT"
           echo "poe2=$(echo "$VERSIONS" | jq -r '.poe2')" >> "$GITHUB_OUTPUT"
 
   extract-poe1:
