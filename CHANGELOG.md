@@ -1,4 +1,17 @@
 See [releases](https://github.com/jchantrell/chromatic-poe/releases) for all versions.
+## [0.22.1](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.22.0...chromatic-poe-v0.22.1) (2026-10-09)
+
+
+### Bug Fixes
+
+* **data:** decode HTML entities in wiki cargo responses ([38d0a08](https://github.com/jchantrell/chromatic-poe/commit/38d0a0865013b7a10fdafbc2a7f846f03031fbfc))
+* **data:** fetch versions from GGG patch servers ([9b6561c](https://github.com/jchantrell/chromatic-poe/commit/9b6561c8452f33897c5f37cd2f49faf0de11bba3))
+* **data:** only alert on real problems, not data churn ([d53948e](https://github.com/jchantrell/chromatic-poe/commit/d53948eb5eeeacc64ec5e36ccf7b045745921e31))
+* **data:** use HeistObjectives._index after upstream schema dropped Name ([115ef93](https://github.com/jchantrell/chromatic-poe/commit/115ef933c35ff2072e12a6c3302d628d5e7d50ab))
+* detect PoE2 from 0.x patch versions ([c252368](https://github.com/jchantrell/chromatic-poe/commit/c2523686e168bb7ab9fe3c2b5b5be22b445f4bc9))
+* **editor:** surface bases removed from game data in item picker ([9ae6888](https://github.com/jchantrell/chromatic-poe/commit/9ae688894e27cf26a6103a3cff3e549f214e93ee))
+* reject invalid patch versions in app ([1a40b1f](https://github.com/jchantrell/chromatic-poe/commit/1a40b1fe72814beeea7d986b341024efae8d78a1))
+
 ## [0.22.0](https://github.com/jchantrell/chromatic-poe/compare/chromatic-poe-v0.21.0...chromatic-poe-v0.22.0) (2026-06-28)
 
 
